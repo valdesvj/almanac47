@@ -50,7 +50,8 @@ each character at its C47 pixel position; the text export uses a fixed-column la
   The list is in decreasing SHA order, as in the almanac. `SBRT` gives them by brightness.
 - Table rule (ALMF, HALMV, ALMT): 10 rows. The Sun always; then the Moon and the
   planets if Hc > 0; then the brightest stars with Hc > 10 deg until the table is full.
-  HORZ shows the 5 brightest stars above 10 deg.
+  HORZ and HORZS show the same bodies (the Sun below the horizon is listed in the HORZ
+  info loop but not drawn). The HORZ info loop is endless.
 - Below the horizon (Hc < 0, in practice only the Sun): Hc underlined in ALMF/HALMV,
   line starts with `* ` in ALMT.
 - Horizon charts: north latitude has S in the centre (N E S W N), south latitude has
@@ -93,11 +94,10 @@ dots exactly on the horizon match. `tools/js/c47engine.js` lacks SF/FS? (referen
 
 ## Minimum calculator set
 
-`tools/build_navfull.py` writes `build/NAVFULL.txt` (resident: NAV with 3 options, ALMF,
-HALMV, ALMT and what they call; fonts trimmed to the printed characters; PTXT without
-PTNS/PT1), `build/NAVINIT.txt` (matrix builders + INIT, run once and delete) and
-`build/TBL.txt`. Checked in the simulator: identical screens and step counts to the
-full set, with and without tables. Rebuild after changing any program.
+`tools/build_navfull.py` writes `build/NAVFULL.txt` (resident: NAV with 4 options, ALMF,
+HALMV, ALMT, HORZ and what they call; fonts trimmed to the printed characters), `build/NAVINIT.txt` (matrix builders + INIT, run once and delete) and
+`build/TBL.txt`. Checked in the simulator (`tests/test_navfull.py`): identical screens, HORZ frames, ALMT pages
+and step counts to the full set, with and without tables. Rebuild after changing any program.
 
 ## Ideas tried and dropped (PC version)
 

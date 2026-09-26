@@ -149,8 +149,9 @@ extras/  DM42/Free42 graphics tests (AGDEMO_DM42, AGTEST_DM42 - do NOT use the
          C47 converter on these) and AGTEST_C47 (PIXEL test).
 
 NAV   start program with prompts (does not change any other program)
-      XEQ "NAV" -> "1 ALMANAC 2 HORIZON 3 INIT 0 END": key the number, R/S.
-      1 = ALMF page, 2 = HALMV chart + data, 3 = run MATA and MATST (first time).
+      XEQ "NAV" -> "1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 0 END": key the number, R/S.
+      1 = ALMF page, 2 = HALMV chart + data, 3 = build the matrices (first time),
+      4 = ALMT text almanac, 5 = HORZ sky chart with the info line (endless, R/S stops).
       Then it asks (INPUT, R/S keeps the value shown):
         DATE  YYYY.MMDD   e.g. 2026.0923
         UTC   HH.MMSS     e.g. 23.3000
@@ -183,8 +184,11 @@ Check 23 Sep 2026 19:00 UT (JD 2461307.29167):
 ALM (Chebyshev tables) stays more accurate for Sep 2026 - Dec 2027 (0.002').
 
 HORZ / HORZS with Moon and planets (Sep 2026)
-  Shows the Sun, the Moon, Venus, Mars, Jupiter and Saturn when above the horizon,
-  and the 5 brightest stars higher than 10 deg (order by magnitude from SBRT).
+  Same bodies as ALMF, HALMV and ALMT: the Sun always, the Moon and planets above the
+  horizon, then the brightest stars higher than 10 deg (SBRT order) until 10 bodies.
+  The Sun below the horizon is not drawn; its info line shows HC with a minus sign.
+  HORZ repeats the info lines without end (after the last, the first again); R/S or
+  EXIT stops it.
   Symbols: Sun circle with dot, Moon crescent, Venus, Mars, Jupiter, Saturn signs, star + number.
   HORZ info line: SUN / MOON / VENUS ... / "18 SIRIUS"  ZN ... HC ...   (PAUSE 30 each)
   Needs also MOON, PLAN (entries MOO2, PLN2), SBRT and the MATM / MATP matrices.
@@ -235,13 +239,14 @@ BELOW-HORIZON MARK (Hc < 0)
 
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
-               3 TEXT = ALMT, one two-line page per R/S, EXIT to stop), ALMF, HALMV, ALMT,
+               3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
+               body without end; EXIT to stop), ALMF, HALMV, ALMT, HORZ,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXB / PTXT cut to the characters the screens print.
-               6,619 lines (the whole programs/ folder is 31,482).
+               7,704 lines, 46.9 KB as text (without HORZ: 6,619 lines, 40.5 KB).
   NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
-  Left out: HORZ, HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
+  Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,

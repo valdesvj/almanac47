@@ -3,8 +3,8 @@
 
 Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
 
-  NAVFULL.txt  everything that must stay on the calculator for ALMF, HALMV and ALMT
-               (menu NAV, the two screens, Sun, stars, Moon, planets, sight
+  NAVFULL.txt  everything that must stay on the calculator for ALMF, HALMV, ALMT and HORZ
+               (menu NAV, the three screens, the text almanac, Sun, stars, Moon, planets, sight
                reduction, sunrise/twilight, Moon phase, star order and names,
                the table lookup TGET and the two fonts, cut down to the
                characters the screens really print)
@@ -12,8 +12,9 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                delete these programs - the matrices they build stay
   TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
 
-Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one line per R/S).
-Not included: HORZ, HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
+Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
+4 SKY (HORZ, info line per body without end).
+Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 
   python3 tools/build_navfull.py            -> build/NAVFULL.txt, build/NAVINIT.txt, build/TBL.txt
@@ -24,7 +25,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
-KEEP = ['ALMF', 'HALMV', 'ALMT', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
+KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
         'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXB', 'PTXT']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -54,12 +55,13 @@ def trim_font(lines, keep):
 
 
 def nav_min(lines):
-    """NAV menu: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, R/S line by line)."""
+    """NAV menu: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT), 4 SKY (HORZ)."""
     s = '\n'.join(lines)
-    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 0 END"', '"1 ALMANAC 2 CHART 3 TEXT 0 END"')
-    s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n', '3\nRCL 38\nX=Y?\nGTO 13\n')
+    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 0 END"', '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 0 END"')
+    s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n5\nRCL 38\nX=Y?\nGTO 14\n',
+                  '3\nRCL 38\nX=Y?\nGTO 13\n4\nRCL 38\nX=Y?\nGTO 14\n')
     s = re.sub(r'LBL 12\n.*?GTO 01\n', '', s, flags=re.S)
-    assert 'MATA' not in s and 'XEQ "ALMT"' in s and '"1 ALMANAC 2 CHART 3 TEXT 0 END"' in s
+    assert 'MATA' not in s and 'XEQ "ALMT"' in s and 'GTO 14' in s and '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 0 END"' in s
     return s.split('\n')
 
 
@@ -67,13 +69,12 @@ def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
-    big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['SNMU'])
+    big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['SNMU'])
               + '0123456789-.: %')
-    small = set(WARNING + 'TS ')
+    # small font: warning, T/S, and HORZ (axis letters, info line: names, numbers, - .)
+    small = set(WARNING + 'TS NEWZHC-.0123456789' + strings(progs['HORZ']) + strings(progs['SNMU']))
     progs['PTXB'] = trim_font(progs['PTXB'], big)
-    pt = trim_font(progs['PTXT'], small)
-    i = pt.index('LBL "PTNS"')                     # PTNS / PT1 numbers: HORZ only
-    progs['PTXT'] = pt[:i] + ['END']
+    progs['PTXT'] = trim_font(progs['PTXT'], small)
     nav = nav_min(progs['NAV'])
     full = nav + [l for n in KEEP for l in progs[n]]
     init = (['LBL "INIT"'] + ['XEQ "%s"' % n for n in INIT] + ['"MATRICES READY"', 'RTN', 'END']

@@ -124,7 +124,10 @@ class Calc:
                 if ans: self.push(D(ans.pop(0)))
                 elif len(self.msgs)>getattr(self,'maxprompts',10**9): raise StopIteration
                 continue
-            if op == 'PAUSE': self.pauses=getattr(self,'pauses',0)+1; self.frames=getattr(self,'frames',[]); self.frames.append(list(self.pix)); continue
+            if op == 'PAUSE':
+                self.pauses=getattr(self,'pauses',0)+1; self.frames=getattr(self,'frames',[]); self.frames.append(list(self.pix))
+                if len(self.frames) >= (getattr(self,'maxpauses',None) or 10**9): raise StopIteration
+                continue
             if op == 'CLLCDxy':
                 y0=int(self.s[1]); self.pix=[p for p in self.pix if p[0]<y0]; self.frames=getattr(self,'frames',[]); continue
             if op == 'CLΣ': self.stat=[]; continue

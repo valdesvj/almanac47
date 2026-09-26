@@ -156,7 +156,7 @@ section('PHAS — Moon phase',
 
 # ---- HORZ
 section('HORZ — sky picture on the horizon',
-    'Draws a chart of the whole sky: azimuth Zn across (N–E–S–W–N, ticks every 30°), altitude Hc up (ticks and labels at 30°, 60°, 90°), the celestial equator dotted, the Sun (☉) and every navigation star above the horizon (★ with its number).',
+    'Draws a chart of the whole sky: azimuth Zn across (N–E–S–W–N, ticks every 30°), altitude Hc up (ticks and labels at 30°, 60°, 90°), the celestial equator dotted, and the same bodies as ALMF, HALMV and ALMT: the Sun (☉), the Moon and planets above the horizon, and the brightest navigation stars higher than 10° until 10 bodies (★ with its number). Then an info line for each body (name, ZN, HC), 3 s each, without end: after the last the first again; R/S or EXIT stops. The Sun below the horizon is not drawn; its info line shows HC with a minus sign.',
     ['Runs SUNA once, then STAR through entry STR2 for stars 1–58 (fast: no repeated SUNA). The celestial equator is drawn as dots every 2° of hour angle.',
      'For each object: LHA = GHA + λ; Hc = asin(sin φ sin δ + cos φ cos δ cos LHA); Zn from →POL of (−cos δ sin LHA, cos φ sin δ − sin φ cos δ cos LHA).',
      'Screen: column = 20 + Zn × 375/360; row = 225 − Hc × 200/90 (from the top; converted for the C47, which counts rows from the bottom). Only objects with Hc > 0 are drawn.',

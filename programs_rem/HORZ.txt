@@ -1,9 +1,11 @@
 LBL "HORZ"
-REM "HORZ - sky chart Hc/Zn (full screen): Sun, Moon, Venus, Mars, Jupiter, Saturn and the 5 brightest"
-REM "  stars higher than 10 deg, then an info line per object ('MOON ZN .. HC ..', '18 SIRIUS ZN ..') with PAUSE 30"
+REM "HORZ - sky chart Hc/Zn (full screen): the same bodies as ALMF/HALMV/ALMT (Sun always, Moon and planets"
+REM "  above the horizon, brightest stars higher than 10 deg until 10 bodies), then an info line per object"
+REM "  ('MOON ZN .. HC ..', '18 SIRIUS ZN ..', PAUSE 30 each), endless: after the last the first again. R/S or EXIT stops."
+REM "  The Sun below the horizon is not drawn but has its info line (HC with a minus sign)."
 REM "IN : Z = JD, Y = lat, X = lon (E+)"
 REM "Symbols (PTXB): @ Sun, ( Moon crescent, < Venus, > Mars, = Jupiter, ? Saturn, * star + number"
-REM "Objects above the horizon are kept in matrix HZT (id, Zn, Hc): id 0 Sun, -1 Moon, -2..-5 planets, n star"
+REM "Objects are kept in matrix HZT (id, Zn, Hc): id 0 Sun, -1 Moon, -2..-5 planets, n star"
 REM "Screen mapping: column R98 = 20 + Zn*375/360, row R99 (from top) = 225 - Hc*200/90, C47 y = 241 - row"
 REM "NEEDS: SUNA STAR(STR2) CHZ MOON(MOO2) PLAN(PLN2) SBRT SNMU PTXT PTXB + matrices"
 REM "REGS: R10-R14, R36 R37 R42 R44 R82 R86 R90-R99 (+ SUNA, STAR, MOON, PLAN)"
@@ -243,7 +245,7 @@ LBL 37
 REM "SUNA once, object table HZT, dotted celestial equator"
 RCL 90
 XEQ "SUNA"
-11
+10
 ENTER
 3
 NEWMAT
@@ -265,13 +267,15 @@ STO+ 86
 RCL 86
 X≤Y?
 GTO 53
-REM "Sun"
+REM "Sun: always recorded (as ALMF), drawn only above the horizon (LBL 56)"
 RCL 77
 RCL 81
 XEQ 52
 RCL 96
 X>0?
-XEQ 46
+XEQ 56
+0
+XEQ 40
 REM "Moon (MOO2 = MOON without repeating SUNA)"
 XEQ "MOO2"
 XEQ 52
@@ -291,12 +295,14 @@ X>0?
 XEQ 48
 ISG 11
 GTO 45
-REM "stars in order of brightness (SBRT) until 5 are higher than 10 deg"
+REM "stars in order of brightness (SBRT) higher than 10 deg until 10 bodies (R10), as ALMF"
 1.058
 STO 11
-0
-STO 12
 LBL 44
+10
+RCL 10
+X≥Y?
+GTO 42
 RCL 11
 IP
 XEQ "SBRT"
@@ -307,10 +313,6 @@ XEQ 52
 RCL 96
 X>Y?
 XEQ 43
-5
-RCL 12
-X≥Y?
-GTO 42
 ISG 11
 GTO 44
 LBL 42
@@ -381,7 +383,7 @@ REM "text SUN"
 "SUN"
 XEQ "PTXT"
 LBL 30
-REM "ZN value HC value (PT1), PAUSE 30, next"
+REM "ZN value HC value (PT1, minus sign by LBL 33), PAUSE 30, next, after the last the first again (LBL 34)"
 " ZN "
 XEQ "PTXT"
 RCL 97
@@ -389,6 +391,8 @@ XEQ "PT1"
 " HC "
 XEQ "PTXT"
 RCL 96
+X<0?
+XEQ 33
 XEQ "PT1"
 PAUSE 30
 1
@@ -396,8 +400,18 @@ STO+ 42
 RCL 10
 RCL 42
 X>Y?
-RTN
+XEQ 34
 GTO 35
+LBL 34
+1
+STO 42
+RTN
+LBL 33
+R↓
+"-"
+XEQ "PTXT"
+RCL 96
+RTN
 LBL 29
 REM "letter T"
 "T"
@@ -420,12 +434,6 @@ STOEL
 J+
 RCL 96
 STOEL
-RTN
-LBL 46
-REM "draw Sun, record"
-XEQ 56
-0
-XEQ 40
 RTN
 LBL 47
 REM "draw Moon symbol, record"
@@ -465,12 +473,10 @@ CHS
 XEQ 40
 RTN
 LBL 43
-REM "draw star + number, record, count R12"
+REM "draw star + number, record"
 XEQ 57
 RCL 82
 XEQ 40
-1
-STO+ 12
 RTN
 LBL 71
 REM "planet symbols: < Venus, > Mars, = Jupiter, ? Saturn"

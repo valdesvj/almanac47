@@ -112,7 +112,14 @@ class Engine:
         """Run ALMF / HALMV / HORZ / HORZS. Returns (list of frames, steps).
         A frame is a set of lit pixels (x, row) with row 0 at the top."""
         self._start(j, lat, lon)
-        self.c.run(view, maxsteps=10 ** 7)
+        self.c.maxpauses = 11 if view == 'HORZ' else None    # HORZ repeats its info frames forever
+        try:
+            self.c.run(view, maxsteps=10 ** 7)
+        except StopIteration:
+            pass
+        self.c.maxpauses = None
+        if view == 'HORZ' and self.c.frames:
+            self.c.frames = self.c.frames[:int(self.c.rget('10'))]   # one cycle (R10 objects)
         raw = self.c.frames if (view == 'HORZ' and self.c.frames) else [self.c.pix]
         frames = []
         for fr in raw:

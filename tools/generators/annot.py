@@ -90,11 +90,13 @@ A['ALM']=[('LBL "ALM"',1,'x = 2t/span - 1 -> R03; GHA series (base R10) -> R40, 
  ('LBL "HP"',1,'Moon horizontal parallax: 4 terms from R30'),('LBL "CHEB"',1,'Clenshaw sum; R08 = base register, R01 = n terms'),
  ('LBL 11',1,'recurrence b_k = 2x b_k+1 - b_k+2 + c_k (RCL+ IND 06)')]
 
-H['HORZ']=["HORZ - sky chart Hc/Zn (full screen): Sun, Moon, Venus, Mars, Jupiter, Saturn and the 5 brightest",
- "  stars higher than 10 deg, then an info line per object ('MOON ZN .. HC ..', '18 SIRIUS ZN ..') with PAUSE 30",
+H['HORZ']=["HORZ - sky chart Hc/Zn (full screen): the same bodies as ALMF/HALMV/ALMT (Sun always; Moon and planets",
+ "  above the horizon; brightest stars higher than 10 deg until 10 bodies), then an info line per object",
+ "  ('MOON ZN .. HC ..', '18 SIRIUS ZN ..', PAUSE 30 each), endless: after the last the first again. R/S or EXIT stops.",
+ "  The Sun below the horizon is not drawn but has its info line (HC with a minus sign).",
  "IN : Z = JD, Y = lat, X = lon (E+)",
  "Symbols (PTXB): @ Sun, ( Moon crescent, < Venus, > Mars, = Jupiter, ? Saturn, * star + number",
- "Objects above the horizon are kept in matrix HZT (id, Zn, Hc): id 0 Sun, -1 Moon, -2..-5 planets, n star",
+ "Objects are kept in matrix HZT (id, Zn, Hc): id 0 Sun, -1 Moon, -2..-5 planets, n star",
  "Screen mapping: column R98 = 20 + Zn*375/360, row R99 (from top) = 225 - Hc*200/90; C47 y = 241 - row",
  "NEEDS: SUNA STAR(STR2) CHZ MOON(MOO2) PLAN(PLN2) SBRT SNMU PTXT PTXB + matrices",
  "REGS: R10-R14, R36 R37 R42 R44 R82 R86 R90-R99 (+ SUNA, STAR, MOON, PLAN)"]
@@ -102,18 +104,18 @@ A['HORZ']=[('LBL "HORZ"',1,'store JD R90, lat R91, lon R92; clear screen'),('16\
  ('LBL 50',1,'Hc axis x = 18, dotted every 3 px'),('15\n20\nPIXEL',1,'Zn tick marks every 30 deg'),
  ('83\n15\nPIXEL',1,'Hc ticks and labels 30 60 90 (PTNS)'),('0\nSTO 44',1,'north: letters N E S W N, offset R44 = 0'),
  ('LBL 38',1,'south latitude: S W N E S, offset R44 = 180 (chart centred on N)'),
- ('LBL 37',1,'SUNA once; object table HZT; dotted celestial equator'),('RCL 77\nRCL 81\nXEQ 52',1,'Sun'),
+ ('LBL 37',1,'SUNA once; object table HZT; dotted celestial equator'),('RCL 77\nRCL 81\nXEQ 52',1,'Sun: always recorded (as ALMF), drawn only above the horizon (LBL 56)'),
  ('XEQ "MOO2"',1,'Moon (MOO2 = MOON without repeating SUNA)'),('1.004',1,'planets 1-4 (PLN2 = PLAN without SUNA)'),
- ('1.058',1,'stars in order of brightness (SBRT) until 5 are higher than 10 deg'),
+ ('1.058',1,'stars in order of brightness (SBRT) higher than 10 deg until 10 bodies (R10), as ALMF'),
  ('RCL 10\nX=0?',1,'info loop over the objects in HZT'),('LBL 35',1,'read id, Zn, Hc; clear top strip; name'),
- ('LBL 32',1,'Moon or planet name (LBL 81-85)'),('LBL 31',1,'text SUN'),('LBL 30',1,'ZN value HC value (PT1), PAUSE 30, next'),
- ('LBL 40',1,'record object X = id with Zn R97, Hc R96 in HZT (count R10)'),('LBL 46',1,'draw Sun, record'),
- ('LBL 47',1,'draw Moon symbol, record'),('LBL 48',1,'draw planet symbol (LBL 71-74), record'),('LBL 43',1,'draw star + number, record, count R12'),
+ ('LBL 32',1,'Moon or planet name (LBL 81-85)'),('LBL 31',1,'text SUN'),('LBL 30',1,'ZN value HC value (PT1, minus sign by LBL 33), PAUSE 30, next; after the last the first again (LBL 34)'),
+ ('LBL 40',1,'record object X = id with Zn R97, Hc R96 in HZT (count R10)'),
+ ('LBL 47',1,'draw Moon symbol, record'),('LBL 48',1,'draw planet symbol (LBL 71-74), record'),('LBL 43',1,'draw star + number, record'),
  ('LBL 71',1,'planet symbols: < Venus, > Mars, = Jupiter, ? Saturn'),('LBL 81',1,'names for the info line'),
  ('LBL 55',1,'plot one pixel at row R99, column R98'),('LBL 52',1,'HCZ, then column R98 and row R99'),
  ('LBL 56',1,'sun symbol centred on the point (PTXB @)'),('LBL 57',1,'star centred on the point (PTXB *), number to the right (PTNS)'),
  ('LBL 39',1,'near the right edge: number 17 px to the left')]
-H['HORZS']=["HORZS - same chart as HORZ (Sun, Moon, planets, 5 brightest stars) without the info line; holds it with 3 x PAUSE 99",
+H['HORZS']=["HORZS - same chart as HORZ (same bodies as ALMF) without the info line; holds it with 3 x PAUSE 99",
  "IN : Z = JD, Y = lat, X = lon","NEEDS: as HORZ"]
 A['HORZS']=[a for a in A['HORZ'] if a[0] not in ('RCL 10\nX=0?','LBL 35','LBL 32','LBL 31','LBL 30','LBL 81')]
 A['HORZS'][0]=('LBL "HORZS"',1,'store JD R90, lat R91, lon R92; clear screen')

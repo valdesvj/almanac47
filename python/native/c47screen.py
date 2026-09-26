@@ -372,7 +372,7 @@ def halmv(al):
 
 
 # ---------------------------------------------------------------- HORZ / HORZS
-def horz(al, info=True, nstars=5):
+def horz(al, info=True):
     """Horizon chart. With info (HORZ) returns one frame per object, the top line
     naming it; without (HORZS) one frame."""
     sc = Screen()
@@ -399,37 +399,24 @@ def horz(al, info=True, nstars=5):
         hc, zn, x, y = pos(0, g)
         if hc >= 0:
             sc.pixel(241 - y, x)
+    # same bodies as ALMF / HALMV / ALMT (Sun always, drawn only above the horizon)
     objs = []
-
-    def record(ident, zn, hc, dec):
-        objs.append((ident, zn, hc))
-
-    s = al.sun
-    hc, zn, x, y = pos(s.dec, s.gha)
-    if hc > 0:
-        sc.glyph(BIG, '@', 238 - y, x - 5); record(0, zn, hc, s.dec)
-    m = al.moon
-    hc, zn, x, y = pos(m[1], m[0])
-    if hc > 0:
-        sc.glyph(BIG, '(', 241 - y - 3, x - 3); record(-1, zn, hc, m[1])
-    for p in (1, 2, 3, 4):
-        g, d = al.planets[p][0], al.planets[p][1]
+    for ident, g, d, hc, zn in al.bodies():
         hc, zn, x, y = pos(d, g)
-        if hc > 0:
-            sc.glyph(BIG, SYM[p], 241 - y - 3, x - 3); record(-(p + 1), zn, hc, d)
-    cnt = 0
-    for n in BRIGHT:
-        g, d, _ = al.star(n)
-        hc, zn, x, y = pos(d, g)
-        if hc > 10:
+        if ident == 0:
+            if hc > 0:
+                sc.glyph(BIG, '@', 238 - y, x - 5)
+        elif ident == -1:
+            sc.glyph(BIG, '(', 241 - y - 3, x - 3)
+        elif ident < 0:
+            sc.glyph(BIG, SYM[-ident - 1], 241 - y - 3, x - 3)
+        else:
             sc.glyph(BIG, '*', 241 - y - 3, x - 3)
             lx = x + 5
             if lx > 385:
                 lx -= 17
-            sc.ptns(239 - y, lx, n)
-            record(n, zn, hc, d); cnt += 1
-        if cnt >= nstars:
-            break
+            sc.ptns(239 - y, lx, ident)
+        objs.append((ident, zn, hc))
     sc.small(7, 2, al.source)                                # T tables / S series
     if not info or not objs:
         return [sc.rows()]
@@ -440,7 +427,10 @@ def horz(al, info=True, nstars=5):
             x = sc.ptns(234, 2, ident); x = sc.small(234, x, ' '); x = sc.small(234, x, STAR_NAME[ident])
         else:
             x = sc.small(234, 2, body_name(ident))
-        x = sc.small(234, x, ' ZN '); x = sc.pt1(234, x, zn); x = sc.small(234, x, ' HC '); sc.pt1(234, x, hc)
+        x = sc.small(234, x, ' ZN '); x = sc.pt1(234, x, zn); x = sc.small(234, x, ' HC ')
+        if hc < 0:
+            x = sc.small(234, x, '-')
+        sc.pt1(234, x, hc)
         frames.append(sc.rows())
     return frames
 

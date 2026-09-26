@@ -1,5 +1,5 @@
 ; ======================================================================
-; HORZS - same chart as HORZ (Sun, Moon, planets, 5 brightest stars) without the info line; holds it with 3 x PAUSE 99
+; HORZS - same chart as HORZ (same bodies as ALMF) without the info line; holds it with 3 x PAUSE 99
 ; IN : Z = JD, Y = lat, X = lon
 ; NEEDS: as HORZ
 ; ======================================================================
@@ -244,7 +244,7 @@
 0226  LBL 37
 0227  RCL 90
 0228  XEQ "SUNA"
-0229  11
+0229  10
 0230  ENTER
 0231  3
 0232  NEWMAT
@@ -266,52 +266,52 @@
 0248  RCL 86
 0249  X≤Y?
 0250  GTO 53
-; ---- Sun
+; ---- Sun: always recorded (as ALMF), drawn only above the horizon (LBL 56)
 0251  RCL 77
 0252  RCL 81
 0253  XEQ 52
 0254  RCL 96
 0255  X>0?
-0256  XEQ 46
+0256  XEQ 56
+0257  0
+0258  XEQ 40
 ; ---- Moon (MOO2 = MOON without repeating SUNA)
-0257  XEQ "MOO2"
-0258  XEQ 52
-0259  RCL 96
-0260  X>0?
-0261  XEQ 47
+0259  XEQ "MOO2"
+0260  XEQ 52
+0261  RCL 96
+0262  X>0?
+0263  XEQ 47
 ; ---- planets 1-4 (PLN2 = PLAN without SUNA)
-0262  1.004
-0263  STO 11
-0264  LBL 45
-0265  RCL 11
-0266  IP
-0267  XEQ "PLN2"
-0268  XEQ 52
-0269  RCL 96
-0270  X>0?
-0271  XEQ 48
-0272  ISG 11
-0273  GTO 45
-; ---- stars in order of brightness (SBRT) until 5 are higher than 10 deg
-0274  1.058
-0275  STO 11
-0276  0
-0277  STO 12
+0264  1.004
+0265  STO 11
+0266  LBL 45
+0267  RCL 11
+0268  IP
+0269  XEQ "PLN2"
+0270  XEQ 52
+0271  RCL 96
+0272  X>0?
+0273  XEQ 48
+0274  ISG 11
+0275  GTO 45
+; ---- stars in order of brightness (SBRT) higher than 10 deg until 10 bodies (R10), as ALMF
+0276  1.058
+0277  STO 11
 0278  LBL 44
-0279  RCL 11
-0280  IP
-0281  XEQ "SBRT"
-0282  STO 82
-0283  XEQ "STR2"
-0284  XEQ 52
-0285  10
-0286  RCL 96
-0287  X>Y?
-0288  XEQ 43
-0289  5
-0290  RCL 12
-0291  X≥Y?
-0292  GTO 42
+0279  10
+0280  RCL 10
+0281  X≥Y?
+0282  GTO 42
+0283  RCL 11
+0284  IP
+0285  XEQ "SBRT"
+0286  STO 82
+0287  XEQ "STR2"
+0288  XEQ 52
+0289  10
+0290  RCL 96
+0291  X>Y?
+0292  XEQ 43
 0293  ISG 11
 0294  GTO 44
 0295  LBL 42
@@ -358,164 +358,155 @@
 0330  STOEL
 0331  RTN
 ;
-; ---- draw Sun, record
-0332  LBL 46
-0333  XEQ 56
-0334  0
-0335  XEQ 40
-0336  RTN
-;
 ; ---- draw Moon symbol, record
-0337  LBL 47
-0338  241
-0339  RCL- 99
-0340  3
-0341  -
-0342  RCL 98
-0343  3
-0344  -
-0345  "("
-0346  XEQ "PTXB"
-0347  -1
-0348  XEQ 40
-0349  RTN
+0332  LBL 47
+0333  241
+0334  RCL- 99
+0335  3
+0336  -
+0337  RCL 98
+0338  3
+0339  -
+0340  "("
+0341  XEQ "PTXB"
+0342  -1
+0343  XEQ 40
+0344  RTN
 ;
 ; ---- draw planet symbol (LBL 71-74), record
-0350  LBL 48
-0351  RCL 11
-0352  IP
-0353  70
-0354  +
-0355  STO 14
-0356  241
-0357  RCL- 99
-0358  3
-0359  -
-0360  RCL 98
-0361  3
-0362  -
-0363  XEQ IND 14
-0364  XEQ "PTXB"
-0365  RCL 11
-0366  IP
-0367  1
-0368  +
-0369  CHS
+0345  LBL 48
+0346  RCL 11
+0347  IP
+0348  70
+0349  +
+0350  STO 14
+0351  241
+0352  RCL- 99
+0353  3
+0354  -
+0355  RCL 98
+0356  3
+0357  -
+0358  XEQ IND 14
+0359  XEQ "PTXB"
+0360  RCL 11
+0361  IP
+0362  1
+0363  +
+0364  CHS
+0365  XEQ 40
+0366  RTN
+;
+; ---- draw star + number, record
+0367  LBL 43
+0368  XEQ 57
+0369  RCL 82
 0370  XEQ 40
 0371  RTN
 ;
-; ---- draw star + number, record, count R12
-0372  LBL 43
-0373  XEQ 57
-0374  RCL 82
-0375  XEQ 40
-0376  1
-0377  STO+ 12
-0378  RTN
-;
 ; ---- planet symbols: < Venus, > Mars, = Jupiter, ? Saturn
-0379  LBL 71
-0380  "<"
-0381  RTN
-0382  LBL 72
-0383  ">"
-0384  RTN
-0385  LBL 73
-0386  "="
-0387  RTN
-0388  LBL 74
-0389  "?"
-0390  RTN
-0391  LBL 81
-0392  "MOON"
-0393  RTN
-0394  LBL 82
-0395  "VENUS"
-0396  RTN
-0397  LBL 83
-0398  "MARS"
-0399  RTN
-0400  LBL 84
-0401  "JUPITER"
-0402  RTN
-0403  LBL 85
-0404  "SATURN"
-0405  RTN
+0372  LBL 71
+0373  "<"
+0374  RTN
+0375  LBL 72
+0376  ">"
+0377  RTN
+0378  LBL 73
+0379  "="
+0380  RTN
+0381  LBL 74
+0382  "?"
+0383  RTN
+0384  LBL 81
+0385  "MOON"
+0386  RTN
+0387  LBL 82
+0388  "VENUS"
+0389  RTN
+0390  LBL 83
+0391  "MARS"
+0392  RTN
+0393  LBL 84
+0394  "JUPITER"
+0395  RTN
+0396  LBL 85
+0397  "SATURN"
+0398  RTN
 ;
 ; ---- plot one pixel at row R99, column R98
-0406  LBL 55
-0407  241
-0408  RCL- 99
-0409  RCL 98
-0410  PIXEL
-0411  RTN
+0399  LBL 55
+0400  241
+0401  RCL- 99
+0402  RCL 98
+0403  PIXEL
+0404  RTN
 ;
 ; ---- HCZ, then column R98 and row R99
-0412  LBL 52
-0413  XEQ "HCZ"
-0414  RCL 97
-0415  RCL+ 44
-0416  360
-0417  MOD
-0418  375
-0419  ×
-0420  360
-0421  ÷
-0422  20
-0423  +
-0424  IP
-0425  STO 98
-0426  225
-0427  RCL 96
-0428  200
-0429  ×
-0430  90
-0431  ÷
-0432  -
-0433  IP
-0434  STO 99
-0435  RTN
+0405  LBL 52
+0406  XEQ "HCZ"
+0407  RCL 97
+0408  RCL+ 44
+0409  360
+0410  MOD
+0411  375
+0412  ×
+0413  360
+0414  ÷
+0415  20
+0416  +
+0417  IP
+0418  STO 98
+0419  225
+0420  RCL 96
+0421  200
+0422  ×
+0423  90
+0424  ÷
+0425  -
+0426  IP
+0427  STO 99
+0428  RTN
 ;
 ; ---- sun symbol centred on the point (PTXB @)
-0436  LBL 56
-0437  238
-0438  RCL- 99
-0439  RCL 98
-0440  5
-0441  -
-0442  "@"
-0443  XEQ "PTXB"
-0444  RTN
+0429  LBL 56
+0430  238
+0431  RCL- 99
+0432  RCL 98
+0433  5
+0434  -
+0435  "@"
+0436  XEQ "PTXB"
+0437  RTN
 ;
 ; ---- star centred on the point (PTXB *), number to the right (PTNS)
-0445  LBL 57
-0446  241
-0447  RCL- 99
-0448  3
-0449  -
-0450  RCL 98
-0451  3
-0452  -
-0453  "*"
-0454  XEQ "PTXB"
-0455  RCL 98
-0456  5
-0457  +
-0458  STO 36
-0459  385
-0460  RCL 36
-0461  X>Y?
-0462  XEQ 39
-0463  239
-0464  RCL- 99
-0465  RCL 36
-0466  RCL 82
-0467  XEQ "PTNS"
-0468  RTN
+0438  LBL 57
+0439  241
+0440  RCL- 99
+0441  3
+0442  -
+0443  RCL 98
+0444  3
+0445  -
+0446  "*"
+0447  XEQ "PTXB"
+0448  RCL 98
+0449  5
+0450  +
+0451  STO 36
+0452  385
+0453  RCL 36
+0454  X>Y?
+0455  XEQ 39
+0456  239
+0457  RCL- 99
+0458  RCL 36
+0459  RCL 82
+0460  XEQ "PTNS"
+0461  RTN
 ;
 ; ---- near the right edge: number 17 px to the left
-0469  LBL 39
-0470  17
-0471  STO- 36
-0472  RTN
-0473  END
+0462  LBL 39
+0463  17
+0464  STO- 36
+0465  RTN
+0466  END
