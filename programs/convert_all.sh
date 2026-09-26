@@ -1,7 +1,7 @@
 #!/bin/bash
 # convert_all.sh - convert every C47 program .txt to .p47
 # Run it inside the "programs" folder.
-CONV="rejit"          # <- your converter's name or full path
+CONV="rejig"          # <- your converter's name or full path
 mkdir -p p47
 ok=0; bad=0
 for f in *.txt; do
