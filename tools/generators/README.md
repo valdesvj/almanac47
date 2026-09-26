@@ -15,7 +15,7 @@ before running them again.
 | `genstxt.py` | STXT (number to text) |
 | `genmp2.py` | MOON and PLAN (uses `mconst.json`, `pcounts.json`) |
 | `annot.py` | `listings/*_doc.txt` and `programs_rem/` (REM comments) |
-| `build_manual.py` | the user manual PDF |
+| `build_manual.py` | the user manual PDF (with `manual_head.py`, `manual_results.json`; images from the work folder) |
 
 After regenerating a program, run `tests/test_parity.py` and keep the native Python
 version (`python/native/c47screen.py`) in step.

@@ -96,8 +96,9 @@ ALMANAC TABLES  (T / S in the corner of every screen)
   On the C47: XEQ "TBL" once (sets flag 10); CF 10 = use the series.
   Command line: --tables FILE, or --series to switch them off.
 
-CHECK AGAINST JPL (menu Info, or --check; PC only, needs internet)
-  Compares GHA and Dec of the Sun, Moon, planets and GHA Aries with JPL
+CHECK AGAINST JPL (link under the screen, menu Info, or --check; PC only,
+  needs internet). Opens a window listing every value of the C47 method beside
+  the JPL value and the difference. Compares GHA and Dec of the Sun, Moon, planets and GHA Aries with JPL
   Horizons (DE440) for the date and UT entered, in arcminutes. JPL reads the
   time as UTC and the C47 uses UT1: DUT1 (under 0.9 s) moves GHA by up to
   0.23' but not Dec. Stars are not checked.
@@ -222,7 +223,74 @@ def write_png(fn, w, h, rgb):
 def run_gtk(eng, args):
     import gi
     gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk, Gdk
+    from gi.repository import Gtk, Gdk, GLib
+
+    class JplWindow(Gtk.Window):
+        """Every value of the C47 method beside JPL Horizons, with the difference."""
+
+        def __init__(self, parent):
+            super().__init__(title='%s - Check against JPL' % PROGRAM)
+            self.parent_win = parent
+            self.set_transient_for(parent); self.set_default_size(700, 520)
+            self.connect('delete-event', self.on_close)
+            v = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8); v.set_border_width(12); self.add(v)
+            self.head = Gtk.Label(xalign=0); v.pack_start(self.head, False, False, 0)
+            self.grid = Gtk.Grid(column_spacing=18, row_spacing=4)
+            sw = Gtk.ScrolledWindow(); sw.set_vexpand(True); sw.add(self.grid); v.pack_start(sw, True, True, 0)
+            self.notes = Gtk.Label(xalign=0); self.notes.set_line_wrap(True); v.pack_start(self.notes, False, False, 0)
+            hb = Gtk.Box(spacing=6); v.pack_start(hb, False, False, 0)
+            b = Gtk.Button(label='Check again (date and UT of the main window)')
+            b.connect('clicked', lambda *_: parent.on_check()); hb.pack_start(b, False, False, 0)
+            c = Gtk.Button(label='Close'); c.connect('clicked', lambda *_: self.on_close()); hb.pack_end(c, False, False, 0)
+
+        def on_close(self, *_):
+            self.hide(); return True
+
+        def _cell(self, text, col, row, xalign=0.0, bold=False, mono=True):
+            l = Gtk.Label(xalign=xalign)
+            t = GLib.markup_escape_text(text)
+            if mono:
+                t = '<tt>%s</tt>' % t
+            if bold:
+                t = '<b>%s</b>' % t
+            l.set_markup(t); self.grid.attach(l, col, row, 1, 1)
+
+        def run_check(self, j, when):
+            import threading, jplcheck
+            for ch in self.grid.get_children():
+                self.grid.remove(ch)
+            self.head.set_markup('<b>%s</b>   JD %.5f\nAsking JPL Horizons (internet) ...' % (when, j))
+            self.notes.set_text('')
+            self.show_all(); self.present()
+            tables = eng.tables if eng.use else None
+
+            def work():
+                try:
+                    res = jplcheck.check(j, tables)
+                    err = None
+                except Exception as ex:
+                    res, err = None, ex
+                GLib.idle_add(self.show_result, j, when, res, err)
+
+            threading.Thread(target=work, daemon=True).start()
+
+        def show_result(self, j, when, res, err):
+            if err is not None:
+                self.head.set_markup('<b>%s</b>   JD %.5f\n<b>JPL check failed</b> - an internet connection is needed.' % (when, j))
+                self.notes.set_text(str(err)); return False
+            R, notes = res
+            src = 'almanac tables' if any(r[5] == 'T' for r in R) else 'series'
+            self.head.set_markup('<b>%s</b>   JD %.5f   C47 method from the %s\nJPL Horizons, ephemeris DE440 (apparent geocentric)' % (when, j, src))
+            for c, (t, xa) in enumerate((('Body', 0), ('', 0), ('C47 method', 1), ('JPL Horizons', 1), ("Difference '", 1), ('Source', 0.5))):
+                self._cell(t, c, 0, xa, bold=True, mono=False)
+            for r, (body, q, o, jv, d, s) in enumerate(R, start=1):
+                self._cell(body, 0, r); self._cell(q, 1, r)
+                self._cell(o, 2, r, 1); self._cell(jv, 3, r, 1)
+                self._cell('%+8.3f' % d, 4, r, 1, bold=abs(d) >= 0.1); self._cell(s, 5, r, 0.5)
+            self.notes.set_text('\n'.join(notes + ['Differences of 0.1\' or more are in bold.']))
+            self.grid.show_all()
+            self.parent_win.status.set_text('JPL check done')
+            return False
 
     class Win(Gtk.Window):
         def __init__(self):
@@ -279,7 +347,12 @@ def run_gtk(eng, args):
             box.pack_start(self.area, False, False, 0)
             self.status = Gtk.Label(label='Enter date, UT and position, choose a view, press Run (or Enter).',
                                     xalign=0)
-            box.pack_start(self.status, False, False, 0)
+            sb = Gtk.Box(spacing=8); box.pack_start(sb, False, False, 0)
+            sb.pack_start(self.status, True, True, 0)
+            jl = Gtk.Label(); jl.set_markup('<a href="jpl">Check against JPL (online) \u203a</a>')
+            jl.set_tooltip_text('Opens a window with every value of the C47 method beside JPL Horizons and the difference')
+            jl.connect('activate-link', lambda w, uri: (self.on_check(), True)[1])
+            sb.pack_end(jl, False, False, 0)
             self.show_all()
             if args.date or args.ut:
                 self.on_run()
@@ -317,38 +390,15 @@ def run_gtk(eng, args):
             d.get_content_area().pack_start(sw, True, True, 0)
             d.show_all(); d.run(); d.destroy()
 
-        def on_check(self):
-            """Online check of the calculations against JPL Horizons, in a background thread."""
-            import threading
-            from gi.repository import GLib
-            import jplcheck
+        def on_check(self, *_):
+            """Open (or refresh) the JPL check window for the date and UT entered."""
             try:
                 y, m, d = parse_date(self.e_date.get_text()); h = parse_ut(self.e_ut.get_text())
             except Exception as ex:
                 self.status.set_text('Input error: %s' % ex); return
-            j = jd(y, m, d, h)
-            self.status.set_text('Asking JPL Horizons (internet) ...')
-
-            def work():
-                try:
-                    txt = jplcheck.report(j)
-                except Exception as ex:
-                    txt = 'JPL check failed - an internet connection is needed.\n\n%s' % ex
-                GLib.idle_add(show, txt)
-
-            def show(txt):
-                self.status.set_text('JPL check done')
-                d = Gtk.Dialog(title='%s - Check against JPL' % PROGRAM, transient_for=self, modal=True)
-                d.add_button('Close', Gtk.ResponseType.CLOSE); d.set_default_size(620, 400)
-                tv = Gtk.TextView(); tv.set_editable(False); tv.set_monospace(True)
-                tv.set_wrap_mode(Gtk.WrapMode.WORD_CHAR); tv.set_vexpand(True)
-                tv.set_left_margin(12); tv.set_top_margin(10); tv.set_right_margin(12); tv.set_bottom_margin(10)
-                tv.get_buffer().set_text(txt)
-                d.get_content_area().pack_start(tv, True, True, 0)
-                d.show_all(); d.run(); d.destroy()
-                return False
-
-            threading.Thread(target=work, daemon=True).start()
+            if getattr(self, 'jplwin', None) is None:
+                self.jplwin = JplWindow(self)
+            self.jplwin.run_check(jd(y, m, d, h), '%04d-%02d-%02d  %s UT' % (y, m, d, self.e_ut.get_text()))
 
         def on_about(self):
             d = Gtk.AboutDialog(transient_for=self, modal=True)
@@ -480,7 +530,7 @@ def main():
         y, m, d = parse_date(args.date or now.strftime('%Y-%m-%d'))
         h = parse_ut(args.ut or now.strftime('%H:%M'))
         try:
-            print(jplcheck.report(jd(y, m, d, h)))
+            print(jplcheck.report(jd(y, m, d, h), None if args.series else (c47tables.Tables(args.tables or c47tables.find()) if (args.tables or c47tables.find()) else None)))
         except Exception as ex:
             sys.exit('JPL check failed (internet connection needed): %s' % ex)
         return

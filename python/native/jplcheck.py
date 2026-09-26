@@ -2,10 +2,9 @@
 
 Asks the JPL Horizons service (https://ssd.jpl.nasa.gov/api/horizons.api, free, no
 account) for the apparent geocentric RA and Dec of the Sun, Moon, Venus, Mars,
-Jupiter and Saturn (JPL DE440/441), and for the Greenwich apparent sidereal time
-(= GHA Aries). GHA = GHA Aries - RA. The same values are calculated with
-c47astro.py (the methods of the C47 programs) and the differences are listed in
-arcminutes.
+Jupiter and Saturn (JPL DE440/441) and for the Greenwich apparent sidereal time
+(= GHA Aries), and puts them beside the values of the C47 method (c47astro.py, or the
+almanac tables when they are in use), with the difference of each.
 
 Notes
 - Needs an internet connection. The program itself works offline; this check is
@@ -19,16 +18,17 @@ import json, math, urllib.parse, urllib.request
 import c47astro as A
 
 URL = 'https://ssd.jpl.nasa.gov/api/horizons.api'
-BODIES = [('SUN', '10', 0), ('MOON', '301', -1), ('VENUS', '299', 1), ('MARS', '499', 2),
+BODIES = [('SUN', '10', 0), ('MOON', '301', 5), ('VENUS', '299', 1), ('MARS', '499', 2),
           ('JUPITER', '599', 3), ('SATURN', '699', 4)]
 AU_KM = 149597870.7
 
 
+# ------------------------------------------------------------------ JPL
 def _query(params, timeout=20):
     q = {'format': 'json', 'MAKE_EPHEM': 'YES', 'EPHEM_TYPE': 'OBSERVER', 'OBJ_DATA': 'NO',
          'CSV_FORMAT': 'YES', 'EXTRA_PREC': 'YES', 'TIME_TYPE': 'UT'}
     q.update(params)
-    url = URL + '?' + urllib.parse.urlencode({k: v for k, v in q.items()}, safe="'@,")
+    url = URL + '?' + urllib.parse.urlencode(q, safe="'@,")
     req = urllib.request.Request(url, headers={'User-Agent': 'C47NavPC/1.1'})
     with urllib.request.urlopen(req, timeout=timeout) as r:
         data = json.loads(r.read().decode('utf-8'))
@@ -49,10 +49,9 @@ def _table(text):
         if 'Date' in l and ',' in l:
             head = [h.strip() for h in l.split(',')]
             break
-    row = [c.strip() for c in lines[i + 1].split(',')]
     if head is None:
         raise RuntimeError('no column header in the JPL answer')
-    return head, row
+    return head, [c.strip() for c in lines[i + 1].split(',')]
 
 
 def _col(head, row, *keys):
@@ -63,9 +62,7 @@ def _col(head, row, *keys):
 
 
 def _hms(s):
-    p = [float(x) for x in s.split()]
-    while len(p) < 3:
-        p.append(0.0)
+    p = [float(x) for x in s.split()] + [0.0, 0.0]
     return p[0] + p[1] / 60 + p[2] / 3600
 
 
@@ -91,45 +88,84 @@ def jpl_values(j):
     return out
 
 
-def our_values(j):
+# ------------------------------------------------------------------ ours
+def our_values(j, tables=None):
+    """Values of the C47 method at JD j, as the screens compute them (with the almanac
+    tables when given and covering the date). Also the source of each: 'T' or 'S'."""
     s = A.Sun(j)
+    src = {}
+    t = tables.get(j, 0) if tables else None
+    if t:
+        s.gha, s.dec = t
+        a = tables.get(j, 6)
+        if a:
+            s.aries = a[0]
+        src['ARIES'] = 'T' if a else 'S'
+    else:
+        src['ARIES'] = 'S'
+    src['SUN'] = 'T' if t else 'S'
     out = {'ARIES': s.aries, 'SUN': (s.gha, s.dec)}
-    m = A.moon(s)
-    out['MOON'] = (m[0], m[1], m[2])
+    t = tables.get(j, 5) if tables else None
+    m = t if t else A.moon(s)
+    out['MOON'] = (m[0], m[1], m[2]); src['MOON'] = 'T' if t else 'S'
     for name, _, p in BODIES[2:]:
-        g = A.planet(s, p)
-        out[name] = (g[0], g[1])
-    return out
+        t = tables.get(j, p) if tables else None
+        g = t if t else A.planet(s, p)
+        out[name] = (g[0], g[1]); src[name] = 'T' if t else 'S'
+    return out, src
 
 
+# ------------------------------------------------------------------ comparison
 def _d(a, b):
     return ((a - b + 180.0) % 360.0 - 180.0) * 60.0
 
 
-def compare(ours, jpl):
-    """Rows (name, dGHA', dDec' or None, dHP' or None)."""
-    rows = [('ARIES', _d(ours['ARIES'], jpl['ARIES']), None, None)]
+def fmt_gha(v):
+    v %= 360.0
+    d = int(v); m = (v - d) * 60
+    if m >= 59.995:
+        d, m = (d + 1) % 360, 0.0
+    return "%3d°%05.2f'" % (d, m)
+
+
+def fmt_dec(v):
+    s = 'S' if v < 0 else 'N'
+    v = abs(v); d = int(v); m = (v - d) * 60
+    if m >= 59.995:
+        d, m = d + 1, 0.0
+    return "%s%3d°%05.2f'" % (s, d, m)
+
+
+def rows(ours, src, jpl):
+    """[(body, quantity, ours text, JPL text, difference arcmin, source)]"""
+    R = [('ARIES', 'GHA', fmt_gha(ours['ARIES']), fmt_gha(jpl['ARIES']), _d(ours['ARIES'], jpl['ARIES']), src['ARIES'])]
     for name, _, _ in BODIES:
         o, r = ours[name], jpl[name]
-        rows.append((name, _d(o[0], r[0]), (o[1] - r[1]) * 60.0,
-                     (o[2] - r[2]) if name == 'MOON' else None))
-    return rows
+        R.append((name, 'GHA', fmt_gha(o[0]), fmt_gha(r[0]), _d(o[0], r[0]), src[name]))
+        R.append(('', 'Dec', fmt_dec(o[1]), fmt_dec(r[1]), (o[1] - r[1]) * 60.0, src[name]))
+        if name == 'MOON':
+            R.append(('', 'HP', "%6.2f'" % o[2], "%6.2f'" % r[2], o[2] - r[2], src[name]))
+    return R
 
 
-def report(j, jpl=None):
-    """Text report of the check at JD j. jpl: values from jpl_values(j) (fetched if None)."""
+NOTES = ["Differences = C47 method - JPL, in arcminutes. T = almanac tables, S = series.",
+         "GHA includes DUT1: JPL reads the time as UTC, the C47 uses UT1 (up to 0.23').",
+         "Dec is the clean check. Stars are not checked (not in the JPL planetary ephemeris).",
+         "The Nautical Almanac shows 0.1'."]
+
+
+def check(j, tables=None, jpl=None):
+    """(rows, notes) for JD j; fetches JPL when jpl is None."""
     jpl = jpl or jpl_values(j)
-    rows = compare(our_values(j), jpl)
-    L = ['Check against JPL Horizons (DE440), JD %.5f' % j,
-         'Differences C47 method - JPL, in arcminutes',
-         '',
-         'BODY        GHA      DEC      HP']
-    for name, dg, dd, dh in rows:
-        L.append('%-8s %7.3f  %7s  %6s' % (name, dg, '' if dd is None else '%7.3f' % dd,
-                                           '' if dh is None else '%6.3f' % dh))
-    worst = max(abs(dd) for _, _, dd, _ in rows if dd is not None)
-    L += ['', 'Largest Dec difference %.3f\'' % worst,
-          'GHA includes DUT1 (JPL uses UTC, the C47 UT1): up to 0.23\'.',
-          'Stars are not checked (not in the JPL planetary ephemeris).',
-          'The almanac shows 0.1\'.']
-    return '\n'.join(L)
+    ours, src = our_values(j, tables)
+    return rows(ours, src, jpl), NOTES
+
+
+def report(j, tables=None, jpl=None):
+    R, notes = check(j, tables, jpl)
+    L = ['Check against JPL Horizons (DE440), JD %.5f' % j, '',
+         '%-8s %-4s %-14s %-14s %9s  %s' % ('BODY', '', 'C47 METHOD', 'JPL', "DIFF'", 'SRC'),
+         '-' * 60]
+    for body, q, o, r, d, s in R:
+        L.append('%-8s %-4s %-14s %-14s %+9.3f  %s' % (body, q, o, r, d, s))
+    return '\n'.join(L + [''] + notes)

@@ -266,3 +266,6 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   identical. A screen takes about 0.02 s.
   c47view.py (runs the real programs) stays in python/ as the reference.
   Version 1.1 (2026-09-26): menu Info with Help and About (version); --version.
+  Check against JPL (online, optional): link under the screen or menu Info opens a
+  window with every C47 value beside JPL Horizons and the difference; --check prints it.
+  Almanac tables: box "Almanac tables" (TBL.txt), --tables FILE, --series.

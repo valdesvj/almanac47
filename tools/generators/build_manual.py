@@ -46,6 +46,8 @@ S += [P('C47 celestial navigation programs', title),
           ['PHAS', 'Moon phase', 'X = JD', 'X % illuminated, Y age (days)', 'SUNA'],
           ['HORZ', 'picture of the sky on the horizon', 'Z = JD, Y = lat, X = lon', 'screen drawing', 'SUNA, STAR'],
           ['ALM', 'Sun, Aries, Moon, planets from tables', 'X = t (hours in block)', 'X GHA, Y Dec (HP)', 'coefficients from the tables'],
+          ['TBL', 'almanac tables for a period (JPL), sets flag 10', '—', 'matrices TSU…TAR', 'run once'],
+          ['TGET', 'Sun, Aries, Moon, planets from the tables', 'Y = JD, X = body 0–6', 'X GHA, Y Dec (Z HP, T SD)', 'TBL'],
           ['CHZ', 'Hc/Zn and the inverse', 'T lat, Z lon, Y Dec, X GHA', 'X Hc, Y Zn', '—'],
           ['SUNSD', 'Sun semi-diameter', 'X = JD', 'X = SD (′)', 'SUNA'],
           ['HALMV', 'sight-planning screen: chart + data', 'Z = JD, Y = lat, X = lon', 'screen', 'see HALMV section'],
@@ -235,6 +237,46 @@ section('ALM — table method (Sun, Aries, Moon, planets)',
      P('Result: GHA %s, Dec %s, HP %.2f′ (SD ≈ 0.2725 × HP = %.2f′).' % (dm(m[0]), dm(m[1], True), m[2], 0.2725 * m[2]), small)],
     ['Accuracy 0.002′ (HP 0.001′). Tables valid 1 Sep 2026 – 31 Dec 2027; later years with c47_almanac_generator.py.',
      'Not yet run on the C47: check RCL IND and DSE with the Sun example.'])
+
+# ---- TBL / TGET and the T/S switch
+t = R['TBL']
+def trow(name, tab, ser, hp=False):
+    r = [name, dm(tab[0]), dm(tab[1], True), dm(ser[0]), dm(ser[1], True),
+         '%.3f′' % abs(((tab[0] - ser[0] + 180) % 360 - 180) * 60), '%.3f′' % abs((tab[1] - ser[1]) * 60)]
+    return r
+section('TBL and TGET — almanac tables, and the T / S switch',
+    'Precise GHA and Dec for a limited period, taken from Chebyshev tables fitted to the JPL ephemeris (the same source as the printed almanac). '
+    'Once the tables are loaded, the Sun, Aries, Moon and planets on every screen come from them automatically, the screens need about half the program steps, '
+    'and each screen shows <b>T</b> (tables) or <b>S</b> (series). Outside the table period everything falls back to the series (SUNA, MOON, PLAN), which work for any date.',
+    ['<b>Making the tables (PC):</b> tools/almanac/c47_almanac_generator.py computes apparent GHA and Dec from JPL DE421 with the IAU 2006/2000A precession-nutation (ERFA) and fits a Chebyshev polynomial to each block: 8 days (5 terms) for the Sun, Aries and planets, 1 day (6 terms, plus 4 for HP) for the Moon. The tables for 1 Sep 2026 – 31 Dec 2027 are in the Excel file.',
+     '<b>Turning them into a C47 program:</b> tools/almanac/tab2c47.py START END writes TBL.txt (convert with rejit). TBL builds one matrix per body — TSU Sun, TVE Venus, TMA Mars, TJU Jupiter, TSA Saturn, TMO Moon, TAR Aries — and sets flag 10. Row 1 of each matrix holds the JD of the first block, the block length in days, the number of blocks and the number of terms; each following row holds the coefficients of one block.',
+     '<b>TGET</b> finds the block for the JD, computes x = 2 (JD − block start) / length − 1 and sums the series (Clenshaw) for GHA (MOD 360), Dec and, for the Moon, HP; SD = 358473400 sin HP / 6378.14 / 60.',
+     '<b>The switch (flag 10 set):</b> SUNA replaces the Sun GHA/Dec (R81, R77) and GHA Aries (R80) with the table values; the stars keep their own calculation with that GHA Aries. SUNG, used by the SUNRISE iterations, takes the Sun from the tables and skips the series. MOO2 and PLN2 call TGET first; if the date is outside the table they compute the series. MOO2 sets flag 11 when the Moon came from the tables.',
+     '<b>The letter on the screens:</b> T = flag 11 (the Moon, and so everything except the stars, from the tables), S = series. ALMF and HALMV bottom right, HORZ and HORZS bottom left, ALMT at the end of the first line. On days at the edge of the period (the Moon table starts or ends one day before the 8-day blocks) the screen shows S while the Sun and planets may already come from the tables.'],
+    [['TBL', 'run once: XEQ TBL → builds the matrices, sets flag 10, shows “TBL 26-09-2026 TO 31-01-2027”. The TBL program can then be deleted; the matrices stay.'],
+     ['TGET in', 'Y = JD (UT1), X = body: 0 Sun, 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn, 5 Moon, 6 Aries'],
+     ['TGET out', 'X = GHA, Y = Dec (degrees); Moon also Z = HP, T = SD (arcmin); Aries Y = 0. X = −1 when the date is outside the table.'],
+     ['Flags', '10 = tables loaded (CF 10 = use the series only); 11 = Moon from the tables (T on the screens)'],
+     ['Registers', 'TGET: R00–R09, R35–R39 (the MOON/PLAN work registers)'],
+     ['Programs', 'TBL, TGET and the updated SUNA, SUNRISE, MOON, PLAN, ALMF, HALMV, HORZ, HORZS, ALMT']],
+    [P('Cape Town (33° 54′ S, 18° 24′ E), 23 Nov 2026 09:00 UT, JD 2461367.875. Tables (TGET) against the series programs:'),
+     tbl([['Body', 'GHA tables', 'Dec tables', 'GHA series', 'Dec series', 'ΔGHA', 'ΔDec'],
+          trow('Sun', t['sun'][0], t['series']['sun']),
+          trow('Moon', t['moon'][0], t['series']['moon']),
+          trow('Venus', t['venus'][0], t['series']['venus'])],
+         [16 * mm, 27 * mm, 27 * mm, 27 * mm, 27 * mm, 28 * mm, 28 * mm], font=7.4),
+     P('Moon HP %.2f′ and SD %.2f′ from the tables (series %.2f′, %.2f′). GHA Aries %s. Outside the table (1 Mar 2027) TGET returns −1 for the Moon.' %
+       (t['moon'][0][2], t['moon'][0][3], t['series']['moon'][2], t['series']['moon'][3], dm(t['aries'][0][0])), small),
+     P('Program steps for the same screens, series → tables:', small),
+     tbl([['Screen', 'Series', 'Tables', 'Saving']] + [[k, '{:,}'.format(v[0]), '{:,}'.format(v[1]), '%d %%' % round(100 - 100 * v[1] / v[0])] for k, v in t['steps'].items()],
+         [30 * mm, 40 * mm, 40 * mm, 30 * mm], font=7.6),
+     P('ALMF with the tables — note the T in the bottom right corner:'),
+     RLImage('/home/claude/ALMF_tables.png', width=W * 0.9, height=W * 0.9 * 0.6)],
+    ['Differences between tables and series are the series\' own error: at most about 0.005′ for the Sun, 0.02′ for the planets and 0.07′ for the Moon. On the screens this changes at most the last digit (0.1′).',
+     'One TGET call takes about 265 steps (Moon 400) against 2 000–12 000 for the series; that is where the time saving comes from.',
+     'The tables expire: load the next period in time (a quarter or a year per file, depending on memory). TBL for 26 Sep 2026 – 31 Jan 2027 holds 3 054 numbers, about the size of MATP.',
+     'ΔT (TT − UT1) is fixed in the generator (69.2 s). One second of error moves the Moon by about 0.01′.',
+     'The PC version (python/native/c47pc.py) reads the same TBL.txt and gives the same screens (box “Almanac tables”, or --tables / --series).'])
 
 # ---- sight reduction & python & maps
 S += [P('Using the results for Hc and Zn', h1)] + B([

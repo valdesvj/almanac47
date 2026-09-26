@@ -61,7 +61,9 @@ It has been passed with 75 dates and places (2025-2028, latitudes up to 72 N/S).
 
 ## Online check (PC only)
 
-`python/native/jplcheck.py`: menu Info > Check against JPL, or `c47pc.py --check`.
+`python/native/jplcheck.py`: link "Check against JPL (online)" under the screen, menu Info, or
+`c47pc.py --check`. Opens a window with every value of the C47 method (tables or series,
+as on the screens) beside the JPL value and the difference, with T/S per body.
 Asks JPL Horizons (DE440) for apparent geocentric RA/Dec of Sun, Moon, planets and the
 Greenwich apparent sidereal time, and lists the differences with our calculations
 (arcmin). JPL reads the time as UTC, we use UT1: GHA includes DUT1 (up to 0.23').
