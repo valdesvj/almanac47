@@ -152,15 +152,59 @@ PLANET_SERIES = {1: ('VNL', 'VNB', 'VNR'), 2: ('MAL', 'MAB', 'MAR'),
 PLANET_NAME = {1: 'VENUS', 2: 'MARS', 3: 'JUPITER', 4: 'SATURN'}
 
 
-def planet(s, p):
+# PLN3: mean Keplerian elements (Standish, JPL "Approximate positions of the planets",
+# 1800-2050): a e I L varpi Omega at J2000 and rates per century. 0 = Earth-Moon barycentre.
+KEPLER = {0:((1.00000261,0.01671123,-0.00001531,100.46457166,102.93768193,0.0),(0.00000562,-0.00004392,-0.01294668,35999.37244981,0.32327364,0.0)),
+1:((0.72333566,0.00677672,3.39467605,181.97909950,131.60246718,76.67984255),(0.00000390,-0.00004107,-0.00078890,58517.81538729,0.00268329,-0.27769418)),
+2:((1.52371034,0.09339410,1.84969142,-4.55343205,-23.94362959,49.55953891),(0.00001847,0.00007882,-0.00813131,19140.30268499,0.44441088,-0.29257343)),
+3:((5.20288700,0.04838624,1.30439695,34.39644051,14.72847983,100.47390909),(-0.00011607,-0.00013253,-0.00183714,3034.74612775,0.21252668,0.20469106)),
+4:((9.53667594,0.05386179,2.48599187,49.95424423,92.59887831,113.66242448),(-0.00125060,-0.00050991,0.00193609,1222.49362201,-0.41897216,-0.28867794))}
+
+
+def _helio(b, T):
+    e0, r = KEPLER[b]
+    a, e, I, L, w, O = [x + y * T for x, y in zip(e0, r)]
+    M = L - w
+    E = M
+    for _ in range(4):
+        E = dsin(E) * e * 57.29577951308232 + M
+    xv = (dcos(E) - e) * a
+    yv = sqrt(1 - e * e) * a * dsin(E)
+    rr = hypot(xv, yv)
+    u = datan2(yv, xv) + w - O
+    z = dsin(u) * dsin(I) * rr
+    si = dsin(u) * dcos(I)
+    x = (dcos(u) * dcos(O) - si * dsin(O)) * rr
+    y = (dcos(u) * dsin(O) + si * dcos(O)) * rr
+    return x, y, z
+
+
+def planet_quick(s, p):
+    """PLN3 first step: geometric position from mean elements (within 0.2 deg),
+    precessed in longitude. Returns (gha, dec, distance au)."""
+    T = s.T
+    xe, ye, ze = _helio(0, T)
+    xp, yp, zp = _helio(p, T)
+    x, y, z = xp - xe, yp - ye, zp - ze
+    dist = sqrt(x * x + y * y + z * z)
+    lam = datan2(y, x) + T * 1.3969713
+    bet = datan2(z, hypot(x, y))
+    dec = dasin(dsin(bet) * dcos(23.4393) + dcos(bet) * dsin(23.4393) * dsin(lam))
+    ra = datan2(dsin(lam) * dcos(23.4393) - dtan(bet) * dsin(23.4393), dcos(lam))
+    return (s.aries - ra) % 360.0, dec, dist
+
+
+def planet(s, p, lt=None):
     """PLAN / PLN2. p = 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn.
-    Returns (gha, dec, sha, hp) with hp in arcmin."""
+    Returns (gha, dec, sha, hp) with hp in arcmin. Light time: two passes of the
+    series, or one pass when lt (days) is given (PLN3: from the quick distance)."""
     T = s.T
     tau = T / 10.0
     L0, B0, R0 = _ser(_D.EEL, tau), _ser(_D.EEB, tau), _ser(_D.EER, tau)
     sl, sb, sr = (getattr(_D, n) for n in PLANET_SERIES[p])
-    lt = 0.0
-    for _ in range(2):
+    passes = 2 if lt is None else 1
+    lt = lt or 0.0
+    for _ in range(passes):
         tp = tau - lt / 365250.0
         L, B, R = _ser(sl, tp), _ser(sb, tp), _ser(sr, tp)
         x = R * cos(B) * cos(L) - R0 * cos(B0) * cos(L0)

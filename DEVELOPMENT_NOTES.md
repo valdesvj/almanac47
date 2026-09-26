@@ -70,7 +70,11 @@ each character at its C47 pixel position; the text export uses a fixed-column la
 - PLAN keeps the Earth (R00-R02) for the tau in R03; MOON and TGET overwrite R03, so
   the cache is recomputed after them.
 - PHAS scratch moved to R30-R33 R51 R53 R56 R57; screens call PHA2 after SUNA.
-- Steps before -> after (series): ALMT 81k -> 41k, ALMF 100k -> 60k, HALMV 110k -> 70k.
+- PLN3 (screens): mean Keplerian elements (Standish 1800-2050) give a quick GHA/Dec
+  (Hc error < 0.15 deg). Hc <= -1 deg: skip the series (49 % of cases, never a visible
+  planet in 6,000 tests). Else one series pass with light time from the quick distance
+  (differs from the two-pass PLN2 by 0.0002'). `c47astro.planet_quick`, `planet(s, p, lt)`.
+- Steps before -> after (series): ALMT 81k -> 28k, ALMF 100k -> 48k, HALMV 110k -> 57k.
 
 ## Methods and accuracy
 

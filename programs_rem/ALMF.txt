@@ -176,7 +176,7 @@ LBL 16
 REM "planet loop"
 RCL 42
 IP
-XEQ "PLN2"
+XEQ "PLN3"
 STO 45
 X<>Y
 STO 46

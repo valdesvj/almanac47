@@ -24,7 +24,7 @@ def gen(name, info, rows=10):
       # Moon
       'XEQ "MOO2"','XEQ 52','RCL 96','X>0?','XEQ 47',
       # planets 1-4
-      '1.004','STO 11','LBL 45','RCL 11','IP','XEQ "PLN2"','XEQ 52','RCL 96','X>0?','XEQ 48','ISG 11','GTO 45',
+      '1.004','STO 11','LBL 45','RCL 11','IP','XEQ "PLN3"','XEQ 52','RCL 96','X>0?','XEQ 48','ISG 11','GTO 45',
       # brightest stars higher than 10 deg until the list has 10 bodies (same rule as ALMF)
       '1.058','STO 11','LBL 44','%d'%rows,'RCL 10','X≥Y?','GTO 42','RCL 11','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','XEQ 52',
       '10','RCL 96','X>Y?','XEQ 43','ISG 11','GTO 44','LBL 42')

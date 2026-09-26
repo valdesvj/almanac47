@@ -27,7 +27,7 @@ a('1','STO 41')
 # Moon, if above the horizon
 a('XEQ "MOO2"','STO 45','R↓','STO 46','R↓','STO 21','R↓','STO 22','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 61')
 # planets above the horizon
-a('1.004','STO 42','LBL 16','RCL 42','IP','XEQ "PLN2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 63','ISG 42','GTO 16')
+a('1.004','STO 42','LBL 16','RCL 42','IP','XEQ "PLN3"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 63','ISG 42','GTO 16')
 # brightest stars higher than 10 deg until the table has 10 rows
 a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
   '10','RCL 96','X≤Y?','GTO 18',

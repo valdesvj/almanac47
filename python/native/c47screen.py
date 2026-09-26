@@ -198,8 +198,14 @@ class Almanac:
             t = tables.get(j, p) if tables else None
             if t:
                 self.planets[p] = (t[0], t[1], (t[0] - s.aries + 360) % 360, 0.0)
-            else:
+            elif tables:                                      # outside the tables: PLN2
                 self.planets[p] = A.planet(s, p)
+            else:                                             # PLN3
+                g, d, dist = A.planet_quick(s, p)
+                if A.hcz(lat, lon, d, g)[0] > -1:
+                    self.planets[p] = A.planet(s, p, dist * 0.0057755183)
+                else:                                         # clearly below the horizon
+                    self.planets[p] = (g, d, 0.0, 0.0)
         self._stars = {}
 
     @property

@@ -3,8 +3,11 @@ REM "PLAN - apparent GHA, Dec, SHA of Venus, Mars, Jupiter, Saturn"
 REM "IN : Y = JD (UT1), X = planet 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn   (PLN2: X = planet, after SUNA)"
 REM "OUT: X = GHA, Y = Dec, Z = SHA (deg), T = HP (')"
 REM "VSOP87D truncated, light-time (2 iterations), FK5, aberration, nutation: max 0.065' vs JPL 2000-2050"
-REM "NEEDS: SUNA (+VL VB VR NU, SER), matrices from MATP"
-REM "REGS: R00-R09, R34-R39 (+ SUNA)"
+REM "PLN3 (used by the screens): quick position from mean Keplerian elements (Standish, within 0.2 deg)."
+REM "  Hc <= -1 deg (lat R91, lon R92): returns the quick GHA/Dec (not shown). Else the series once, light time"
+REM "  from the quick distance. Same values as PLN2 within 0.0002'. With the tables (flag 10) it is PLN2."
+REM "NEEDS: SUNA (+VL VB VR NU, SER), CHZ (PLN3), matrices from MATP"
+REM "REGS: R00-R09, R34-R39 (+ SUNA), PLN3 also R30-R33 R51-R53 R56-R59 R68 R69 (scratch)"
 REM "planet no. R09, SUNA for T, tau, nutation, obliquity, GHA Aries"
 STO 34
 R↓
@@ -43,6 +46,12 @@ LBL 32
 RCL 34
 STO 09
 LBL 33
+REM "light-time iteration (2 passes): planet at tau - lt, PLN3 enters at LBL 27 with lt R08 and 1 pass R07"
+0
+STO 08
+2
+STO 07
+LBL 27
 RCL 54
 10
 ÷
@@ -74,11 +83,6 @@ XEQ "SER"
 STO 02
 LBL 28
 RAD
-REM "light-time iteration (2 passes): planet at tau - lt"
-0
-STO 08
-2
-STO 07
 LBL 30
 REM "pass: planet series (LBL 11-14), geocentric x R35, y R36, z R37, distance R34, lt R08"
 RCL 03
@@ -383,5 +387,375 @@ INDEX "SAR"
 STO 55
 XEQ "SER"
 STO 06
+RTN
+LBL "PLN3"
+REM "PLN3: Earth and planet from mean elements (LBL 50, elements LBL 60-64), geocentric distance R58, RA/Dec, GHA = GHA Aries - RA, HCZ"
+FS? 10
+GTO "PLN2"
+STO 59
+DEG
+0
+XEQ 50
+RCL 31
+STO 56
+RCL 33
+STO 57
+RCL 30
+STO 58
+RCL 59
+XEQ 50
+RCL 31
+RCL- 56
+STO 31
+RCL 33
+RCL- 57
+STO 33
+RCL 30
+RCL- 58
+STO 30
+RCL 31
+X↑2
+RCL 33
+X↑2
++
+RCL 30
+X↑2
++
+0.5
+Y↑X
+STO 58
+RCL 33
+RCL 31
+→POL
+STO 56
+X<>Y
+RCL 54
+1.3969713
+×
++
+STO 57
+RCL 30
+RCL 56
+→POL
+X<>Y
+STO 56
+RCL 56
+SIN
+23.4393
+COS
+×
+RCL 56
+COS
+23.4393
+SIN
+×
+RCL 57
+SIN
+×
++
+ASIN
+STO 52
+RCL 57
+SIN
+23.4393
+COS
+×
+RCL 56
+TAN
+23.4393
+SIN
+×
+-
+RCL 57
+COS
+→POL
+X<>Y
+RCL 80
+X<>Y
+-
+360
+MOD
+STO 53
+RCL 52
+RCL 53
+XEQ "HCZ"
+-1
+RCL 96
+X>Y?
+GTO 26
+0
+0
+RCL 52
+RCL 53
+RTN
+LBL 26
+REM "above -1 deg: full series once, light time = distance * 0.0057755183 d"
+RCL 58
+0.0057755183
+×
+STO 08
+1
+STO 07
+RCL 59
+STO 09
+GTO 27
+LBL 50
+REM "heliocentric x R31, y R33, z R30 of body X from mean elements, Kepler equation 4 iterations"
+60
++
+STO 52
+XEQ IND 52
+RCL 33
+RCL- 51
+STO 52
+STO 68
+RCL 68
+SIN
+RCL× 31
+57.29577951308232
+×
+RCL+ 52
+STO 68
+RCL 68
+SIN
+RCL× 31
+57.29577951308232
+×
+RCL+ 52
+STO 68
+RCL 68
+SIN
+RCL× 31
+57.29577951308232
+×
+RCL+ 52
+STO 68
+RCL 68
+SIN
+RCL× 31
+57.29577951308232
+×
+RCL+ 52
+STO 68
+RCL 68
+COS
+RCL- 31
+RCL× 30
+RCL 31
+X↑2
+1
+X<>Y
+-
+0.5
+Y↑X
+RCL× 30
+RCL 68
+SIN
+×
+X<>Y
+→POL
+STO 69
+X<>Y
+RCL+ 51
+RCL- 53
+STO 52
+RCL 52
+SIN
+RCL 32
+SIN
+×
+RCL× 69
+STO 30
+RCL 52
+SIN
+RCL 32
+COS
+×
+STO 32
+RCL 52
+COS
+RCL 53
+COS
+×
+RCL 32
+RCL 53
+SIN
+×
+-
+RCL× 69
+STO 31
+RCL 52
+COS
+RCL 53
+SIN
+×
+RCL 32
+RCL 53
+COS
+×
++
+RCL× 69
+STO 33
+RTN
+LBL 60
+REM "elements a e I L varpi Omega = c0 + c1 T (T = R54) -> R30 R31 R32 R33 R51 R53: 60 Earth-Moon barycentre, 61-64 planets"
+5.62E-6
+RCL× 54
+1.00000261
++
+STO 30
+-4.392E-5
+RCL× 54
+0.01671123
++
+STO 31
+-0.01294668
+RCL× 54
+-1.531E-5
++
+STO 32
+35999.3724498
+RCL× 54
+100.46457166
++
+STO 33
+0.32327364
+RCL× 54
+102.93768193
++
+STO 51
+0
+RCL× 54
+0
++
+STO 53
+RTN
+LBL 61
+3.9E-6
+RCL× 54
+0.72333566
++
+STO 30
+-4.107E-5
+RCL× 54
+0.00677672
++
+STO 31
+-0.0007889
+RCL× 54
+3.39467605
++
+STO 32
+58517.8153873
+RCL× 54
+181.9790995
++
+STO 33
+0.00268329
+RCL× 54
+131.60246718
++
+STO 51
+-0.27769418
+RCL× 54
+76.67984255
++
+STO 53
+RTN
+LBL 62
+1.847E-5
+RCL× 54
+1.52371034
++
+STO 30
+7.882E-5
+RCL× 54
+0.0933941
++
+STO 31
+-0.00813131
+RCL× 54
+1.84969142
++
+STO 32
+19140.302685
+RCL× 54
+-4.55343205
++
+STO 33
+0.44441088
+RCL× 54
+-23.94362959
++
+STO 51
+-0.29257343
+RCL× 54
+49.55953891
++
+STO 53
+RTN
+LBL 63
+-0.00011607
+RCL× 54
+5.202887
++
+STO 30
+-0.00013253
+RCL× 54
+0.04838624
++
+STO 31
+-0.00183714
+RCL× 54
+1.30439695
++
+STO 32
+3034.74612775
+RCL× 54
+34.39644051
++
+STO 33
+0.21252668
+RCL× 54
+14.72847983
++
+STO 51
+0.20469106
+RCL× 54
+100.47390909
++
+STO 53
+RTN
+LBL 64
+-0.0012506
+RCL× 54
+9.53667594
++
+STO 30
+-0.00050991
+RCL× 54
+0.05386179
++
+STO 31
+0.00193609
+RCL× 54
+2.48599187
++
+STO 32
+1222.49362201
+RCL× 54
+49.95424423
++
+STO 33
+-0.41897216
+RCL× 54
+92.59887831
++
+STO 51
+-0.28867794
+RCL× 54
+113.66242448
++
+STO 53
 RTN
 END

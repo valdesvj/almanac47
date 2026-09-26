@@ -210,9 +210,13 @@ A['MOON']=[('LBL "MOON"',1,'SUNA for T (R54), nutation (R66), true obliquity (R7
  ('LBL 20',1,'loop over matrix rows (R09 = rows): angle = dD + mM + m\'M\' + fF, E^|m|'),('LBL 21',1,'row: sin term to IND R35, cos term to IND R36')]
 H['PLAN']=["PLAN - apparent GHA, Dec, SHA of Venus, Mars, Jupiter, Saturn","IN : Y = JD (UT1), X = planet 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn   (PLN2: X = planet, after SUNA)",
  "OUT: X = GHA, Y = Dec, Z = SHA (deg), T = HP (')","VSOP87D truncated, light-time (2 iterations), FK5, aberration, nutation: max 0.065' vs JPL 2000-2050",
- "NEEDS: SUNA (+VL VB VR NU; SER), matrices from MATP","REGS: R00-R09, R34-R39 (+ SUNA)"]
+ "PLN3 (used by the screens): quick position from mean Keplerian elements (Standish, within 0.2 deg).",
+ "  Hc <= -1 deg (lat R91, lon R92): returns the quick GHA/Dec (not shown). Else the series once, light time",
+ "  from the quick distance. Same values as PLN2 within 0.0002'. With the tables (flag 10) it is PLN2.",
+ "NEEDS: SUNA (+VL VB VR NU; SER), CHZ (PLN3), matrices from MATP",
+ "REGS: R00-R09, R34-R39 (+ SUNA); PLN3 also R30-R33 R51-R53 R56-R59 R68 R69 (scratch)"]
 A['PLAN']=[('LBL "PLAN"',1,'planet no. R09; SUNA for T, tau, nutation, obliquity, GHA Aries'),('LBL "PLN2"',1,'PLN2: X = planet, SUNA already run for this JD (tau = T/10)'),('RCL 03\nX=Y?',1,'Earth already computed for this tau (R03)? then skip to LBL 28'),('INDEX "EEL"',1,'Earth heliocentric L R00, B R01, R R02 (radians, au); computed once for the four planets'),
- ('0\nSTO 08',1,'light-time iteration (2 passes): planet at tau - lt'),('LBL 30',1,'pass: planet series (LBL 11-14), geocentric x R35, y R36, z R37, distance R34, lt R08'),
+ ('0\nSTO 08',1,'light-time iteration (2 passes): planet at tau - lt; PLN3 enters at LBL 27 with lt R08 and 1 pass R07'),('LBL "PLN3"',1,'PLN3: Earth and planet from mean elements (LBL 50, elements LBL 60-64), geocentric distance R58, RA/Dec, GHA = GHA Aries - RA, HCZ'),('LBL 26',1,'above -1 deg: full series once, light time = distance * 0.0057755183 d'),('LBL 50',1,'heliocentric x R31, y R33, z R30 of body X from mean elements; Kepler equation 4 iterations'),('LBL 60',1,'elements a e I L varpi Omega = c0 + c1 T (T = R54) -> R30 R31 R32 R33 R51 R53: 60 Earth-Moon barycentre, 61-64 planets'),('LBL 30',1,'pass: planet series (LBL 11-14), geocentric x R35, y R36, z R37, distance R34, lt R08'),
  ('RCL 36\nRCL 35\n→POL',1,'geocentric longitude R39, latitude R38 (deg)'),('RCL 39\nRCL 54\n1.397',1,'FK5 correction'),
  ('RCL 00\n57.29577951308232',1,'annual aberration (sun, e, perihelion) + nutation in longitude'),
  ('RCL 38\nSIN\nRCL 76',1,'declination R06, RA R05'),('RCL 80\nRCL- 05',1,'GHA R04, SHA R05, HP = 8.794"/D R07'),

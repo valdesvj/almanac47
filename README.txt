@@ -224,7 +224,7 @@ TEXT ALMANAC (no drawing) - ALMT
   column of the Sun and Moon pages at 180 px); with 8 px spaces they can move by up
   to 7 px from page to page.
   Needs: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT CWID + matrices.
-  Does NOT need PTXB, PTXT or any drawing program. About 41k steps before the
+  Does NOT need PTXB, PTXT or any drawing program. About 28k steps before the
   first line (17k with the tables); each further line is immediate.
 STXT  number -> text: SDM (deg min), SNS, SEW, SZN, SHM, SF1, SINT, SDAT.
   Body names are in ALMT labels 80-85 (SUN MOON VENUS MARS JUPITER SATURN);
@@ -278,9 +278,15 @@ SPEED-UPS (Sep 2026)
   3. PLAN computes the Earth once for the four planets (R03 = tau of R00-R02).
   4. ALMF, HALMV and ALMT call PHA2 (Moon phase) right after their own SUNA
      instead of PHAS running SUNA again.
+  5. The screens call PLN3 for the planets: a quick position from mean orbital
+     elements (within 0.2 deg). A planet with Hc below -1 deg is not computed
+     further (it is not shown; about half of all cases). Otherwise the series run
+     once, with the light time from the quick distance (was: two passes).
+     Planet GHA/Dec change by at most 0.0002'. ALMT first page: 42k -> 28k steps
+     on average (2025-2050).
   Steps (Cape Town, 23 Nov 2026 09:00 UT), before -> after:
-     series:  ALMT first page 81k -> 41k, ALMF 100k -> 60k, HALMV 110k -> 70k,
-              HORZ 76k -> 63k
+     series:  ALMT first page 81k -> 29k, ALMF 100k -> 48k, HALMV 110k -> 57k,
+              HORZ 76k -> 51k
      tables:  ALMT 20k -> 17k, ALMF 36k, HALMV 45k (almost unchanged)
   Rebuild the matrices after loading the new MATA/MATP (NAV option 3, or
   NAVINIT + XEQ "INIT"): the old matrices do not work with the new SER.
