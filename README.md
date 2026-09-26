@@ -15,4 +15,10 @@ Sun, Moon, planets and the 57 navigational stars (+ Polaris): GHA, Dec, Hc, Zn,
 twilight, sunrise/sunset, meridian passage, Moon phase; almanac pages and horizon
 charts drawn on the calculator screen.
 
+## Licence
+
+The calculator programs (`programs/`, `programs_rem/`, `listings/`, `rtf/`) are
+MIT-licensed, see the `LICENSE` file in each folder. Everything else is
+Copyright (c) 2026 Victorio Valdes, all rights reserved. See `NOTICE`.
+
 **Does not replace the Nautical Almanac.**

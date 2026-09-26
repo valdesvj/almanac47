@@ -1,0 +1,17 @@
+Copyright (c) 2026 Victorio Valdes. All rights reserved.
+
+This applies to everything in this repository except the folders listed below:
+the PC versions (python/), the tests, the tools, the documentation, the texts
+and the Almanac 47 app.
+
+The C47 calculator programs are free software under the MIT licence:
+  programs/       the programs (plain text, one command per line)
+  programs_rem/   the same programs with REM comments
+  listings/       the annotated listings
+  rtf/            the listings as RTF
+See the LICENSE file in each of those folders.
+
+SwissMicros, C47, R47, DM42 and HP are trademarks of their owners.
+This project is not affiliated with or endorsed by them.
+
+DOES NOT REPLACE THE NAUTICAL ALMANAC.
