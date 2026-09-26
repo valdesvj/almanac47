@@ -179,8 +179,7 @@ class Almanac:
                 t = tables.get(jj, 0)
                 if t:
                     return t
-                s = A.Sun(jj)
-                return s.gha, s.dec
+                return A.sun_fast(jj)
         self.times = {k: A.event(j0, lat, lon, k, sung) for k in ('NTWA', 'RISE', 'TRAN', 'SET', 'NTWP')}
         self.sun = s = A.Sun(j)
         self.illum, self.age = A.phase(s)

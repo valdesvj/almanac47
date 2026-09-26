@@ -201,17 +201,25 @@ EVENTS = {'RISE': (-0.8333333333333333, -1), 'SET': (-0.8333333333333333, 1),
           'TRAN': (0.0, 0)}
 
 
+def sun_fast(j):
+    """SUNF: low-precision Sun (Astronomical Almanac formula) for the SUNRISE
+    iterations: (GHA, Dec) within 0.01 deg, event times within about 15 s."""
+    d = j - 2451545.0
+    g = d * 0.9856003 + 357.528
+    lam = dsin(g) * 1.915 + dsin(g * 2) * 0.02 + d * 0.9856474 + 280.46
+    eps = d * -0.0000004 + 23.439
+    dec = dasin(dsin(eps) * dsin(lam))
+    ra = datan2(dcos(eps) * dsin(lam), dcos(lam))
+    return (d * 360.98564736629 + 280.46061837 - ra) % 360.0, dec
+
+
 def event(j0, lat, lon, kind, sun=None):
     """SUNRISE. j0 = JD at 0h UT. Returns UT hours, 99 if the event does not happen.
-    sun(jd) -> (gha, dec) replaces the series (SUNG with almanac tables)."""
+    sun(jd) -> (gha, dec) replaces the low-precision Sun (SUNG with almanac tables)."""
     h0, sg = EVENTS[kind]
     t = sg * 6 + 12.0
     for _ in range(10):
-        if sun:
-            gha, dec = sun(t / 24.0 + j0)
-        else:
-            s = Sun(t / 24.0 + j0)
-            gha, dec = s.gha, s.dec
+        gha, dec = (sun or sun_fast)(t / 24.0 + j0)
         target = 0.0
         if sg:
             c = (dsin(h0) - dsin(lat) * dsin(dec)) / (dcos(lat) * dcos(dec))

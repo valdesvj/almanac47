@@ -30,7 +30,7 @@ A['SUNA']=[('LBL "SUNA"',1,'main entry'),('DEG',1,'T = Julian centuries TT (UT1+
  ('84381.448',1,'true obliquity eps = eps0 + deps -> R76'),('RCL 75\nSIN\nRCL 76',1,'declination -> R77'),
  ('RCL 74\nSIN\nRCL 76\nCOS',1,'right ascension (->POL) -> R78'),('RCL 70\n2451545',1,'GMST + equation of equinoxes = GHA Aries -> R80'),
  ('RCL- 78',1,'GHA Sun = GHA Aries - RA -> R81'),('RCL 80\nRCL 77\nRCL 81',1,'stack Z=Aries Y=Dec X=GHA'),
- ('LBL "SER"',1,'SER: sum A*cos(B+C*tau)*tau^k over matrix rows; R55 = rows, result *1E-8'),
+ ('LBL "SER"',1,'SER: sum A*cos(B+C*tau)*tau^k over matrix rows (R55 = rows). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8'),
  ('LBL 12',1,'loop over rows (DSE 55)'),
  ('LBL "NUT"',1,'NUT: fundamental arguments D M M\' F Omega -> R60-R64, 10-term IAU1980 nutation'),
  ('LBL 13',1,'loop over NU rows: dpsi -> R66, deps -> R67 (0.0001" units, scaled at end)')]
@@ -73,11 +73,12 @@ A['SUNRISE']=[('LBL "RISE"',1,'h0 = -0.8333 (R93), morning sign -1 (R95)'),('LBL
  ('LBL 24',1,'converged (|dt| < 0.0003 h, about 1 s): X = t'),('LBL 29',1,'no event (|cos| > 1): X = 99')]
 
 H['PHAS']=["PHAS - Moon % illuminated and age","IN : X = JD (UT1)","OUT: X = % illuminated, Y = age (days since true new moon)",
- "NEEDS: SUNA (uses D M M' F from R60-R63)","REGS: R41-R48"]
-A['PHAS']=[('LBL "PHAS"',1,'run SUNA for the mean lunar arguments'),('180\nRCL- 60',1,'phase angle i (Meeus 48.4); cos i -> R48'),
- ('RCL 60\n360\nMOD',1,'first guess days since mean new moon = D/12.1907 -> R43; flag R42 = 0'),
- ('LBL 40',1,'arguments at new moon: M -> R46, M\' -> R45, F -> R44; true new moon correction; age -> R47'),
- ('LBL 46',1,'second try gave negative age: keep first result (R41)'),('LBL 44',1,'first pass: check age range'),
+ "PHA2: same, when SUNA has just run for this JD (the screens call it right after SUNA)",
+ "NEEDS: SUNA (uses D M M' F from R60-R63)","REGS: R30-R33 R51 R53 R56 R57 (scratch only)"]
+A['PHAS']=[('LBL "PHAS"',1,'run SUNA for the mean lunar arguments'),('LBL "PHA2"',1,'PHA2: entry when SUNA has already run'),('180\nRCL- 60',1,'phase angle i (Meeus 48.4); cos i -> R57'),
+ ('RCL 60\n360\nMOD',1,'first guess days since mean new moon = D/12.1907 -> R32; flag R31 = 0'),
+ ('LBL 40',1,'arguments at new moon: M -> R53, M\' -> R51, F -> R33; true new moon correction; age -> R56'),
+ ('LBL 46',1,'second try gave negative age: keep first result (R30)'),('LBL 44',1,'first pass: check age range'),
  ('LBL 41',1,'age < 0: use previous lunation (+29.53 d)'),('LBL 42',1,'age > 27: try next lunation (-29.53 d)'),
  ('LBL 43',1,'output: Y = age, X = (1 + cos i) * 50')]
 
@@ -154,7 +155,7 @@ common_screen=[('LBL 26',1,'push Z = JD 0h of the UT date, Y = lat, X = lon for 
 H['HALMV']=["HALMV - chart left, almanac data right: Sun, Moon and planets above the horizon, then the brightest stars","IN : Z = JD (UT1), Y = lat (N+), X = lon (E+)",
  "  higher than 10 deg until the table has 10 rows","NEEDS: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU PTXB + matrices","REGS: R10 JD R11 lat R12 lon R13-R17 times R18-R19 Moon phase R21 Moon HP R22 Moon SD R29 Sun SD R37 R40-R48"]
 A['HALMV']=[('LBL "HALMV"',1,'store JD R10, lat R11, lon R12'),('XEQ 26',1,'sun times: NTWA R13 RISE R14 TRAN R15 SET R16 NTWP R17'),
- ('RCL 10\nXEQ "PHAS"',1,'Moon: % R18, age R19'),('RCL 10\nSTO 90',1,'restore JD/lat/lon in R90-R92 for HCZ, clear screen'),
+ ('XEQ "PHA2"',1,'Moon: % R18, age R19 (PHA2 reuses this SUNA)'),('RCL 10\nSTO 90',1,'restore JD/lat/lon in R90-R92 for HCZ, clear screen'),
  ('0\n-201\nPIXEL',1,'vertical divider at x = 201 (one PIXEL, negative x)'),('14\n18\n179',1,'horizon line y = 14 (PHL)'),('14.214',1,'Hc axis x = 17'),('80\n15\nPIXEL',1,'ticks and labels 30 60 90'),
  ('0\nSTO 44',1,'compass letters; north: N E S W N'),('LBL 23',1,'south latitude: S W N E S, offset R44 = 180'),
  ('LBL 24',1,'SUNA: GHA R45, Dec R46, Aries R48; SD R29'),('0\nSTO 47\nLBL 14',1,'dotted celestial equator every 3 deg'),
@@ -166,7 +167,7 @@ A['HALMV']=[('LBL "HALMV"',1,'store JD R10, lat R11, lon R12'),('XEQ 26',1,'sun 
  ('LBL 57',1,'star symbol + number on chart'),('LBL 21',1,'label near right edge: 22 px left'),('8\n230',1,'warning line (PTXT small font)'),('LBL 60',1,'table row: Hc (PDM), Zn (PZN); next row -10'),('LBL 61',1,'Moon: symbol on chart and table row'),('LBL 63',1,'planet: symbol on chart (LBL 71-74) and table row with name (LBL 82-85)'),('LBL 71',1,'planet symbols < > = ?'),('LBL 82',1,'planet names'),('LBL 64',1,'Hc < 0 (body below the horizon): 54 px underline under the Hc value (PHL)')]+common_screen
 H['ALMF']=["ALMF - full-page almanac screen, same table rule as HALMV (10 rows): Sun, then Moon and planets above the horizon,",
  "  then the brightest stars higher than 10 deg; GHA Dec Hc Zn; bottom line: DOES NOT REPLACE THE NAUTICAL ALMANAC","IN : Z = JD (UT1), Y = lat (N+), X = lon (E+)","Moon HP and SD in the bottom block","NEEDS: as HALMV   REGS: as HALMV"]
-A['ALMF']=[('LBL "ALMF"',1,'store JD R10, lat R11, lon R12'),('XEQ 26',1,'sun times R13-R17'),('RCL 10\nXEQ "PHAS"',1,'Moon R18 R19'),
+A['ALMF']=[('LBL "ALMF"',1,'store JD R10, lat R11, lon R12'),('XEQ 26',1,'sun times R13-R17'),('XEQ "PHA2"',1,'Moon R18 R19 (PHA2 reuses this SUNA)'),
  ('RCL 10\nSTO 90',1,'restore R90-R92, clear screen'),('RCL 10\nXEQ "SUNA"',1,'Sun GHA R45 Dec R46 Aries R48, SD R29'),
  ('229\n4',1,'top line: date, UT, DR, Aries'),('-219\n0\nPIXEL',1,'separator (one PIXEL, negative y = full line)'),('207\n34',1,'table header'),('194\nSTO 40',1,'Sun row'),
  ('1\nSTO 41',1,'rows in the table R41 (Sun = 1)'),('XEQ "MOO2"',1,'Moon: HP R21, SD R22; row if above the horizon (LBL 61)'),('1.004',1,'planet rows if above the horizon (PLN2, LBL 63)'),('LBL 17',1,'stars by brightness (SBRT), Hc > 10 deg, until 10 rows'),('-22\n0\nPIXEL',1,'separator and the warning line'),('LBL 18',1,'next star'),
@@ -210,7 +211,7 @@ A['MOON']=[('LBL "MOON"',1,'SUNA for T (R54), nutation (R66), true obliquity (R7
 H['PLAN']=["PLAN - apparent GHA, Dec, SHA of Venus, Mars, Jupiter, Saturn","IN : Y = JD (UT1), X = planet 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn   (PLN2: X = planet, after SUNA)",
  "OUT: X = GHA, Y = Dec, Z = SHA (deg), T = HP (')","VSOP87D truncated, light-time (2 iterations), FK5, aberration, nutation: max 0.065' vs JPL 2000-2050",
  "NEEDS: SUNA (+VL VB VR NU; SER), matrices from MATP","REGS: R00-R09, R34-R39 (+ SUNA)"]
-A['PLAN']=[('LBL "PLAN"',1,'planet no. R09; SUNA for T, tau, nutation, obliquity, GHA Aries'),('LBL "PLN2"',1,'PLN2: X = planet, SUNA already run for this JD (tau = T/10)'),('INDEX "EEL"',1,'Earth heliocentric L R00, B R01, R R02 (radians, au)'),
+A['PLAN']=[('LBL "PLAN"',1,'planet no. R09; SUNA for T, tau, nutation, obliquity, GHA Aries'),('LBL "PLN2"',1,'PLN2: X = planet, SUNA already run for this JD (tau = T/10)'),('RCL 03\nX=Y?',1,'Earth already computed for this tau (R03)? then skip to LBL 28'),('INDEX "EEL"',1,'Earth heliocentric L R00, B R01, R R02 (radians, au); computed once for the four planets'),
  ('0\nSTO 08',1,'light-time iteration (2 passes): planet at tau - lt'),('LBL 30',1,'pass: planet series (LBL 11-14), geocentric x R35, y R36, z R37, distance R34, lt R08'),
  ('RCL 36\nRCL 35\n→POL',1,'geocentric longitude R39, latitude R38 (deg)'),('RCL 39\nRCL 54\n1.397',1,'FK5 correction'),
  ('RCL 00\n57.29577951308232',1,'annual aberration (sun, e, perihelion) + nutation in longitude'),
@@ -274,8 +275,8 @@ H['TBL']=["TBL - almanac tables (Chebyshev coefficients from JPL DE421) for a li
 A['TBL']=[('SF 10',1,'flag 10: tables loaded; SUNA, SUNG, MOO2 and PLN2 use them inside their period')]
 A['SUNA']+=[('FS? 10',1,'tables loaded (flag 10): Sun GHA/Dec and GHA Aries from TGET when the date is covered (LBL 45)'),
  ('LBL 45',1,'Sun (body 0) -> R81 GHA, R77 Dec; Aries (body 6) -> R80; unchanged if outside the table'),
- ('LBL "SUNG"',1,'SUNG: fast Sun GHA/Dec for the SUNRISE iterations: TGET if covered, else full SUNA')]
-A['SUNRISE']+=[('XEQ "SUNG"',1,'SUNG = SUNA, or the tables when loaded (much faster)')]
+ ('LBL "SUNG"',1,'SUNG: fast Sun GHA/Dec for the SUNRISE iterations: TGET if covered, else SUNF'),('LBL "SUNF"',1,'SUNF: low-precision Sun (Astronomical Almanac): L, g, lambda = L + 1.915 sin g + 0.020 sin 2g, eps; Dec, RA; GHA = GMST - RA. Within 0.01 deg: event times within about 15 s')]
+A['SUNRISE']+=[('XEQ "SUNG"',1,'SUNG = low-precision Sun SUNF, or the tables when loaded')]
 A['MOON']+=[('FC? 10',1,'tables loaded and covering the date: TGET body 5, set flag 11 (T on the screens); else series, clear flag 11')]
 A['PLAN']+=[('FC? 10',1,'tables loaded and covering the date: GHA/Dec from TGET, SHA = GHA - GHA Aries, HP 0; else series (LBL 33)')]
 for k,y,x in (('ALMF',8,390),('HALMV',8,392)):

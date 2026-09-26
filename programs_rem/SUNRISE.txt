@@ -81,7 +81,7 @@ RCL 94
 24
 ÷
 RCL+ 90
-REM "SUNG = SUNA, or the tables when loaded (much faster)"
+REM "SUNG = low-precision Sun SUNF, or the tables when loaded"
 XEQ "SUNG"
 STO 98
 R↓

@@ -93,7 +93,7 @@
 0066  24
 0067  ÷
 0068  RCL+ 90
-; ---- SUNG = SUNA, or the tables when loaded (much faster)
+; ---- SUNG = low-precision Sun SUNF, or the tables when loaded
 0069  XEQ "SUNG"
 0070  STO 98
 0071  R↓

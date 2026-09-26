@@ -60,6 +60,18 @@ each character at its C47 pixel position; the text export uses a fixed-column la
 - Every screen carries "DOES NOT REPLACE THE NAUTICAL ALMANAC". The programs support
   the Nautical Almanac; they do not replace it.
 
+## Speed (Sep 2026)
+
+- SUNRISE iterates with SUNF (low-precision Sun, `c47astro.sun_fast`); event times
+  within about 15 s of the full Sun. Screens show GHA/Dec from the full SUNA.
+- SER: column 1 of every series matrix holds 30+k (k = power of tau); terms go to
+  R30-R32 and are combined with tau at the end (Horner). MATA and MATP changed: the
+  matrices must be rebuilt.
+- PLAN keeps the Earth (R00-R02) for the tau in R03; MOON and TGET overwrite R03, so
+  the cache is recomputed after them.
+- PHAS scratch moved to R30-R33 R51 R53 R56 R57; screens call PHA2 after SUNA.
+- Steps before -> after (series): ALMT 81k -> 41k, ALMF 100k -> 60k, HALMV 110k -> 70k.
+
 ## Methods and accuracy
 
 - Sun: VSOP87D Earth (truncated), FK5, IAU1980 nutation (10 terms), aberration.

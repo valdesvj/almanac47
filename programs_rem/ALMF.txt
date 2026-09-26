@@ -26,12 +26,6 @@ STO 16
 XEQ 26
 XEQ "NTWP"
 STO 17
-REM "Moon R18 R19"
-RCL 10
-XEQ "PHAS"
-STO 18
-X<>Y
-STO 19
 REM "restore R90-R92, clear screen"
 RCL 10
 STO 90
@@ -53,6 +47,11 @@ RCL 73
 X<>Y
 ÷
 STO 29
+REM "Moon R18 R19 (PHA2 reuses this SUNA)"
+XEQ "PHA2"
+STO 18
+X<>Y
+STO 19
 REM "top line: date, UT, DR, Aries"
 229
 4

@@ -26,12 +26,6 @@ STO 16
 XEQ 26
 XEQ "NTWP"
 STO 17
-REM "Moon: % R18, age R19"
-RCL 10
-XEQ "PHAS"
-STO 18
-X<>Y
-STO 19
 REM "restore JD/lat/lon in R90-R92 for HCZ, clear screen"
 RCL 10
 STO 90
@@ -156,6 +150,11 @@ RCL 73
 X<>Y
 ÷
 STO 29
+REM "Moon: % R18, age R19 (PHA2 reuses this SUNA)"
+XEQ "PHA2"
+STO 18
+X<>Y
+STO 19
 REM "dotted celestial equator every 3 deg"
 0
 STO 47

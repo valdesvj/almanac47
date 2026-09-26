@@ -189,20 +189,79 @@ RTN
 STO 80
 RTN
 LBL "SUNG"
-REM "SUNG: fast Sun GHA/Dec for the SUNRISE iterations: TGET if covered, else full SUNA"
+REM "SUNG: fast Sun GHA/Dec for the SUNRISE iterations: TGET if covered, else SUNF"
 FC? 10
-GTO "SUNA"
+GTO "SUNF"
 STO 70
 0
 XEQ "TGET"
 X≥0?
 RTN
 RCL 70
-GTO "SUNA"
-LBL "SER"
-REM "SER: sum A*cos(B+C*tau)*tau^k over matrix rows, R55 = rows, result *1E-8"
-0
+LBL "SUNF"
+REM "SUNF: low-precision Sun (Astronomical Almanac): L, g, lambda = L + 1.915 sin g + 0.020 sin 2g, eps, Dec, RA, GHA = GMST - RA. Within 0.01 deg: event times within about 15 s"
+DEG
+2451545
+-
 STO 51
+0.9856003
+×
+357.528
++
+STO 53
+SIN
+1.915
+×
+RCL 53
+2
+×
+SIN
+0.02
+×
++
+RCL 51
+0.9856474
+×
++
+280.46
++
+STO 53
+RCL 51
+-0.0000004
+×
+23.439
++
+STO 52
+SIN
+RCL 53
+SIN
+×
+ASIN
+RCL 52
+COS
+RCL 53
+SIN
+×
+RCL 53
+COS
+→POL
+R↓
+RCL 51
+360.98564736629
+×
+280.46061837
++
+X<>Y
+-
+360
+MOD
+RTN
+LBL "SER"
+REM "SER: sum A*cos(B+C*tau)*tau^k over matrix rows (R55 = rows). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8"
+0
+STO 30
+STO 31
+STO 32
 1
 1
 STOIJ
@@ -213,7 +272,6 @@ J+
 STO 52
 RCLEL
 J+
-STO 53
 RCLEL
 J+
 RCLEL
@@ -221,15 +279,15 @@ J+
 RCL× 50
 +
 COS
-RCL× 53
-RCL 50
-RCL 52
-Y↑X
 ×
-STO+ 51
+STO+ IND 52
 DSE 55
 GTO 12
-RCL 51
+RCL 32
+RCL× 50
+RCL+ 31
+RCL× 50
+RCL+ 30
 1E-8
 ×
 RTN

@@ -9,9 +9,9 @@ GX,DX,HX,ZX=112,184,256,330
 a('LBL "ALMF"','STO 12','R↓','STO 11','R↓','STO 10')
 for reg,lab in ((13,'NTWA'),(14,'RISE'),(15,'TRAN'),(16,'SET'),(17,'NTWP')):
     a('XEQ 26','XEQ "%s"'%lab,'STO %d'%reg)
-a('RCL 10','XEQ "PHAS"','STO 18','X<>Y','STO 19')
 a('RCL 10','STO 90','RCL 11','STO 91','RCL 12','STO 92','CLLCD')
 a('RCL 10','XEQ "SUNA"','STO 45','R↓','STO 46','R↓','STO 48','RCL 73','15.99383','X<>Y','÷','STO 29')
+a('XEQ "PHA2"','STO 18','X<>Y','STO 19')          # Moon phase from the SUNA just run
 # line 1
 num(229,4,10,'PDAT')
 a(229,76,'RCL 10','0.5','+','1','MOD','24','×','XEQ "PHM"'); txt(229,112,'UT')

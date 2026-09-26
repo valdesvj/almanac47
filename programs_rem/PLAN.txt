@@ -49,9 +49,14 @@ RCL 54
 STO 50
 LBL 31
 RCL 50
+REM "Earth already computed for this tau (R03)? then skip to LBL 28"
+RCL 03
+X=Y?
+GTO 28
+R↓
 STO 03
 RAD
-REM "Earth heliocentric L R00, B R01, R R02 (radians, au)"
+REM "Earth heliocentric L R00, B R01, R R02 (radians, au), computed once for the four planets"
 INDEX "EEL"
 59
 STO 55
@@ -67,6 +72,8 @@ INDEX "EER"
 STO 55
 XEQ "SER"
 STO 02
+LBL 28
+RAD
 REM "light-time iteration (2 passes): planet at tau - lt"
 0
 STO 08

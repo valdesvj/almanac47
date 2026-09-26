@@ -2,12 +2,15 @@ LBL "PHAS"
 REM "PHAS - Moon % illuminated and age"
 REM "IN : X = JD (UT1)"
 REM "OUT: X = % illuminated, Y = age (days since true new moon)"
+REM "PHA2: same, when SUNA has just run for this JD (the screens call it right after SUNA)"
 REM "NEEDS: SUNA (uses D M M' F from R60-R63)"
-REM "REGS: R41-R48"
+REM "REGS: R30-R33 R51 R53 R56 R57 (scratch only)"
 REM "run SUNA for the mean lunar arguments"
 XEQ "SUNA"
+LBL "PHA2"
+REM "PHA2: entry when SUNA has already run"
 DEG
-REM "phase angle i (Meeus 48.4), cos i -> R48"
+REM "phase angle i (Meeus 48.4), cos i -> R57"
 180
 RCL- 60
 RCL 62
@@ -48,80 +51,80 @@ SIN
 ×
 -
 COS
-STO 48
-REM "first guess days since mean new moon = D/12.1907 -> R43, flag R42 = 0"
+STO 57
+REM "first guess days since mean new moon = D/12.1907 -> R32, flag R31 = 0"
 RCL 60
 360
 MOD
 12.190749
 ÷
-STO 43
+STO 32
 0
-STO 42
+STO 31
 LBL 40
-REM "arguments at new moon: M -> R46, M' -> R45, F -> R44, true new moon correction, age -> R47"
+REM "arguments at new moon: M -> R53, M' -> R51, F -> R33, true new moon correction, age -> R56"
 RCL 61
-RCL 43
+RCL 32
 0.98560028
 ×
 -
-STO 46
+STO 53
 RCL 62
-RCL 43
+RCL 32
 13.064993
 ×
 -
-STO 45
+STO 51
 RCL 63
-RCL 43
+RCL 32
 13.2293505
 ×
 -
-STO 44
-RCL 45
+STO 33
+RCL 51
 SIN
 -0.4072
 ×
-RCL 46
+RCL 53
 SIN
 0.17241
 ×
 +
-RCL 45
+RCL 51
 2
 ×
 SIN
 0.01608
 ×
 +
-RCL 44
+RCL 33
 2
 ×
 SIN
 0.01039
 ×
 +
-RCL 45
-RCL- 46
+RCL 51
+RCL- 53
 SIN
 0.00739
 ×
 +
-RCL 45
-RCL+ 46
+RCL 51
+RCL+ 53
 SIN
 -0.00514
 ×
 +
-RCL 46
+RCL 53
 2
 ×
 SIN
 0.00208
 ×
 +
-RCL 45
-RCL 44
+RCL 51
+RCL 33
 2
 ×
 -
@@ -129,8 +132,8 @@ SIN
 -0.00111
 ×
 +
-RCL 45
-RCL 44
+RCL 51
+RCL 33
 2
 ×
 +
@@ -138,33 +141,33 @@ SIN
 -0.00057
 ×
 +
-RCL 45
+RCL 51
 2
 ×
-RCL+ 46
+RCL+ 53
 SIN
 0.00056
 ×
 +
-RCL 43
+RCL 32
 X<>Y
 -
-STO 47
-RCL 42
+STO 56
+RCL 31
 X=0?
 GTO 44
-RCL 47
+RCL 56
 X<0?
 GTO 46
 GTO 43
 LBL 46
-REM "second try gave negative age: keep first result (R41)"
-RCL 41
-STO 47
+REM "second try gave negative age: keep first result (R30)"
+RCL 30
+STO 56
 GTO 43
 LBL 44
 REM "first pass: check age range"
-RCL 47
+RCL 56
 X<0?
 GTO 41
 27
@@ -174,23 +177,23 @@ GTO 43
 LBL 41
 REM "age < 0: use previous lunation (+29.53 d)"
 1
-STO 42
+STO 31
 29.530589
-STO+ 43
+STO+ 32
 GTO 40
 LBL 42
 REM "age > 27: try next lunation (-29.53 d)"
 2
-STO 42
-RCL 47
-STO 41
+STO 31
+RCL 56
+STO 30
 29.530589
-STO- 43
+STO- 32
 GTO 40
 LBL 43
 REM "output: Y = age, X = (1 + cos i) * 50"
-RCL 47
-RCL 48
+RCL 56
+RCL 57
 1
 +
 50

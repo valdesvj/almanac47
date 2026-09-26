@@ -93,7 +93,7 @@ CHECK VALUES (23 Sep 2026, 12:00 UT, JD 2461307)
 REGISTERS USED
 --------------
 SUNA 50-55, 60-67, 70-81   STAR 56-59, 68-69, 82-89
-SUNRISE 90-99 (HORZ also 90-99)   PHAS 41-48   SNAM 49   ALM 01-09, 10-33, 40-41
+SUNRISE 90-99 (HORZ also 90-99)   PHAS 30-33 51 53 56 57 (scratch)   SNAM 49   ALM 01-09, 10-33, 40-41
 
 NOTES
 -----
@@ -224,8 +224,8 @@ TEXT ALMANAC (no drawing) - ALMT
   column of the Sun and Moon pages at 180 px); with 8 px spaces they can move by up
   to 7 px from page to page.
   Needs: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT CWID + matrices.
-  Does NOT need PTXB, PTXT or any drawing program. About 81k steps before the
-  first line; each further line is immediate.
+  Does NOT need PTXB, PTXT or any drawing program. About 41k steps before the
+  first line (17k with the tables); each further line is immediate.
 STXT  number -> text: SDM (deg min), SNS, SEW, SZN, SHM, SF1, SINT, SDAT.
   Body names are in ALMT labels 80-85 (SUN MOON VENUS MARS JUPITER SATURN);
   if the C47 font has astronomical symbols they can be put there instead.
@@ -260,8 +260,26 @@ ALMANAC TABLES AND THE T / S SWITCH (Sep 2026)
   With flag 10 set, SUNA, SUNRISE (via SUNG), MOO2 and PLN2 use the tables inside
   their period and the series outside it. The screens show T (tables) or S (series):
   ALMF/HALMV bottom right, HORZ/HORZS bottom left, ALMT end of the first line.
-  Screens need about half the program steps with the tables. CF 10 = series only.
+  Screens need fewer program steps with the tables. CF 10 = series only.
   New tables: tools/almanac/tab2c47.py (see tools/almanac/README.md).
+
+SPEED-UPS (Sep 2026)
+  1. SUNRISE iterations use SUNF, a low-precision Sun (Astronomical Almanac
+     formula, 0.01 deg) instead of 13 full SUNA runs. Event times stay within
+     about 15 s of the full Sun (in about 1 % of cases the minute shown changes
+     by one). GHA and Dec on every screen still come from the full SUNA.
+  2. SER (all VSOP series) adds each term to R30+k (column 1 of the series
+     matrices holds 30+k) and multiplies by the powers of tau once at the end:
+     about 25 % fewer steps per term, same values to 34 digits.
+  3. PLAN computes the Earth once for the four planets (R03 = tau of R00-R02).
+  4. ALMF, HALMV and ALMT call PHA2 (Moon phase) right after their own SUNA
+     instead of PHAS running SUNA again.
+  Steps (Cape Town, 23 Nov 2026 09:00 UT), before -> after:
+     series:  ALMT first page 81k -> 41k, ALMF 100k -> 60k, HALMV 110k -> 70k,
+              HORZ 76k -> 63k
+     tables:  ALMT 20k -> 17k, ALMF 36k, HALMV 45k (almost unchanged)
+  Rebuild the matrices after loading the new MATA/MATP (NAV option 3, or
+  NAVINIT + XEQ "INIT"): the old matrices do not work with the new SER.
 
 PC VIEWER - python/c47view.py (+ c47sim.py)
   Shows ALMF, HALMV, HORZ, HORZS and ALMT on a PC exactly as on the C47: it runs

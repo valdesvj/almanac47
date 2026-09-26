@@ -31,11 +31,6 @@ XEQ 26
 XEQ "NTWP"
 STO 17
 RCL 10
-XEQ "PHAS"
-STO 18
-X<>Y
-STO 19
-RCL 10
 STO 90
 RCL 11
 STO 91
@@ -53,6 +48,10 @@ RCL 73
 X<>Y
 ÷
 STO 29
+XEQ "PHA2"
+STO 18
+X<>Y
+STO 19
 REM "body table ALT, Sun, Moon, planets, stars recorded with LBL 40"
 10
 ENTER
