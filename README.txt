@@ -204,8 +204,9 @@ ALMF / HALMV with Moon and planets (Sep 2026)
 
 TEXT ALMANAC (no drawing) - ALMT
   Z = JD (UT1), Y = lat (N+), X = lon (E+)  XEQ "ALMT"   (or NAV option 4)
-  Shows one line at a time with PROMPT; R/S = next line; after the last line it
-  starts over; EXIT to stop. Lines: date + UT, DR, GHA Aries, then for each body
+  Shows one page at a time with PROMPT: two lines of 44 characters (the C47 small
+  font), laid out like the ALMF page with bars; R/S = next page; after the last
+  page it starts over; EXIT to stop. Example: docs/ALMT_example.txt. Lines: date + UT, DR, GHA Aries, then for each body
   "NAME HC ... ZN ..." and "GHA ... DEC ..." (Moon also HP and SD), sun times,
   Sun SD, Moon phase and age, "DOES NOT REPLACE THE NAUTICAL ALMANAC".
   Bodies: same rule as ALMF/HALMV (Sun, Moon and planets above the horizon,
@@ -226,7 +227,7 @@ BELOW-HORIZON MARK (Hc < 0)
 
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
-               3 TEXT = ALMT, one line per R/S, EXIT to stop), ALMF, HALMV, ALMT,
+               3 TEXT = ALMT, one two-line page per R/S, EXIT to stop), ALMF, HALMV, ALMT,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET and
                the fonts PTXB / PTXT cut to the characters the screens print.
                6,305 lines (the whole programs/ folder is 31,169).

@@ -491,22 +491,29 @@ def sdat(j):
 
 
 def almt(al):
+    """ALMT pages: two lines per R/S, line 1 padded to 44 characters (one line of the
+    C47 small font), laid out like the ALMF page. Same strings as the C47 program."""
     s, t = al.sun, al.times
-    L = [sdat(al.j) + '  ' + shm(ut_hours(al.j)) + ' UT' + '  ' + al.source,
-         'DR ' + sns(al.lat) + '  ' + sew(al.lon),
-         'GHA ARIES ' + sdm(s.aries)]
+    W = 44
+    bar = '-' * W
+
+    def page(l1, l2=''):
+        return l1.ljust(W) + l2 if l2 else l1
+
+    P = [page((sdat(al.j) + '  ' + shm(ut_hours(al.j)) + ' UT').ljust(43) + al.source,
+              'DR ' + sns(al.lat) + '  ' + sew(al.lon) + '  ARIES ' + sdm(s.aries)),
+         page('BODY'.ljust(20) + 'HC/GHA'.ljust(12) + 'ZN/DEC', bar)]
     for ident, g, d, hc, zn in al.bodies():
         name = sint(ident) + ' ' + STAR_NAME[ident] if ident > 0 else body_name(ident)
-        L.append(('* ' if hc < 0 else '') + name + ' HC ' + sdm(hc) + ' ZN ' + szn(zn))
-        L.append('   GHA ' + sdm(g) + ' DEC ' + sns(d))
-        if ident == -1:
-            L.append('   HP ' + sf1(al.moon[2]) + "' SD " + sf1(al.moon[3]) + "'")
-    L.append('NAUT TWI ' + shm(t['NTWA']) + '  ' + shm(t['NTWP']) + ' UT')
-    L.append('SUNRISE ' + shm(t['RISE']) + '  SUNSET ' + shm(t['SET']))
-    L.append('MER PASS ' + shm(t['TRAN']) + ' UT   SUN SD ' + sf1(s.sd) + "'")
-    L.append('MOON ' + sint(al.illum) + '% ' + moon_word(al) + ' AGE ' + sf1(al.age) + ' D')
-    L.append(WARNING)
-    return L
+        P.append(page((('* ' if hc < 0 else '') + name).ljust(13) + ' HC' + sdm(hc).rjust(10) + '  ZN  ' + szn(zn),
+                      ' ' * 13 + 'GHA' + sdm(g).rjust(10) + '  DEC ' + ('S' if d < 0 else 'N') + sdm(abs(d)).rjust(9)))
+    P.append(page(bar, 'SUN UT'.ljust(10) + 'AM'.ljust(6) + 'PM'.ljust(6) + 'MOON ' + sint(al.illum) + '% ' + moon_word(al)))
+    P.append(page(('NAUT TWI ' + shm(t['NTWA']) + ' ' + shm(t['NTWP'])).ljust(22) + 'AGE ' + sf1(al.age) + ' DAYS',
+                  ('RISE/SET ' + shm(t['RISE']) + ' ' + shm(t['SET'])).ljust(22) + 'SUN SD ' + sf1(s.sd) + "'"))
+    P.append(page('MER PASS'.ljust(12) + shm(t['TRAN']).ljust(10) + 'MOON HP ' + sf1(al.moon[2]) + "' SD " + sf1(al.moon[3]) + "'",
+                  bar))
+    P.append('   ' + WARNING)
+    return P
 
 
 VIEWS = {'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}

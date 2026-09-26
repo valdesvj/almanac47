@@ -1,29 +1,46 @@
- 1  23-09-2026  23:30 UT  (20)
- 2  DR N 10°00.0'  W 75°30.0'  (25)
- 3  GHA ARIES 355°19.5'  (19)
- 4  * SUN HC -8°52.7' ZN 271.2°
- 5     GHA 174°26.9' DEC S 0°22.8'  (30)
- 6  MOON HC 35°13.9' ZN 113.0°  (26)
- 7     GHA 25°09.3' DEC S 12°19.9'  (30)
- 8     HP 56.0' SD 15.3'  (20)
- 9  VENUS HC 17°14.7' ZN 245.5°  (27)
-10     GHA 142°57.4' DEC S 19°47.4'  (31)
-11  37 ARCTURUS HC 26°10.6' ZN 286.4°  (33)
-12     GHA 141°06.4' DEC N 19°02.7'  (31)
-13  49 VEGA HC 61°11.1' ZN 359.4°  (29)
-14     GHA 75°51.7' DEC N 38°48.8'  (30)
-15  51 ALTAIR HC 72°01.1' ZN 091.8°  (31)
-16     GHA 57°17.9' DEC N 8°56.5'  (29)
-17  42 ANTARES HC 42°01.7' ZN 219.8°  (32)
-18     GHA 107°33.7' DEC S 26°29.5'  (31)
-19  56 FOMALHAUT HC 16°06.1' ZN 124.8°  (34)
-20     GHA 10°32.1' DEC S 29°28.7'  (30)
-21  53 DENEB HC 45°53.3' ZN 031.1°  (30)
-22     GHA 44°44.1' DEC N 45°22.8'  (30)
-23  45 SHAULA HC 40°33.0' ZN 196.8°  (31)
-24     GHA 91°28.0' DEC S 37°07.5'  (30)
-25  NAUT TWI 10:06  23:43 UT  (24)
-26  SUNRISE 10:51  SUNSET 22:57  (27)
-27  MER PASS 16:54 UT   SUN SD 15.9'  (32)
-28  MOON 92% WAXING AGE 12.8 D  (26)
-29  DOES NOT REPLACE THE NAUTICAL ALMANAC  (37)
+23-11-2026  09:00 UT                       T
+DR S 33°54.0'  E 18°24.0'  ARIES 197°21.2'
+
+BODY                HC/GHA      ZN/DEC
+--------------------------------------------
+
+SUN           HC  65°25.4'  ZN  062.6°
+             GHA 318°24.7'  DEC S 20°22.4'
+
+VENUS         HC  62°38.2'  ZN  331.3°
+             GHA 354°32.5'  DEC S  9°15.4'
+
+MARS          HC  12°46.3'  ZN  296.6°
+             GHA  45°31.2'  DEC N 13°49.3'
+
+JUPITER       HC  10°49.4'  ZN  294.4°
+             GHA  48°26.8'  DEC N 13°26.5'
+
+17 CANOPUS    HC  11°15.5'  ZN  212.5°
+             GHA 101°12.5'  DEC S 52°42.4'
+
+38 RIGIL KENT HC  62°47.5'  ZN  175.1°
+             GHA 337°00.0'  DEC S 60°56.7'
+
+37 ARCTURUS   HC  37°02.3'  ZN  358.2°
+             GHA 343°08.0'  DEC N 19°02.5'
+
+35 HADAR      HC  63°15.1'  ZN  184.7°
+             GHA 345°55.6'  DEC S 60°30.0'
+
+30 ACRUX      HC  55°39.5'  ZN  202.6°
+             GHA  10°20.0'  DEC S 63°14.7'
+
+33 SPICA      HC  63°59.1'  ZN  327.0°
+             GHA 355°42.2'  DEC S 11°18.0'
+
+--------------------------------------------
+SUN UT    AM    PM    MOON 98% WAXING
+
+NAUT TWI 02:28 18:38  AGE 14.1 DAYS
+RISE/SET 03:31 17:35  SUN SD 16.2'
+
+MER PASS    10:33     MOON HP 60.1' SD 16.4'
+--------------------------------------------
+
+   DOES NOT REPLACE THE NAUTICAL ALMANAC

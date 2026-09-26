@@ -66,7 +66,7 @@ VIEWS (same as on the C47)
   HALMV  horizon chart on the left, Hc/Zn table and times on the right
   HORZ   full-screen horizon chart; R/S steps through the objects (name, Zn, Hc)
   HORZS  horizon chart only
-  ALMT   text almanac, one line per R/S (as PROMPT on the C47)
+  ALMT   text almanac, one page of two lines per R/S (as PROMPT on the C47)
 
 MARKS
   Hc underlined (ALMF, HALMV) or line starting with "* " (ALMT):
@@ -122,6 +122,16 @@ LCD_BG = (0xD9, 0xDC, 0xD2)
 LCD_ON = (0x1C, 0x1F, 0x1C)
 BEZEL = (0x2A, 0x2A, 0x2C)
 PLAIN_BG, PLAIN_ON = (255, 255, 255), (0, 0, 0)
+
+
+# ------------------------------------------------------------------ ALMT pages
+def page_lines(p, width=44):
+    """An ALMT page is line 1 (padded to 44 characters) followed by line 2."""
+    return [p[:width].rstrip(), p[width:]] if len(p) > width else [p]
+
+
+def pages_text(pages):
+    return '\n\n'.join('\n'.join(page_lines(p)) for p in pages)
 
 
 # ------------------------------------------------------------------ input
@@ -432,10 +442,10 @@ def run_gtk(eng, args):
         def update_status(self):
             extra = ''
             if self.view == 'ALMT' and self.lines:
-                extra = '   line %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.lines))
+                extra = '   page %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.lines))
             elif len(self.frames) > 1:
                 extra = '   object %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.frames))
-            grey = '   grey = next lines' if self.view == 'ALMT' else ''
+            grey = '   grey = next pages' if self.view == 'ALMT' else ''
             src = ''
             if eng.last is not None:
                 src = '   %s = %s' % (eng.last.source, 'almanac tables (%s)' % eng.tables.period
@@ -467,7 +477,7 @@ def run_gtk(eng, args):
                 fn = dlg.get_filename()
                 if self.view == 'ALMT':
                     with open(fn, 'w', encoding='utf-8') as fh:
-                        fh.write('\n'.join(self.lines) + '\n')
+                        fh.write(pages_text(self.lines) + '\n')
                 else:
                     write_png(fn, *render_rgb(self.frames[self.k], self.scale, self.lcd, True))
                 self.status.set_text('Saved %s' % fn)
@@ -488,18 +498,26 @@ def run_gtk(eng, args):
             cr.fill()
 
         def draw_text(self, cr, s, b):
-            """ALMT: the calculator shows one PROMPT line at a time. The C47 font is
-            not available on the PC, so a monospace font is used here."""
+            """ALMT: one page (two lines of 44 characters, as PROMPT shows it in the
+            C47 small font) per R/S. The C47 font is not available on the PC, so a
+            monospace font is used; the next pages are shown in grey below."""
             if not self.lines:
                 return
             cr.select_font_face('DejaVu Sans Mono', 0, 1)
-            cr.set_font_size(11 * s)
-            cr.move_to(b + 4 * s, b + 22 * s); cr.show_text(self.lines[self.k])
-            cr.set_font_size(6 * s)
-            prev = [self.lines[(self.k + i) % len(self.lines)] for i in range(1, 12)]
+            fs = 8.6 * s                                  # 44 characters fit the 400 px line
+            cr.set_font_size(fs)
+            y = b + 16 * s
+            for part in page_lines(self.lines[self.k]):
+                cr.move_to(b + 4 * s, y); cr.show_text(part); y += 12 * s
             cr.set_source_rgba(*[v / 255 for v in LCD_ON], 0.45)
-            for i, t in enumerate(prev):
-                cr.move_to(b + 4 * s, b + (48 + 16 * i) * s); cr.show_text(t)
+            cr.set_font_size(6.2 * s)
+            y += 8 * s
+            for i in range(1, len(self.lines)):
+                for part in page_lines(self.lines[(self.k + i) % len(self.lines)]):
+                    if y > b + 234 * s:
+                        return
+                    cr.move_to(b + 4 * s, y); cr.show_text(part); y += 8.5 * s
+                y += 4 * s
 
     Win()
     Gtk.main()
@@ -554,10 +572,10 @@ def main():
     view = args.view or 'HALMV'
     if view == 'ALMT':
         lines, n = eng.text(j, lat, lon)
-        print('\n'.join(lines))
+        print(pages_text(lines))
         if args.png:
             with open(os.path.splitext(args.png)[0] + '.txt', 'w', encoding='utf-8') as fh:
-                fh.write('\n'.join(lines) + '\n')
+                fh.write(pages_text(lines) + '\n')
         return
     frames, n = eng.screen(view, j, lat, lon)
     if args.all_frames and len(frames) > 1:
