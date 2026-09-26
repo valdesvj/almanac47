@@ -35,26 +35,23 @@ BAR='-'*22
 def bar(): app(BAR, BAR)                          # 44 x '-'
 L2=44                                             # line 2 starts at column 44
 a('LBL 01')
-# page 1: date, UT, T/S  |  DR, GHA Aries
-a(fmt(10,'SDAT')[1:].split('|')); a('STO 20'); app('  ',fmt('10|0.5|+|1|MOD|24|×','SHM'),' UT')
-col(43); a('"S"','FS? 11','XEQ 29','XEQ 90')      # T = tables, S = series
-app('DR ',fmt(11,'SNS'),'  ',fmt(12,'SEW'),'  ARIES ',fmt(48,'SDM')); a('XEQ 91')
-# page 2: column titles  |  bar
-s('BODY'); a('STO 20'); col(20); app('HC/GHA'); col(32); app('ZN/DEC'); col(L2); bar(); a('XEQ 91')
+# page 1: date, UT, DR  |  GHA Aries, T/S at the right end
+a(fmt(10,'SDAT')[1:].split('|')); a('STO 20'); app(' ',fmt('10|0.5|+|1|MOD|24|×','SHM'),'UT DR ',fmt(11,'SNS'),' ',fmt(12,'SEW'))
+col(L2); app('ARIES ',fmt(48,'SDM')); col(L2+43); a('"S"','FS? 11','XEQ 29','XEQ 90','XEQ 91')   # T = tables, S = series
 # one page per body: name, Hc, Zn  |  GHA, Dec (values aligned in columns)
 a('1','STO 24','LBL 02','INDEX "ALT"','RCL 24','1','STOIJ','RCLEL','J+','STO 25','RCLEL','J+','STO 45','RCLEL','J+','STO 46','RCLEL','J+','STO 96','RCLEL','STO 97')
 a('RCL 25','XEQ 70','STO 20','RCL 96','X<0?','XEQ 92'); col(13); app(' HC'); rj(fmt(96,'SDM'),10); app('  ZN  ',fmt(97,'SZN'))
 col(L2+13); app('GHA'); rj(fmt(45,'SDM'),10); app('  DEC '); a('"N"','STO 26','RCL 46','X<0?','XEQ 99','RCL 26','XEQ 90'); rj(fmt('46|ABS','SDM'),9); a('XEQ 91')
 a('1','STO+ 24','RCL 41','RCL 24','X≤Y?','GTO 02')
-# bottom block as on ALMF: bar | sun times AM/PM, Moon | ... | bar, warning
-s(BAR); a('STO 20'); app(BAR)
-app('SUN UT'); col(L2+10); app('AM'); col(L2+16); app('PM'); col(L2+22); app('MOON ',fmt(18,'SINT'),'% ')
-a('"WAXING"','STO 26','RCL 19','14.765','X<Y?','XEQ 27','RCL 18','99.5','X≤Y?','XEQ 20','RCL 18','0.5','X>Y?','XEQ 21','RCL 26','XEQ 90','XEQ 91')
-s('NAUT TWI '); a('STO 20'); app(fmt(13,'SHM'),' ',fmt(17,'SHM')); col(22); app('AGE ',fmt(19,'SF1'),' DAYS')
-col(L2); app('RISE/SET ',fmt(14,'SHM'),' ',fmt(16,'SHM')); col(L2+22); app('SUN SD ',fmt(29,'SF1'),"'"); a('XEQ 91')
-s('MER PASS'); a('STO 20'); col(12); app(fmt(15,'SHM')); col(22); app('MOON HP ',fmt(21,'SF1'),"' SD ",fmt(22,'SF1'),"'")
-col(L2); bar(); a('XEQ 91')
-s('   DOES NOT REPLACE THE NAUTICAL ALMANAC'); a('STO 20','XEQ 91')
+# Sun: twilight, rise/set  |  meridian passage, SD
+s('NAUT TWI '); a('STO 20'); app(fmt(13,'SHM'),' ',fmt(17,'SHM')); col(22); app('RISE/SET ',fmt(14,'SHM'),' ',fmt(16,'SHM'))
+col(L2); app('MER PASS ',fmt(15,'SHM')); col(L2+22); app('SUN SD ',fmt(29,'SF1'),"'"); a('XEQ 91')
+# Moon: %, phase, age  |  HP, SD
+s('MOON '); a('STO 20'); app(fmt(18,'SINT'),'% ')
+a('"WAXING"','STO 26','RCL 19','14.765','X<Y?','XEQ 27','RCL 18','99.5','X≤Y?','XEQ 20','RCL 18','0.5','X>Y?','XEQ 21','RCL 26','XEQ 90')
+col(22); app('AGE ',fmt(19,'SF1'),' DAYS'); col(L2); app('MOON HP ',fmt(21,'SF1'),"'"); col(L2+22); app('MOON SD ',fmt(22,'SF1'),"'"); a('XEQ 91')
+# warning, centred in 44 characters (small font)
+s('   DOES NOT REPLACE THE NAUTICAL ALMANAC'); a('STO 20'); col(L2); a('XEQ 91')
 a('GTO 01')
 # ---------------- subroutines
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')

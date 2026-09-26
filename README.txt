@@ -204,9 +204,11 @@ ALMF / HALMV with Moon and planets (Sep 2026)
 
 TEXT ALMANAC (no drawing) - ALMT
   Z = JD (UT1), Y = lat (N+), X = lon (E+)  XEQ "ALMT"   (or NAV option 4)
-  Shows one page at a time with PROMPT: two lines of 44 characters (the C47 small
-  font), laid out like the ALMF page with bars; R/S = next page; after the last
-  page it starts over; EXIT to stop. Example: docs/ALMT_example.txt. Lines: date + UT, DR, GHA Aries, then for each body
+  Shows one page at a time with PROMPT: two lines of up to 44 characters (the C47
+  small font). Pages: date, UT, DR / GHA Aries and T or S; one page per body
+  (name, HC, ZN / GHA, DEC in columns); Sun (twilight, rise/set / mer pass, SD);
+  Moon (%, phase, age / HP, SD); the warning centred in 44 characters. R/S = next
+  page; after the last page it starts over; EXIT to stop. Example: docs/ALMT_example.txt. Lines: date + UT, DR, GHA Aries, then for each body
   "NAME HC ... ZN ..." and "GHA ... DEC ..." (Moon also HP and SD), sun times,
   Sun SD, Moon phase and age, "DOES NOT REPLACE THE NAUTICAL ALMANAC".
   Bodies: same rule as ALMF/HALMV (Sun, Moon and planets above the horizon,

@@ -1,8 +1,5 @@
-23-11-2026  09:00 UT                       T
-DR S 33°54.0'  E 18°24.0'  ARIES 197°21.2'
-
-BODY                HC/GHA      ZN/DEC
---------------------------------------------
+23-11-2026 09:00UT DR S 33°54.0' E 18°24.0'
+ARIES 197°21.2'                            T
 
 SUN           HC  65°25.4'  ZN  062.6°
              GHA 318°24.7'  DEC S 20°22.4'
@@ -34,13 +31,10 @@ JUPITER       HC  10°49.4'  ZN  294.4°
 33 SPICA      HC  63°59.1'  ZN  327.0°
              GHA 355°42.2'  DEC S 11°18.0'
 
---------------------------------------------
-SUN UT    AM    PM    MOON 98% WAXING
+NAUT TWI 02:28 18:38  RISE/SET 03:31 17:35
+MER PASS 10:33        SUN SD 16.2'
 
-NAUT TWI 02:28 18:38  AGE 14.1 DAYS
-RISE/SET 03:31 17:35  SUN SD 16.2'
+MOON 98% WAXING       AGE 14.1 DAYS
+MOON HP 60.1'         MOON SD 16.4'
 
-MER PASS    10:33     MOON HP 60.1' SD 16.4'
---------------------------------------------
-
-   DOES NOT REPLACE THE NAUTICAL ALMANAC
+   DOES NOT REPLACE THE NAUTICAL ALMANAC    

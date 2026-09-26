@@ -491,28 +491,25 @@ def sdat(j):
 
 
 def almt(al):
-    """ALMT pages: two lines per R/S, line 1 padded to 44 characters (one line of the
-    C47 small font), laid out like the ALMF page. Same strings as the C47 program."""
+    """ALMT pages: two lines per R/S, each line up to 44 characters (one line of the
+    C47 small font). Same strings as the C47 program."""
     s, t = al.sun, al.times
     W = 44
-    bar = '-' * W
 
     def page(l1, l2=''):
         return l1.ljust(W) + l2 if l2 else l1
 
-    P = [page((sdat(al.j) + '  ' + shm(ut_hours(al.j)) + ' UT').ljust(43) + al.source,
-              'DR ' + sns(al.lat) + '  ' + sew(al.lon) + '  ARIES ' + sdm(s.aries)),
-         page('BODY'.ljust(20) + 'HC/GHA'.ljust(12) + 'ZN/DEC', bar)]
+    P = [page(sdat(al.j) + ' ' + shm(ut_hours(al.j)) + 'UT DR ' + sns(al.lat) + ' ' + sew(al.lon),
+              ('ARIES ' + sdm(s.aries)).ljust(43) + al.source)]
     for ident, g, d, hc, zn in al.bodies():
         name = sint(ident) + ' ' + STAR_NAME[ident] if ident > 0 else body_name(ident)
         P.append(page((('* ' if hc < 0 else '') + name).ljust(13) + ' HC' + sdm(hc).rjust(10) + '  ZN  ' + szn(zn),
                       ' ' * 13 + 'GHA' + sdm(g).rjust(10) + '  DEC ' + ('S' if d < 0 else 'N') + sdm(abs(d)).rjust(9)))
-    P.append(page(bar, 'SUN UT'.ljust(10) + 'AM'.ljust(6) + 'PM'.ljust(6) + 'MOON ' + sint(al.illum) + '% ' + moon_word(al)))
-    P.append(page(('NAUT TWI ' + shm(t['NTWA']) + ' ' + shm(t['NTWP'])).ljust(22) + 'AGE ' + sf1(al.age) + ' DAYS',
-                  ('RISE/SET ' + shm(t['RISE']) + ' ' + shm(t['SET'])).ljust(22) + 'SUN SD ' + sf1(s.sd) + "'"))
-    P.append(page('MER PASS'.ljust(12) + shm(t['TRAN']).ljust(10) + 'MOON HP ' + sf1(al.moon[2]) + "' SD " + sf1(al.moon[3]) + "'",
-                  bar))
-    P.append('   ' + WARNING)
+    P.append(page(('NAUT TWI ' + shm(t['NTWA']) + ' ' + shm(t['NTWP'])).ljust(22) + 'RISE/SET ' + shm(t['RISE']) + ' ' + shm(t['SET']),
+                  ('MER PASS ' + shm(t['TRAN'])).ljust(22) + 'SUN SD ' + sf1(s.sd) + "'"))
+    P.append(page(('MOON ' + sint(al.illum) + '% ' + moon_word(al)).ljust(22) + 'AGE ' + sf1(al.age) + ' DAYS',
+                  ('MOON HP ' + sf1(al.moon[2]) + "'").ljust(22) + 'MOON SD ' + sf1(al.moon[3]) + "'"))
+    P.append(('   ' + WARNING).ljust(W))                  # centred, 44 characters: small font
     return P
 
 
