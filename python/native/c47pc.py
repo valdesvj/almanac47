@@ -14,6 +14,7 @@ Two ways to use it
      ALMT (text almanac) prints its lines:   ... --view ALMT
      HORZ info frames (one per object):      ... --view HORZ --png horz.png --all-frames
      Menu Info: Help and About (version).    --version prints the version.
+     Online check against JPL Horizons:      ... --check  (menu Info as well)
 
 Times are UT (UT1), as on the calculator. Latitude N+ / longitude E+, or
 written with N S E W ("25 20.0 N", "55 12 E", "25.3333", "-75.5").
@@ -84,6 +85,12 @@ COMMAND LINE
           --lat "25 20 N" --lon "55 12 E" --png halmv.png
   python3 c47pc.py --view ALMT --date ... --lat ... --lon ...   (prints the lines)
   python3 c47pc.py --help    all options
+
+CHECK AGAINST JPL (menu Info, or --check; PC only, needs internet)
+  Compares GHA and Dec of the Sun, Moon, planets and GHA Aries with JPL
+  Horizons (DE440) for the date and UT entered, in arcminutes. JPL reads the
+  time as UTC and the C47 uses UT1: DUT1 (under 0.9 s) moves GHA by up to
+  0.23' but not Dec. Stars are not checked.
 
 ON BOARD
   Phones and computers should not be used for navigation or during operations
@@ -212,7 +219,8 @@ def run_gtk(eng, args):
             mb = Gtk.MenuBar(); outer.pack_start(mb, False, False, 0)
             info = Gtk.MenuItem.new_with_mnemonic('_Info'); mb.append(info)
             menu = Gtk.Menu(); info.set_submenu(menu)
-            for lbl, cb in (('_Help', self.on_help), ('_About', self.on_about), (None, None), ('_Quit', Gtk.main_quit)):
+            for lbl, cb in (('_Help', self.on_help), ('_About', self.on_about), (None, None),
+                            ('_Check against JPL (online)', self.on_check), (None, None), ('_Quit', Gtk.main_quit)):
                 if lbl is None:
                     menu.append(Gtk.SeparatorMenuItem()); continue
                 it = Gtk.MenuItem.new_with_mnemonic(lbl); it.connect('activate', lambda w, f=cb: f()); menu.append(it)
@@ -286,6 +294,39 @@ def run_gtk(eng, args):
             tv.set_top_margin(8); tv.get_buffer().set_text(HELP); sw.add(tv)
             d.get_content_area().pack_start(sw, True, True, 0)
             d.show_all(); d.run(); d.destroy()
+
+        def on_check(self):
+            """Online check of the calculations against JPL Horizons, in a background thread."""
+            import threading
+            from gi.repository import GLib
+            import jplcheck
+            try:
+                y, m, d = parse_date(self.e_date.get_text()); h = parse_ut(self.e_ut.get_text())
+            except Exception as ex:
+                self.status.set_text('Input error: %s' % ex); return
+            j = jd(y, m, d, h)
+            self.status.set_text('Asking JPL Horizons (internet) ...')
+
+            def work():
+                try:
+                    txt = jplcheck.report(j)
+                except Exception as ex:
+                    txt = 'JPL check failed - an internet connection is needed.\n\n%s' % ex
+                GLib.idle_add(show, txt)
+
+            def show(txt):
+                self.status.set_text('JPL check done')
+                d = Gtk.Dialog(title='%s - Check against JPL' % PROGRAM, transient_for=self, modal=True)
+                d.add_button('Close', Gtk.ResponseType.CLOSE); d.set_default_size(620, 400)
+                tv = Gtk.TextView(); tv.set_editable(False); tv.set_monospace(True)
+                tv.set_wrap_mode(Gtk.WrapMode.WORD_CHAR); tv.set_vexpand(True)
+                tv.set_left_margin(12); tv.set_top_margin(10); tv.set_right_margin(12); tv.set_bottom_margin(10)
+                tv.get_buffer().set_text(txt)
+                d.get_content_area().pack_start(tv, True, True, 0)
+                d.show_all(); d.run(); d.destroy()
+                return False
+
+            threading.Thread(target=work, daemon=True).start()
 
         def on_about(self):
             d = Gtk.AboutDialog(transient_for=self, modal=True)
@@ -398,8 +439,20 @@ def main():
     ap.add_argument('--scale', type=int, default=3, help='pixels per C47 pixel (default 3)')
     ap.add_argument('--plain', action='store_true', help='black on white instead of LCD colours')
     ap.add_argument('--no-bezel', action='store_true', help='PNG without the dark frame')
+    ap.add_argument('--check', action='store_true', help='online: compare Sun, Moon, planets and Aries with JPL Horizons')
     ap.add_argument('--version', action='version', version='%s %s (%s)' % (PROGRAM, VERSION, VERSION_DATE))
     args = ap.parse_args()
+
+    if args.check:
+        import jplcheck
+        now = datetime.datetime.now(datetime.timezone.utc)
+        y, m, d = parse_date(args.date or now.strftime('%Y-%m-%d'))
+        h = parse_ut(args.ut or now.strftime('%H:%M'))
+        try:
+            print(jplcheck.report(jd(y, m, d, h)))
+        except Exception as ex:
+            sys.exit('JPL check failed (internet connection needed): %s' % ex)
+        return
 
     eng = Engine()
     batch = bool(args.png) or (args.view == 'ALMT' and bool(args.lat))

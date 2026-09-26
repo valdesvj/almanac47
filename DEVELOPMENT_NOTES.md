@@ -59,6 +59,21 @@ It has been passed with 75 dates and places (2025-2028, latitudes up to 72 N/S).
 - Validated against JPL DE421 + ERFA for 2025-2028. Check a wider range of years
   before a store release.
 
+## Online check (PC only)
+
+`python/native/jplcheck.py`: menu Info > Check against JPL, or `c47pc.py --check`.
+Asks JPL Horizons (DE440) for apparent geocentric RA/Dec of Sun, Moon, planets and the
+Greenwich apparent sidereal time, and lists the differences with our calculations
+(arcmin). JPL reads the time as UTC, we use UT1: GHA includes DUT1 (up to 0.23').
+Written against the documented Horizons output; the parser was tested offline only
+(JPL is not reachable from the build workspace) - confirm on first real use.
+
+## Almanac tables (Method B)
+
+`tools/almanac/` (generator, `tab2c47.py`), `programs/TBL.txt` (26 Sep 2026 - 31 Jan
+2027), `programs/TGET.txt`. Not yet used by the screens: the planned switch in MOO2,
+PLN2 and the SUNRISE iterations, with a T/S indicator on the screen, is still to do.
+
 ## Ideas tried and dropped (PC version)
 
 - Diurnal paths (parallels of declination) on the horizon charts: too busy with 9-10
