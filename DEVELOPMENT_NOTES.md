@@ -82,8 +82,8 @@ dots exactly on the horizon match. `tools/js/c47engine.js` lacks SF/FS? (referen
 
 ## Minimum calculator set
 
-`tools/build_navfull.py` writes `build/NAVFULL.txt` (resident: NAV with 2 options, ALMF,
-HALMV and what they call; fonts trimmed to the printed characters; PTXT without
+`tools/build_navfull.py` writes `build/NAVFULL.txt` (resident: NAV with 3 options, ALMF,
+HALMV, ALMT and what they call; fonts trimmed to the printed characters; PTXT without
 PTNS/PT1), `build/NAVINIT.txt` (matrix builders + INIT, run once and delete) and
 `build/TBL.txt`. Checked in the simulator: identical screens and step counts to the
 full set, with and without tables. Rebuild after changing any program.

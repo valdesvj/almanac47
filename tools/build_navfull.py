@@ -3,7 +3,7 @@
 
 Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
 
-  NAVFULL.txt  everything that must stay on the calculator for ALMF and HALMV
+  NAVFULL.txt  everything that must stay on the calculator for ALMF, HALMV and ALMT
                (menu NAV, the two screens, Sun, stars, Moon, planets, sight
                reduction, sunrise/twilight, Moon phase, star order and names,
                the table lookup TGET and the two fonts, cut down to the
@@ -12,8 +12,9 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                delete these programs - the matrices they build stay
   TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
 
-Not included: HORZ, HORZS, HPLT, HALM, ALMT + STXT (text almanac), ALM (manual
-table method), SNAM, SUNSD and the font demos.
+Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one line per R/S).
+Not included: HORZ, HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
+the font demos.
 
   python3 tools/build_navfull.py            -> build/NAVFULL.txt, build/NAVINIT.txt, build/TBL.txt
 """
@@ -23,7 +24,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
-KEEP = ['ALMF', 'HALMV', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
+KEEP = ['ALMF', 'HALMV', 'ALMT', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
         'SBRT', 'SNMU', 'TGET', 'PTXB', 'PTXT']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -53,13 +54,12 @@ def trim_font(lines, keep):
 
 
 def nav_min(lines):
-    """NAV menu with only 1 ALMANAC (ALMF) and 2 CHART (HALMV)."""
+    """NAV menu: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, R/S line by line)."""
     s = '\n'.join(lines)
-    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 0 END"', '"1 ALMANAC 2 CHART 0 END"')
-    s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n', '')
+    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 0 END"', '"1 ALMANAC 2 CHART 3 TEXT 0 END"')
+    s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n', '3\nRCL 38\nX=Y?\nGTO 13\n')
     s = re.sub(r'LBL 12\n.*?GTO 01\n', '', s, flags=re.S)
-    s = re.sub(r'LBL 13\n.*?GTO 01\n', '', s, flags=re.S)
-    assert 'MATA' not in s and 'ALMT' not in s and '"1 ALMANAC 2 CHART 0 END"' in s
+    assert 'MATA' not in s and 'XEQ "ALMT"' in s and '"1 ALMANAC 2 CHART 3 TEXT 0 END"' in s
     return s.split('\n')
 
 
