@@ -1,0 +1,584 @@
+; ======================================================================
+; HORZ - sky chart Hc/Zn (full screen): Sun, Moon, Venus, Mars, Jupiter, Saturn and the 5 brightest
+;   stars higher than 10 deg, then an info line per object ('MOON ZN .. HC ..', '18 SIRIUS ZN ..') with PAUSE 30
+; IN : Z = JD, Y = lat, X = lon (E+)
+; Symbols (PTXB): @ Sun, ( Moon crescent, < Venus, > Mars, = Jupiter, ? Saturn, * star + number
+; Objects above the horizon are kept in matrix HZT (id, Zn, Hc): id 0 Sun, -1 Moon, -2..-5 planets, n star
+; Screen mapping: column R98 = 20 + Zn*375/360, row R99 (from top) = 225 - Hc*200/90; C47 y = 241 - row
+; NEEDS: SUNA STAR(STR2) CHZ MOON(MOO2) PLAN(PLN2) SBRT SNMU PTXT PTXB + matrices
+; REGS: R10-R14, R36 R37 R42 R44 R82 R86 R90-R99 (+ SUNA, STAR, MOON, PLAN)
+; ======================================================================
+;
+; ---- store JD R90, lat R91, lon R92; clear screen
+0001  LBL "HORZ"
+0002  STO 92
+0003  R↓
+0004  STO 91
+0005  R↓
+0006  STO 90
+0007  CLLCD
+; ---- horizon line y = 16 (PHL)
+0008  16
+0009  20
+0010  376
+0011  XEQ "PHL"
+0012  18.21603
+0013  STO 86
+;
+; ---- Hc axis x = 18, dotted every 3 px
+0014  LBL 50
+0015  RCL 86
+0016  IP
+0017  18
+0018  PIXEL
+0019  ISG 86
+0020  GTO 50
+; ---- Zn tick marks every 30 deg
+0021  15
+0022  20
+0023  PIXEL
+0024  14
+0025  20
+0026  PIXEL
+0027  13
+0028  20
+0029  PIXEL
+0030  15
+0031  51
+0032  PIXEL
+0033  14
+0034  51
+0035  PIXEL
+0036  13
+0037  51
+0038  PIXEL
+0039  15
+0040  82
+0041  PIXEL
+0042  14
+0043  82
+0044  PIXEL
+0045  13
+0046  82
+0047  PIXEL
+0048  15
+0049  113
+0050  PIXEL
+0051  14
+0052  113
+0053  PIXEL
+0054  13
+0055  113
+0056  PIXEL
+0057  15
+0058  145
+0059  PIXEL
+0060  14
+0061  145
+0062  PIXEL
+0063  13
+0064  145
+0065  PIXEL
+0066  15
+0067  176
+0068  PIXEL
+0069  14
+0070  176
+0071  PIXEL
+0072  13
+0073  176
+0074  PIXEL
+0075  15
+0076  207
+0077  PIXEL
+0078  14
+0079  207
+0080  PIXEL
+0081  13
+0082  207
+0083  PIXEL
+0084  15
+0085  238
+0086  PIXEL
+0087  14
+0088  238
+0089  PIXEL
+0090  13
+0091  238
+0092  PIXEL
+0093  15
+0094  270
+0095  PIXEL
+0096  14
+0097  270
+0098  PIXEL
+0099  13
+0100  270
+0101  PIXEL
+0102  15
+0103  301
+0104  PIXEL
+0105  14
+0106  301
+0107  PIXEL
+0108  13
+0109  301
+0110  PIXEL
+0111  15
+0112  332
+0113  PIXEL
+0114  14
+0115  332
+0116  PIXEL
+0117  13
+0118  332
+0119  PIXEL
+0120  15
+0121  363
+0122  PIXEL
+0123  14
+0124  363
+0125  PIXEL
+0126  13
+0127  363
+0128  PIXEL
+0129  15
+0130  395
+0131  PIXEL
+0132  14
+0133  395
+0134  PIXEL
+0135  13
+0136  395
+0137  PIXEL
+; ---- Hc ticks and labels 30 60 90 (PTNS)
+0138  83
+0139  15
+0140  PIXEL
+0141  83
+0142  16
+0143  PIXEL
+0144  83
+0145  17
+0146  PIXEL
+0147  150
+0148  15
+0149  PIXEL
+0150  150
+0151  16
+0152  PIXEL
+0153  150
+0154  17
+0155  PIXEL
+0156  216
+0157  15
+0158  PIXEL
+0159  216
+0160  16
+0161  PIXEL
+0162  216
+0163  17
+0164  PIXEL
+0165  81
+0166  2
+0167  30
+0168  XEQ "PTNS"
+0169  148
+0170  2
+0171  60
+0172  XEQ "PTNS"
+0173  214
+0174  2
+0175  90
+0176  XEQ "PTNS"
+; ---- north: letters N E S W N, offset R44 = 0
+0177  0
+0178  STO 44
+0179  RCL 91
+0180  X<0?
+0181  GTO 38
+0182  7
+0183  19
+0184  "N"
+0185  XEQ "PTXT"
+0186  7
+0187  112
+0188  "E"
+0189  XEQ "PTXT"
+0190  7
+0191  206
+0192  "S"
+0193  XEQ "PTXT"
+0194  7
+0195  300
+0196  "W"
+0197  XEQ "PTXT"
+0198  7
+0199  394
+0200  "N"
+0201  XEQ "PTXT"
+0202  GTO 37
+;
+; ---- south latitude: S W N E S, offset R44 = 180 (chart centred on N)
+0203  LBL 38
+0204  180
+0205  STO 44
+0206  7
+0207  19
+0208  "S"
+0209  XEQ "PTXT"
+0210  7
+0211  112
+0212  "W"
+0213  XEQ "PTXT"
+0214  7
+0215  206
+0216  "N"
+0217  XEQ "PTXT"
+0218  7
+0219  300
+0220  "E"
+0221  XEQ "PTXT"
+0222  7
+0223  394
+0224  "S"
+0225  XEQ "PTXT"
+;
+; ---- SUNA once; object table HZT; dotted celestial equator
+0226  LBL 37
+0227  RCL 90
+0228  XEQ "SUNA"
+0229  11
+0230  ENTER
+0231  3
+0232  NEWMAT
+0233  STO "HZT"
+0234  0
+0235  STO 10
+0236  0
+0237  STO 86
+0238  LBL 53
+0239  0
+0240  RCL 86
+0241  XEQ 52
+0242  RCL 96
+0243  X≥0?
+0244  XEQ 55
+0245  2
+0246  STO+ 86
+0247  358
+0248  RCL 86
+0249  X≤Y?
+0250  GTO 53
+; ---- Sun
+0251  RCL 77
+0252  RCL 81
+0253  XEQ 52
+0254  RCL 96
+0255  X>0?
+0256  XEQ 46
+; ---- Moon (MOO2 = MOON without repeating SUNA)
+0257  XEQ "MOO2"
+0258  XEQ 52
+0259  RCL 96
+0260  X>0?
+0261  XEQ 47
+; ---- planets 1-4 (PLN2 = PLAN without SUNA)
+0262  1.004
+0263  STO 11
+0264  LBL 45
+0265  RCL 11
+0266  IP
+0267  XEQ "PLN2"
+0268  XEQ 52
+0269  RCL 96
+0270  X>0?
+0271  XEQ 48
+0272  ISG 11
+0273  GTO 45
+; ---- stars in order of brightness (SBRT) until 5 are higher than 10 deg
+0274  1.058
+0275  STO 11
+0276  0
+0277  STO 12
+0278  LBL 44
+0279  RCL 11
+0280  IP
+0281  XEQ "SBRT"
+0282  STO 82
+0283  XEQ "STR2"
+0284  XEQ 52
+0285  10
+0286  RCL 96
+0287  X>Y?
+0288  XEQ 43
+0289  5
+0290  RCL 12
+0291  X≥Y?
+0292  GTO 42
+0293  ISG 11
+0294  GTO 44
+0295  LBL 42
+; ---- info loop over the objects in HZT
+0296  RCL 10
+0297  X=0?
+0298  RTN
+0299  1
+0300  STO 42
+;
+; ---- read id, Zn, Hc; clear top strip; name
+0301  LBL 35
+0302  INDEX "HZT"
+0303  RCL 42
+0304  1
+0305  STOIJ
+0306  RCLEL
+0307  J+
+0308  STO 13
+0309  RCLEL
+0310  J+
+0311  STO 97
+0312  RCLEL
+0313  STO 96
+0314  228
+0315  0
+0316  CLLCDxy
+0317  RCL 13
+0318  X=0?
+0319  GTO 31
+0320  X<0?
+0321  GTO 32
+0322  RCL 13
+0323  XEQ "SNMU"
+0324  STO 14
+0325  234
+0326  2
+0327  RCL 13
+0328  XEQ "PTNS"
+0329  " "
+0330  XEQ "PTXT"
+0331  RCL 14
+0332  XEQ "PTXT"
+0333  GTO 30
+;
+; ---- Moon or planet name (LBL 81-85)
+0334  LBL 32
+0335  RCL 13
+0336  CHS
+0337  80
+0338  +
+0339  STO 14
+0340  234
+0341  2
+0342  XEQ IND 14
+0343  XEQ "PTXT"
+0344  GTO 30
+;
+; ---- text SUN
+0345  LBL 31
+0346  234
+0347  2
+0348  "SUN"
+0349  XEQ "PTXT"
+;
+; ---- ZN value HC value (PT1), PAUSE 30, next
+0350  LBL 30
+0351  " ZN "
+0352  XEQ "PTXT"
+0353  RCL 97
+0354  XEQ "PT1"
+0355  " HC "
+0356  XEQ "PTXT"
+0357  RCL 96
+0358  XEQ "PT1"
+0359  PAUSE 30
+0360  1
+0361  STO+ 42
+0362  RCL 10
+0363  RCL 42
+0364  X>Y?
+0365  RTN
+0366  GTO 35
+;
+; ---- record object X = id with Zn R97, Hc R96 in HZT (count R10)
+0367  LBL 40
+0368  STO 13
+0369  1
+0370  STO+ 10
+0371  INDEX "HZT"
+0372  RCL 10
+0373  1
+0374  STOIJ
+0375  RCL 13
+0376  STOEL
+0377  J+
+0378  RCL 97
+0379  STOEL
+0380  J+
+0381  RCL 96
+0382  STOEL
+0383  RTN
+;
+; ---- draw Sun, record
+0384  LBL 46
+0385  XEQ 56
+0386  0
+0387  XEQ 40
+0388  RTN
+;
+; ---- draw Moon symbol, record
+0389  LBL 47
+0390  241
+0391  RCL- 99
+0392  3
+0393  -
+0394  RCL 98
+0395  3
+0396  -
+0397  "("
+0398  XEQ "PTXB"
+0399  -1
+0400  XEQ 40
+0401  RTN
+;
+; ---- draw planet symbol (LBL 71-74), record
+0402  LBL 48
+0403  RCL 11
+0404  IP
+0405  70
+0406  +
+0407  STO 14
+0408  241
+0409  RCL- 99
+0410  3
+0411  -
+0412  RCL 98
+0413  3
+0414  -
+0415  XEQ IND 14
+0416  XEQ "PTXB"
+0417  RCL 11
+0418  IP
+0419  1
+0420  +
+0421  CHS
+0422  XEQ 40
+0423  RTN
+;
+; ---- draw star + number, record, count R12
+0424  LBL 43
+0425  XEQ 57
+0426  RCL 82
+0427  XEQ 40
+0428  1
+0429  STO+ 12
+0430  RTN
+;
+; ---- planet symbols: < Venus, > Mars, = Jupiter, ? Saturn
+0431  LBL 71
+0432  "<"
+0433  RTN
+0434  LBL 72
+0435  ">"
+0436  RTN
+0437  LBL 73
+0438  "="
+0439  RTN
+0440  LBL 74
+0441  "?"
+0442  RTN
+;
+; ---- names for the info line
+0443  LBL 81
+0444  "MOON"
+0445  RTN
+0446  LBL 82
+0447  "VENUS"
+0448  RTN
+0449  LBL 83
+0450  "MARS"
+0451  RTN
+0452  LBL 84
+0453  "JUPITER"
+0454  RTN
+0455  LBL 85
+0456  "SATURN"
+0457  RTN
+;
+; ---- plot one pixel at row R99, column R98
+0458  LBL 55
+0459  241
+0460  RCL- 99
+0461  RCL 98
+0462  PIXEL
+0463  RTN
+;
+; ---- HCZ, then column R98 and row R99
+0464  LBL 52
+0465  XEQ "HCZ"
+0466  RCL 97
+0467  RCL+ 44
+0468  360
+0469  MOD
+0470  375
+0471  ×
+0472  360
+0473  ÷
+0474  20
+0475  +
+0476  IP
+0477  STO 98
+0478  225
+0479  RCL 96
+0480  200
+0481  ×
+0482  90
+0483  ÷
+0484  -
+0485  IP
+0486  STO 99
+0487  RTN
+;
+; ---- sun symbol centred on the point (PTXB @)
+0488  LBL 56
+0489  238
+0490  RCL- 99
+0491  RCL 98
+0492  5
+0493  -
+0494  "@"
+0495  XEQ "PTXB"
+0496  RTN
+;
+; ---- star centred on the point (PTXB *), number to the right (PTNS)
+0497  LBL 57
+0498  241
+0499  RCL- 99
+0500  3
+0501  -
+0502  RCL 98
+0503  3
+0504  -
+0505  "*"
+0506  XEQ "PTXB"
+0507  RCL 98
+0508  5
+0509  +
+0510  STO 36
+0511  385
+0512  RCL 36
+0513  X>Y?
+0514  XEQ 39
+0515  239
+0516  RCL- 99
+0517  RCL 36
+0518  RCL 82
+0519  XEQ "PTNS"
+0520  RTN
+;
+; ---- near the right edge: number 17 px to the left
+0521  LBL 39
+0522  17
+0523  STO- 36
+0524  RTN
+0525  END

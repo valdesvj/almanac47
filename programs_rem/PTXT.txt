@@ -1,0 +1,983 @@
+LBL "PTXT"
+REM "PTXT - draw text with AGRAPH columns, 3x5 font"
+REM "IN : Z = y, Y = x, X = string   OUT: Y = y, X = next x"
+REM "Characters 0-9 A-Z space + - . / :  * = star  @ = sun"
+REM "PTNS integer, PT1 one decimal: Z = y, Y = x, X = value -> Y = y, X = next x"
+REM "Glyphs = AGRAPH columns (WSIZE 8), word size set back to 64 at the end"
+REM "REGS: R30 x, R31 y, R32 code / column mask, R33 string copy, R34-R35 numbers"
+REM "HOW A GLYPH IS DRAWN (AGRAPH):"
+REM "  AGRAPH reg draws one column: bit 0 of the short integer in reg at (x,y), bit 1 at y+1 ... up to WSIZE bits,"
+REM "  then adds 1 to X. So each glyph does: RCL 31 (y), RCL 30 (x), then per column:"
+REM "  <mask>#2  STO 32  R-down  AGRAPH 32   (mask written top row first, e.g. 1001000#2)"
+REM "  empty columns are skipped with  n +  , at the end  n + STO 30  stores the next x."
+REM "WHY WSIZE 8: alpha->x returns the character code as a short integer of the current word size,"
+REM "  with 7 bits (signed, max 63) letters (65-90) give OUT OF RANGE. 8 bits hold codes up to 127"
+REM "  and the 7-pixel columns, bit 7 is always 0 so nothing extra is drawn."
+REM "store string R33, x R30, y R31"
+STO 33
+R↓
+STO 30
+R↓
+STO 31
+WSIZE 8
+LBL 01
+REM "loop: length 0 -> done, take first code (removed), glyph draws columns with AGRAPH and advances R30"
+αLENG 33
+X=0?
+GTO 02
+α→𝑥 33
+STO 32
+XEQ IND 32
+GTO 01
+LBL 02
+REM "return Y = y, X = next x"
+WSIZE 64
+RCL 31
+RCL 30
+RTN
+LBL 32
+REM "space: advance only"
+REM "glyph 'space' (code 32)"
+4
+STO+ 30
+RTN
+LBL 43
+REM "glyph '+' (code 43)"
+RCL 31
+RCL 30
+100#2
+STO 32
+R↓
+AGRAPH 32
+1110#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 45
+REM "glyph '-' (code 45)"
+RCL 31
+RCL 30
+100#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 46
+REM "glyph '.' (code 46)"
+RCL 31
+RCL 30
+1
++
+1#2
+STO 32
+R↓
+AGRAPH 32
+2
++
+STO 30
+RTN
+LBL 47
+REM "glyph '/' (code 47)"
+RCL 31
+RCL 30
+11#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+11000#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 48
+REM "glyph '0' (code 48)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 49
+REM "glyph '1' (code 49)"
+RCL 31
+RCL 30
+2
++
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 50
+REM "glyph '2' (code 50)"
+RCL 31
+RCL 30
+10111#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+11101#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 51
+REM "glyph '3' (code 51)"
+RCL 31
+RCL 30
+10101#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 52
+REM "glyph '4' (code 52)"
+RCL 31
+RCL 30
+11100#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 53
+REM "glyph '5' (code 53)"
+RCL 31
+RCL 30
+11101#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+10111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 54
+REM "glyph '6' (code 54)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+10111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 55
+REM "glyph '7' (code 55)"
+RCL 31
+RCL 30
+10000#2
+STO 32
+R↓
+AGRAPH 32
+10000#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 56
+REM "glyph '8' (code 56)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 57
+REM "glyph '9' (code 57)"
+RCL 31
+RCL 30
+11101#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 58
+REM "glyph ':' (code 58)"
+RCL 31
+RCL 30
+1
++
+1010#2
+STO 32
+R↓
+AGRAPH 32
+2
++
+STO 30
+RTN
+LBL 65
+REM "glyph 'A' (code 65)"
+RCL 31
+RCL 30
+1111#2
+STO 32
+R↓
+AGRAPH 32
+10100#2
+STO 32
+R↓
+AGRAPH 32
+1111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 66
+REM "glyph 'B' (code 66)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+1010#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 67
+REM "glyph 'C' (code 67)"
+RCL 31
+RCL 30
+1110#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 68
+REM "glyph 'D' (code 68)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+1110#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 69
+REM "glyph 'E' (code 69)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 70
+REM "glyph 'F' (code 70)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10100#2
+STO 32
+R↓
+AGRAPH 32
+10000#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 71
+REM "glyph 'G' (code 71)"
+RCL 31
+RCL 30
+1110#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+10111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 72
+REM "glyph 'H' (code 72)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 73
+REM "glyph 'I' (code 73)"
+RCL 31
+RCL 30
+10001#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 74
+REM "glyph 'J' (code 74)"
+RCL 31
+RCL 30
+10#2
+STO 32
+R↓
+AGRAPH 32
+1#2
+STO 32
+R↓
+AGRAPH 32
+11110#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 75
+REM "glyph 'K' (code 75)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+11011#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 76
+REM "glyph 'L' (code 76)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1#2
+STO 32
+R↓
+AGRAPH 32
+1#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 77
+REM "glyph 'M' (code 77)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1100#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 78
+REM "glyph 'N' (code 78)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10000#2
+STO 32
+R↓
+AGRAPH 32
+1111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 79
+REM "glyph 'O' (code 79)"
+RCL 31
+RCL 30
+1110#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+1110#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 80
+REM "glyph 'P' (code 80)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10100#2
+STO 32
+R↓
+AGRAPH 32
+1000#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 81
+REM "glyph 'Q' (code 81)"
+RCL 31
+RCL 30
+1110#2
+STO 32
+R↓
+AGRAPH 32
+10011#2
+STO 32
+R↓
+AGRAPH 32
+1101#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 82
+REM "glyph 'R' (code 82)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10100#2
+STO 32
+R↓
+AGRAPH 32
+1011#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 83
+REM "glyph 'S' (code 83)"
+RCL 31
+RCL 30
+1001#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+10010#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 84
+REM "glyph 'T' (code 84)"
+RCL 31
+RCL 30
+10000#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+10000#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 85
+REM "glyph 'U' (code 85)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 86
+REM "glyph 'V' (code 86)"
+RCL 31
+RCL 30
+11110#2
+STO 32
+R↓
+AGRAPH 32
+1#2
+STO 32
+R↓
+AGRAPH 32
+11110#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 87
+REM "glyph 'W' (code 87)"
+RCL 31
+RCL 30
+11111#2
+STO 32
+R↓
+AGRAPH 32
+110#2
+STO 32
+R↓
+AGRAPH 32
+11111#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 88
+REM "glyph 'X' (code 88)"
+RCL 31
+RCL 30
+11011#2
+STO 32
+R↓
+AGRAPH 32
+100#2
+STO 32
+R↓
+AGRAPH 32
+11011#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 89
+REM "glyph 'Y' (code 89)"
+RCL 31
+RCL 30
+11000#2
+STO 32
+R↓
+AGRAPH 32
+111#2
+STO 32
+R↓
+AGRAPH 32
+11000#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 90
+REM "glyph 'Z' (code 90)"
+RCL 31
+RCL 30
+10011#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+11001#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 42
+REM "star symbol (5x5), extra advance"
+RCL 31
+RCL 30
+1001#2
+STO 32
+R↓
+AGRAPH 32
+1110#2
+STO 32
+R↓
+AGRAPH 32
+11100#2
+STO 32
+R↓
+AGRAPH 32
+1110#2
+STO 32
+R↓
+AGRAPH 32
+1001#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL 64
+REM "sun symbol (5x5), extra advance"
+RCL 31
+RCL 30
+1110#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+10101#2
+STO 32
+R↓
+AGRAPH 32
+10001#2
+STO 32
+R↓
+AGRAPH 32
+1110#2
+STO 32
+R↓
+AGRAPH 32
+1
++
+STO 30
+RTN
+LBL "PTNS"
+REM "PTNS: Z = y, Y = x, X = integer 0-999 -> digits"
+XEQ 13
+RCL 34
+ABS
+0.5
++
+IP
+STO 34
+XEQ 10
+GTO 02
+LBL "PT1"
+REM "PT1: number with one decimal"
+XEQ 13
+RCL 34
+ABS
+10
+×
+0.5
++
+IP
+STO 35
+10
+÷
+IP
+STO 34
+XEQ 10
+46
+XEQ 14
+RCL 35
+10
+MOD
+XEQ 11
+GTO 02
+LBL 13
+REM "common entry: value R34, x R30, y R31, WSIZE 8"
+STO 34
+R↓
+STO 30
+R↓
+STO 31
+WSIZE 8
+RTN
+LBL 10
+REM "draw integer R34 without leading zeros"
+RCL 34
+99
+X≥Y?
+GTO 12
+RCL 34
+100
+÷
+IP
+XEQ 11
+LBL 12
+RCL 34
+9
+X≥Y?
+GTO 15
+RCL 34
+10
+÷
+IP
+10
+MOD
+XEQ 11
+LBL 15
+RCL 34
+10
+MOD
+XEQ 11
+RTN
+LBL 11
+REM "digit X -> glyph"
+48
++
+LBL 14
+REM "code X -> glyph"
+STO 32
+XEQ IND 32
+RTN
+END

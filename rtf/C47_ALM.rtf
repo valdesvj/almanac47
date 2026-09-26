@@ -1,0 +1,65 @@
+{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fmodern Courier New;}}\f0\fs20
+01 LBL "ALM"\par
+02 2\par
+03 \u215?\par
+04 RCL\u247? 02\par
+05 1\par
+06 -\par
+07 STO 03\par
+08 10\par
+09 STO 08\par
+10 XEQ "CHEB"\par
+11 360\par
+12 MOD\par
+13 STO 40\par
+14 20\par
+15 STO 08\par
+16 XEQ "CHEB"\par
+17 STO 41\par
+18 RCL 41\par
+19 RCL 40\par
+20 RTN\par
+21 LBL "HP"\par
+22 RCL 01\par
+23 STO 09\par
+24 4\par
+25 STO 01\par
+26 30\par
+27 STO 08\par
+28 XEQ "CHEB"\par
+29 RCL 09\par
+30 STO 01\par
+31 R\u8595?\par
+32 RTN\par
+33 LBL "CHEB"\par
+34 RCL 08\par
+35 RCL+ 01\par
+36 1\par
+37 -\par
+38 RCL 08\par
+39 1000\par
+40 \u247?\par
+41 +\par
+42 STO 06\par
+43 0\par
+44 STO 04\par
+45 STO 05\par
+46 LBL 11\par
+47 RCL 03\par
+48 RCL\u215? 04\par
+49 2\par
+50 \u215?\par
+51 RCL- 05\par
+52 RCL+ IND 06\par
+53 RCL 04\par
+54 STO 05\par
+55 R\u8595?\par
+56 STO 04\par
+57 DSE 06\par
+58 GTO 11\par
+59 RCL 03\par
+60 RCL\u215? 04\par
+61 RCL- 05\par
+62 RCL+ IND 08\par
+63 END\par
+}

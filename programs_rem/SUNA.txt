@@ -1,0 +1,299 @@
+LBL "SUNA"
+REM "SUNA - Sun GHA/Dec and GHA Aries (VSOP87D truncated, IAU1980 nutation)"
+REM "IN : X = JD (UT1)"
+REM "OUT: X = GHA Sun, Y = Dec Sun, Z = GHA Aries (deg)"
+REM "     R73 = R (au), R74 = app. longitude, R76 = true obliquity, R80 = GHA Aries"
+REM "     R60-R64 = D M M' F Omega (deg), R66 = dpsi ('), R67 = deps (')"
+REM "NEEDS: matrices VL VB VR NU (XEQ MATA once)"
+REM "REGS: R50-R55 R60-R67 R70-R81"
+REM "main entry"
+REM "T = Julian centuries TT (UT1+69.2s) -> R54, tau = T/10 -> R50"
+DEG
+STO 70
+69.2
+86400
+÷
++
+2451545
+-
+36525
+÷
+STO 54
+10
+÷
+STO 50
+REM "series in radians: L (56 terms), B (3), R (7) via SER"
+RAD
+56
+STO 55
+REM "heliocentric L -> R71"
+INDEX "VL"
+XEQ "SER"
+STO 71
+REM "heliocentric B -> R72"
+3
+STO 55
+INDEX "VB"
+XEQ "SER"
+STO 72
+REM "radius vector R -> R73 (au)"
+7
+STO 55
+INDEX "VR"
+XEQ "SER"
+STO 73
+DEG
+REM "geocentric longitude = L+180 -> R74, latitude = -B -> R75"
+RCL 71
+57.295779513082320876798154814105
+×
+180
++
+360
+MOD
+STO 74
+RCL 72
+57.295779513082320876798154814105
+×
+CHS
+STO 75
+REM "FK5 correction of lat and lon"
+RCL 74
+RCL 54
+1.397
+×
+-
+COS
+LASTX
+SIN
+-
+0.03916
+×
+3600
+÷
+STO+ 75
+0.09033
+3600
+÷
+STO- 74
+REM "nutation dpsi, deps (arcsec) -> R66, R67"
+XEQ "NUT"
+REM "apparent longitude: + dpsi - aberration 20.4898'/R"
+RCL 66
+3600
+÷
+STO+ 74
+20.4898
+RCL÷ 73
+3600
+÷
+STO- 74
+REM "true obliquity eps = eps0 + deps -> R76"
+84381.448
+RCL 54
+46.815
+×
+-
+RCL+ 67
+3600
+÷
+STO 76
+REM "declination -> R77"
+RCL 75
+SIN
+RCL 76
+COS
+×
+RCL 75
+COS
+RCL 76
+SIN
+×
+RCL 74
+SIN
+×
++
+ASIN
+STO 77
+REM "right ascension (->POL) -> R78"
+RCL 74
+SIN
+RCL 76
+COS
+×
+RCL 75
+TAN
+RCL 76
+SIN
+×
+-
+RCL 74
+COS
+→POL
+X<>Y
+STO 78
+REM "GMST + equation of equinoxes = GHA Aries -> R80"
+RCL 70
+2451545
+-
+STO 79
+360.98564736629
+×
+280.46061837
++
+RCL 79
+36525
+÷
+X↑2
+0.000387933
+×
++
+RCL 66
+3600
+÷
+RCL 76
+COS
+×
++
+360
+MOD
+STO 80
+REM "GHA Sun = GHA Aries - RA -> R81"
+RCL- 78
+360
+MOD
+STO 81
+REM "stack Z=Aries Y=Dec X=GHA"
+RCL 80
+RCL 77
+RCL 81
+RTN
+LBL "SER"
+REM "SER: sum A*cos(B+C*tau)*tau^k over matrix rows, R55 = rows, result *1E-8"
+0
+STO 51
+1
+1
+STOIJ
+LBL 12
+REM "loop over rows (DSE 55)"
+RCLEL
+J+
+STO 52
+RCLEL
+J+
+STO 53
+RCLEL
+J+
+RCLEL
+J+
+RCL× 50
++
+COS
+RCL× 53
+RCL 50
+RCL 52
+Y↑X
+×
+STO+ 51
+DSE 55
+GTO 12
+RCL 51
+1E-8
+×
+RTN
+LBL "NUT"
+REM "NUT: fundamental arguments D M M' F Omega -> R60-R64, 10-term IAU1980 nutation"
+RCL 54
+445267.11148
+×
+297.85036
++
+STO 60
+RCL 54
+35999.05034
+×
+357.52772
++
+STO 61
+RCL 54
+477198.867398
+×
+134.96298
++
+STO 62
+RCL 54
+483202.017538
+×
+93.27191
++
+STO 63
+RCL 54
+1934.136261
+×
+CHS
+125.04452
++
+STO 64
+0
+STO 66
+STO 67
+10
+STO 55
+INDEX "NU"
+1
+1
+STOIJ
+LBL 13
+REM "loop over NU rows: dpsi -> R66, deps -> R67 (0.0001' units, scaled at end)"
+RCLEL
+J+
+RCL× 60
+RCLEL
+J+
+RCL× 61
++
+RCLEL
+J+
+RCL× 62
++
+RCLEL
+J+
+RCL× 63
++
+RCLEL
+J+
+RCL× 64
++
+STO 65
+RCLEL
+J+
+RCLEL
+J+
+RCL× 54
++
+RCL 65
+SIN
+×
+STO+ 66
+RCLEL
+J+
+RCLEL
+J+
+RCL× 54
++
+RCL 65
+COS
+×
+STO+ 67
+DSE 55
+GTO 13
+RCL 66
+1E-4
+×
+STO 66
+RCL 67
+1E-4
+×
+STO 67
+END

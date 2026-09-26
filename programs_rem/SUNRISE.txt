@@ -1,0 +1,140 @@
+LBL "RISE"
+REM "SUNRISE - Sun events for one UT date at a position"
+REM "IN : Z = JD at 0h UT, Y = lat (N+), X = lon (E+)"
+REM "XEQ RISE / SET (-0 50'), CTWA / CTWP (-6), NTWA / NTWP (-12), TRAN (meridian passage)"
+REM "OUT: X = UT hours (99 = no event)"
+REM "NEEDS: SUNA   REGS: R90-R99"
+REM "h0 = -0.8333 (R93), morning sign -1 (R95)"
+XEQ 21
+-0.8333333333333333
+STO 93
+-1
+STO 95
+GTO 20
+LBL "SET"
+REM "h0 = -0.8333, evening +1"
+XEQ 21
+-0.8333333333333333
+STO 93
+1
+STO 95
+GTO 20
+LBL "NTWA"
+REM "nautical twilight AM, h0 = -12"
+XEQ 21
+-12
+STO 93
+-1
+STO 95
+GTO 20
+LBL "NTWP"
+REM "nautical twilight PM"
+XEQ 21
+-12
+STO 93
+1
+STO 95
+GTO 20
+LBL "CTWA"
+REM "civil twilight AM, h0 = -6"
+XEQ 21
+-6
+STO 93
+-1
+STO 95
+GTO 20
+LBL "CTWP"
+REM "civil twilight PM"
+XEQ 21
+-6
+STO 93
+1
+STO 95
+GTO 20
+LBL "TRAN"
+REM "meridian passage (sign 0)"
+XEQ 21
+0
+STO 95
+GTO 20
+LBL 21
+REM "store JD0 R90, lat R91, lon R92"
+STO 92
+R↓
+STO 91
+R↓
+STO 90
+RTN
+LBL 20
+REM "first guess t = 12 + 6*sign hours -> R94, max 10 iterations R97"
+RCL 95
+6
+×
+12
++
+STO 94
+10
+STO 97
+LBL 22
+REM "iteration: SUNA at JD0 + t/24, GHA R98, Dec R99"
+RCL 94
+24
+÷
+RCL+ 90
+XEQ "SUNA"
+STO 98
+R↓
+STO 99
+0
+RCL 95
+X=0?
+GTO 25
+RCL 93
+SIN
+RCL 91
+SIN
+RCL 99
+SIN
+×
+-
+RCL 91
+COS
+RCL 99
+COS
+×
+÷
+STO 96
+ABS
+1
+X<Y?
+GTO 29
+RCL 96
+ACOS
+RCL× 95
+LBL 25
+REM "correction dt = (LHA target - GHA - lon) / 15, wrap +-180"
+RCL- 98
+RCL- 92
+540
++
+360
+MOD
+180
+-
+15
+÷
+STO+ 94
+ABS
+0.0003
+X≥Y?
+GTO 24
+DSE 97
+GTO 22
+LBL 24
+REM "converged (|dt| < 0.0003 h, about 1 s): X = t"
+RCL 94
+RTN
+LBL 29
+REM "no event (|cos| > 1): X = 99"
+99
+END

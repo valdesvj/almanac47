@@ -1,0 +1,40 @@
+C47 NAV - PROGRAM MAP (global labels and calls)
+
+FILE      GLOBAL LABELS                          CALLS                                            STEPS
+--------------------------------------------------------------------------------------------------------
+ALM       ALM, HP, CHEB                          -                                                63
+ALMF      ALMF                                   HCZ, MOO2, NTWA, NTWP, PDAT, PDM, PF1, PHAS, PHM, PINB, PLN2, PTXB, PZN, RISE, SBRT, SET, SNMU, STR2, SUNA, TRAN 435
+ALMT      ALMT                                   HCZ, MOO2, NTWA, NTWP, PHAS, PLN2, RISE, SBRT, SDAT, SDM, SET, SEW, SF1, SHM, SINT, SNMU, SNS, STR2, SUNA, SZN, TRAN 383
+CHZ       CHZ, HCZ, DHA                          -                                                119
+HALM      HALM                                   HCZ, PDM, PINB, PTXB, PZN, SNMU, STR2, SUNA      353
+HALMV     HALMV                                  HCZ, MOO2, NTWA, NTWP, PDAT, PDM, PF1, PHAS, PHL, PHM, PINB, PLN2, PTXB, PTXT, PZN, RISE, SBRT, SET, SNMU, STR2, SUNA, TRAN 622
+HORZ      HORZ                                   HCZ, MOO2, PHL, PLN2, PT1, PTNS, PTXB, PTXT, SBRT, SNMU, STR2, SUNA 525
+HORZS     HORZS                                  HCZ, MOO2, PHL, PLN2, PTNS, PTXB, PTXT, SBRT, STR2, SUNA 461
+HPLT      HPLT                                   HCZ, STR2, SUNA                                  41
+MATA      MATA                                   -                                                1088
+MATM      MATM                                   -                                                3176
+MATP      MATP                                   -                                                8216
+MATST     MATST                                  -                                                704
+MOON      MOON, MOO2                             SUNA                                             331
+NAV       NAV                                    ALMF, ALMT, HALMV, MATA, MATM, MATP, MATST       166
+PHAS      PHAS                                   SUNA                                             184
+PLAN      PLAN, PLN2                             SER, SUNA                                        330
+PTBDEMO   PTBDEM                                 PTXB, PTXT                                       33
+PTDEMO    PTDEMO                                 PTXT                                             25
+PTFULL    PTFULL                                 PTXB                                             89
+PTXB      PTXB, PINB, PF1, PHM, PDM, PDAT, PZN, PHL -                                                1746
+PTXT      PTXT, PTNS, PT1                        -                                                915
+SBRT      SBRT                                   -                                                178
+SNAM      SNAM                                   -                                                182
+SNMU      SNMU                                   -                                                178
+STAR      STAR, STR2                             SUNA                                             255
+STXT      SDM, SNS, SEW, SZN, SHM, SF1, SINT, SDAT -                                                388
+SUNA      SUNA, SER, NUT                         -                                                272
+SUNRISE   RISE, SET, NTWA, NTWP, CTWA, CTWP, TRAN SUNA                                             122
+SUNSD     SUNSD                                  SUNA                                             8
+
+Folders:
+  programs/      programs to load (no comments)
+  programs_rem/  same programs with REM comment lines (try one file with the converter first)
+  listings/      numbered listings with comments per subroutine, for reading and debugging
+                 (step numbers = line numbers of the plain programs)

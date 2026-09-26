@@ -1,0 +1,348 @@
+LBL "MOON"
+REM "MOON - apparent GHA, Dec, HP and SD of the Moon"
+REM "IN : X = JD (UT1)   (MOO2: no input, after SUNA)"
+REM "OUT: X = GHA, Y = Dec (deg), Z = HP ('), T = SD (')"
+REM "Meeus ch.47 (60+60 terms) + 55 fitted terms: max 0.12', 99% < 0.07', rms 0.02' vs JPL 2000-2050"
+REM "NEEDS: SUNA (+VL VB VR NU), matrices ML MB MCL MCB (XEQ MATM once)"
+REM "REGS: R00-R09, R35-R39 (+ SUNA)"
+REM "SUNA for T (R54), nutation (R66), true obliquity (R76), GHA Aries (R80)"
+XEQ "SUNA"
+LBL "MOO2"
+REM "MOO2: entry when SUNA has already run for this JD"
+REM "mean arguments L' R00, D R01, M R02, M' R03, F R04 (deg), E R05"
+DEG
+-1.533883486E-08
+RCL× 54
+1.855835024E-06
++
+RCL× 54
+-0.0015786
++
+RCL× 54
+481267.8812
++
+RCL× 54
+218.3164477
++
+STO 00
+-8.844469995E-09
+RCL× 54
+1.831944719E-06
++
+RCL× 54
+-0.0018819
++
+RCL× 54
+445267.1114
++
+RCL× 54
+297.8501921
++
+STO 01
+4.083299306E-08
+RCL× 54
+-0.0001536
++
+RCL× 54
+35999.05029
++
+RCL× 54
+357.5291092
++
+STO 02
+-6.797172376E-08
+RCL× 54
+1.434740814E-05
++
+RCL× 54
+0.0087414
++
+RCL× 54
+477198.8675
++
+RCL× 54
+134.9633964
++
+STO 03
+1.158332465E-09
+RCL× 54
+-2.836074872E-07
++
+RCL× 54
+-0.0036539
++
+RCL× 54
+483202.0175
++
+RCL× 54
+93.272095
++
+STO 04
+-7.4E-06
+RCL× 54
+-0.002516
++
+RCL× 54
+1
++
+STO 05
+RCL 00
+360
+MOD
+STO 00
+RCL 01
+360
+MOD
+STO 01
+RCL 02
+360
+MOD
+STO 02
+RCL 03
+360
+MOD
+STO 03
+RCL 04
+360
+MOD
+STO 04
+REM "sums: longitude R06, distance R07, latitude R08, each matrix via LBL 20 (R35/R36 = target registers)"
+0
+STO 06
+STO 07
+STO 08
+INDEX "ML"
+60
+STO 09
+6
+STO 35
+7
+STO 36
+XEQ 20
+INDEX "MB"
+60
+STO 09
+8
+STO 35
+8
+STO 36
+XEQ 20
+INDEX "MCL"
+40
+STO 09
+6
+STO 35
+6
+STO 36
+XEQ 20
+INDEX "MCB"
+15
+STO 09
+8
+STO 35
+8
+STO 36
+XEQ 20
+REM "additive terms A1 A2 A3 (Venus, Jupiter, flattening) and fitted constant + T trend"
+RCL 54
+131.849
+×
+119.75
++
+STO 39
+RCL 39
+SIN
+3958
+×
+RCL 00
+RCL- 04
+SIN
+1962
+×
++
+RCL 54
+479264.29
+×
+53.09
++
+SIN
+318
+×
++
+RCL 54
+367.1904613
+×
+56.41732779
++
++
+STO+ 06
+RCL 00
+SIN
+-2235
+×
+RCL 54
+481266.484
+×
+313.45
++
+SIN
+382
+×
++
+RCL 39
+RCL- 04
+SIN
+175
+×
++
+RCL 39
+RCL+ 04
+SIN
+175
+×
++
+RCL 00
+RCL- 03
+SIN
+127
+×
++
+RCL 00
+RCL+ 03
+SIN
+-115
+×
++
+RCL 54
+40.04748125
+×
+-9.463218981
++
++
+STO+ 08
+REM "lambda = L' + sum + dpsi -> R38, beta -> R39, distance km -> R07"
+RCL 06
+1E6
+÷
+RCL+ 00
+RCL 66
+3600
+÷
++
+STO 38
+RCL 08
+1E6
+÷
+STO 39
+RCL 07
+1000
+÷
+385000.56
++
+STO 07
+REM "declination -> R08"
+RCL 39
+SIN
+RCL 76
+COS
+×
+RCL 39
+COS
+RCL 76
+SIN
+×
+RCL 38
+SIN
+×
++
+ASIN
+STO 08
+REM "right ascension (->POL), GHA = GHA Aries - RA -> R06"
+RCL 38
+SIN
+RCL 76
+COS
+×
+RCL 39
+TAN
+RCL 76
+SIN
+×
+-
+RCL 38
+COS
+→POL
+X<>Y
+RCL 80
+X<>Y
+-
+360
++
+360
+MOD
+STO 06
+REM "HP = asin(6378.14/dist) -> R05, SD = 358473400/dist/60 -> R04 (arcmin)"
+6378.14
+RCL÷ 07
+ASIN
+60
+×
+STO 05
+358473400
+RCL÷ 07
+60
+÷
+STO 04
+RCL 04
+RCL 05
+RCL 08
+RCL 06
+RTN
+LBL 20
+REM "loop over matrix rows (R09 = rows): angle = dD + mM + m'M' + fF, E^|m|"
+1
+1
+STOIJ
+LBL 21
+REM "row: sin term to IND R35, cos term to IND R36"
+RCLEL
+J+
+RCL× 01
+RCLEL
+J+
+STO 38
+RCL× 02
++
+RCLEL
+J+
+RCL× 03
++
+RCLEL
+J+
+RCL× 04
++
+STO 39
+RCL 38
+ABS
+RCL 05
+X<>Y
+Y↑X
+STO 37
+RCLEL
+J+
+RCL× 37
+RCL 39
+SIN
+×
+STO+ IND 35
+RCLEL
+J+
+RCL× 37
+RCL 39
+COS
+×
+STO+ IND 36
+DSE 09
+GTO 21
+RTN
+END

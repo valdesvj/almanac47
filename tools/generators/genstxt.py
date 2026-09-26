@@ -1,0 +1,43 @@
+P=[]
+def a(*xs):
+    for x in xs: P.extend(str(x).split('\n'))
+a('LBL "SDM"','XEQ 20','RCL 34','X<0?','XEQ 21',
+  'RCL 34','ABS','600','×','0.5','+','IP','STO 35','600','÷','IP','STO 36','600','×','STO- 35',
+  'RCL 36','XEQ 06','"°"','XEQ 02',
+  'RCL 35','100','÷','IP','XEQ 01','RCL 35','10','÷','IP','10','MOD','XEQ 01',
+  '"."','XEQ 02','RCL 35','10','MOD','XEQ 01',"\"'\"",'XEQ 02','RCL 38','RTN')
+a('LBL "SNS"','STO 33','"N "','STO 32','RCL 33','X<0?','XEQ 22','RCL 33','ABS','XEQ "SDM"','RCL 32','X<>Y','+','RTN')
+a('LBL "SEW"','STO 33','"E "','STO 32','RCL 33','X<0?','XEQ 23','RCL 33','ABS','XEQ "SDM"','RCL 32','X<>Y','+','RTN')
+a('LBL "SZN"','XEQ 20','RCL 34','10','×','0.5','+','IP','3600','MOD','STO 35',
+  '1000','÷','IP','XEQ 01','RCL 35','100','÷','IP','10','MOD','XEQ 01','RCL 35','10','÷','IP','10','MOD','XEQ 01',
+  '"."','XEQ 02','RCL 35','10','MOD','XEQ 01','"°"','XEQ 02','RCL 38','RTN')
+a('LBL "SHM"','XEQ 20','RCL 34','98','X<Y?','GTO 08',
+  'RCL 34','60','×','0.5','+','IP','STO 36','60','÷','IP','24','MOD','STO 35',
+  '10','÷','IP','XEQ 01','RCL 35','10','MOD','XEQ 01','":"','XEQ 02',
+  'RCL 36','60','MOD','STO 35','10','÷','IP','XEQ 01','RCL 35','10','MOD','XEQ 01','RCL 38','RTN',
+  'LBL 08','"--:--"','RTN')
+a('LBL "SF1"','XEQ 20','RCL 34','ABS','10','×','0.5','+','IP','STO 35','10','÷','IP','XEQ 06',
+  '"."','XEQ 02','RCL 35','10','MOD','XEQ 01','RCL 38','RTN')
+a('LBL "SINT"','XEQ 20','RCL 34','ABS','0.5','+','IP','XEQ 06','RCL 38','RTN')
+a('LBL "SDAT"','XEQ 20','RCL 34','0.5','+','IP','STO 35','1867216.25','-','36524.25','÷','IP','STO 36',
+  'RCL 35','1','+','RCL+ 36','RCL 36','4','÷','IP','-','1524','+','STO 35','122.1','-','365.25','÷','IP','STO 36',
+  '365.25','×','IP','STO- 35','RCL 35','30.6001','÷','IP','STO 34','30.6001','×','IP','STO- 35',
+  '1','STO- 34','RCL 34','12','X<Y?','XEQ 24','RCL 36','4716','-','STO 36','RCL 34','2','X≥Y?','XEQ 25',
+  'RCL 35','XEQ 09','"-"','XEQ 02','RCL 34','XEQ 09','"-"','XEQ 02','RCL 36','100','÷','IP','XEQ 09','RCL 36','100','MOD','XEQ 09',
+  'RCL 38','RTN')
+# helpers
+a('LBL 20','STO 34','0','STO 37','RTN')                       # entry: value R34, string empty
+a('LBL 21','"-"','XEQ 02','RTN')
+a('LBL 22','"S "','STO 32','RTN','LBL 23','"W "','STO 32','RTN')
+a('LBL 24','12','STO- 34','RTN','LBL 25','1','STO+ 36','RTN')
+a('LBL 09','STO 30','10','÷','IP','XEQ 01','RCL 30','10','MOD','XEQ 01','RTN')        # two digits
+a('LBL 06','STO 30','99','X<Y?','GTO 11','9','RCL 30','X>Y?','GTO 12','GTO 13',       # integer 0-999, no leading zeros
+  'LBL 11','RCL 30','100','÷','IP','XEQ 01',
+  'LBL 12','RCL 30','10','÷','IP','10','MOD','XEQ 01',
+  'LBL 13','RCL 30','10','MOD','XEQ 01','RTN')
+a('LBL 01','50','+','STO 31','XEQ IND 31','XEQ 02','RTN')                            # append digit X
+a('LBL 02','STO 39','RCL 37','X=0?','GTO 04','RCL 38','RCL 39','+','STO 38','RTN',   # append string X
+  'LBL 04','RCL 39','STO 38','1','STO 37','RTN')
+for d in range(10): a('LBL %d'%(50+d),'"%d"'%d,'RTN')
+a('END')
+open('/home/claude/STXT.txt','w').write('\n'.join(P)+'\n'); print(len(P))

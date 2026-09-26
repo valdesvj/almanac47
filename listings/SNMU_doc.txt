@@ -1,0 +1,301 @@
+; ======================================================================
+; SNMU - star name in capitals
+; IN : X = star number 1-58   OUT: X = name (string, no display)
+; REGS: R49
+; ======================================================================
+;
+; ---- jump to label = star number
+0001  LBL "SNMU"
+0002  STO 49
+0003  GTO IND 49
+;
+; ---- 1 Alpheratz
+0004  LBL 01
+0005  "ALPHERATZ"
+0006  RTN
+;
+; ---- 2 Ankaa
+0007  LBL 02
+0008  "ANKAA"
+0009  RTN
+;
+; ---- 3 Schedar
+0010  LBL 03
+0011  "SCHEDAR"
+0012  RTN
+;
+; ---- 4 Diphda
+0013  LBL 04
+0014  "DIPHDA"
+0015  RTN
+;
+; ---- 5 Achernar
+0016  LBL 05
+0017  "ACHERNAR"
+0018  RTN
+;
+; ---- 6 Hamal
+0019  LBL 06
+0020  "HAMAL"
+0021  RTN
+;
+; ---- 7 Acamar
+0022  LBL 07
+0023  "ACAMAR"
+0024  RTN
+;
+; ---- 8 Menkar
+0025  LBL 08
+0026  "MENKAR"
+0027  RTN
+;
+; ---- 9 Mirfak
+0028  LBL 09
+0029  "MIRFAK"
+0030  RTN
+;
+; ---- 10 Aldebaran
+0031  LBL 10
+0032  "ALDEBARAN"
+0033  RTN
+;
+; ---- 11 Rigel
+0034  LBL 11
+0035  "RIGEL"
+0036  RTN
+;
+; ---- 12 Capella
+0037  LBL 12
+0038  "CAPELLA"
+0039  RTN
+;
+; ---- 13 Bellatrix
+0040  LBL 13
+0041  "BELLATRIX"
+0042  RTN
+;
+; ---- 14 Elnath
+0043  LBL 14
+0044  "ELNATH"
+0045  RTN
+;
+; ---- 15 Alnilam
+0046  LBL 15
+0047  "ALNILAM"
+0048  RTN
+;
+; ---- 16 Betelgeuse
+0049  LBL 16
+0050  "BETELGEUSE"
+0051  RTN
+;
+; ---- 17 Canopus
+0052  LBL 17
+0053  "CANOPUS"
+0054  RTN
+;
+; ---- 18 Sirius
+0055  LBL 18
+0056  "SIRIUS"
+0057  RTN
+;
+; ---- 19 Adhara
+0058  LBL 19
+0059  "ADHARA"
+0060  RTN
+;
+; ---- 20 Procyon
+0061  LBL 20
+0062  "PROCYON"
+0063  RTN
+;
+; ---- 21 Pollux
+0064  LBL 21
+0065  "POLLUX"
+0066  RTN
+;
+; ---- 22 Avior
+0067  LBL 22
+0068  "AVIOR"
+0069  RTN
+;
+; ---- 23 Suhail
+0070  LBL 23
+0071  "SUHAIL"
+0072  RTN
+;
+; ---- 24 Miaplacidus
+0073  LBL 24
+0074  "MIAPLACIDU"
+0075  RTN
+;
+; ---- 25 Alphard
+0076  LBL 25
+0077  "ALPHARD"
+0078  RTN
+;
+; ---- 26 Regulus
+0079  LBL 26
+0080  "REGULUS"
+0081  RTN
+;
+; ---- 27 Dubhe
+0082  LBL 27
+0083  "DUBHE"
+0084  RTN
+;
+; ---- 28 Denebola
+0085  LBL 28
+0086  "DENEBOLA"
+0087  RTN
+;
+; ---- 29 Gienah
+0088  LBL 29
+0089  "GIENAH"
+0090  RTN
+;
+; ---- 30 Acrux
+0091  LBL 30
+0092  "ACRUX"
+0093  RTN
+;
+; ---- 31 Gacrux
+0094  LBL 31
+0095  "GACRUX"
+0096  RTN
+;
+; ---- 32 Alioth
+0097  LBL 32
+0098  "ALIOTH"
+0099  RTN
+;
+; ---- 33 Spica
+0100  LBL 33
+0101  "SPICA"
+0102  RTN
+;
+; ---- 34 Alkaid
+0103  LBL 34
+0104  "ALKAID"
+0105  RTN
+;
+; ---- 35 Hadar
+0106  LBL 35
+0107  "HADAR"
+0108  RTN
+;
+; ---- 36 Menkent
+0109  LBL 36
+0110  "MENKENT"
+0111  RTN
+;
+; ---- 37 Arcturus
+0112  LBL 37
+0113  "ARCTURUS"
+0114  RTN
+;
+; ---- 38 Rigil Kentaurus
+0115  LBL 38
+0116  "RIGIL KENT"
+0117  RTN
+;
+; ---- 39 Zubenelgenubi
+0118  LBL 39
+0119  "ZUBENELGEN"
+0120  RTN
+;
+; ---- 40 Kochab
+0121  LBL 40
+0122  "KOCHAB"
+0123  RTN
+;
+; ---- 41 Alphecca
+0124  LBL 41
+0125  "ALPHECCA"
+0126  RTN
+;
+; ---- 42 Antares
+0127  LBL 42
+0128  "ANTARES"
+0129  RTN
+;
+; ---- 43 Atria
+0130  LBL 43
+0131  "ATRIA"
+0132  RTN
+;
+; ---- 44 Sabik
+0133  LBL 44
+0134  "SABIK"
+0135  RTN
+;
+; ---- 45 Shaula
+0136  LBL 45
+0137  "SHAULA"
+0138  RTN
+;
+; ---- 46 Rasalhague
+0139  LBL 46
+0140  "RASALHAGUE"
+0141  RTN
+;
+; ---- 47 Eltanin
+0142  LBL 47
+0143  "ELTANIN"
+0144  RTN
+;
+; ---- 48 Kaus Australis
+0145  LBL 48
+0146  "KAUS AUST"
+0147  RTN
+;
+; ---- 49 Vega
+0148  LBL 49
+0149  "VEGA"
+0150  RTN
+;
+; ---- 50 Nunki
+0151  LBL 50
+0152  "NUNKI"
+0153  RTN
+;
+; ---- 51 Altair
+0154  LBL 51
+0155  "ALTAIR"
+0156  RTN
+;
+; ---- 52 Peacock
+0157  LBL 52
+0158  "PEACOCK"
+0159  RTN
+;
+; ---- 53 Deneb
+0160  LBL 53
+0161  "DENEB"
+0162  RTN
+;
+; ---- 54 Enif
+0163  LBL 54
+0164  "ENIF"
+0165  RTN
+;
+; ---- 55 Al Na'ir
+0166  LBL 55
+0167  "AL NAIR"
+0168  RTN
+;
+; ---- 56 Fomalhaut
+0169  LBL 56
+0170  "FOMALHAUT"
+0171  RTN
+;
+; ---- 57 Markab
+0172  LBL 57
+0173  "MARKAB"
+0174  RTN
+;
+; ---- 58 Polaris
+0175  LBL 58
+0176  "POLARIS"
+0177  RTN
+0178  END

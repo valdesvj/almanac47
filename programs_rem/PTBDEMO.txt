@@ -1,0 +1,35 @@
+LBL "PTBDEM"
+REM "PTBDEM - demo screen for the pixel font"
+CLLCD
+210
+10
+"@ SUN ZN 118.3 HC 39.1"
+XEQ "PTXB"
+180
+10
+"* 18 SIRIUS ZN 124.0 HC 19.7"
+XEQ "PTXB"
+150
+10
+"23-09-2026 03:00 UT"
+XEQ "PTXB"
+120
+10
+"LAT "
+30.5
++
+"N LON 000.0E"
++
+XEQ "PTXB"
+80
+10
+"SMALL: @ SUN * 18 SIRIUS"
+XEQ "PTXT"
+3
+STO 37
+LBL 21
+REM "hold screen 3 x PAUSE 99"
+PAUSE 99
+DSE 37
+GTO 21
+END

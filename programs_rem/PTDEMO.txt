@@ -1,0 +1,27 @@
+LBL "PTDEMO"
+REM "PTDEMO - demo screen for the pixel font"
+CLLCD
+200
+20
+"SIRIUS ZN 124.0 HC 19.7"
+XEQ "PTXT"
+120
+60
+"23-09-2026 03:00 UT"
+XEQ "PTXT"
+40
+100
+"LAT "
+30.5
++
+"N"
++
+XEQ "PTXT"
+3
+STO 37
+LBL 21
+REM "hold screen 3 x PAUSE 99"
+PAUSE 99
+DSE 37
+GTO 21
+END

@@ -1,0 +1,42 @@
+Feature request: a command to write text on the graphics screen from a program
+
+I wrote a celestial-navigation package for the C47 (Sun, stars, sunrise/twilight,
+Moon phase). Two screens, HALMV (sky chart + data) and ALMF (almanac page), draw
+text on a CLLCD/PIXEL screen. Screenshots attached.
+
+The problem: a program cannot write text on a graphics screen. AVIEW, PROMPT and
+MSG repaint the normal screen and the drawing is lost. So every user who wants
+text on a graphic has to design and program their own font: I had to draw
+every letter, digit and symbol in RPN (about 1,500 program lines for a 5x7
+font), while the calculator already has good fonts built in. Using those would
+be faster, smaller, better looking, and would save everyone this work.
+
+Numbers for my almanac screen ALMF (sky chart screen HALMV is similar):
+
+                          Font in RPN     Text steps     Total steps    Time on the
+                          (program lines) per screen     per screen     calculator
+  1. PIXEL, 1 step/dot       2,393          ~71,000        ~130,000     over 2 min  (measured)
+  2. AGRAPH, 1 step/column   1,589          ~20,000         ~71,000     35-40 s     (measured)
+  3. Native text command         0           ~1,000         ~52,000     10-30 s     (estimate)
+
+  Step counts from a step-by-step simulation of my programs; times 1 and 2 measured
+  on the real calculator. Line 3 assumes one command per text item (~115 per screen)
+  plus a few steps to format each number; the remaining steps are the astronomy.
+  The time range depends on how slow the text steps are compared with the
+  arithmetic steps (the PIXEL -> AGRAPH change suggests they are the slower ones).
+
+The AGRAPH version works well and is acceptable, even though the manual advises
+against using AGRAPH. But a large part of the remaining time, and all of the 1,589 lines,
+are still the font.
+
+Suggestion: a command like PIXEL but for a string, using the built-in fonts.
+The firmware already does this for the plot screens (graph_text() in graphs.c
+calls showString() with the standard and tiny fonts), so it is mostly a matter of
+making it available to programs, for example:
+    Z = string, Y = y, X = x  (same coordinates as PIXEL)
+    draws without refreshing and keeps the drawn screen, like PIXEL
+    optional: return the next x in X, choice of standard or tiny font
+Each line of text would then be one step instead of hundreds.
+
+(My analysis of screen.c and my programs were done with the help of Claude, an AI
+assistant; the timings and screenshots are from my own calculator.)

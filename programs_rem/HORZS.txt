@@ -1,0 +1,488 @@
+LBL "HORZS"
+REM "HORZS - same chart as HORZ (Sun, Moon, planets, 5 brightest stars) without the info line, holds it with 3 x PAUSE 99"
+REM "IN : Z = JD, Y = lat, X = lon"
+REM "NEEDS: as HORZ"
+REM "store JD R90, lat R91, lon R92, clear screen"
+STO 92
+R↓
+STO 91
+R↓
+STO 90
+CLLCD
+REM "horizon line y = 16 (PHL)"
+16
+20
+376
+XEQ "PHL"
+18.21603
+STO 86
+LBL 50
+REM "Hc axis x = 18, dotted every 3 px"
+RCL 86
+IP
+18
+PIXEL
+ISG 86
+GTO 50
+REM "Zn tick marks every 30 deg"
+15
+20
+PIXEL
+14
+20
+PIXEL
+13
+20
+PIXEL
+15
+51
+PIXEL
+14
+51
+PIXEL
+13
+51
+PIXEL
+15
+82
+PIXEL
+14
+82
+PIXEL
+13
+82
+PIXEL
+15
+113
+PIXEL
+14
+113
+PIXEL
+13
+113
+PIXEL
+15
+145
+PIXEL
+14
+145
+PIXEL
+13
+145
+PIXEL
+15
+176
+PIXEL
+14
+176
+PIXEL
+13
+176
+PIXEL
+15
+207
+PIXEL
+14
+207
+PIXEL
+13
+207
+PIXEL
+15
+238
+PIXEL
+14
+238
+PIXEL
+13
+238
+PIXEL
+15
+270
+PIXEL
+14
+270
+PIXEL
+13
+270
+PIXEL
+15
+301
+PIXEL
+14
+301
+PIXEL
+13
+301
+PIXEL
+15
+332
+PIXEL
+14
+332
+PIXEL
+13
+332
+PIXEL
+15
+363
+PIXEL
+14
+363
+PIXEL
+13
+363
+PIXEL
+15
+395
+PIXEL
+14
+395
+PIXEL
+13
+395
+PIXEL
+REM "Hc ticks and labels 30 60 90 (PTNS)"
+83
+15
+PIXEL
+83
+16
+PIXEL
+83
+17
+PIXEL
+150
+15
+PIXEL
+150
+16
+PIXEL
+150
+17
+PIXEL
+216
+15
+PIXEL
+216
+16
+PIXEL
+216
+17
+PIXEL
+81
+2
+30
+XEQ "PTNS"
+148
+2
+60
+XEQ "PTNS"
+214
+2
+90
+XEQ "PTNS"
+REM "north: letters N E S W N, offset R44 = 0"
+0
+STO 44
+RCL 91
+X<0?
+GTO 38
+7
+19
+"N"
+XEQ "PTXT"
+7
+112
+"E"
+XEQ "PTXT"
+7
+206
+"S"
+XEQ "PTXT"
+7
+300
+"W"
+XEQ "PTXT"
+7
+394
+"N"
+XEQ "PTXT"
+GTO 37
+LBL 38
+REM "south latitude: S W N E S, offset R44 = 180 (chart centred on N)"
+180
+STO 44
+7
+19
+"S"
+XEQ "PTXT"
+7
+112
+"W"
+XEQ "PTXT"
+7
+206
+"N"
+XEQ "PTXT"
+7
+300
+"E"
+XEQ "PTXT"
+7
+394
+"S"
+XEQ "PTXT"
+LBL 37
+REM "SUNA once, object table HZT, dotted celestial equator"
+RCL 90
+XEQ "SUNA"
+11
+ENTER
+3
+NEWMAT
+STO "HZT"
+0
+STO 10
+0
+STO 86
+LBL 53
+0
+RCL 86
+XEQ 52
+RCL 96
+X≥0?
+XEQ 55
+2
+STO+ 86
+358
+RCL 86
+X≤Y?
+GTO 53
+REM "Sun"
+RCL 77
+RCL 81
+XEQ 52
+RCL 96
+X>0?
+XEQ 46
+REM "Moon (MOO2 = MOON without repeating SUNA)"
+XEQ "MOO2"
+XEQ 52
+RCL 96
+X>0?
+XEQ 47
+REM "planets 1-4 (PLN2 = PLAN without SUNA)"
+1.004
+STO 11
+LBL 45
+RCL 11
+IP
+XEQ "PLN2"
+XEQ 52
+RCL 96
+X>0?
+XEQ 48
+ISG 11
+GTO 45
+REM "stars in order of brightness (SBRT) until 5 are higher than 10 deg"
+1.058
+STO 11
+0
+STO 12
+LBL 44
+RCL 11
+IP
+XEQ "SBRT"
+STO 82
+XEQ "STR2"
+XEQ 52
+10
+RCL 96
+X>Y?
+XEQ 43
+5
+RCL 12
+X≥Y?
+GTO 42
+ISG 11
+GTO 44
+LBL 42
+3
+STO 37
+LBL 21
+REM "hold screen: 3 x PAUSE 99 (R37)"
+PAUSE 99
+DSE 37
+GTO 21
+RTN
+LBL 40
+REM "record object X = id with Zn R97, Hc R96 in HZT (count R10)"
+STO 13
+1
+STO+ 10
+INDEX "HZT"
+RCL 10
+1
+STOIJ
+RCL 13
+STOEL
+J+
+RCL 97
+STOEL
+J+
+RCL 96
+STOEL
+RTN
+LBL 46
+REM "draw Sun, record"
+XEQ 56
+0
+XEQ 40
+RTN
+LBL 47
+REM "draw Moon symbol, record"
+241
+RCL- 99
+3
+-
+RCL 98
+3
+-
+"("
+XEQ "PTXB"
+-1
+XEQ 40
+RTN
+LBL 48
+REM "draw planet symbol (LBL 71-74), record"
+RCL 11
+IP
+70
++
+STO 14
+241
+RCL- 99
+3
+-
+RCL 98
+3
+-
+XEQ IND 14
+XEQ "PTXB"
+RCL 11
+IP
+1
++
+CHS
+XEQ 40
+RTN
+LBL 43
+REM "draw star + number, record, count R12"
+XEQ 57
+RCL 82
+XEQ 40
+1
+STO+ 12
+RTN
+LBL 71
+REM "planet symbols: < Venus, > Mars, = Jupiter, ? Saturn"
+"<"
+RTN
+LBL 72
+">"
+RTN
+LBL 73
+"="
+RTN
+LBL 74
+"?"
+RTN
+LBL 81
+"MOON"
+RTN
+LBL 82
+"VENUS"
+RTN
+LBL 83
+"MARS"
+RTN
+LBL 84
+"JUPITER"
+RTN
+LBL 85
+"SATURN"
+RTN
+LBL 55
+REM "plot one pixel at row R99, column R98"
+241
+RCL- 99
+RCL 98
+PIXEL
+RTN
+LBL 52
+REM "HCZ, then column R98 and row R99"
+XEQ "HCZ"
+RCL 97
+RCL+ 44
+360
+MOD
+375
+×
+360
+÷
+20
++
+IP
+STO 98
+225
+RCL 96
+200
+×
+90
+÷
+-
+IP
+STO 99
+RTN
+LBL 56
+REM "sun symbol centred on the point (PTXB @)"
+238
+RCL- 99
+RCL 98
+5
+-
+"@"
+XEQ "PTXB"
+RTN
+LBL 57
+REM "star centred on the point (PTXB *), number to the right (PTNS)"
+241
+RCL- 99
+3
+-
+RCL 98
+3
+-
+"*"
+XEQ "PTXB"
+RCL 98
+5
++
+STO 36
+385
+RCL 36
+X>Y?
+XEQ 39
+239
+RCL- 99
+RCL 36
+RCL 82
+XEQ "PTNS"
+RTN
+LBL 39
+REM "near the right edge: number 17 px to the left"
+17
+STO- 36
+RTN
+END

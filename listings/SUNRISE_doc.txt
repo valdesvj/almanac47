@@ -1,0 +1,155 @@
+; ======================================================================
+; SUNRISE - Sun events for one UT date at a position
+; IN : Z = JD at 0h UT, Y = lat (N+), X = lon (E+)
+; XEQ RISE / SET (-0 50'), CTWA / CTWP (-6), NTWA / NTWP (-12), TRAN (meridian passage)
+; OUT: X = UT hours (99 = no event)
+; NEEDS: SUNA   REGS: R90-R99
+; ======================================================================
+;
+; ---- h0 = -0.8333 (R93), morning sign -1 (R95)
+0001  LBL "RISE"
+0002  XEQ 21
+0003  -0.8333333333333333
+0004  STO 93
+0005  -1
+0006  STO 95
+0007  GTO 20
+;
+; ---- h0 = -0.8333, evening +1
+0008  LBL "SET"
+0009  XEQ 21
+0010  -0.8333333333333333
+0011  STO 93
+0012  1
+0013  STO 95
+0014  GTO 20
+;
+; ---- nautical twilight AM, h0 = -12
+0015  LBL "NTWA"
+0016  XEQ 21
+0017  -12
+0018  STO 93
+0019  -1
+0020  STO 95
+0021  GTO 20
+;
+; ---- nautical twilight PM
+0022  LBL "NTWP"
+0023  XEQ 21
+0024  -12
+0025  STO 93
+0026  1
+0027  STO 95
+0028  GTO 20
+;
+; ---- civil twilight AM, h0 = -6
+0029  LBL "CTWA"
+0030  XEQ 21
+0031  -6
+0032  STO 93
+0033  -1
+0034  STO 95
+0035  GTO 20
+;
+; ---- civil twilight PM
+0036  LBL "CTWP"
+0037  XEQ 21
+0038  -6
+0039  STO 93
+0040  1
+0041  STO 95
+0042  GTO 20
+;
+; ---- meridian passage (sign 0)
+0043  LBL "TRAN"
+0044  XEQ 21
+0045  0
+0046  STO 95
+0047  GTO 20
+;
+; ---- store JD0 R90, lat R91, lon R92
+0048  LBL 21
+0049  STO 92
+0050  R↓
+0051  STO 91
+0052  R↓
+0053  STO 90
+0054  RTN
+;
+; ---- first guess t = 12 + 6*sign hours -> R94, max 10 iterations R97
+0055  LBL 20
+0056  RCL 95
+0057  6
+0058  ×
+0059  12
+0060  +
+0061  STO 94
+0062  10
+0063  STO 97
+;
+; ---- iteration: SUNA at JD0 + t/24; GHA R98, Dec R99
+0064  LBL 22
+0065  RCL 94
+0066  24
+0067  ÷
+0068  RCL+ 90
+0069  XEQ "SUNA"
+0070  STO 98
+0071  R↓
+0072  STO 99
+0073  0
+0074  RCL 95
+0075  X=0?
+0076  GTO 25
+0077  RCL 93
+0078  SIN
+0079  RCL 91
+0080  SIN
+0081  RCL 99
+0082  SIN
+0083  ×
+0084  -
+0085  RCL 91
+0086  COS
+0087  RCL 99
+0088  COS
+0089  ×
+0090  ÷
+0091  STO 96
+0092  ABS
+0093  1
+0094  X<Y?
+0095  GTO 29
+0096  RCL 96
+0097  ACOS
+0098  RCL× 95
+;
+; ---- correction dt = (LHA target - GHA - lon) / 15, wrap +-180
+0099  LBL 25
+0100  RCL- 98
+0101  RCL- 92
+0102  540
+0103  +
+0104  360
+0105  MOD
+0106  180
+0107  -
+0108  15
+0109  ÷
+0110  STO+ 94
+0111  ABS
+0112  0.0003
+0113  X≥Y?
+0114  GTO 24
+0115  DSE 97
+0116  GTO 22
+;
+; ---- converged (|dt| < 0.0003 h, about 1 s): X = t
+0117  LBL 24
+0118  RCL 94
+0119  RTN
+;
+; ---- no event (|cos| > 1): X = 99
+0120  LBL 29
+0121  99
+0122  END

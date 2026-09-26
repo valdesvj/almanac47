@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.p47
+.DS_Store
+*.swp
+/out/

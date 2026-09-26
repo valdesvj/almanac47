@@ -1,0 +1,306 @@
+; ======================================================================
+; SUNA - Sun GHA/Dec and GHA Aries (VSOP87D truncated, IAU1980 nutation)
+; IN : X = JD (UT1)
+; OUT: X = GHA Sun, Y = Dec Sun, Z = GHA Aries (deg)
+;      R73 = R (au), R74 = app. longitude, R76 = true obliquity, R80 = GHA Aries
+;      R60-R64 = D M M' F Omega (deg), R66 = dpsi ("), R67 = deps (")
+; NEEDS: matrices VL VB VR NU (XEQ MATA once)
+; REGS: R50-R55 R60-R67 R70-R81
+; ======================================================================
+;
+; ---- main entry
+0001  LBL "SUNA"
+; ---- T = Julian centuries TT (UT1+69.2s) -> R54, tau = T/10 -> R50
+0002  DEG
+0003  STO 70
+0004  69.2
+0005  86400
+0006  ÷
+0007  +
+0008  2451545
+0009  -
+0010  36525
+0011  ÷
+0012  STO 54
+0013  10
+0014  ÷
+0015  STO 50
+; ---- series in radians: L (56 terms), B (3), R (7) via SER
+0016  RAD
+0017  56
+0018  STO 55
+; ---- heliocentric L -> R71
+0019  INDEX "VL"
+0020  XEQ "SER"
+0021  STO 71
+; ---- heliocentric B -> R72
+0022  3
+0023  STO 55
+0024  INDEX "VB"
+0025  XEQ "SER"
+0026  STO 72
+; ---- radius vector R -> R73 (au)
+0027  7
+0028  STO 55
+0029  INDEX "VR"
+0030  XEQ "SER"
+0031  STO 73
+0032  DEG
+; ---- geocentric longitude = L+180 -> R74, latitude = -B -> R75
+0033  RCL 71
+0034  57.295779513082320876798154814105
+0035  ×
+0036  180
+0037  +
+0038  360
+0039  MOD
+0040  STO 74
+0041  RCL 72
+0042  57.295779513082320876798154814105
+0043  ×
+0044  CHS
+0045  STO 75
+; ---- FK5 correction of lat and lon
+0046  RCL 74
+0047  RCL 54
+0048  1.397
+0049  ×
+0050  -
+0051  COS
+0052  LASTX
+0053  SIN
+0054  -
+0055  0.03916
+0056  ×
+0057  3600
+0058  ÷
+0059  STO+ 75
+0060  0.09033
+0061  3600
+0062  ÷
+0063  STO- 74
+; ---- nutation dpsi, deps (arcsec) -> R66, R67
+0064  XEQ "NUT"
+; ---- apparent longitude: + dpsi - aberration 20.4898"/R
+0065  RCL 66
+0066  3600
+0067  ÷
+0068  STO+ 74
+0069  20.4898
+0070  RCL÷ 73
+0071  3600
+0072  ÷
+0073  STO- 74
+; ---- true obliquity eps = eps0 + deps -> R76
+0074  84381.448
+0075  RCL 54
+0076  46.815
+0077  ×
+0078  -
+0079  RCL+ 67
+0080  3600
+0081  ÷
+0082  STO 76
+; ---- declination -> R77
+0083  RCL 75
+0084  SIN
+0085  RCL 76
+0086  COS
+0087  ×
+0088  RCL 75
+0089  COS
+0090  RCL 76
+0091  SIN
+0092  ×
+0093  RCL 74
+0094  SIN
+0095  ×
+0096  +
+0097  ASIN
+0098  STO 77
+; ---- right ascension (->POL) -> R78
+0099  RCL 74
+0100  SIN
+0101  RCL 76
+0102  COS
+0103  ×
+0104  RCL 75
+0105  TAN
+0106  RCL 76
+0107  SIN
+0108  ×
+0109  -
+0110  RCL 74
+0111  COS
+0112  →POL
+0113  X<>Y
+0114  STO 78
+; ---- GMST + equation of equinoxes = GHA Aries -> R80
+0115  RCL 70
+0116  2451545
+0117  -
+0118  STO 79
+0119  360.98564736629
+0120  ×
+0121  280.46061837
+0122  +
+0123  RCL 79
+0124  36525
+0125  ÷
+0126  X↑2
+0127  0.000387933
+0128  ×
+0129  +
+0130  RCL 66
+0131  3600
+0132  ÷
+0133  RCL 76
+0134  COS
+0135  ×
+0136  +
+0137  360
+0138  MOD
+0139  STO 80
+; ---- GHA Sun = GHA Aries - RA -> R81
+0140  RCL- 78
+0141  360
+0142  MOD
+0143  STO 81
+; ---- stack Z=Aries Y=Dec X=GHA
+0144  RCL 80
+0145  RCL 77
+0146  RCL 81
+0147  RTN
+;
+; ---- SER: sum A*cos(B+C*tau)*tau^k over matrix rows; R55 = rows, result *1E-8
+0148  LBL "SER"
+0149  0
+0150  STO 51
+0151  1
+0152  1
+0153  STOIJ
+;
+; ---- loop over rows (DSE 55)
+0154  LBL 12
+0155  RCLEL
+0156  J+
+0157  STO 52
+0158  RCLEL
+0159  J+
+0160  STO 53
+0161  RCLEL
+0162  J+
+0163  RCLEL
+0164  J+
+0165  RCL× 50
+0166  +
+0167  COS
+0168  RCL× 53
+0169  RCL 50
+0170  RCL 52
+0171  Y↑X
+0172  ×
+0173  STO+ 51
+0174  DSE 55
+0175  GTO 12
+0176  RCL 51
+0177  1E-8
+0178  ×
+0179  RTN
+;
+; ---- NUT: fundamental arguments D M M' F Omega -> R60-R64, 10-term IAU1980 nutation
+0180  LBL "NUT"
+0181  RCL 54
+0182  445267.11148
+0183  ×
+0184  297.85036
+0185  +
+0186  STO 60
+0187  RCL 54
+0188  35999.05034
+0189  ×
+0190  357.52772
+0191  +
+0192  STO 61
+0193  RCL 54
+0194  477198.867398
+0195  ×
+0196  134.96298
+0197  +
+0198  STO 62
+0199  RCL 54
+0200  483202.017538
+0201  ×
+0202  93.27191
+0203  +
+0204  STO 63
+0205  RCL 54
+0206  1934.136261
+0207  ×
+0208  CHS
+0209  125.04452
+0210  +
+0211  STO 64
+0212  0
+0213  STO 66
+0214  STO 67
+0215  10
+0216  STO 55
+0217  INDEX "NU"
+0218  1
+0219  1
+0220  STOIJ
+;
+; ---- loop over NU rows: dpsi -> R66, deps -> R67 (0.0001" units, scaled at end)
+0221  LBL 13
+0222  RCLEL
+0223  J+
+0224  RCL× 60
+0225  RCLEL
+0226  J+
+0227  RCL× 61
+0228  +
+0229  RCLEL
+0230  J+
+0231  RCL× 62
+0232  +
+0233  RCLEL
+0234  J+
+0235  RCL× 63
+0236  +
+0237  RCLEL
+0238  J+
+0239  RCL× 64
+0240  +
+0241  STO 65
+0242  RCLEL
+0243  J+
+0244  RCLEL
+0245  J+
+0246  RCL× 54
+0247  +
+0248  RCL 65
+0249  SIN
+0250  ×
+0251  STO+ 66
+0252  RCLEL
+0253  J+
+0254  RCLEL
+0255  J+
+0256  RCL× 54
+0257  +
+0258  RCL 65
+0259  COS
+0260  ×
+0261  STO+ 67
+0262  DSE 55
+0263  GTO 13
+0264  RCL 66
+0265  1E-4
+0266  ×
+0267  STO 66
+0268  RCL 67
+0269  1E-4
+0270  ×
+0271  STO 67
+0272  END

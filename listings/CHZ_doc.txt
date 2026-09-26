@@ -1,0 +1,137 @@
+; ======================================================================
+; CHZ - sight reduction
+; CHZ: T = lat, Z = lon (E+), Y = Dec, X = GHA -> X = Hc, Y = Zn
+; HCZ: same with lat in R91, lon in R92 (used by the screens)
+; DHA: inverse. T lat, Z lon, Y Hc, X Zn -> X Dec, Y LHA, Z GHA
+; REGS: R91 lat, R92 lon, R94 Dec, R95 LHA, R96 Hc, R97 Zn
+; ======================================================================
+;
+; ---- store lat R91, lon R92, fall into HCZ
+0001  LBL "CHZ"
+0002  R↓
+0003  R↓
+0004  STO 92
+0005  R↓
+0006  STO 91
+0007  R↓
+;
+; ---- LHA = GHA + lon -> R95, Dec -> R94
+0008  LBL "HCZ"
+0009  RCL+ 92
+0010  STO 95
+0011  R↓
+0012  STO 94
+; ---- Hc = asin(sin lat sin dec + cos lat cos dec cos LHA) -> R96
+0013  RCL 91
+0014  SIN
+0015  RCL 94
+0016  SIN
+0017  ×
+0018  RCL 91
+0019  COS
+0020  RCL 94
+0021  COS
+0022  ×
+0023  RCL 95
+0024  COS
+0025  ×
+0026  +
+0027  ASIN
+0028  STO 96
+; ---- Zn = atan2(-cos dec sin LHA, cos lat sin dec - sin lat cos dec cos LHA) -> R97
+0029  RCL 94
+0030  COS
+0031  RCL 95
+0032  SIN
+0033  ×
+0034  CHS
+0035  RCL 91
+0036  COS
+0037  RCL 94
+0038  SIN
+0039  ×
+0040  RCL 91
+0041  SIN
+0042  RCL 94
+0043  COS
+0044  ×
+0045  RCL 95
+0046  COS
+0047  ×
+0048  -
+0049  →POL
+0050  X<>Y
+0051  360
+0052  +
+0053  360
+0054  MOD
+0055  STO 97
+0056  RCL 96
+0057  RTN
+;
+; ---- inverse: store lat, lon, Zn R97, Hc R96
+0058  LBL "DHA"
+0059  R↓
+0060  R↓
+0061  STO 92
+0062  R↓
+0063  STO 91
+0064  R↓
+0065  STO 97
+0066  R↓
+0067  STO 96
+; ---- Dec = asin(sin lat sin Hc + cos lat cos Hc cos Zn) -> R94
+0068  RCL 91
+0069  SIN
+0070  RCL 96
+0071  SIN
+0072  ×
+0073  RCL 91
+0074  COS
+0075  RCL 96
+0076  COS
+0077  ×
+0078  RCL 97
+0079  COS
+0080  ×
+0081  +
+0082  ASIN
+0083  STO 94
+; ---- LHA from atan2 -> R95
+0084  RCL 97
+0085  SIN
+0086  RCL 96
+0087  COS
+0088  ×
+0089  CHS
+0090  RCL 91
+0091  COS
+0092  RCL 96
+0093  SIN
+0094  ×
+0095  RCL 91
+0096  SIN
+0097  RCL 96
+0098  COS
+0099  ×
+0100  RCL 97
+0101  COS
+0102  ×
+0103  -
+0104  →POL
+0105  X<>Y
+0106  360
+0107  +
+0108  360
+0109  MOD
+0110  STO 95
+; ---- GHA = LHA - lon; stack Z=GHA Y=LHA X=Dec
+0111  RCL 95
+0112  RCL- 92
+0113  360
+0114  +
+0115  360
+0116  MOD
+0117  RCL 95
+0118  RCL 94
+0119  END

@@ -1,0 +1,49 @@
+LBL "HPLT"
+REM "HPLT - Hc/Zn dot plot with the statistics plot (PLSTAT)"
+REM "IN : Z = JD, Y = lat, X = lon"
+REM "Clears stats, Sigma+ (x = Zn, y = Hc) for Sun and stars above horizon"
+REM "store inputs, clear statistics, Sun"
+STO 92
+R↓
+STO 91
+R↓
+STO 90
+CLΣ
+RCL 90
+XEQ "SUNA"
+RCL 77
+RCL 81
+XEQ 52
+RCL 96
+X>0?
+XEQ 50
+1.058
+STO 93
+LBL 51
+REM "star loop 1-58"
+RCL 93
+IP
+STO 82
+XEQ "STR2"
+XEQ 52
+RCL 96
+X>0?
+XEQ 50
+ISG 93
+GTO 51
+REM "show plot"
+PLSTAT
+PLTFCNS
+RTN
+LBL 50
+REM "add point (Zn, Hc)"
+RCL 96
+RCL 97
+Σ+
+RTN
+LBL 52
+REM "HCZ, X = Zn"
+XEQ "HCZ"
+RCL 97
+RTN
+END

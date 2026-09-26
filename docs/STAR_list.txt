@@ -1,0 +1,123 @@
+NAVIGATION STARS - SHA and Dec for 23 Sep 2026, 0h UT  (58 = Polaris)
+
+A) BY ALMANAC NUMBER (original list)
+
+ 1  Alpheratz        SHA 357° 33.0′   Dec N 29° 14.5′
+ 2  Ankaa            SHA 353° 05.3′   Dec S 42° 09.5′
+ 3  Schedar          SHA 349° 28.9′   Dec N 56° 41.1′
+ 4  Diphda           SHA 348° 45.6′   Dec S 17° 50.2′
+ 5  Achernar         SHA 335° 18.6′   Dec S 57° 05.8′
+ 6  Hamal            SHA 327° 49.3′   Dec N 23° 35.4′
+ 7  Acamar           SHA 315° 10.4′   Dec S 40° 11.5′
+ 8  Menkar           SHA 314° 04.4′   Dec N 4° 11.8′
+ 9  Mirfak           SHA 308° 25.9′   Dec N 49° 57.3′
+10  Aldebaran        SHA 290° 37.9′   Dec N 16° 33.8′
+11  Rigel            SHA 281° 02.4′   Dec S 8° 10.0′
+12  Capella          SHA 280° 19.7′   Dec N 46° 01.3′
+13  Bellatrix        SHA 278° 21.3′   Dec N 6° 22.5′
+14  Elnath           SHA 278° 00.0′   Dec N 28° 37.8′
+15  Alnilam          SHA 275° 36.3′   Dec S 1° 10.9′
+16  Betelgeuse       SHA 270° 50.6′   Dec N 7° 24.8′
+17  Canopus          SHA 263° 51.8′   Dec S 52° 42.2′
+18  Sirius           SHA 258° 25.1′   Dec S 16° 44.9′
+19  Adhara           SHA 255° 04.8′   Dec S 29° 00.2′
+20  Procyon          SHA 244° 49.5′   Dec N 5° 09.5′
+21  Pollux           SHA 243° 15.7′   Dec N 27° 57.6′
+22  Avior            SHA 234° 14.5′   Dec S 59° 35.4′
+23  Suhail           SHA 222° 45.6′   Dec S 43° 32.2′
+24  Miaplacidus      SHA 221° 38.7′   Dec S 69° 49.4′
+25  Alphard          SHA 217° 46.6′   Dec S 8° 46.3′
+26  Regulus          SHA 207° 33.2′   Dec N 11° 50.2′
+27  Dubhe            SHA 193° 39.9′   Dec N 61° 36.4′
+28  Denebola         SHA 182° 23.8′   Dec N 14° 25.4′
+29  Gienah           SHA 175° 42.5′   Dec S 17° 41.4′
+30  Acrux            SHA 172° 59.2′   Dec S 63° 14.9′
+31  Gacrux           SHA 171° 50.7′   Dec S 57° 15.8′
+32  Alioth           SHA 166° 12.3′   Dec N 55° 49.0′
+33  Spica            SHA 158° 21.1′   Dec S 11° 18.0′
+34  Alkaid           SHA 152° 51.3′   Dec N 49° 10.9′
+35  Hadar            SHA 148° 34.5′   Dec S 60° 30.2′
+36  Menkent          SHA 147° 56.3′   Dec S 36° 30.1′
+37  Arcturus         SHA 145° 46.9′   Dec N 19° 02.7′
+38  Rigil Kentaurus  SHA 139° 38.8′   Dec S 60° 56.9′
+39  Zubenelgenubi    SHA 136° 54.7′   Dec S 16° 09.1′
+40  Kochab           SHA 137° 20.7′   Dec N 74° 02.9′
+41  Alphecca         SHA 126° 02.8′   Dec N 26° 37.7′
+42  Antares          SHA 112° 14.2′   Dec S 26° 29.5′
+43  Atria            SHA 107° 07.3′   Dec S 69° 04.7′
+44  Sabik            SHA 102° 01.2′   Dec S 15° 45.4′
+45  Shaula           SHA 96° 08.5′    Dec S 37° 07.5′
+46  Rasalhague       SHA 95° 57.3′    Dec N 12° 32.6′
+47  Eltanin          SHA 90° 41.5′    Dec N 51° 29.4′
+48  Kaus Australis   SHA 83° 30.6′    Dec S 34° 22.4′
+49  Vega             SHA 80° 32.2′    Dec N 38° 48.8′
+50  Nunki            SHA 75° 45.9′    Dec S 26° 15.8′
+51  Altair           SHA 61° 58.4′    Dec N 8° 56.5′
+52  Peacock          SHA 53° 03.2′    Dec S 56° 39.0′
+53  Deneb            SHA 49° 24.6′    Dec N 45° 22.8′
+54  Enif             SHA 33° 37.1′    Dec N 10° 00.1′
+55  Al Na'ir         SHA 27° 30.7′    Dec S 46° 49.9′
+56  Fomalhaut        SHA 15° 12.6′    Dec S 29° 28.7′
+57  Markab           SHA 13° 28.2′    Dec N 15° 21.1′
+58  Polaris          SHA 312° 58.7′   Dec N 89° 22.4′
+
+B) ALPHABETICAL (same numbers)
+
+ 7  Acamar           SHA 315° 10.4′   Dec S 40° 11.5′
+ 5  Achernar         SHA 335° 18.6′   Dec S 57° 05.8′
+30  Acrux            SHA 172° 59.2′   Dec S 63° 14.9′
+19  Adhara           SHA 255° 04.8′   Dec S 29° 00.2′
+10  Aldebaran        SHA 290° 37.9′   Dec N 16° 33.8′
+32  Alioth           SHA 166° 12.3′   Dec N 55° 49.0′
+34  Alkaid           SHA 152° 51.3′   Dec N 49° 10.9′
+55  Al Na'ir         SHA 27° 30.7′    Dec S 46° 49.9′
+15  Alnilam          SHA 275° 36.3′   Dec S 1° 10.9′
+25  Alphard          SHA 217° 46.6′   Dec S 8° 46.3′
+41  Alphecca         SHA 126° 02.8′   Dec N 26° 37.7′
+ 1  Alpheratz        SHA 357° 33.0′   Dec N 29° 14.5′
+51  Altair           SHA 61° 58.4′    Dec N 8° 56.5′
+ 2  Ankaa            SHA 353° 05.3′   Dec S 42° 09.5′
+42  Antares          SHA 112° 14.2′   Dec S 26° 29.5′
+37  Arcturus         SHA 145° 46.9′   Dec N 19° 02.7′
+43  Atria            SHA 107° 07.3′   Dec S 69° 04.7′
+22  Avior            SHA 234° 14.5′   Dec S 59° 35.4′
+13  Bellatrix        SHA 278° 21.3′   Dec N 6° 22.5′
+16  Betelgeuse       SHA 270° 50.6′   Dec N 7° 24.8′
+17  Canopus          SHA 263° 51.8′   Dec S 52° 42.2′
+12  Capella          SHA 280° 19.7′   Dec N 46° 01.3′
+53  Deneb            SHA 49° 24.6′    Dec N 45° 22.8′
+28  Denebola         SHA 182° 23.8′   Dec N 14° 25.4′
+ 4  Diphda           SHA 348° 45.6′   Dec S 17° 50.2′
+27  Dubhe            SHA 193° 39.9′   Dec N 61° 36.4′
+14  Elnath           SHA 278° 00.0′   Dec N 28° 37.8′
+47  Eltanin          SHA 90° 41.5′    Dec N 51° 29.4′
+54  Enif             SHA 33° 37.1′    Dec N 10° 00.1′
+56  Fomalhaut        SHA 15° 12.6′    Dec S 29° 28.7′
+31  Gacrux           SHA 171° 50.7′   Dec S 57° 15.8′
+29  Gienah           SHA 175° 42.5′   Dec S 17° 41.4′
+35  Hadar            SHA 148° 34.5′   Dec S 60° 30.2′
+ 6  Hamal            SHA 327° 49.3′   Dec N 23° 35.4′
+48  Kaus Australis   SHA 83° 30.6′    Dec S 34° 22.4′
+40  Kochab           SHA 137° 20.7′   Dec N 74° 02.9′
+57  Markab           SHA 13° 28.2′    Dec N 15° 21.1′
+ 8  Menkar           SHA 314° 04.4′   Dec N 4° 11.8′
+36  Menkent          SHA 147° 56.3′   Dec S 36° 30.1′
+24  Miaplacidus      SHA 221° 38.7′   Dec S 69° 49.4′
+ 9  Mirfak           SHA 308° 25.9′   Dec N 49° 57.3′
+50  Nunki            SHA 75° 45.9′    Dec S 26° 15.8′
+52  Peacock          SHA 53° 03.2′    Dec S 56° 39.0′
+58  Polaris          SHA 312° 58.7′   Dec N 89° 22.4′
+21  Pollux           SHA 243° 15.7′   Dec N 27° 57.6′
+20  Procyon          SHA 244° 49.5′   Dec N 5° 09.5′
+46  Rasalhague       SHA 95° 57.3′    Dec N 12° 32.6′
+26  Regulus          SHA 207° 33.2′   Dec N 11° 50.2′
+11  Rigel            SHA 281° 02.4′   Dec S 8° 10.0′
+38  Rigil Kentaurus  SHA 139° 38.8′   Dec S 60° 56.9′
+44  Sabik            SHA 102° 01.2′   Dec S 15° 45.4′
+ 3  Schedar          SHA 349° 28.9′   Dec N 56° 41.1′
+45  Shaula           SHA 96° 08.5′    Dec S 37° 07.5′
+18  Sirius           SHA 258° 25.1′   Dec S 16° 44.9′
+33  Spica            SHA 158° 21.1′   Dec S 11° 18.0′
+23  Suhail           SHA 222° 45.6′   Dec S 43° 32.2′
+49  Vega             SHA 80° 32.2′    Dec N 38° 48.8′
+39  Zubenelgenubi    SHA 136° 54.7′   Dec S 16° 09.1′

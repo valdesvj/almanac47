@@ -1,0 +1,8 @@
+LBL "SUNSD"
+XEQ "SUNA"
+RCL 73
+15.99383
+X<>Y
+÷
+RTN
+END

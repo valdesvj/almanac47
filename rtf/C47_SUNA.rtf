@@ -1,0 +1,274 @@
+{\rtf1\ansi\ansicpg1252\deff0{\fonttbl{\f0\fmodern Courier New;}}\f0\fs20
+001 LBL "SUNA"\par
+002 DEG\par
+003 STO 70\par
+004 69.2\par
+005 86400\par
+006 \u247?\par
+007 +\par
+008 2451545\par
+009 -\par
+010 36525\par
+011 \u247?\par
+012 STO 54\par
+013 10\par
+014 \u247?\par
+015 STO 50\par
+016 RAD\par
+017 56\par
+018 STO 55\par
+019 INDEX "VL"\par
+020 XEQ "SER"\par
+021 STO 71\par
+022 3\par
+023 STO 55\par
+024 INDEX "VB"\par
+025 XEQ "SER"\par
+026 STO 72\par
+027 7\par
+028 STO 55\par
+029 INDEX "VR"\par
+030 XEQ "SER"\par
+031 STO 73\par
+032 DEG\par
+033 RCL 71\par
+034 57.295779513082320876798154814105\par
+035 \u215?\par
+036 180\par
+037 +\par
+038 360\par
+039 MOD\par
+040 STO 74\par
+041 RCL 72\par
+042 57.295779513082320876798154814105\par
+043 \u215?\par
+044 CHS\par
+045 STO 75\par
+046 RCL 74\par
+047 RCL 54\par
+048 1.397\par
+049 \u215?\par
+050 -\par
+051 COS\par
+052 LASTX\par
+053 SIN\par
+054 -\par
+055 0.03916\par
+056 \u215?\par
+057 3600\par
+058 \u247?\par
+059 STO+ 75\par
+060 0.09033\par
+061 3600\par
+062 \u247?\par
+063 STO- 74\par
+064 XEQ "NUT"\par
+065 RCL 66\par
+066 3600\par
+067 \u247?\par
+068 STO+ 74\par
+069 20.4898\par
+070 RCL\u247? 73\par
+071 3600\par
+072 \u247?\par
+073 STO- 74\par
+074 84381.448\par
+075 RCL 54\par
+076 46.815\par
+077 \u215?\par
+078 -\par
+079 RCL+ 67\par
+080 3600\par
+081 \u247?\par
+082 STO 76\par
+083 RCL 75\par
+084 SIN\par
+085 RCL 76\par
+086 COS\par
+087 \u215?\par
+088 RCL 75\par
+089 COS\par
+090 RCL 76\par
+091 SIN\par
+092 \u215?\par
+093 RCL 74\par
+094 SIN\par
+095 \u215?\par
+096 +\par
+097 ASIN\par
+098 STO 77\par
+099 RCL 74\par
+100 SIN\par
+101 RCL 76\par
+102 COS\par
+103 \u215?\par
+104 RCL 75\par
+105 TAN\par
+106 RCL 76\par
+107 SIN\par
+108 \u215?\par
+109 -\par
+110 RCL 74\par
+111 COS\par
+112 \u8594?POL\par
+113 X<>Y\par
+114 STO 78\par
+115 RCL 70\par
+116 2451545\par
+117 -\par
+118 STO 79\par
+119 360.98564736629\par
+120 \u215?\par
+121 280.46061837\par
+122 +\par
+123 RCL 79\par
+124 36525\par
+125 \u247?\par
+126 X\u8593?2\par
+127 0.000387933\par
+128 \u215?\par
+129 +\par
+130 RCL 66\par
+131 3600\par
+132 \u247?\par
+133 RCL 76\par
+134 COS\par
+135 \u215?\par
+136 +\par
+137 360\par
+138 MOD\par
+139 STO 80\par
+140 RCL- 78\par
+141 360\par
+142 MOD\par
+143 STO 81\par
+144 RCL 80\par
+145 RCL 77\par
+146 RCL 81\par
+147 RTN\par
+148 LBL "SER"\par
+149 0\par
+150 STO 51\par
+151 1\par
+152 1\par
+153 STOIJ\par
+154 LBL 12\par
+155 RCLEL\par
+156 J+\par
+157 STO 52\par
+158 RCLEL\par
+159 J+\par
+160 STO 53\par
+161 RCLEL\par
+162 J+\par
+163 RCLEL\par
+164 J+\par
+165 RCL\u215? 50\par
+166 +\par
+167 COS\par
+168 RCL\u215? 53\par
+169 RCL 50\par
+170 RCL 52\par
+171 Y\u8593?X\par
+172 \u215?\par
+173 STO+ 51\par
+174 DSE 55\par
+175 GTO 12\par
+176 RCL 51\par
+177 1E-8\par
+178 \u215?\par
+179 RTN\par
+180 LBL "NUT"\par
+181 RCL 54\par
+182 445267.11148\par
+183 \u215?\par
+184 297.85036\par
+185 +\par
+186 STO 60\par
+187 RCL 54\par
+188 35999.05034\par
+189 \u215?\par
+190 357.52772\par
+191 +\par
+192 STO 61\par
+193 RCL 54\par
+194 477198.867398\par
+195 \u215?\par
+196 134.96298\par
+197 +\par
+198 STO 62\par
+199 RCL 54\par
+200 483202.017538\par
+201 \u215?\par
+202 93.27191\par
+203 +\par
+204 STO 63\par
+205 RCL 54\par
+206 1934.136261\par
+207 \u215?\par
+208 CHS\par
+209 125.04452\par
+210 +\par
+211 STO 64\par
+212 0\par
+213 STO 66\par
+214 STO 67\par
+215 10\par
+216 STO 55\par
+217 INDEX "NU"\par
+218 1\par
+219 1\par
+220 STOIJ\par
+221 LBL 13\par
+222 RCLEL\par
+223 J+\par
+224 RCL\u215? 60\par
+225 RCLEL\par
+226 J+\par
+227 RCL\u215? 61\par
+228 +\par
+229 RCLEL\par
+230 J+\par
+231 RCL\u215? 62\par
+232 +\par
+233 RCLEL\par
+234 J+\par
+235 RCL\u215? 63\par
+236 +\par
+237 RCLEL\par
+238 J+\par
+239 RCL\u215? 64\par
+240 +\par
+241 STO 65\par
+242 RCLEL\par
+243 J+\par
+244 RCLEL\par
+245 J+\par
+246 RCL\u215? 54\par
+247 +\par
+248 RCL 65\par
+249 SIN\par
+250 \u215?\par
+251 STO+ 66\par
+252 RCLEL\par
+253 J+\par
+254 RCLEL\par
+255 J+\par
+256 RCL\u215? 54\par
+257 +\par
+258 RCL 65\par
+259 COS\par
+260 \u215?\par
+261 STO+ 67\par
+262 DSE 55\par
+263 GTO 13\par
+264 RCL 66\par
+265 1E-4\par
+266 \u215?\par
+267 STO 66\par
+268 RCL 67\par
+269 1E-4\par
+270 \u215?\par
+271 STO 67\par
+272 END\par
+}

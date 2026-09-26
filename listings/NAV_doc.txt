@@ -1,0 +1,192 @@
+; ======================================================================
+; NAV - start menu with prompts
+; 1 = ALMF, 2 = HALMV, 3 = MATA + MATST + MATM + MATP, 4 = ALMT (text), 0 = end
+; Asks DATE (YYYY.MMDD), UTC (HH.MMSS), LAT, LON (DD.MM, S/W negative)
+; REGS: R01-R08 R38 R39, variables DATE UTC LAT LON
+; ======================================================================
+0001  LBL "NAV"
+;
+; ---- menu prompt; choice -> R38
+0002  LBL 01
+0003  "1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 0 END"
+0004  STO 39
+0005  PROMPT 39
+0006  STO 38
+0007  X=0?
+0008  RTN
+0009  1
+0010  RCL 38
+0011  X=Y?
+0012  GTO 10
+0013  2
+0014  RCL 38
+0015  X=Y?
+0016  GTO 11
+0017  3
+0018  RCL 38
+0019  X=Y?
+0020  GTO 12
+0021  4
+0022  RCL 38
+0023  X=Y?
+0024  GTO 13
+0025  GTO 01
+;
+; ---- 1: almanac page
+0026  LBL 10
+0027  XEQ 20
+0028  XEQ "ALMF"
+0029  GTO 01
+;
+; ---- 2: horizon + data
+0030  LBL 11
+0031  XEQ 20
+0032  XEQ "HALMV"
+0033  GTO 01
+;
+; ---- 3: build all matrices (MATA, MATST, MATM, MATP)
+0034  LBL 12
+0035  XEQ "MATA"
+0036  XEQ "MATST"
+0037  XEQ "MATM"
+0038  XEQ "MATP"
+0039  "MATRICES READY - R/S"
+0040  STO 39
+0041  PROMPT 39
+0042  GTO 01
+;
+; ---- 4: text almanac ALMT
+0043  LBL 13
+0044  XEQ 20
+0045  XEQ "ALMT"
+0046  GTO 01
+;
+; ---- inputs; date -> Y R01 M R02 D R03
+0047  LBL 20
+0048  INPUT "DATE"
+0049  INPUT "UTC"
+0050  INPUT "LAT"
+0051  INPUT "LON"
+0052  RCL "DATE"
+0053  10000
+0054  ×
+0055  0.5
+0056  +
+0057  IP
+0058  STO 03
+0059  10000
+0060  ÷
+0061  IP
+0062  STO 01
+0063  RCL 03
+0064  100
+0065  ÷
+0066  IP
+0067  100
+0068  MOD
+0069  STO 02
+0070  RCL 03
+0071  100
+0072  MOD
+0073  STO 03
+; ---- time HH.MMSS -> hours R04
+0074  RCL "UTC"
+0075  10000
+0076  ×
+0077  0.5
+0078  +
+0079  IP
+0080  STO 04
+0081  100
+0082  MOD
+0083  3600
+0084  ÷
+0085  RCL 04
+0086  100
+0087  ÷
+0088  IP
+0089  100
+0090  MOD
+0091  60
+0092  ÷
+0093  +
+0094  RCL 04
+0095  10000
+0096  ÷
+0097  IP
+0098  +
+0099  STO 04
+; ---- Jan/Feb -> previous year
+0100  RCL 02
+0101  3
+0102  X>Y?
+0103  XEQ 31
+; ---- Gregorian B -> R05; JD -> R06
+0104  RCL 01
+0105  100
+0106  ÷
+0107  IP
+0108  STO 05
+0109  2
+0110  RCL- 05
+0111  RCL 05
+0112  4
+0113  ÷
+0114  IP
+0115  +
+0116  STO 05
+0117  RCL 01
+0118  4716
+0119  +
+0120  365.25
+0121  ×
+0122  IP
+0123  RCL 02
+0124  1
+0125  +
+0126  30.6001
+0127  ×
+0128  IP
+0129  +
+0130  RCL+ 03
+0131  RCL+ 05
+0132  1524.5
+0133  -
+0134  RCL 04
+0135  24
+0136  ÷
+0137  +
+0138  STO 06
+; ---- lat, lon to degrees R07 R08; stack Z JD Y lat X lon
+0139  RCL "LAT"
+0140  XEQ 30
+0141  STO 07
+0142  RCL "LON"
+0143  XEQ 30
+0144  STO 08
+0145  RCL 06
+0146  RCL 07
+0147  RCL 08
+0148  RTN
+;
+; ---- DD.MM -> degrees
+0149  LBL 30
+0150  STO 38
+0151  IP
+0152  RCL 38
+0153  FP
+0154  100
+0155  ×
+0156  60
+0157  ÷
+0158  +
+0159  RTN
+;
+; ---- M = M + 12, Y = Y - 1
+0160  LBL 31
+0161  1
+0162  STO- 01
+0163  12
+0164  STO+ 02
+0165  RTN
+0166  END

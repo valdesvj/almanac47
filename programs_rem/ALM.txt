@@ -1,0 +1,72 @@
+LBL "ALM"
+REM "ALM - Chebyshev tables (Method B): Sun, Aries, Moon, planets"
+REM "Store R01 n, R02 span (h), GHA coef R10.., Dec coef R20.., Moon HP R30-R33"
+REM "IN : X = t (hours since block start)"
+REM "OUT: X = GHA, Y = Dec,  XEQ HP -> X = HP (arcmin)"
+REM "REGS: R01-R09 R10-R33 R40-R41"
+REM "x = 2t/span - 1 -> R03, GHA series (base R10) -> R40, Dec (base R20) -> R41"
+2
+×
+RCL÷ 02
+1
+-
+STO 03
+10
+STO 08
+XEQ "CHEB"
+360
+MOD
+STO 40
+20
+STO 08
+XEQ "CHEB"
+STO 41
+RCL 41
+RCL 40
+RTN
+LBL "HP"
+REM "Moon horizontal parallax: 4 terms from R30"
+RCL 01
+STO 09
+4
+STO 01
+30
+STO 08
+XEQ "CHEB"
+RCL 09
+STO 01
+R↓
+RTN
+LBL "CHEB"
+REM "Clenshaw sum, R08 = base register, R01 = n terms"
+RCL 08
+RCL+ 01
+1
+-
+RCL 08
+1000
+÷
++
+STO 06
+0
+STO 04
+STO 05
+LBL 11
+REM "recurrence b_k = 2x b_k+1 - b_k+2 + c_k (RCL+ IND 06)"
+RCL 03
+RCL× 04
+2
+×
+RCL- 05
+RCL+ IND 06
+RCL 04
+STO 05
+R↓
+STO 04
+DSE 06
+GTO 11
+RCL 03
+RCL× 04
+RCL- 05
+RCL+ IND 08
+END

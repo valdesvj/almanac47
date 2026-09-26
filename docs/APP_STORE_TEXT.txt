@@ -1,0 +1,53 @@
+ALMANAC 47 - STORE TEXT (draft)
+================================
+
+App name (max 30):        Almanac 47 - Celestial Nav
+Subtitle / iOS (max 30):  Almanac and sight reduction
+Short description / Play (max 80):
+  Almanac data and Hc/Zn for celestial navigation. You still take the sight.
+
+----------------------------------------------------------------------
+FULL DESCRIPTION
+----------------------------------------------------------------------
+
+A good navigator never trusts one source. The GPS can fail, the chart plotter can freeze, and a spreadsheet can hide a wrong formula for years. The sextant, the chronometer and the almanac are still there when everything else goes dark, but only for someone who has kept the method alive.
+
+Almanac 47 is made for that. It gives you what the Nautical Almanac and the sight reduction tables give you, and nothing more:
+
+- GHA and declination of the Sun, Moon, Venus, Mars, Jupiter, Saturn and the 57 navigational stars (plus Polaris)
+- GHA Aries
+- Computed altitude (Hc) and azimuth (Zn) from your DR position
+- Nautical twilight, sunrise and sunset, meridian passage
+- Sun semi-diameter, Moon HP and SD, Moon phase and age
+- A horizon view showing where each body stands, to plan your star sights at twilight
+
+The rest is yours. You choose the bodies, take the sight, note the time, apply index error, dip, refraction, semi-diameter and parallax, work out the intercept and plot the position lines. Almanac 47 will not turn a sextant reading into a position, on purpose. The method is what makes you a navigator, and a method you understand is one you can check.
+
+Check it against the book. The figures come from published methods (VSOP87 for the Sun and planets, Meeus with corrections fitted to the JPL ephemeris for the Moon, IAU precession and nutation for the stars). In our tests against the JPL ephemeris for 2025-2028 they agree to within a few tenths of a minute of arc. Work the same sight from the Nautical Almanac now and then. If the two ever disagree, trust the almanac and tell us.
+
+Born on a calculator, twice. In the 1990s the author wrote VIT97, a celestial navigation program for the HP 48, still on hpcalc.org. That HP 48 was lent out years ago and never came back. Almanac 47 is the new start: RPN programs for the C47/R47 calculator, rebuilt with the help of AI, and the screens look exactly like its display. On the calculator each screen takes about 35 seconds to draw. Here it takes a blink. For the authentic experience, count to 35 before looking.
+
+Works fully offline. No account, no advertising, no data collected. Nothing leaves your phone.
+
+A word from the bridge. Phones do not belong on the bridge during navigation or operations. Use Almanac 47 to study, to plan and to practise. If you find it useful, get a DM42n or an R47, load the programs and bring the calculator on board, and make good use of the sextant and the Nautical Almanac.
+
+Almanac 47 is a study and planning aid. It is not type-approved navigation equipment and must not be used as a primary means of navigation.
+
+DOES NOT REPLACE THE NAUTICAL ALMANAC.
+
+Thanks to the developers of the C43/C47 firmware and to SwissMicros for the hardware. Not affiliated with or endorsed by SwissMicros or the C43/C47 project. Names are trademarks of their owners.
+
+----------------------------------------------------------------------
+PROMOTIONAL TEXT / iOS (max 170)
+----------------------------------------------------------------------
+The almanac and the sight reduction, done right. The sight, the corrections and the plot are still yours, as they should be.
+
+----------------------------------------------------------------------
+LONGER STORY (for the About screen, the forum post or a web page)
+----------------------------------------------------------------------
+A little nostalgia. In the 1990s I wrote VIT97 and NAVII, celestial navigation
+programs for the HP 48; they are still on hpcalc.org (HP 48 > Science >
+Astronomy). Years later I lent my HP 48 to someone and never saw it again.
+Then I found the SwissMicros hardware and the C43/C47 project, and started over,
+this time with the help of AI: long chats and a few hours of sleep, during my
+recovery from knee surgery.

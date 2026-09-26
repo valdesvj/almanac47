@@ -1,0 +1,13 @@
+This program began as a set of RPN programs for the SwissMicros C47 calculator: Sun, Moon, planets and the 57 navigational stars, sight reduction, and the almanac and horizon screens drawn pixel by pixel on its display.
+
+On the calculator each screen takes about 35 seconds to draw. Here it takes a blink. For the authentic experience, count to 35 before looking.
+
+Same methods and coefficients as the calculator programs: VSOP87D (Sun, planets), Meeus 47 + corrections fitted to JPL DE421 (Moon), IAU2006 precession (stars), IAU1980 nutation. The screens are the same as on the calculator, checked pixel for pixel.
+
+Phones and computers should not be used for navigation or during operations on the bridge. If you find these programs useful, grab a DM42n or an R47, bring the calculator on board, and make good use of the sextant and the Nautical Almanac.
+
+Thanks to the developers of the C43 / C47 firmware for such an open, programmable machine, and to SwissMicros for the hardware that makes it a pleasure to use.
+
+Not affiliated with or endorsed by SwissMicros or the C43/C47 project. Names are trademarks of their owners.
+
+DOES NOT REPLACE THE NAUTICAL ALMANAC.

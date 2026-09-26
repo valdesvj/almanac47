@@ -1,0 +1,409 @@
+LBL "SDM"
+REM "STXT - numbers to text strings (for PROMPT / AVIEW lines)"
+REM "All: X = value -> X = string"
+REM "SDM  deg min: -8 52.7 -> '-8°52.7''   SNS N/S + deg min   SEW E/W + deg min   SZN '271.2°'"
+REM "SHM  hours -> 'hh:mm' (>= 98 -> --:--)   SF1 one decimal   SINT whole number   SDAT JD -> 'DD-MM-YYYY'"
+REM "Builds the string in R38 piece by piece (R37 = 0: empty), digits from labels 50-59"
+REM "REGS: R30-R39"
+REM "SDM: tenths of arcmin R35, degrees R36, sign, degrees, °, minutes, point, tenth, apostrophe"
+XEQ 20
+RCL 34
+X<0?
+XEQ 21
+RCL 34
+ABS
+600
+×
+0.5
++
+IP
+STO 35
+600
+÷
+IP
+STO 36
+600
+×
+STO- 35
+RCL 36
+XEQ 06
+"°"
+XEQ 02
+RCL 35
+100
+÷
+IP
+XEQ 01
+RCL 35
+10
+÷
+IP
+10
+MOD
+XEQ 01
+"."
+XEQ 02
+RCL 35
+10
+MOD
+XEQ 01
+"'"
+XEQ 02
+RCL 38
+RTN
+LBL "SNS"
+REM "SNS: 'N ' or 'S ' + SDM(|x|)"
+STO 33
+"N "
+STO 32
+RCL 33
+X<0?
+XEQ 22
+RCL 33
+ABS
+XEQ "SDM"
+RCL 32
+X<>Y
++
+RTN
+LBL "SEW"
+REM "SEW: 'E ' or 'W ' + SDM(|x|)"
+STO 33
+"E "
+STO 32
+RCL 33
+X<0?
+XEQ 23
+RCL 33
+ABS
+XEQ "SDM"
+RCL 32
+X<>Y
++
+RTN
+LBL "SZN"
+REM "SZN: ddd.d° with leading zeros"
+XEQ 20
+RCL 34
+10
+×
+0.5
++
+IP
+3600
+MOD
+STO 35
+1000
+÷
+IP
+XEQ 01
+RCL 35
+100
+÷
+IP
+10
+MOD
+XEQ 01
+RCL 35
+10
+÷
+IP
+10
+MOD
+XEQ 01
+"."
+XEQ 02
+RCL 35
+10
+MOD
+XEQ 01
+"°"
+XEQ 02
+RCL 38
+RTN
+LBL "SHM"
+REM "SHM: hh:mm rounded to the minute"
+XEQ 20
+RCL 34
+98
+X<Y?
+GTO 08
+RCL 34
+60
+×
+0.5
++
+IP
+STO 36
+60
+÷
+IP
+24
+MOD
+STO 35
+10
+÷
+IP
+XEQ 01
+RCL 35
+10
+MOD
+XEQ 01
+":"
+XEQ 02
+RCL 36
+60
+MOD
+STO 35
+10
+÷
+IP
+XEQ 01
+RCL 35
+10
+MOD
+XEQ 01
+RCL 38
+RTN
+LBL 08
+REM "no event"
+"--:--"
+RTN
+LBL "SF1"
+REM "SF1: one decimal"
+XEQ 20
+RCL 34
+ABS
+10
+×
+0.5
++
+IP
+STO 35
+10
+÷
+IP
+XEQ 06
+"."
+XEQ 02
+RCL 35
+10
+MOD
+XEQ 01
+RCL 38
+RTN
+LBL "SINT"
+REM "SINT: whole number"
+XEQ 20
+RCL 34
+ABS
+0.5
++
+IP
+XEQ 06
+RCL 38
+RTN
+LBL "SDAT"
+REM "SDAT: JD -> calendar date (Meeus ch.7)"
+XEQ 20
+RCL 34
+0.5
++
+IP
+STO 35
+1867216.25
+-
+36524.25
+÷
+IP
+STO 36
+RCL 35
+1
++
+RCL+ 36
+RCL 36
+4
+÷
+IP
+-
+1524
++
+STO 35
+122.1
+-
+365.25
+÷
+IP
+STO 36
+365.25
+×
+IP
+STO- 35
+RCL 35
+30.6001
+÷
+IP
+STO 34
+30.6001
+×
+IP
+STO- 35
+1
+STO- 34
+RCL 34
+12
+X<Y?
+XEQ 24
+RCL 36
+4716
+-
+STO 36
+RCL 34
+2
+X≥Y?
+XEQ 25
+RCL 35
+XEQ 09
+"-"
+XEQ 02
+RCL 34
+XEQ 09
+"-"
+XEQ 02
+RCL 36
+100
+÷
+IP
+XEQ 09
+RCL 36
+100
+MOD
+XEQ 09
+RCL 38
+RTN
+LBL 20
+REM "entry: value R34, empty string (R37 = 0)"
+STO 34
+0
+STO 37
+RTN
+LBL 21
+"-"
+XEQ 02
+RTN
+LBL 22
+"S "
+STO 32
+RTN
+LBL 23
+"W "
+STO 32
+RTN
+LBL 24
+12
+STO- 34
+RTN
+LBL 25
+1
+STO+ 36
+RTN
+LBL 09
+REM "two digits"
+STO 30
+10
+÷
+IP
+XEQ 01
+RCL 30
+10
+MOD
+XEQ 01
+RTN
+LBL 06
+REM "whole number 0-999 without leading zeros"
+STO 30
+99
+X<Y?
+GTO 11
+9
+RCL 30
+X>Y?
+GTO 12
+GTO 13
+LBL 11
+RCL 30
+100
+÷
+IP
+XEQ 01
+LBL 12
+RCL 30
+10
+÷
+IP
+10
+MOD
+XEQ 01
+LBL 13
+RCL 30
+10
+MOD
+XEQ 01
+RTN
+LBL 01
+REM "append digit X (label 50+X gives the digit as text)"
+50
++
+STO 31
+XEQ IND 31
+XEQ 02
+RTN
+LBL 02
+REM "append string X to R38 (first piece: R38 = X)"
+STO 39
+RCL 37
+X=0?
+GTO 04
+RCL 38
+RCL 39
++
+STO 38
+RTN
+LBL 04
+RCL 39
+STO 38
+1
+STO 37
+RTN
+LBL 50
+REM "digit strings '0' - '9'"
+"0"
+RTN
+LBL 51
+"1"
+RTN
+LBL 52
+"2"
+RTN
+LBL 53
+"3"
+RTN
+LBL 54
+"4"
+RTN
+LBL 55
+"5"
+RTN
+LBL 56
+"6"
+RTN
+LBL 57
+"7"
+RTN
+LBL 58
+"8"
+RTN
+LBL 59
+"9"
+RTN
+END

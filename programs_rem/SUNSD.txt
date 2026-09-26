@@ -1,0 +1,13 @@
+LBL "SUNSD"
+REM "SUNSD - Sun semi-diameter"
+REM "IN : X = JD"
+REM "OUT: X = SD in arcmin = 15.99383 / R (959.63' at 1 au)"
+REM "NEEDS: SUNA (R73)"
+REM "SUNA leaves R in R73, SD = 15.99383 / R"
+XEQ "SUNA"
+RCL 73
+15.99383
+X<>Y
+÷
+RTN
+END

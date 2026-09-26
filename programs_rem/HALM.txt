@@ -1,0 +1,376 @@
+LBL "HALM"
+REM "HALM - chart top half, table bottom half"
+REM "IN : Z = JD, Y = lat, X = lon"
+REM "NEEDS: SUNA STAR CHZ SNMU PTXB   REGS: R20-R28 R37 R40-R47 R90-R99"
+REM "store inputs, clear screen"
+STO 92
+R↓
+STO 91
+R↓
+STO 90
+CLLCD
+REM "separator y = 118"
+0.399
+STO 47
+LBL 10
+118
+RCL 47
+IP
+PIXEL
+ISG 47
+GTO 10
+REM "horizon y = 130"
+20.395
+STO 47
+LBL 11
+130
+RCL 47
+IP
+PIXEL
+ISG 47
+GTO 11
+REM "Hc axis"
+130.226
+STO 47
+LBL 12
+RCL 47
+IP
+19
+PIXEL
+ISG 47
+GTO 12
+REM "ticks and labels"
+162
+17
+PIXEL
+162
+18
+PIXEL
+194
+17
+PIXEL
+194
+18
+PIXEL
+226
+17
+PIXEL
+226
+18
+PIXEL
+159
+2
+30
+XEQ "PINB"
+191
+2
+60
+XEQ "PINB"
+223
+2
+90
+XEQ "PINB"
+REM "compass letters (north)"
+0
+STO 44
+RCL 91
+X<0?
+GTO 23
+229
+18
+"N"
+XEQ "PTXB"
+229
+111
+"E"
+XEQ "PTXB"
+229
+205
+"S"
+XEQ "PTXB"
+229
+299
+"W"
+XEQ "PTXB"
+229
+390
+"N"
+XEQ "PTXB"
+GTO 24
+LBL 23
+REM "south"
+180
+STO 44
+229
+18
+"S"
+XEQ "PTXB"
+229
+111
+"W"
+XEQ "PTXB"
+229
+205
+"N"
+XEQ "PTXB"
+229
+299
+"E"
+XEQ "PTXB"
+229
+390
+"S"
+XEQ "PTXB"
+LBL 24
+REM "SUNA, equator dots"
+RCL 90
+XEQ "SUNA"
+STO 45
+X<>Y
+STO 46
+0
+STO 47
+LBL 14
+0
+RCL 47
+XEQ 52
+RCL 96
+X>0?
+XEQ 15
+3
+STO+ 47
+357
+RCL 47
+X≤Y?
+GTO 14
+REM "Sun position, table header"
+RCL 46
+RCL 45
+XEQ 52
+106
+STO 40
+106
+34
+"BODY"
+XEQ "PTXB"
+106
+142
+"GHA"
+XEQ "PTXB"
+106
+208
+"DEC"
+XEQ "PTXB"
+106
+274
+"HC"
+XEQ "PTXB"
+106
+322
+"ZN"
+XEQ "PTXB"
+10
+STO- 40
+RCL 96
+X>0?
+XEQ 16
+RCL 40
+4
+"@"
+XEQ "PTXB"
+RCL 40
+34
+"SUN"
+XEQ "PTXB"
+XEQ 60
+REM "star selection"
+0
+STO 41
+STO 20
+STO 21
+STO 22
+STO 23
+STO 24
+STO 25
+STO 26
+STO 27
+STO 28
+1.058
+STO 42
+LBL 17
+REM "star loop"
+RCL 42
+IP
+STO 82
+XEQ "STR2"
+STO 45
+X<>Y
+STO 46
+RCL 46
+RCL 45
+XEQ 52
+RCL 96
+15
+X>Y?
+GTO 18
+RCL 96
+75
+X<Y?
+GTO 18
+RCL 97
+40
+÷
+IP
+20
++
+STO 43
+RCL IND 43
+X>0?
+GTO 18
+1
+STO IND 43
+XEQ 57
+RCL 40
+4
+"*"
+XEQ "PTXB"
+RCL 40
+16
+RCL 82
+XEQ "PINB"
+RCL 82
+XEQ "SNMU"
+STO 43
+RCL 40
+34
+RCL 43
+XEQ "PTXB"
+XEQ 60
+1
+STO+ 41
+9
+RCL 41
+X≥Y?
+GTO 19
+LBL 18
+REM "next star"
+ISG 42
+GTO 17
+LBL 19
+REM "hold screen"
+3
+STO 37
+LBL 20
+PAUSE 99
+DSE 37
+GTO 20
+RTN
+LBL 15
+REM "equator dot"
+RCL 99
+RCL 98
+PIXEL
+RTN
+LBL 16
+REM "sun symbol"
+RCL 99
+3
+-
+RCL 98
+5
+-
+"@"
+XEQ "PTXB"
+RTN
+LBL 52
+REM "HCZ + screen mapping (top half)"
+XEQ "HCZ"
+RCL 97
+RCL+ 44
+360
+MOD
+375
+×
+360
+÷
+20
++
+IP
+STO 98
+RCL 96
+96
+×
+90
+÷
+130
++
+IP
+STO 99
+RTN
+LBL 57
+REM "star + number"
+RCL 99
+3
+-
+RCL 98
+3
+-
+"*"
+XEQ "PTXB"
+RCL 98
+6
++
+STO 43
+387
+RCL 43
+X>Y?
+XEQ 21
+RCL 99
+3
+-
+RCL 43
+RCL 82
+XEQ "PINB"
+RTN
+LBL 21
+REM "label near edge"
+22
+STO- 43
+RTN
+LBL 60
+REM "table row GHA Dec Hc Zn"
+RCL 40
+106
+RCL 45
+XEQ "PDM"
+"N"
+STO 43
+RCL 46
+X<0?
+XEQ 22
+RCL 40
+172
+RCL 43
+XEQ "PTXB"
+RCL 40
+172
+RCL 46
+ABS
+XEQ "PDM"
+RCL 40
+232
+RCL 96
+XEQ "PDM"
+RCL 40
+304
+RCL 97
+XEQ "PZN"
+10
+STO- 40
+RTN
+LBL 22
+REM "text S"
+"S"
+STO 43
+RTN
+END

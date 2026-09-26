@@ -1,0 +1,240 @@
+LBL "SNMU"
+REM "SNMU - star name in capitals"
+REM "IN : X = star number 1-58   OUT: X = name (string, no display)"
+REM "REGS: R49"
+REM "jump to label = star number"
+STO 49
+GTO IND 49
+LBL 01
+REM "1 Alpheratz"
+"ALPHERATZ"
+RTN
+LBL 02
+REM "2 Ankaa"
+"ANKAA"
+RTN
+LBL 03
+REM "3 Schedar"
+"SCHEDAR"
+RTN
+LBL 04
+REM "4 Diphda"
+"DIPHDA"
+RTN
+LBL 05
+REM "5 Achernar"
+"ACHERNAR"
+RTN
+LBL 06
+REM "6 Hamal"
+"HAMAL"
+RTN
+LBL 07
+REM "7 Acamar"
+"ACAMAR"
+RTN
+LBL 08
+REM "8 Menkar"
+"MENKAR"
+RTN
+LBL 09
+REM "9 Mirfak"
+"MIRFAK"
+RTN
+LBL 10
+REM "10 Aldebaran"
+"ALDEBARAN"
+RTN
+LBL 11
+REM "11 Rigel"
+"RIGEL"
+RTN
+LBL 12
+REM "12 Capella"
+"CAPELLA"
+RTN
+LBL 13
+REM "13 Bellatrix"
+"BELLATRIX"
+RTN
+LBL 14
+REM "14 Elnath"
+"ELNATH"
+RTN
+LBL 15
+REM "15 Alnilam"
+"ALNILAM"
+RTN
+LBL 16
+REM "16 Betelgeuse"
+"BETELGEUSE"
+RTN
+LBL 17
+REM "17 Canopus"
+"CANOPUS"
+RTN
+LBL 18
+REM "18 Sirius"
+"SIRIUS"
+RTN
+LBL 19
+REM "19 Adhara"
+"ADHARA"
+RTN
+LBL 20
+REM "20 Procyon"
+"PROCYON"
+RTN
+LBL 21
+REM "21 Pollux"
+"POLLUX"
+RTN
+LBL 22
+REM "22 Avior"
+"AVIOR"
+RTN
+LBL 23
+REM "23 Suhail"
+"SUHAIL"
+RTN
+LBL 24
+REM "24 Miaplacidus"
+"MIAPLACIDU"
+RTN
+LBL 25
+REM "25 Alphard"
+"ALPHARD"
+RTN
+LBL 26
+REM "26 Regulus"
+"REGULUS"
+RTN
+LBL 27
+REM "27 Dubhe"
+"DUBHE"
+RTN
+LBL 28
+REM "28 Denebola"
+"DENEBOLA"
+RTN
+LBL 29
+REM "29 Gienah"
+"GIENAH"
+RTN
+LBL 30
+REM "30 Acrux"
+"ACRUX"
+RTN
+LBL 31
+REM "31 Gacrux"
+"GACRUX"
+RTN
+LBL 32
+REM "32 Alioth"
+"ALIOTH"
+RTN
+LBL 33
+REM "33 Spica"
+"SPICA"
+RTN
+LBL 34
+REM "34 Alkaid"
+"ALKAID"
+RTN
+LBL 35
+REM "35 Hadar"
+"HADAR"
+RTN
+LBL 36
+REM "36 Menkent"
+"MENKENT"
+RTN
+LBL 37
+REM "37 Arcturus"
+"ARCTURUS"
+RTN
+LBL 38
+REM "38 Rigil Kentaurus"
+"RIGIL KENT"
+RTN
+LBL 39
+REM "39 Zubenelgenubi"
+"ZUBENELGEN"
+RTN
+LBL 40
+REM "40 Kochab"
+"KOCHAB"
+RTN
+LBL 41
+REM "41 Alphecca"
+"ALPHECCA"
+RTN
+LBL 42
+REM "42 Antares"
+"ANTARES"
+RTN
+LBL 43
+REM "43 Atria"
+"ATRIA"
+RTN
+LBL 44
+REM "44 Sabik"
+"SABIK"
+RTN
+LBL 45
+REM "45 Shaula"
+"SHAULA"
+RTN
+LBL 46
+REM "46 Rasalhague"
+"RASALHAGUE"
+RTN
+LBL 47
+REM "47 Eltanin"
+"ELTANIN"
+RTN
+LBL 48
+REM "48 Kaus Australis"
+"KAUS AUST"
+RTN
+LBL 49
+REM "49 Vega"
+"VEGA"
+RTN
+LBL 50
+REM "50 Nunki"
+"NUNKI"
+RTN
+LBL 51
+REM "51 Altair"
+"ALTAIR"
+RTN
+LBL 52
+REM "52 Peacock"
+"PEACOCK"
+RTN
+LBL 53
+REM "53 Deneb"
+"DENEB"
+RTN
+LBL 54
+REM "54 Enif"
+"ENIF"
+RTN
+LBL 55
+REM "55 Al Na'ir"
+"AL NAIR"
+RTN
+LBL 56
+REM "56 Fomalhaut"
+"FOMALHAUT"
+RTN
+LBL 57
+REM "57 Markab"
+"MARKAB"
+RTN
+LBL 58
+REM "58 Polaris"
+"POLARIS"
+RTN
+END
