@@ -33,6 +33,17 @@ It has been passed with 75 dates and places (2025-2028, latitudes up to 72 N/S).
 - Screen 400 x 240, origin bottom-left. `PIXEL` with a negative x (or y) draws a full
   vertical (horizontal) line.
 
+## ALMT and the C47 PROMPT line
+
+The C47 standard font is proportional (widths in `programs/CWID.txt` and
+`c47screen.CHAR_W`; measured from photos of the test program `tools/tests_calc/TWRAP.txt`).
+PROMPT lines are 400 px; a word that does not fit starts the next line, and spaces that
+do not fit are carried to the next line as indentation. ALMT keeps the pixel width of
+the line in R43, pads line 1 with spaces up to 400 px and places columns by pixels.
+`c47screen.almt` does the same; `prompt_lines` models the break. The PC window places
+each character at its C47 pixel position; the text export uses a fixed-column layout
+(`almt_mono`).
+
 ## Almanac conventions
 
 - Star numbers are the Nautical Almanac numbers 1-57; 58 = Polaris (our own choice).

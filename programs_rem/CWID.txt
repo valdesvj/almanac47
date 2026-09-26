@@ -1,0 +1,122 @@
+LBL "CWID"
+REM "CWID - pixel width of one character in the C47 standard font (PROMPT line = 400 px)"
+REM "IN : X = character code (space, *, 0-9, A-Z)   OUT: X = width in pixels"
+REM "Used by ALMT to pad line 1 so that line 2 starts at the left edge.   REGS: R49"
+STO 49
+REM "jump to the label = character code"
+GTO IND 49
+LBL 32
+8
+RTN
+LBL 42
+8
+RTN
+LBL 48
+8
+RTN
+LBL 49
+8
+RTN
+LBL 50
+8
+RTN
+LBL 51
+8
+RTN
+LBL 52
+8
+RTN
+LBL 53
+8
+RTN
+LBL 54
+8
+RTN
+LBL 55
+8
+RTN
+LBL 56
+8
+RTN
+LBL 57
+8
+RTN
+LBL 65
+11
+RTN
+LBL 66
+10
+RTN
+LBL 67
+10
+RTN
+LBL 68
+10
+RTN
+LBL 69
+10
+RTN
+LBL 70
+10
+RTN
+LBL 71
+10
+RTN
+LBL 72
+10
+RTN
+LBL 73
+6
+RTN
+LBL 74
+8
+RTN
+LBL 75
+11
+RTN
+LBL 76
+9
+RTN
+LBL 77
+12
+RTN
+LBL 78
+11
+RTN
+LBL 79
+10
+RTN
+LBL 80
+10
+RTN
+LBL 81
+11
+RTN
+LBL 82
+10
+RTN
+LBL 83
+10
+RTN
+LBL 84
+10
+RTN
+LBL 85
+10
+RTN
+LBL 86
+10
+RTN
+LBL 87
+12
+RTN
+LBL 88
+10
+RTN
+LBL 89
+10
+RTN
+LBL 90
+10
+RTN
+END

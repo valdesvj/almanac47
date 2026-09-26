@@ -34,7 +34,7 @@ VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
              'ALMT': 'text almanac, one line per R/S'}
 FILES = ['MATA', 'MATST', 'MATM', 'MATP', 'SUNA', 'STAR', 'CHZ', 'SNMU', 'SBRT', 'MOON',
          'PLAN', 'PTXB', 'PTXT', 'SUNRISE', 'PHAS', 'STXT',
-         'ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'TGET']
+         'ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'TGET', 'CWID']
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)

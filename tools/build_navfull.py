@@ -25,7 +25,7 @@ PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
 KEEP = ['ALMF', 'HALMV', 'ALMT', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
-        'SBRT', 'SNMU', 'TGET', 'PTXB', 'PTXT']
+        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXB', 'PTXT']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 

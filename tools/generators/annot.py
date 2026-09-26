@@ -231,15 +231,26 @@ H['ALMT']=["ALMT - text almanac: no drawing; one line per R/S with PROMPT, start
  "Lines: date + UT, DR, GHA Aries, then per body: name HC ZN / GHA DEC (Moon also HP SD),",
  "  sun times, Moon phase and age, warning. Bodies: same rule as ALMF/HALMV (10: Sun, Moon + planets above",
  "  the horizon, brightest stars > 10 deg), kept in matrix ALT (id, GHA, Dec, Hc, Zn)",
- "NEEDS: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT + matrices (no PTXB/PTXT)",
- "REGS: R10-R29, R40-R48, R82 (+ called programs)"]
+ "Two lines per R/S (PROMPT). The C47 font is proportional and PROMPT wraps at a space when the",
+ "  next word does not fit in 400 px, so R43 counts the pixel width of the line and line 1 is padded",
+ "  with spaces (8 px) up to 400 px: line 2 then starts at the left edge. Columns are placed by pixels.",
+ "NEEDS: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT CWID + matrices (no PTXB/PTXT)",
+ "REGS: R10-R29, R40-R49, R82 (+ called programs)"]
 A['ALMT']=[('LBL 92',1,'Hc < 0 (body below the horizon): line starts with "* "'),('LBL "ALMT"',1,'store JD R10, lat R11, lon R12; sun times R13-R17; Moon phase R18 R19; SUNA, Sun SD R29'),
  ('10\nENTER\n5\nNEWMAT',1,'body table ALT; Sun, Moon, planets, stars recorded with LBL 40'),
  ('LBL 01',1,'text pages: each line is built in R20 (LBL 90 appends) and shown with PROMPT 20 (LBL 91)'),
- ('1\nSTO 24',1,'body lines: name HC ZN, then GHA DEC; Moon: HP SD'),('LBL 03',1,'next body'),
+ ('1\nSTO 24',1,'body lines: name HC ZN, then GHA DEC; Moon: HP SD'),('1\nSTO+ 24',1,'next body'),
  ('"NAUT TWI "',1,'sun times, Sun SD, Moon, warning; then start over'),
  ('LBL 40',1,'record body X = id with GHA R45, Dec R46, Hc R96, Zn R97'),('LBL 70',1,'body name: 0 SUN, -1 MOON, -2..-5 planets (LBL 80-85), n = number + star name'),
- ('LBL 80',1,'names (replace with symbols here if your C47 font has them)'),('LBL 90',1,'append X to the line R20'),('LBL 91',1,'show the line and wait for R/S')]
+ ('LBL 80',1,'names (replace with symbols here if your C47 font has them)'),('LBL 90',1,'append X to the line R20'),('LBL 91',1,'show the page (two lines) and wait for R/S'),
+ ('LBL 76',1,'append formatted number Y; width 8 px per character + X (-3 for one . or :)'),
+ ('LBL 77',1,'N/S letter width correction -> R47'),('LBL 79',1,'E/W letter width correction -> R47'),
+ ('LBL 68',1,'line = X, width measured character by character with CWID'),
+ ('LBL 86',1,'append X, width measured with CWID'),('LBL 89',1,'pad with spaces while width + 8 <= X pixels')]
+H['CWID']=["CWID - pixel width of one character in the C47 standard font (PROMPT line = 400 px)",
+ "IN : X = character code (space, *, 0-9, A-Z)   OUT: X = width in pixels",
+ "Used by ALMT to pad line 1 so that line 2 starts at the left edge.   REGS: R49"]
+A['CWID']=[('GTO IND 49',1,'jump to the label = character code')]
 
 
 # ---- almanac tables (Method B) and the table switch
@@ -269,7 +280,7 @@ for k,y,x in (('ALMF',8,390),('HALMV',8,392)):
     A[k]+=[('"S"',1,'T = Moon and planets from the tables (flag 11), S = series: bottom right'),('LBL 29',1,'letter T')]
 A['HORZ']+=[('"S"',1,'T = tables (flag 11), S = series: bottom left, small font'),('LBL 29',1,'letter T')]
 A['HORZS']+=[('"S"',1,'T = tables (flag 11), S = series: bottom left, small font'),('LBL 29',1,'letter T')]
-A['ALMT']+=[('"  S"',1,'first line ends with T (tables, flag 11) or S (series)')]
+A['ALMT']+=[('"S"',1,'page 1, line 2 ends at 400 px with T (tables, flag 11) or S (series)')]
 FILEMAP={'PTBDEMO':'PTBDEM'}
 def process(fname):
     key=fname[:-4]; key=FILEMAP.get(key,key)

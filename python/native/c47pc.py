@@ -125,12 +125,16 @@ PLAIN_BG, PLAIN_ON = (255, 255, 255), (0, 0, 0)
 
 
 # ------------------------------------------------------------------ ALMT pages
-def page_lines(p, width=44):
-    """An ALMT page is line 1 (padded to 44 characters) followed by line 2."""
-    return [p[:width].rstrip(), p[width:]] if len(p) > width else [p]
+def page_lines(p):
+    """An ALMT page split as the C47 PROMPT shows it (400 px lines, proportional font)."""
+    return [l.rstrip() for l in c47screen.prompt_lines(p)]
 
 
 def pages_text(pages):
+    """The ALMT pages as a text file: the monospace layout when there is one."""
+    mono = getattr(pages, 'mono', None)
+    if mono:
+        return '\n\n'.join('\n'.join(l.rstrip() for l in p) for p in mono)
     return '\n\n'.join('\n'.join(page_lines(p)) for p in pages)
 
 
@@ -498,25 +502,32 @@ def run_gtk(eng, args):
             cr.fill()
 
         def draw_text(self, cr, s, b):
-            """ALMT: one page (two lines of 44 characters, as PROMPT shows it in the
-            C47 small font) per R/S. The C47 font is not available on the PC, so a
-            monospace font is used; the next pages are shown in grey below."""
+            """ALMT: one page (two PROMPT lines of 400 px) per R/S. The C47 font is not
+            available on the PC; each character is placed at its C47 pixel position
+            (c47screen.CHAR_W), so the columns line up as on the calculator. The next
+            pages are shown smaller, in grey, below."""
             if not self.lines:
                 return
-            cr.select_font_face('DejaVu Sans Mono', 0, 1)
-            fs = 8.6 * s                                  # 44 characters fit the 400 px line
-            cr.set_font_size(fs)
-            y = b + 16 * s
+
+            def line(part, x, y, k):
+                for c in part:
+                    cr.move_to(x, y); cr.show_text(c); x += c47screen.CHAR_W.get(c, 8) * k
+
+            cr.select_font_face('DejaVu Sans', 0, 1)
+            k = 0.98 * s
+            cr.set_font_size(13 * k)
+            y = b + 18 * s
             for part in page_lines(self.lines[self.k]):
-                cr.move_to(b + 4 * s, y); cr.show_text(part); y += 12 * s
+                line(part, b + 4 * s, y, k); y += 16 * s
             cr.set_source_rgba(*[v / 255 for v in LCD_ON], 0.45)
-            cr.set_font_size(6.2 * s)
-            y += 8 * s
+            k = 0.62 * s
+            cr.set_font_size(13 * k)
+            y += 6 * s
             for i in range(1, len(self.lines)):
                 for part in page_lines(self.lines[(self.k + i) % len(self.lines)]):
                     if y > b + 234 * s:
                         return
-                    cr.move_to(b + 4 * s, y); cr.show_text(part); y += 8.5 * s
+                    line(part, b + 4 * s, y, k); y += 10 * s
                 y += 4 * s
 
     Win()

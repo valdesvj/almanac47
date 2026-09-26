@@ -5,6 +5,7 @@ The text routines copy PTXB (5x7 font), PTXT (3x5 font) and their number printer
 (PDM PZN PHM PDAT PINB PF1 PHL PTNS PT1); the layouts copy ALMF, HALMV, HORZ, HORZS;
 almt() gives the ALMT text lines (STXT formats).
 """
+import re
 import c47astro as A
 from decimal import Decimal as _D, localcontext as _lc
 
@@ -490,27 +491,105 @@ def sdat(j):
     return '%02d-%02d-%02d%02d' % (d, m, ip(y / 100), y % 100)
 
 
+# Pixel widths of the C47 standard font (PROMPT). The font is proportional and PROMPT
+# wraps at a space when the next word does not fit in 400 px.
+CHAR_W = {' ': 8, ':': 5, '.': 5, '%': 13, "'": 8, '-': 8, '/': 8, '*': 8, '\u00b0': 8,
+          'A': 11, 'I': 6, 'J': 8, 'K': 11, 'L': 9, 'M': 12, 'N': 11, 'Q': 11, 'W': 12}
+for _c in '0123456789':
+    CHAR_W[_c] = 8
+for _c in 'BCDEFGHOPRSTUVXYZ':
+    CHAR_W[_c] = 10
+PROMPT_W = 400
+
+
+def text_width(t):
+    return sum(CHAR_W[c] for c in t)
+
+
+class _Line:
+    """A PROMPT line built piece by piece, with its width in pixels (R43 on the C47)."""
+    def __init__(self):
+        self.t, self.w = '', 0
+
+    def add(self, t):
+        self.t += t; self.w += text_width(t); return self
+
+    def pad(self, px):
+        while self.w + 8 <= px:
+            self.add(' ')
+        return self
+
+
 def almt(al):
-    """ALMT pages: two lines per R/S, each line up to 44 characters (one line of the
-    C47 small font). Same strings as the C47 program."""
+    """ALMT pages: two lines per R/S. Line 1 is padded with spaces to 400 px so that
+    line 2 starts at the left edge; columns are placed by pixels. Same strings as the
+    C47 program."""
     s, t = al.sun, al.times
-    W = 44
+    B = PROMPT_W
 
-    def page(l1, l2=''):
-        return l1.ljust(W) + l2 if l2 else l1
+    def page(l1, l2):
+        return l1.pad(B).t + l2.t
 
-    P = [page(sdat(al.j) + ' ' + shm(ut_hours(al.j)) + 'UT DR ' + sns(al.lat) + ' ' + sew(al.lon),
-              ('ARIES ' + sdm(s.aries)).ljust(43) + al.source)]
+    P = [page(_Line().add(sdat(al.j) + ' ' + shm(ut_hours(al.j)) + ' UT  DR ' + sns(al.lat) + '  ' + sew(al.lon)),
+              _Line().add('ARIES ' + sdm(s.aries)).pad(390).add(al.source))]
     for ident, g, d, hc, zn in al.bodies():
         name = sint(ident) + ' ' + STAR_NAME[ident] if ident > 0 else body_name(ident)
-        P.append(page((('* ' if hc < 0 else '') + name).ljust(13) + ' HC' + sdm(hc).rjust(10) + '  ZN  ' + szn(zn),
-                      ' ' * 13 + 'GHA' + sdm(g).rjust(10) + '  DEC ' + ('S' if d < 0 else 'N') + sdm(abs(d)).rjust(9)))
-    P.append(page(('NAUT TWI ' + shm(t['NTWA']) + ' ' + shm(t['NTWP'])).ljust(22) + 'RISE/SET ' + shm(t['RISE']) + ' ' + shm(t['SET']),
-                  ('MER PASS ' + shm(t['TRAN'])).ljust(22) + 'SUN SD ' + sf1(s.sd) + "'"))
-    P.append(page(('MOON ' + sint(al.illum) + '% ' + moon_word(al)).ljust(22) + 'AGE ' + sf1(al.age) + ' DAYS',
-                  ('MOON HP ' + sf1(al.moon[2]) + "'").ljust(22) + 'MOON SD ' + sf1(al.moon[3]) + "'"))
-    P.append(('   ' + WARNING).ljust(W))                  # centred, 44 characters: small font
+        l1 = _Line().add(('* ' if hc < 0 else '') + name).pad(136).add('HC' + sdm(hc).rjust(10) + '  ZN  ' + szn(zn))
+        l2 = _Line().pad(125).add('GHA' + sdm(g).rjust(10) + '  DEC ' + ('S' if d < 0 else 'N') + sdm(abs(d)).rjust(9))
+        P.append(page(l1, l2))
+    P.append(page(_Line().add('NAUT TWI ' + shm(t['NTWA']) + ' ' + shm(t['NTWP'])).pad(180)
+                  .add('RISE/SET ' + shm(t['RISE']) + ' ' + shm(t['SET'])),
+                  _Line().add('MER PASS ' + shm(t['TRAN'])).pad(180).add('SUN SD ' + sf1(s.sd) + "'")))
+    P.append(page(_Line().add('MOON ' + sint(al.illum) + '% ' + moon_word(al)).pad(180)
+                  .add('AGE ' + sf1(al.age) + ' DAYS'),
+                  _Line().add('MOON HP ' + sf1(al.moon[2]) + "'").pad(180).add('MOON SD ' + sf1(al.moon[3]) + "'")))
+    P.append('   ' + WARNING + '    ')                  # 44 characters
+    P = Pages(P)
+    P.mono = almt_mono(al)
     return P
+
+
+class Pages(list):
+    """ALMT pages (the C47 strings); .mono = the same pages laid out for a monospace
+    text file (fixed columns)."""
+    mono = None
+
+
+def almt_mono(al):
+    """ALMT pages as [line 1, line 2] for a monospace text file (44 columns)."""
+    s, t = al.sun, al.times
+    P = [[sdat(al.j) + ' ' + shm(ut_hours(al.j)) + ' UT  DR ' + sns(al.lat) + '  ' + sew(al.lon),
+          ('ARIES ' + sdm(s.aries)).ljust(43) + al.source]]
+    for ident, g, d, hc, zn in al.bodies():
+        name = sint(ident) + ' ' + STAR_NAME[ident] if ident > 0 else body_name(ident)
+        P.append([(('* ' if hc < 0 else '') + name).ljust(13) + '  HC' + sdm(hc).rjust(10) + '  ZN  ' + szn(zn),
+                  ' ' * 14 + 'GHA' + sdm(g).rjust(10) + '  DEC ' + ('S' if d < 0 else 'N') + sdm(abs(d)).rjust(9)])
+    P.append([('NAUT TWI ' + shm(t['NTWA']) + ' ' + shm(t['NTWP'])).ljust(22) + 'RISE/SET ' + shm(t['RISE']) + ' ' + shm(t['SET']),
+              ('MER PASS ' + shm(t['TRAN'])).ljust(22) + 'SUN SD ' + sf1(s.sd) + "'"])
+    P.append([('MOON ' + sint(al.illum) + '% ' + moon_word(al)).ljust(22) + 'AGE ' + sf1(al.age) + ' DAYS',
+              ('MOON HP ' + sf1(al.moon[2]) + "'").ljust(22) + 'MOON SD ' + sf1(al.moon[3]) + "'"])
+    P.append(['   ' + WARNING])
+    return P
+
+
+def prompt_lines(text, width=PROMPT_W):
+    """How the C47 PROMPT splits text into lines: a word that does not fit starts a new
+    line; spaces that do not fit are carried to the new line."""
+    lines, cur, w = [], '', 0
+    for tok in re.findall(r' +|[^ ]+', text):
+        tw = text_width(tok)
+        if tok[0] == ' ':
+            fit = 0
+            while fit < len(tok) and w + 8 * (fit + 1) <= width:
+                fit += 1
+            cur += tok[:fit]; w += 8 * fit
+            if fit < len(tok):
+                lines.append(cur); cur, w = tok[fit:], 8 * (len(tok) - fit)
+        elif w + tw > width and cur.strip():
+            lines.append(cur); cur, w = tok, tw
+        else:
+            cur += tok; w += tw
+    return lines + [cur]
 
 
 VIEWS = {'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}

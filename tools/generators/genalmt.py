@@ -26,32 +26,43 @@ a('1.004','STO 42','LBL 16','RCL 42','IP','XEQ "PLN2"','STO 45','X<>Y','STO 46',
 # brightest stars higher than 10 deg until 10 bodies
 a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
   '10','RCL 96','X≤Y?','GTO 18','RCL 82','XEQ 40','LBL 18','ISG 42','GTO 17','LBL 19')
-# ---------------- text pages: two lines per R/S (line 1 padded to 44 characters, the
-# width of one line of the C47 small font), laid out like the ALMF page; starts over
-# after the last page (EXIT to stop)
-def col(c): a(str(c),'XEQ 95')                    # pad the page R20 with spaces to column c
-def rj(f, w): a(f[1:].split('|')); a(str(w),'XEQ 94','XEQ 90')   # value right-aligned in w characters
-BAR='-'*22
-def bar(): app(BAR, BAR)                          # 44 x '-'
-L2=44                                             # line 2 starts at column 44
+# ---------------- text pages: two lines per R/S in the C47 standard (proportional) font.
+# PROMPT wraps at a space when the next word does not fit in 400 pixels, so line 1 is
+# padded with spaces (8 px) until one more would not fit: line 2 then starts at the left
+# edge. R43 = pixel width of the current line; columns are placed by pixels too.
+# Widths (C47 standard font): space, digits, - / ' ° * 8 px; . : 5 px; % 13 px; letters
+# 6-12 px (table in program CWID for the star names).
+import json as _j
+WID=_j.load(open('/tmp/cmp/stdwidth.json'))
+def pxw(t): return sum(WID[c] for c in t)
+def lit(t): a('"%s"'%t,'XEQ 90',str(pxw(t)),'STO+ 43')      # literal text
+def num(f, corr=-3): a(f[1:].split('|')); a(str(corr),'XEQ 76')  # formatted number: 8 px per char + corr
+def rjn(f, w, corr=-3): a(f[1:].split('|')); a(str(w),'XEQ 94'); a(str(corr),'XEQ 76')   # right-aligned in w chars
+def pad(px): a(str(px),'XEQ 89')                     # spaces up to px pixels
+def newline(): a('0','STO 43')                       # line 2: width counter from 0
+def first(t): a('"%s"'%t,'STO 20',str(pxw(t)),'STO 43')   # page starts with literal text
+def tm(reg): num(fmt(reg,'SHM'))                     # hh:mm or --:-- (both 37 px)
+BRK=400                                              # PROMPT line width
 a('LBL 01')
-# page 1: date, UT, DR  |  GHA Aries, T/S at the right end
-a(fmt(10,'SDAT')[1:].split('|')); a('STO 20'); app(' ',fmt('10|0.5|+|1|MOD|24|×','SHM'),'UT DR ',fmt(11,'SNS'),' ',fmt(12,'SEW'))
-col(L2); app('ARIES ',fmt(48,'SDM')); col(L2+43); a('"S"','FS? 11','XEQ 29','XEQ 90','XEQ 91')   # T = tables, S = series
-# one page per body: name, Hc, Zn  |  GHA, Dec (values aligned in columns)
+# page 1: date, UT, DR  |  GHA Aries, T/S
+a('RCL 10','XEQ "SDAT"','STO 20','80','STO 43'); lit(' '); num(fmt('10|0.5|+|1|MOD|24|×','SHM'))
+lit(' UT  DR '); a('RCL 11','XEQ 77'); num(fmt(11,'SNS'),'RCL 47'); lit('  '); a('RCL 12','XEQ 79'); num(fmt(12,'SEW'),'RCL 47'); pad(BRK)
+newline(); lit('ARIES '); num(fmt(48,'SDM')); pad(390); a('"S"','FS? 11','XEQ 29','XEQ 90','XEQ 91')   # T = tables, S = series
+# one page per body: name, HC, ZN  |  GHA, DEC (columns placed by pixels)
 a('1','STO 24','LBL 02','INDEX "ALT"','RCL 24','1','STOIJ','RCLEL','J+','STO 25','RCLEL','J+','STO 45','RCLEL','J+','STO 46','RCLEL','J+','STO 96','RCLEL','STO 97')
-a('RCL 25','XEQ 70','STO 20','RCL 96','X<0?','XEQ 92'); col(13); app(' HC'); rj(fmt(96,'SDM'),10); app('  ZN  ',fmt(97,'SZN'))
-col(L2+13); app('GHA'); rj(fmt(45,'SDM'),10); app('  DEC '); a('"N"','STO 26','RCL 46','X<0?','XEQ 99','RCL 26','XEQ 90'); rj(fmt('46|ABS','SDM'),9); a('XEQ 91')
+a('RCL 25','XEQ 70','XEQ 68','RCL 96','X<0?','XEQ 92'); pad(136); lit('HC'); rjn(fmt(96,'SDM'),10); lit('  ZN  '); num(fmt(97,'SZN')); pad(BRK)
+newline(); pad(125); lit('GHA'); rjn(fmt(45,'SDM'),10); lit('  DEC '); a('"N"','STO 26','RCL 46','X<0?','XEQ 99','RCL 26','XEQ 90'); rjn(fmt('46|ABS','SDM'),9); a('XEQ 91')
 a('1','STO+ 24','RCL 41','RCL 24','X≤Y?','GTO 02')
 # Sun: twilight, rise/set  |  meridian passage, SD
-s('NAUT TWI '); a('STO 20'); app(fmt(13,'SHM'),' ',fmt(17,'SHM')); col(22); app('RISE/SET ',fmt(14,'SHM'),' ',fmt(16,'SHM'))
-col(L2); app('MER PASS ',fmt(15,'SHM')); col(L2+22); app('SUN SD ',fmt(29,'SF1'),"'"); a('XEQ 91')
+first('NAUT TWI '); tm(13); lit(' '); tm(17); pad(180); lit('RISE/SET '); tm(14); lit(' '); tm(16); pad(BRK)
+newline(); lit('MER PASS '); tm(15); pad(180); lit('SUN SD '); num(fmt(29,'SF1')); lit("'"); a('XEQ 91')
 # Moon: %, phase, age  |  HP, SD
-s('MOON '); a('STO 20'); app(fmt(18,'SINT'),'% ')
-a('"WAXING"','STO 26','RCL 19','14.765','X<Y?','XEQ 27','RCL 18','99.5','X≤Y?','XEQ 20','RCL 18','0.5','X>Y?','XEQ 21','RCL 26','XEQ 90')
-col(22); app('AGE ',fmt(19,'SF1'),' DAYS'); col(L2); app('MOON HP ',fmt(21,'SF1'),"'"); col(L2+22); app('MOON SD ',fmt(22,'SF1'),"'"); a('XEQ 91')
-# warning, centred in 44 characters (small font)
-s('   DOES NOT REPLACE THE NAUTICAL ALMANAC'); a('STO 20'); col(L2); a('XEQ 91')
+first('MOON '); num(fmt(18,'SINT'),0); lit('% ')
+a('"WAXING"','STO 26','RCL 19','14.765','X<Y?','XEQ 27','RCL 18','99.5','X≤Y?','XEQ 20','RCL 18','0.5','X>Y?','XEQ 21','RCL 26','XEQ 86')
+pad(180); lit('AGE '); num(fmt(19,'SF1')); lit(' DAYS'); pad(BRK)
+newline(); lit('MOON HP '); num(fmt(21,'SF1')); lit("'"); pad(180); lit('MOON SD '); num(fmt(22,'SF1')); lit("'"); a('XEQ 91')
+# warning: 3 spaces + text + 4 spaces = 44 characters (small font)
+s('   DOES NOT REPLACE THE NAUTICAL ALMANAC    '); a('STO 20','XEQ 91')
 a('GTO 01')
 # ---------------- subroutines
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
@@ -68,9 +79,15 @@ for lab,t in ((80,'SUN'),(81,'MOON'),(82,'VENUS'),(83,'MARS'),(84,'JUPITER'),(85
 a('LBL 90','STO 23','RCL 20','RCL 23','+','STO 20','RTN')      # append X to the line R20
 a('LBL 91','PROMPT 20','RTN')
 a('LBL 99','"S"','STO 26','RTN')
-a('LBL 95','STO 28','LBL 96','αLENG 20','RCL 28','X≤Y?','RTN','" "','XEQ 90','GTO 96')   # pad R20 to column X
+a('LBL 76','STO+ 43','R↓','STO 27','αLENG 27','8','×','STO+ 43','RCL 27','XEQ 90','RTN')     # append Y, width 8*len + X
+a('LBL 77','X<0?','GTO 78','0','STO 47','RTN','LBL 78','-1','STO 47','RTN')                  # SNS: N -3+3, S -3+2
+a('LBL 79','X<0?','GTO 72','-1','STO 47','RTN','LBL 72','1','STO 47','RTN')                  # SEW: E -3+2, W -3+4
+a('LBL 86','STO 27','STO 44','LBL 87','αLENG 44','X=0?','GTO 88','α→𝑥 44','XEQ "CWID"','STO+ 43','GTO 87',
+  'LBL 88','RCL 27','XEQ 90','RTN')                                                             # append X, measured with CWID
+a('LBL 89','STO 28','LBL 73','RCL 43','8','+','RCL 28','X<Y?','RTN','" "','XEQ 90','8','STO+ 43','GTO 73')   # pad to X pixels
+a('LBL 68','STO 20','STO 44','0','STO 43','LBL 67','αLENG 44','X=0?','RTN','α→𝑥 44','XEQ "CWID"','STO+ 43','GTO 67')   # line = X, measured with CWID
 a('LBL 94','STO 28','R↓','STO 27','LBL 97','αLENG 27','RCL 28','X≤Y?','GTO 98',          # Y right-aligned in X characters
   '" "','RCL 27','+','STO 27','GTO 97','LBL 98','RCL 27','RTN')
-a('LBL 92','"* "','RCL 20','+','STO 20','RTN')                                  # mark: below the horizon                                    # show line, wait for R/S
+a('LBL 92','"* "','RCL 20','+','STO 20','16','STO+ 43','RTN')                                  # mark: below the horizon
 a('END')
 open('/home/claude/ALMT.txt','w').write('\n'.join(P)+'\n'); print(len(P))

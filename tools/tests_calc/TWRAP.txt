@@ -1,0 +1,43 @@
+LBL "TWRAP"
+"NAUT TWI 04:33 15:49  "
+"RISE/SET 05:43 14:39"
++
+STO 20
+RCL 20
+"  "
++
+"MER PASS 10:11  "
++
+"      SUN SD 16.2'"
++
+STO 21
+PROMPT 21
+RCL 20
+"        "
++
+"MER PASS 10:11  "
++
+"      SUN SD 16.2'"
++
+STO 21
+PROMPT 21
+RCL 20
+"              "
++
+"MER PASS 10:11  "
++
+"      SUN SD 16.2'"
++
+STO 21
+PROMPT 21
+RCL 20
+"                    "
++
+"MER PASS 10:11  "
++
+"      SUN SD 16.2'"
++
+STO 21
+PROMPT 21
+RTN
+END

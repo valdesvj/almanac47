@@ -4,8 +4,11 @@ REM "IN : Z = JD (UT1), Y = lat (N+), X = lon (E+)"
 REM "Lines: date + UT, DR, GHA Aries, then per body: name HC ZN / GHA DEC (Moon also HP SD),"
 REM "  sun times, Moon phase and age, warning. Bodies: same rule as ALMF/HALMV (10: Sun, Moon + planets above"
 REM "  the horizon, brightest stars > 10 deg), kept in matrix ALT (id, GHA, Dec, Hc, Zn)"
-REM "NEEDS: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT + matrices (no PTXB/PTXT)"
-REM "REGS: R10-R29, R40-R48, R82 (+ called programs)"
+REM "Two lines per R/S (PROMPT). The C47 font is proportional and PROMPT wraps at a space when the"
+REM "  next word does not fit in 400 px, so R43 counts the pixel width of the line and line 1 is padded"
+REM "  with spaces (8 px) up to 400 px: line 2 then starts at the left edge. Columns are placed by pixels."
+REM "NEEDS: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT CWID + matrices (no PTXB/PTXT)"
+REM "REGS: R10-R29, R40-R49, R82 (+ called programs)"
 REM "store JD R10, lat R11, lon R12, sun times R13-R17, Moon phase R18 R19, SUNA, Sun SD R29"
 STO 12
 R↓
@@ -127,8 +130,12 @@ REM "text pages: each line is built in R20 (LBL 90 appends) and shown with PROMP
 RCL 10
 XEQ "SDAT"
 STO 20
+80
+STO 43
 " "
 XEQ 90
+8
+STO+ 43
 RCL 10
 0.5
 +
@@ -137,26 +144,43 @@ MOD
 24
 ×
 XEQ "SHM"
+-3
+XEQ 76
+" UT  DR "
 XEQ 90
-"UT DR "
-XEQ 90
+72
+STO+ 43
+RCL 11
+XEQ 77
 RCL 11
 XEQ "SNS"
+RCL 47
+XEQ 76
+"  "
 XEQ 90
-" "
-XEQ 90
+16
+STO+ 43
+RCL 12
+XEQ 79
 RCL 12
 XEQ "SEW"
-XEQ 90
-44
-XEQ 95
+RCL 47
+XEQ 76
+400
+XEQ 89
+0
+STO 43
 "ARIES "
 XEQ 90
+55
+STO+ 43
 RCL 48
 XEQ "SDM"
-XEQ 90
-87
-XEQ 95
+-3
+XEQ 76
+390
+XEQ 89
+REM "page 1, line 2 ends at 400 px with T (tables, flag 11) or S (series)"
 "S"
 FS? 11
 XEQ 29
@@ -186,35 +210,50 @@ RCLEL
 STO 97
 RCL 25
 XEQ 70
-STO 20
+XEQ 68
 RCL 96
 X<0?
 XEQ 92
-13
-XEQ 95
-" HC"
+136
+XEQ 89
+"HC"
 XEQ 90
+20
+STO+ 43
 RCL 96
 XEQ "SDM"
 10
 XEQ 94
-XEQ 90
+-3
+XEQ 76
 "  ZN  "
 XEQ 90
+53
+STO+ 43
 RCL 97
 XEQ "SZN"
-XEQ 90
-57
-XEQ 95
+-3
+XEQ 76
+400
+XEQ 89
+0
+STO 43
+125
+XEQ 89
 "GHA"
 XEQ 90
+31
+STO+ 43
 RCL 45
 XEQ "SDM"
 10
 XEQ 94
-XEQ 90
+-3
+XEQ 76
 "  DEC "
 XEQ 90
+54
+STO+ 43
 "N"
 STO 26
 RCL 46
@@ -227,8 +266,10 @@ ABS
 XEQ "SDM"
 9
 XEQ 94
-XEQ 90
+-3
+XEQ 76
 XEQ 91
+REM "next body"
 1
 STO+ 24
 RCL 41
@@ -238,50 +279,77 @@ GTO 02
 REM "sun times, Sun SD, Moon, warning, then start over"
 "NAUT TWI "
 STO 20
+86
+STO 43
 RCL 13
 XEQ "SHM"
-XEQ 90
+-3
+XEQ 76
 " "
 XEQ 90
+8
+STO+ 43
 RCL 17
 XEQ "SHM"
-XEQ 90
-22
-XEQ 95
+-3
+XEQ 76
+180
+XEQ 89
 "RISE/SET "
 XEQ 90
+82
+STO+ 43
 RCL 14
 XEQ "SHM"
-XEQ 90
+-3
+XEQ 76
 " "
 XEQ 90
+8
+STO+ 43
 RCL 16
 XEQ "SHM"
-XEQ 90
-44
-XEQ 95
+-3
+XEQ 76
+400
+XEQ 89
+0
+STO 43
 "MER PASS "
 XEQ 90
+89
+STO+ 43
 RCL 15
 XEQ "SHM"
-XEQ 90
-66
-XEQ 95
+-3
+XEQ 76
+180
+XEQ 89
 "SUN SD "
 XEQ 90
+67
+STO+ 43
 RCL 29
 XEQ "SF1"
-XEQ 90
+-3
+XEQ 76
 "'"
 XEQ 90
+8
+STO+ 43
 XEQ 91
 "MOON "
 STO 20
+51
+STO 43
 RCL 18
 XEQ "SINT"
-XEQ 90
+0
+XEQ 76
 "% "
 XEQ 90
+21
+STO+ 43
 "WAXING"
 STO 26
 RCL 19
@@ -297,39 +365,54 @@ RCL 18
 X>Y?
 XEQ 21
 RCL 26
-XEQ 90
-22
-XEQ 95
+XEQ 86
+180
+XEQ 89
 "AGE "
 XEQ 90
+39
+STO+ 43
 RCL 19
 XEQ "SF1"
-XEQ 90
+-3
+XEQ 76
 " DAYS"
 XEQ 90
-44
-XEQ 95
+49
+STO+ 43
+400
+XEQ 89
+0
+STO 43
 "MOON HP "
 XEQ 90
+79
+STO+ 43
 RCL 21
 XEQ "SF1"
-XEQ 90
+-3
+XEQ 76
 "'"
 XEQ 90
-66
-XEQ 95
+8
+STO+ 43
+180
+XEQ 89
 "MOON SD "
 XEQ 90
+79
+STO+ 43
 RCL 22
 XEQ "SF1"
-XEQ 90
+-3
+XEQ 76
 "'"
 XEQ 90
+8
+STO+ 43
 XEQ 91
-"   DOES NOT REPLACE THE NAUTICAL ALMANAC"
+"   DOES NOT REPLACE THE NAUTICAL ALMANAC    "
 STO 20
-44
-XEQ 95
 XEQ 91
 GTO 01
 LBL 26
@@ -442,23 +525,92 @@ RCL 23
 STO 20
 RTN
 LBL 91
-REM "show the line and wait for R/S"
+REM "show the page (two lines) and wait for R/S"
 PROMPT 20
 RTN
 LBL 99
 "S"
 STO 26
 RTN
-LBL 95
+LBL 76
+REM "append formatted number Y, width 8 px per character + X (-3 for one . or :)"
+STO+ 43
+R↓
+STO 27
+αLENG 27
+8
+×
+STO+ 43
+RCL 27
+XEQ 90
+RTN
+LBL 77
+REM "N/S letter width correction -> R47"
+X<0?
+GTO 78
+0
+STO 47
+RTN
+LBL 78
+-1
+STO 47
+RTN
+LBL 79
+REM "E/W letter width correction -> R47"
+X<0?
+GTO 72
+-1
+STO 47
+RTN
+LBL 72
+1
+STO 47
+RTN
+LBL 86
+REM "append X, width measured with CWID"
+STO 27
+STO 44
+LBL 87
+αLENG 44
+X=0?
+GTO 88
+α→𝑥 44
+XEQ "CWID"
+STO+ 43
+GTO 87
+LBL 88
+RCL 27
+XEQ 90
+RTN
+LBL 89
+REM "pad with spaces while width + 8 <= X pixels"
 STO 28
-LBL 96
-αLENG 20
+LBL 73
+RCL 43
+8
++
 RCL 28
-X≤Y?
+X<Y?
 RTN
 " "
 XEQ 90
-GTO 96
+8
+STO+ 43
+GTO 73
+LBL 68
+REM "line = X, width measured character by character with CWID"
+STO 20
+STO 44
+0
+STO 43
+LBL 67
+αLENG 44
+X=0?
+RTN
+α→𝑥 44
+XEQ "CWID"
+STO+ 43
+GTO 67
 LBL 94
 STO 28
 R↓
@@ -482,5 +634,7 @@ REM "Hc < 0 (body below the horizon): line starts with '* '"
 RCL 20
 +
 STO 20
+16
+STO+ 43
 RTN
 END

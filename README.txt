@@ -204,16 +204,22 @@ ALMF / HALMV with Moon and planets (Sep 2026)
 
 TEXT ALMANAC (no drawing) - ALMT
   Z = JD (UT1), Y = lat (N+), X = lon (E+)  XEQ "ALMT"   (or NAV option 4)
-  Shows one page at a time with PROMPT: two lines of up to 44 characters (the C47
-  small font). Pages: date, UT, DR / GHA Aries and T or S; one page per body
-  (name, HC, ZN / GHA, DEC in columns); Sun (twilight, rise/set / mer pass, SD);
-  Moon (%, phase, age / HP, SD); the warning centred in 44 characters. R/S = next
+  Shows one page at a time with PROMPT: two lines. Pages: date, UT, DR / GHA Aries
+  and T or S; one page per body (name, HC, ZN / GHA, DEC in columns); Sun (twilight,
+  rise/set / mer pass, SD); Moon (%, phase, age / HP, SD); the warning. R/S = next
   page; after the last page it starts over; EXIT to stop. Example: docs/ALMT_example.txt. Lines: date + UT, DR, GHA Aries, then for each body
   "NAME HC ... ZN ..." and "GHA ... DEC ..." (Moon also HP and SD), sun times,
   Sun SD, Moon phase and age, "DOES NOT REPLACE THE NAUTICAL ALMANAC".
   Bodies: same rule as ALMF/HALMV (Sun, Moon and planets above the horizon,
   brightest stars higher than 10 deg, 10 in all).
-  Needs: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT + matrices.
+  Line break: the C47 font is proportional (letters 6-12 px, digits and space 8 px,
+  . and : 5 px) and PROMPT breaks at a space when the next word does not fit in
+  400 px. ALMT counts the pixel width of each line in R43 (CWID gives the width of
+  each letter of the star names) and pads line 1 with spaces up to 400 px, so line 2
+  always starts at the left edge. Columns are placed by pixels (HC at 136 px, second
+  column of the Sun and Moon pages at 180 px); with 8 px spaces they can move by up
+  to 7 px from page to page.
+  Needs: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU STXT CWID + matrices.
   Does NOT need PTXB, PTXT or any drawing program. About 81k steps before the
   first line; each further line is immediate.
 STXT  number -> text: SDM (deg min), SNS, SEW, SZN, SHM, SF1, SINT, SDAT.
@@ -230,9 +236,9 @@ BELOW-HORIZON MARK (Hc < 0)
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
                3 TEXT = ALMT, one two-line page per R/S, EXIT to stop), ALMF, HALMV, ALMT,
-               STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET and
-               the fonts PTXB / PTXT cut to the characters the screens print.
-               6,305 lines (the whole programs/ folder is 31,169).
+               STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
+               and the fonts PTXB / PTXT cut to the characters the screens print.
+               6,619 lines (the whole programs/ folder is 31,482).
   NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
   Left out: HORZ, HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.

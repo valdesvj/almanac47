@@ -1,0 +1,124 @@
+; ======================================================================
+; CWID - pixel width of one character in the C47 standard font (PROMPT line = 400 px)
+; IN : X = character code (space, *, 0-9, A-Z)   OUT: X = width in pixels
+; Used by ALMT to pad line 1 so that line 2 starts at the left edge.   REGS: R49
+; ======================================================================
+0001  LBL "CWID"
+0002  STO 49
+; ---- jump to the label = character code
+0003  GTO IND 49
+0004  LBL 32
+0005  8
+0006  RTN
+0007  LBL 42
+0008  8
+0009  RTN
+0010  LBL 48
+0011  8
+0012  RTN
+0013  LBL 49
+0014  8
+0015  RTN
+0016  LBL 50
+0017  8
+0018  RTN
+0019  LBL 51
+0020  8
+0021  RTN
+0022  LBL 52
+0023  8
+0024  RTN
+0025  LBL 53
+0026  8
+0027  RTN
+0028  LBL 54
+0029  8
+0030  RTN
+0031  LBL 55
+0032  8
+0033  RTN
+0034  LBL 56
+0035  8
+0036  RTN
+0037  LBL 57
+0038  8
+0039  RTN
+0040  LBL 65
+0041  11
+0042  RTN
+0043  LBL 66
+0044  10
+0045  RTN
+0046  LBL 67
+0047  10
+0048  RTN
+0049  LBL 68
+0050  10
+0051  RTN
+0052  LBL 69
+0053  10
+0054  RTN
+0055  LBL 70
+0056  10
+0057  RTN
+0058  LBL 71
+0059  10
+0060  RTN
+0061  LBL 72
+0062  10
+0063  RTN
+0064  LBL 73
+0065  6
+0066  RTN
+0067  LBL 74
+0068  8
+0069  RTN
+0070  LBL 75
+0071  11
+0072  RTN
+0073  LBL 76
+0074  9
+0075  RTN
+0076  LBL 77
+0077  12
+0078  RTN
+0079  LBL 78
+0080  11
+0081  RTN
+0082  LBL 79
+0083  10
+0084  RTN
+0085  LBL 80
+0086  10
+0087  RTN
+0088  LBL 81
+0089  11
+0090  RTN
+0091  LBL 82
+0092  10
+0093  RTN
+0094  LBL 83
+0095  10
+0096  RTN
+0097  LBL 84
+0098  10
+0099  RTN
+0100  LBL 85
+0101  10
+0102  RTN
+0103  LBL 86
+0104  10
+0105  RTN
+0106  LBL 87
+0107  12
+0108  RTN
+0109  LBL 88
+0110  10
+0111  RTN
+0112  LBL 89
+0113  10
+0114  RTN
+0115  LBL 90
+0116  10
+0117  RTN
+0118  END

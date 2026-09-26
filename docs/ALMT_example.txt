@@ -1,35 +1,35 @@
-23-11-2026 09:00UT DR S 33°54.0' E 18°24.0'
+23-11-2026 09:00 UT  DR S 33°54.0'  E 18°24.0'
 ARIES 197°21.2'                            T
 
-SUN           HC  65°25.4'  ZN  062.6°
-             GHA 318°24.7'  DEC S 20°22.4'
+SUN            HC  65°25.4'  ZN  062.6°
+              GHA 318°24.7'  DEC S 20°22.4'
 
-VENUS         HC  62°38.2'  ZN  331.3°
-             GHA 354°32.5'  DEC S  9°15.4'
+VENUS          HC  62°38.2'  ZN  331.3°
+              GHA 354°32.5'  DEC S  9°15.4'
 
-MARS          HC  12°46.3'  ZN  296.6°
-             GHA  45°31.2'  DEC N 13°49.3'
+MARS           HC  12°46.3'  ZN  296.6°
+              GHA  45°31.2'  DEC N 13°49.3'
 
-JUPITER       HC  10°49.4'  ZN  294.4°
-             GHA  48°26.8'  DEC N 13°26.5'
+JUPITER        HC  10°49.4'  ZN  294.4°
+              GHA  48°26.8'  DEC N 13°26.5'
 
-17 CANOPUS    HC  11°15.5'  ZN  212.5°
-             GHA 101°12.5'  DEC S 52°42.4'
+17 CANOPUS     HC  11°15.5'  ZN  212.5°
+              GHA 101°12.5'  DEC S 52°42.4'
 
-38 RIGIL KENT HC  62°47.5'  ZN  175.1°
-             GHA 337°00.0'  DEC S 60°56.7'
+38 RIGIL KENT  HC  62°47.5'  ZN  175.1°
+              GHA 337°00.0'  DEC S 60°56.7'
 
-37 ARCTURUS   HC  37°02.3'  ZN  358.2°
-             GHA 343°08.0'  DEC N 19°02.5'
+37 ARCTURUS    HC  37°02.3'  ZN  358.2°
+              GHA 343°08.0'  DEC N 19°02.5'
 
-35 HADAR      HC  63°15.1'  ZN  184.7°
-             GHA 345°55.6'  DEC S 60°30.0'
+35 HADAR       HC  63°15.1'  ZN  184.7°
+              GHA 345°55.6'  DEC S 60°30.0'
 
-30 ACRUX      HC  55°39.5'  ZN  202.6°
-             GHA  10°20.0'  DEC S 63°14.7'
+30 ACRUX       HC  55°39.5'  ZN  202.6°
+              GHA  10°20.0'  DEC S 63°14.7'
 
-33 SPICA      HC  63°59.1'  ZN  327.0°
-             GHA 355°42.2'  DEC S 11°18.0'
+33 SPICA       HC  63°59.1'  ZN  327.0°
+              GHA 355°42.2'  DEC S 11°18.0'
 
 NAUT TWI 02:28 18:38  RISE/SET 03:31 17:35
 MER PASS 10:33        SUN SD 16.2'
@@ -37,4 +37,4 @@ MER PASS 10:33        SUN SD 16.2'
 MOON 98% WAXING       AGE 14.1 DAYS
 MOON HP 60.1'         MOON SD 16.4'
 
-   DOES NOT REPLACE THE NAUTICAL ALMANAC    
+   DOES NOT REPLACE THE NAUTICAL ALMANAC
