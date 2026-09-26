@@ -62,7 +62,7 @@ docs/
   C47_GHA_Dec_Almanac.pdf   theory, formulas, check values, Chebyshev tables
   C47_almanac_coefficients_2026-2027.xlsx   Chebyshev coefficients
   STAR_list.txt             star numbers with SHA/Dec for 23 Sep 2026
-  c47_almanac_generator.py  regenerates Chebyshev tables for later years
+  (generator moved to tools/almanac/)
 
 SETUP ORDER
 -----------
