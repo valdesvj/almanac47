@@ -192,7 +192,11 @@ class Calc:
                 r, c = int(self.s[1]), int(self.s[0]); self.s = [('MAT', r, c), self.s[2], self.s[3], self.s[3]]; self.lift = True; continue
             if op == 'STOEL': self.mats[self.cur][self.I-1][self.J-1] = float(self.s[0]); continue
             if op == 'INDEX': self.cur = arg; self.I = self.J = 1; continue
-            if op == 'STOIJ': self.I, self.J = int(self.s[1]), int(self.s[0]); self.lift = True; continue
+            if op == 'STOIJ':
+                i, j = self.s[1], self.s[0]; m = self.mats[self.cur]
+                if i != int(i) or j != int(j) or not (1 <= i <= len(m) and 1 <= j <= len(m[0])):
+                    raise ValueError('STOIJ (%s, %s) out of range for %s %dx%d' % (i, j, self.cur, len(m), len(m[0])))
+                self.I, self.J = int(i), int(j); self.lift = True; continue
             if op == 'RCLEL': self.push(D(str(float(self.mats[self.cur][self.I-1][self.J-1])))); continue
             if op == 'J+':
                 m = self.mats[self.cur]; self.J += 1
