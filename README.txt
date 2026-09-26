@@ -246,6 +246,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7,704 lines, 46.9 KB as text (without HORZ: 6,619 lines, 40.5 KB).
   NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
+               26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47
+               that also holds NAVFULL and the matrices.
+  TBL_OCT2026.txt  the same for 27 Sep - 31 Oct 2026 only (906 numbers, 2,759 lines).
+               Make one month at a time: python3 tools/almanac/tab2c47.py START END
   Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
 
 MOON WORD (Sep 2026)
