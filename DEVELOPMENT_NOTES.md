@@ -21,7 +21,7 @@ It has been passed with 75 dates and places (2025-2028, latitudes up to 72 N/S).
 ## Calculator program conventions
 
 - Plain UTF-8 text, one command per line, no line numbers. Converted to `.p47` with
-  `rejit file.txt -o file.p47`.
+  `rejig file.txt -o file.p47`.
 - No HP-42S compatibility commands (the `42...` ones). Use the C47 commands.
 - Messages with `PAUSE` / `PROMPT`, not with key reading.
 - Text is drawn with our own AGRAPH fonts: `PTXB` (5x7) and `PTXT` (3x5). Glyphs are

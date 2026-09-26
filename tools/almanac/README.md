@@ -15,7 +15,7 @@ Set `DT` (TT - UT1, seconds) in the script for the years you generate.
 
     python3 tab2c47.py 2026-09-26 2027-01-31                 # from the spreadsheet
     python3 tab2c47.py 2028-01-01 2028-03-31 --csv tables_2028.csv
-    rejit TBL.txt -o TBL.p47
+    rejig TBL.txt -o TBL.p47
 
 `programs/TBL.txt` is the current one: 26 Sep 2026 - 31 Jan 2027
 (3054 numbers, 9202 lines; the Moon is 2064 of them).

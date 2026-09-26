@@ -10,7 +10,7 @@ the period.
   python3 tab2c47.py 2026-09-26 2027-01-31
   python3 tab2c47.py 2026-09-26 2027-01-31 --xlsx ../../docs/C47_almanac_coefficients_2026-2027.xlsx
   python3 tab2c47.py 2028-01-01 2028-03-31 --csv tables_2028.csv
-  -> TBL.txt   (convert with: rejit TBL.txt -o TBL.p47)
+  -> TBL.txt   (convert with: rejig TBL.txt -o TBL.p47)
 
 Matrices built (row 1 = header: JD of first block at 0h UT1, block length in days,
 number of blocks, number of terms; then one row per block):
