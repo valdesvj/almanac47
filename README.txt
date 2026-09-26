@@ -224,6 +224,10 @@ BELOW-HORIZON MARK (Hc < 0)
   Cost: one X<0? test per row; the line itself (about 160 steps) only when Hc < 0.
   Previews: docs/ALMF_below_horizon.png, docs/HALMV_below_horizon.png
 
+MOON WORD (Sep 2026)
+  ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
+  otherwise WAXING (age under 14.765 d) or WANING.
+
 ALMANAC TABLES AND THE T / S SWITCH (Sep 2026)
   TBL   tables for 26-09-2026 to 31-01-2027 (Chebyshev, from JPL DE421). Run once:
         XEQ "TBL" builds the matrices and sets flag 10. It can then be deleted.

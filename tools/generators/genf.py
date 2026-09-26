@@ -37,7 +37,7 @@ a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "
 hline(80,32)
 txt(69,4,'SUN UT'); txt(69,94,'AM'); txt(69,136,'PM')
 txt(69,184,'MOON'); a(69,220,'RCL 18','XEQ "PINB"','"%"','XEQ "PTXB"')
-a('"WAXING"','STO 43','RCL 19','14.765','X<Y?','XEQ 28'); a(69,262,'RCL 43','XEQ "PTXB"')
+a('"WAXING"','STO 43','RCL 19','14.765','X<Y?','XEQ 28','RCL 18','99.5','X≤Y?','XEQ 23','RCL 18','0.5','X>Y?','XEQ 24'); a(69,262,'RCL 43','XEQ "PTXB"')
 txt(57,4,'NAUT TWI'); num(57,85,13,'PHM'); num(57,127,17,'PHM')
 a(57,184,'"AGE "','XEQ "PTXB"','RCL 19','XEQ "PF1"','" DAYS"','XEQ "PTXB"')
 txt(45,4,'RISE/SET'); num(45,85,14,'PHM'); num(45,127,16,'PHM')
@@ -50,6 +50,7 @@ a('"S"','STO 43','FS? 11','XEQ 29',8,390,'RCL 43','XEQ "PTXB"')   # T = tables, 
 a('3','STO 37','LBL 20','PAUSE 99','DSE 37','GTO 20','RTN')
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
 a('LBL 29','"T"','STO 43','RTN')
+a('LBL 23','"FULL"','STO 43','RTN','LBL 24','"NEW"','STO 43','RTN')
 a('LBL 28','"WANING"','STO 43','RTN','LBL 22','"S"','STO 43','RTN','LBL 27','"W"','STO 43','RTN')
 a('LBL 60','RCL 40',GX,'RCL 45','XEQ "PDM"',
   '"N"','STO 43','RCL 46','X<0?','XEQ 22','RCL 40',DX,'RCL 43','XEQ "PTXB"','RCL 40',DX,'RCL 46','ABS','XEQ "PDM"',

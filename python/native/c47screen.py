@@ -246,6 +246,15 @@ def mark(sc, y, x, ident):
     return sc.glyph(BIG, ch, y, x)
 
 
+def moon_word(al):
+    """FULL when the Moon shows 100 %, NEW at 0 %, else WAXING / WANING (age 14.765 d)."""
+    if 99.5 <= al.illum:
+        return 'FULL'
+    if 0.5 > al.illum:
+        return 'NEW'
+    return 'WANING' if 14.765 < al.age else 'WAXING'
+
+
 def body_name(ident):
     return 'SUN' if ident == 0 else 'MOON' if ident == -1 else PNAME[-ident - 1] if ident < 0 else STAR_NAME[ident]
 
@@ -279,7 +288,7 @@ def almf(al):
     sc.pixel(-80, 0)
     sc.text(69, 4, 'SUN UT'); sc.text(69, 94, 'AM'); sc.text(69, 136, 'PM')
     sc.text(69, 184, 'MOON'); x = sc.pinb(69, 220, al.illum); sc.text(69, x, '%')
-    sc.text(69, 262, 'WANING' if 14.765 < al.age else 'WAXING')
+    sc.text(69, 262, moon_word(al))
     sc.text(57, 4, 'NAUT TWI'); sc.phm(57, 85, t['NTWA']); sc.phm(57, 127, t['NTWP'])
     x = sc.text(57, 184, 'AGE '); x = sc.pf1(57, x, al.age); sc.text(57, x, ' DAYS')
     sc.text(45, 4, 'RISE/SET'); sc.phm(45, 85, t['RISE']); sc.phm(45, 127, t['SET'])
@@ -354,7 +363,7 @@ def halmv(al):
     sc.text(46, X0, 'MER PASS'); sc.phm(46, X0 + 105, t['TRAN'])
     sc.hline(39, 204, 196)
     x = sc.text(29, X0, 'MOON '); x = sc.pinb(29, x, al.illum); x = sc.text(29, x, '% ')
-    x = sc.text(29, x, 'WANING' if 14.765 < al.age else 'WAXING'); x = sc.text(29, x, ' AGE '); sc.pf1(29, x, al.age)
+    x = sc.text(29, x, moon_word(al)); x = sc.text(29, x, ' AGE '); sc.pf1(29, x, al.age)
     x = sc.text(19, X0, 'MOON HP '); x = sc.pf1(19, x, al.moon[2]); x = sc.text(19, x, ' SD '); sc.pf1(19, x, al.moon[3])
     sc.small(8, X0 + 24, WARNING)
     sc.small(8, 392, al.source)                              # T tables / S series
@@ -495,7 +504,7 @@ def almt(al):
     L.append('NAUT TWI ' + shm(t['NTWA']) + '  ' + shm(t['NTWP']) + ' UT')
     L.append('SUNRISE ' + shm(t['RISE']) + '  SUNSET ' + shm(t['SET']))
     L.append('MER PASS ' + shm(t['TRAN']) + ' UT   SUN SD ' + sf1(s.sd) + "'")
-    L.append('MOON ' + sint(al.illum) + '% ' + ('WANING' if 14.765 < al.age else 'WAXING') + ' AGE ' + sf1(al.age) + ' D')
+    L.append('MOON ' + sint(al.illum) + '% ' + moon_word(al) + ' AGE ' + sf1(al.age) + ' D')
     L.append(WARNING)
     return L
 
