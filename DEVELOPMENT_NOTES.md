@@ -80,6 +80,14 @@ PLN2 (SHA = GHA - GHA Aries, HP 0). Screens show T (flag 11) or S. Python mirror
 Chart positions in Python use 34-digit decimals (chart_x/chart_y) like the C47, so
 dots exactly on the horizon match. `tools/js/c47engine.js` lacks SF/FS? (reference only).
 
+## Minimum calculator set
+
+`tools/build_navfull.py` writes `build/NAVFULL.txt` (resident: NAV with 2 options, ALMF,
+HALMV and what they call; fonts trimmed to the printed characters; PTXT without
+PTNS/PT1), `build/NAVINIT.txt` (matrix builders + INIT, run once and delete) and
+`build/TBL.txt`. Checked in the simulator: identical screens and step counts to the
+full set, with and without tables. Rebuild after changing any program.
+
 ## Ideas tried and dropped (PC version)
 
 - Diurnal paths (parallels of declination) on the horizon charts: too busy with 9-10

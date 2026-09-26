@@ -224,6 +224,15 @@ BELOW-HORIZON MARK (Hc < 0)
   Cost: one X<0? test per row; the line itself (about 160 steps) only when Hc < 0.
   Previews: docs/ALMF_below_horizon.png, docs/HALMV_below_horizon.png
 
+MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
+  NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV), ALMF,
+               HALMV, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET and
+               the fonts PTXB / PTXT cut to the characters the screens print.
+               5,494 lines (the whole programs/ folder is 31,169).
+  NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
+  TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
+  Left out: HORZ, HORZS, HPLT, HALM, ALMT + STXT, ALM, SNAM, SUNSD, font demos.
+
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
   otherwise WAXING (age under 14.765 d) or WANING.
