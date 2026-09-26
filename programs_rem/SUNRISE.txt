@@ -81,7 +81,8 @@ RCL 94
 24
 ÷
 RCL+ 90
-XEQ "SUNA"
+REM "SUNG = SUNA, or the tables when loaded (much faster)"
+XEQ "SUNG"
 STO 98
 R↓
 STO 99

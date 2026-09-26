@@ -1,0 +1,192 @@
+; ======================================================================
+; TGET - GHA and Dec from the loaded almanac tables (program TBL)
+; IN : Y = JD (UT1), X = body: 0 Sun, 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn, 5 Moon, 6 Aries
+; OUT: X = GHA, Y = Dec (deg); Moon also Z = HP, T = SD (arcmin); Aries Y = 0; X = -1 outside the table
+; NEEDS: matrices TSU TVE TMA TJU TSA TMO TAR (run TBL once)   REGS: R00-R09, R35-R39
+; ======================================================================
+0001  LBL "TGET"
+0002  DEG
+; ---- body R00, JD R01; label 20+body selects the matrix (R09 = 0 GHA only, 1 +Dec, 2 +HP)
+0003  STO 00
+0004  R↓
+0005  STO 01
+0006  RCL 00
+0007  20
+0008  +
+0009  STO 02
+0010  XEQ IND 02
+0011  1
+0012  1
+; ---- header row: JD0 R03, block length (days) R04, blocks R05, terms R06
+0013  STOIJ
+0014  RCLEL
+0015  STO 03
+0016  J+
+0017  RCLEL
+0018  STO 04
+0019  J+
+0020  RCLEL
+0021  STO 05
+0022  J+
+0023  RCLEL
+0024  STO 06
+0025  RCL 01
+0026  RCL- 03
+0027  RCL÷ 04
+; ---- block index k = IP((JD - JD0) / length); outside the table -> LBL 09
+0028  X<0?
+0029  GTO 09
+0030  IP
+0031  STO 07
+0032  RCL 05
+0033  X≤Y?
+0034  GTO 09
+0035  RCL 01
+0036  RCL- 03
+0037  RCL 07
+0038  RCL× 04
+0039  -
+0040  2
+0041  ×
+0042  RCL÷ 04
+0043  1
+0044  -
+; ---- x = 2 (JD - block start) / length - 1 -> R08; data row = k + 2 -> R07
+0045  STO 08
+0046  RCL 07
+0047  2
+0048  +
+0049  STO 07
+0050  RCL 06
+0051  STO 02
+0052  1
+; ---- GHA from column 1, MOD 360 -> R35; Dec from column terms+1 -> R36
+0053  XEQ 30
+0054  360
+0055  MOD
+0056  STO 35
+0057  RCL 09
+0058  X=0?
+0059  GTO 12
+0060  RCL 06
+0061  1
+0062  +
+0063  XEQ 30
+0064  STO 36
+0065  1
+0066  RCL 09
+0067  X=Y?
+0068  GTO 13
+0069  4
+0070  STO 02
+0071  RCL 06
+0072  2
+0073  ×
+0074  1
+0075  +
+0076  XEQ 30
+; ---- Moon: HP (4 terms) -> R37; SD = 358473400 sin(HP) / 6378.14 / 60
+0077  STO 37
+0078  60
+0079  ÷
+0080  SIN
+0081  358473400
+0082  ×
+0083  6378.14
+0084  ÷
+0085  60
+0086  ÷
+0087  RCL 37
+0088  RCL 36
+0089  RCL 35
+0090  RTN
+0091  LBL 13
+0092  RCL 36
+0093  RCL 35
+0094  RTN
+0095  LBL 12
+0096  0
+0097  RCL 35
+0098  RTN
+0099  LBL 09
+0100  -1
+0101  RTN
+;
+; ---- Chebyshev sum (Clenshaw): X = first column, R02 = terms, row R07, x R08; b_k = c_k + 2x b_k+1 - b_k+2
+0102  LBL 30
+0103  STO 04
+0104  RCL+ 02
+0105  1
+0106  -
+0107  STO 05
+0108  0
+0109  STO 38
+0110  STO 39
+0111  LBL 31
+0112  RCL 07
+0113  RCL 05
+0114  STOIJ
+0115  RCLEL
+0116  RCL 08
+0117  RCL× 38
+0118  2
+0119  ×
+0120  +
+0121  RCL- 39
+0122  RCL 38
+0123  STO 39
+0124  R↓
+0125  STO 38
+0126  1
+0127  STO- 05
+0128  RCL 04
+0129  RCL 05
+0130  X>Y?
+0131  GTO 31
+0132  RCL 07
+0133  RCL 04
+0134  STOIJ
+0135  RCLEL
+0136  RCL 08
+0137  RCL× 38
+0138  +
+0139  RCL- 39
+0140  RTN
+;
+; ---- matrix of each body: 20 Sun, 21-24 planets, 25 Moon, 26 Aries
+0141  LBL 20
+0142  INDEX "TSU"
+0143  1
+0144  STO 09
+0145  RTN
+0146  LBL 21
+0147  INDEX "TVE"
+0148  1
+0149  STO 09
+0150  RTN
+0151  LBL 22
+0152  INDEX "TMA"
+0153  1
+0154  STO 09
+0155  RTN
+0156  LBL 23
+0157  INDEX "TJU"
+0158  1
+0159  STO 09
+0160  RTN
+0161  LBL 24
+0162  INDEX "TSA"
+0163  1
+0164  STO 09
+0165  RTN
+0166  LBL 25
+0167  INDEX "TMO"
+0168  2
+0169  STO 09
+0170  RTN
+0171  LBL 26
+0172  INDEX "TAR"
+0173  0
+0174  STO 09
+0175  RTN
+0176  END

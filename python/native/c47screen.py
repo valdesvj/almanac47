@@ -6,6 +6,7 @@ The text routines copy PTXB (5x7 font), PTXT (3x5 font) and their number printer
 almt() gives the ALMT text lines (STXT formats).
 """
 import c47astro as A
+from decimal import Decimal as _D, localcontext as _lc
 
 from c47font import BIG, SMALL
 from c47data import STAR_NAME, BRIGHT
@@ -18,6 +19,23 @@ WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 def ip(x):
     return int(x)                                       # C47 IP: truncate toward zero
+
+
+def chart_x(zn, off, width, x0):
+    """IP(((Zn + off) MOD 360) * width / 360 + x0) in 34-digit decimals, like the C47."""
+    with _lc() as c:
+        c.prec = 34
+        v = _D(repr(zn)) + off
+        v = v - 360 * (v / 360).__floor__()
+        return int(v * width / 360 + x0)
+
+
+def chart_y(hc, base, sign):
+    """HALMV: IP(Hc*200/90 + 14); HORZ: IP(225 - Hc*200/90), in 34-digit decimals."""
+    with _lc() as c:
+        c.prec = 34
+        h = _D(repr(hc)) * 200 / 90
+        return int(h + base) if sign > 0 else int(base - h)
 
 
 class Screen:
@@ -146,17 +164,48 @@ def ut_hours(j):
 
 # ---------------------------------------------------------------- shared data
 class Almanac:
-    """Everything the screens show for one JD and position."""
+    """Everything the screens show for one JD and position.
+    tables: c47tables.Tables (almanac tables, like TBL + flag 10 on the C47) or None.
+    Inside the table period the Sun, Aries, Moon and planets come from the tables
+    (SUNA end, SUNG, MOO2, PLN2); stars always from the series. moon_t = flag 11."""
 
-    def __init__(self, j, lat, lon):
-        self.j, self.lat, self.lon = j, lat, lon
+    def __init__(self, j, lat, lon, tables=None):
+        self.j, self.lat, self.lon, self.tables = j, lat, lon, tables
         j0 = A.day0(j)
-        self.times = {k: A.event(j0, lat, lon, k) for k in ('NTWA', 'RISE', 'TRAN', 'SET', 'NTWP')}
+        sung = None
+        if tables:
+            def sung(jj):                                     # SUNG
+                t = tables.get(jj, 0)
+                if t:
+                    return t
+                s = A.Sun(jj)
+                return s.gha, s.dec
+        self.times = {k: A.event(j0, lat, lon, k, sung) for k in ('NTWA', 'RISE', 'TRAN', 'SET', 'NTWP')}
         self.sun = s = A.Sun(j)
         self.illum, self.age = A.phase(s)
-        self.moon = A.moon(s)
-        self.planets = {p: A.planet(s, p) for p in (1, 2, 3, 4)}
+        if tables:                                            # SUNA, LBL 45
+            t = tables.get(j, 0)
+            if t:
+                s.gha, s.dec = t
+                a = tables.get(j, 6)
+                if a:
+                    s.aries = a[0]
+        t = tables.get(j, 5) if tables else None              # MOO2
+        self.moon_t = bool(t)
+        self.moon = t if t else A.moon(s)
+        self.planets = {}
+        for p in (1, 2, 3, 4):                                # PLN2
+            t = tables.get(j, p) if tables else None
+            if t:
+                self.planets[p] = (t[0], t[1], (t[0] - s.aries + 360) % 360, 0.0)
+            else:
+                self.planets[p] = A.planet(s, p)
         self._stars = {}
+
+    @property
+    def source(self):
+        """'T' when the Moon (and so everything but the stars) came from the tables."""
+        return 'T' if self.moon_t else 'S'
 
     def star(self, n):
         if n not in self._stars:
@@ -239,6 +288,7 @@ def almf(al):
     x = sc.text(33, 184, 'MOON HP '); x = sc.pf1(33, x, al.moon[2]); x = sc.text(33, x, ' SD '); sc.pf1(33, x, al.moon[3])
     sc.pixel(-22, 0)
     sc.text(8, 89, WARNING)
+    sc.text(8, 390, al.source)                               # T tables / S series
     return [sc.rows()]
 
 
@@ -261,7 +311,7 @@ def halmv(al):
 
     def pos(dec, gha):
         hc, zn = al.hcz(dec, gha)
-        return hc, zn, ip((zn + off) % 360 * 178 / 360 + 18), ip(hc * 200 / 90 + 14)
+        return hc, zn, chart_x(zn, off, 178, 18), chart_y(hc, 14, 1)
 
     for g in range(0, 358, 3):                               # celestial equator
         hc, zn, x, y = pos(0, g)
@@ -307,6 +357,7 @@ def halmv(al):
     x = sc.text(29, x, 'WANING' if 14.765 < al.age else 'WAXING'); x = sc.text(29, x, ' AGE '); sc.pf1(29, x, al.age)
     x = sc.text(19, X0, 'MOON HP '); x = sc.pf1(19, x, al.moon[2]); x = sc.text(19, x, ' SD '); sc.pf1(19, x, al.moon[3])
     sc.small(8, X0 + 24, WARNING)
+    sc.small(8, 392, al.source)                              # T tables / S series
     return [sc.rows()]
 
 
@@ -332,7 +383,7 @@ def horz(al, info=True, nstars=5):
 
     def pos(dec, gha):
         hc, zn = al.hcz(dec, gha)
-        return hc, zn, ip((zn + off) % 360 * 375 / 360 + 20), ip(225 - hc * 200 / 90)
+        return hc, zn, chart_x(zn, off, 375, 20), chart_y(hc, 225, -1)
 
     for g in range(0, 359, 2):
         hc, zn, x, y = pos(0, g)
@@ -369,6 +420,7 @@ def horz(al, info=True, nstars=5):
             record(n, zn, hc, d); cnt += 1
         if cnt >= nstars:
             break
+    sc.small(7, 2, al.source)                                # T tables / S series
     if not info or not objs:
         return [sc.rows()]
     frames = []
@@ -431,7 +483,7 @@ def sdat(j):
 
 def almt(al):
     s, t = al.sun, al.times
-    L = [sdat(al.j) + '  ' + shm(ut_hours(al.j)) + ' UT',
+    L = [sdat(al.j) + '  ' + shm(ut_hours(al.j)) + ' UT' + '  ' + al.source,
          'DR ' + sns(al.lat) + '  ' + sew(al.lon),
          'GHA ARIES ' + sdm(s.aries)]
     for ident, g, d, hc, zn in al.bodies():

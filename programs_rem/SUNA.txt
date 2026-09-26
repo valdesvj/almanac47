@@ -163,11 +163,42 @@ RCL- 78
 360
 MOD
 STO 81
+REM "tables loaded (flag 10): Sun GHA/Dec and GHA Aries from TGET when the date is covered (LBL 45)"
+FS? 10
+XEQ 45
 REM "stack Z=Aries Y=Dec X=GHA"
 RCL 80
 RCL 77
 RCL 81
 RTN
+LBL 45
+REM "Sun (body 0) -> R81 GHA, R77 Dec, Aries (body 6) -> R80, unchanged if outside the table"
+RCL 70
+0
+XEQ "TGET"
+X<0?
+RTN
+STO 81
+R↓
+STO 77
+RCL 70
+6
+XEQ "TGET"
+X<0?
+RTN
+STO 80
+RTN
+LBL "SUNG"
+REM "SUNG: fast Sun GHA/Dec for the SUNRISE iterations: TGET if covered, else full SUNA"
+FC? 10
+GTO "SUNA"
+STO 70
+0
+XEQ "TGET"
+X≥0?
+RTN
+RCL 70
+GTO "SUNA"
 LBL "SER"
 REM "SER: sum A*cos(B+C*tau)*tau^k over matrix rows, R55 = rows, result *1E-8"
 0

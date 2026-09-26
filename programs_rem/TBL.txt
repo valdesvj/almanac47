@@ -1,4 +1,7 @@
 LBL "TBL"
+REM "TBL - almanac tables (Chebyshev coefficients from JPL DE421) for a limited period"
+REM "Written by tools/almanac/tab2c47.py. Run once: builds TSU TVE TMA TJU TSA TMO TAR and sets flag 10."
+REM "Row 1 of each matrix: JD of the first block, block length (days), blocks, terms. CF 10 = use the series."
 DEG
 18
 ENTER
@@ -9197,6 +9200,7 @@ STOEL
 J+
 0
 STOEL
+REM "flag 10: tables loaded, SUNA, SUNG, MOO2 and PLN2 use them inside their period"
 SF 10
 "TBL 26-09-2026 TO 31-01-2027"
 RTN

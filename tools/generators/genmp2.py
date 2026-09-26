@@ -6,7 +6,9 @@ def horner(coefs, reg):   # coefs c0..cn, variable T in R54
     L=[f(coefs[-1])]
     for c in reversed(coefs[:-1]): L+=['RCL× 54',f(c),'+']
     return L+['STO %02d'%reg]
-M=['LBL "MOON"','XEQ "SUNA"','LBL "MOO2"','DEG']
+M=['LBL "MOON"','XEQ "SUNA"','LBL "MOO2"','DEG',
+   # almanac tables loaded (flag 10) and covering the date: TGET, flag 11 set
+   'FC? 10','GTO 22','RCL 70','5','XEQ "TGET"','X<0?','GTO 22','SF 11','RTN','LBL 22','CF 11']
 M+=horner([218.3164477,481267.88123421,-0.0015786,1/538841,-1/65194000],0)
 M+=horner([297.8501921,445267.1114034,-0.0018819,1/545868,-1/113065000],1)
 M+=horner([357.5291092,35999.0502909,-0.0001536,1/24490000],2)
@@ -54,7 +56,12 @@ M+=['RCL 54','131.849','×','119.75','+','STO 39',
     'DSE 09','GTO 21','RTN','END']
 open('/home/claude/MOON.txt','w').write('\n'.join(M)+'\n')
 # ---------------- PLAN
-P=['LBL "PLAN"','STO 09','R↓','XEQ "SUNA"','GTO 31','LBL "PLN2"','STO 09','RCL 54','10','÷','STO 50','LBL 31','RCL 50','STO 03','RAD']
+P=['LBL "PLAN"','STO 34','R↓','XEQ "SUNA"','RCL 34','LBL "PLN2"','STO 09',
+   # almanac tables loaded (flag 10) and covering the date: GHA/Dec from TGET, SHA = GHA - GHA Aries, HP 0
+   'FC? 10','GTO 33','STO 34','RCL 70','RCL 09','XEQ "TGET"','X<0?','GTO 32',
+   'STO 04','R↓','STO 06','RCL 04','RCL- 80','360','+','360','MOD','STO 05','0','STO 07',
+   'RCL 07','RCL 05','RCL 06','RCL 04','RTN','LBL 32','RCL 34','STO 09',
+   'LBL 33','RCL 54','10','÷','STO 50','LBL 31','RCL 50','STO 03','RAD']
 for nm,reg in (('EEL',0),('EEB',1),('EER',2)):
     P+=['INDEX "%s"'%nm,str(cnt[nm]),'STO 55','XEQ "SER"','STO %02d'%reg]
 P+=['0','STO 08','2','STO 07',

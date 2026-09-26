@@ -178,6 +178,10 @@ class Calc:
                 if cnt <= fin: pc += 1
                 continue
             if op == 'CF': self.flags.discard(int(arg)); continue
+            if op == 'SF': self.flags.add(int(arg)); continue
+            if op == 'FS?':
+                if int(arg) not in self.flags: pc += 1
+                continue
             if op == 'FC?':
                 if int(arg) in self.flags: pc += 1
                 continue

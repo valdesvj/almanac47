@@ -198,6 +198,7 @@ XEQ "PTXT"
 XEQ "PTXT"
 7
 206
+REM "T = tables (flag 11), S = series: bottom left, small font"
 "S"
 XEQ "PTXT"
 7
@@ -308,6 +309,14 @@ GTO 42
 ISG 11
 GTO 44
 LBL 42
+"S"
+STO 15
+FS? 11
+XEQ 29
+7
+2
+RCL 15
+XEQ "PTXT"
 3
 STO 37
 LBL 21
@@ -315,6 +324,11 @@ REM "hold screen: 3 x PAUSE 99 (R37)"
 PAUSE 99
 DSE 37
 GTO 21
+RTN
+LBL 29
+REM "letter T"
+"T"
+STO 15
 RTN
 LBL 40
 REM "record object X = id with Zn R97, Hc R96 in HZT (count R10)"

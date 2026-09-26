@@ -19,6 +19,7 @@ Two ways to use it
 Times are UT (UT1), as on the calculator. Latitude N+ / longitude E+, or
 written with N S E W ("25 20.0 N", "55 12 E", "25.3333", "-75.5").
 Files needed (same folder): c47pc.py c47astro.py c47screen.py c47font.py c47data.py
+                            c47tables.py, jplcheck.py; optional TBL.txt (almanac tables)
 PNG and text need Python 3 only; the window needs PyGObject + cairo + GTK 3
 (Arch: pacman -S python-gobject python-cairo gtk3
  Debian/Ubuntu: apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0).
@@ -30,6 +31,7 @@ from decimal import Decimal as D
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import c47screen
+import c47tables
 
 VERSION = '1.1'
 VERSION_DATE = '2026-09-26'
@@ -85,6 +87,14 @@ COMMAND LINE
           --lat "25 20 N" --lon "55 12 E" --png halmv.png
   python3 c47pc.py --view ALMT --date ... --lat ... --lon ...   (prints the lines)
   python3 c47pc.py --help    all options
+
+ALMANAC TABLES  (T / S in the corner of every screen)
+  With TBL.txt (programs/ folder, the same file loaded on the C47) the Sun,
+  Aries, Moon and planets come from the Chebyshev tables (JPL) inside the
+  table period, and the screens show T; outside it, or with the box off,
+  they come from the series and show S. Stars always from the series.
+  On the C47: XEQ "TBL" once (sets flag 10); CF 10 = use the series.
+  Command line: --tables FILE, or --series to switch them off.
 
 CHECK AGAINST JPL (menu Info, or --check; PC only, needs internet)
   Compares GHA and Dec of the Sun, Moon, planets and GHA Aries with JPL
@@ -156,16 +166,23 @@ def parse_ut(s):
 
 # ------------------------------------------------------------------ engine
 class Engine:
-    """Same interface as the simulator engine of c47view.py, native calculations."""
+    """Same interface as the simulator engine of c47view.py, native calculations.
+    tables: path of TBL.txt (almanac tables) or None; use = on/off switch (flag 10)."""
 
-    def __init__(self, progdir=None):
-        pass
+    def __init__(self, tables=None):
+        self.tables = c47tables.Tables(tables) if tables else None
+        self.use = bool(self.tables)
+        self.last = None
+
+    def _al(self, j, lat, lon):
+        self.last = c47screen.Almanac(j, lat, lon, self.tables if self.use else None)
+        return self.last
 
     def screen(self, view, j, lat, lon):
-        return c47screen.VIEWS[view](c47screen.Almanac(j, lat, lon)), None
+        return c47screen.VIEWS[view](self._al(j, lat, lon)), None
 
     def text(self, j, lat, lon):
-        return c47screen.almt(c47screen.Almanac(j, lat, lon)), None
+        return c47screen.almt(self._al(j, lat, lon)), None
 
 
 # ------------------------------------------------------------------ PNG
@@ -249,6 +266,11 @@ def run_gtk(eng, args):
                 b = Gtk.Button(label=lbl); b.connect('clicked', cb); hb.pack_end(b, False, False, 0)
             chk = Gtk.CheckButton(label='LCD colours'); chk.set_active(self.lcd)
             chk.connect('toggled', self.on_lcd); hb.pack_end(chk, False, False, 6)
+            ct = Gtk.CheckButton(label='Almanac tables'); ct.set_active(eng.use)
+            ct.set_sensitive(eng.tables is not None)
+            ct.set_tooltip_text(('%s (%s)' % (eng.tables.period, eng.tables.path)) if eng.tables
+                                else 'TBL.txt not found (programs/ or next to c47pc.py)')
+            ct.connect('toggled', self.on_tables); hb.pack_end(ct, False, False, 6)
 
             self.area = Gtk.DrawingArea()
             b = 6 * self.scale
@@ -334,6 +356,9 @@ def run_gtk(eng, args):
             d.set_comments(ABOUT)
             d.run(); d.destroy()
 
+        def on_tables(self, chk):
+            eng.use = chk.get_active(); self.on_run()
+
         def on_lcd(self, chk):
             self.lcd = chk.get_active(); self.area.queue_draw()
 
@@ -361,7 +386,11 @@ def run_gtk(eng, args):
             elif len(self.frames) > 1:
                 extra = '   object %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.frames))
             grey = '   grey = next lines' if self.view == 'ALMT' else ''
-            self.status.set_text('%s (%.2f s)%s%s' % (self.view, self.secs, extra, grey))
+            src = ''
+            if eng.last is not None:
+                src = '   %s = %s' % (eng.last.source, 'almanac tables (%s)' % eng.tables.period
+                                      if eng.last.moon_t else 'series')
+            self.status.set_text('%s (%.2f s)%s%s%s' % (self.view, self.secs, src, extra, grey))
 
         def on_next(self, *_):
             n = len(self.lines) if self.view == 'ALMT' else len(self.frames)
@@ -440,6 +469,8 @@ def main():
     ap.add_argument('--plain', action='store_true', help='black on white instead of LCD colours')
     ap.add_argument('--no-bezel', action='store_true', help='PNG without the dark frame')
     ap.add_argument('--check', action='store_true', help='online: compare Sun, Moon, planets and Aries with JPL Horizons')
+    ap.add_argument('--tables', help='almanac tables TBL.txt (default: programs/TBL.txt or next to this file)')
+    ap.add_argument('--series', action='store_true', help='do not use the almanac tables (like CF 10 on the C47)')
     ap.add_argument('--version', action='version', version='%s %s (%s)' % (PROGRAM, VERSION, VERSION_DATE))
     args = ap.parse_args()
 
@@ -454,7 +485,7 @@ def main():
             sys.exit('JPL check failed (internet connection needed): %s' % ex)
         return
 
-    eng = Engine()
+    eng = Engine(None if args.series else (args.tables or c47tables.find()))
     batch = bool(args.png) or (args.view == 'ALMT' and bool(args.lat))
     if not batch:
         try:

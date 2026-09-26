@@ -38,4 +38,22 @@ NumPy evaluation of the spreadsheet to 0.00001'; it differs from the series by a
 0.005' (Sun), 0.023' (planets), 0.073' (Moon, the series' own error). About 265
 program steps per call (Moon 400), against 2,000-12,000 for the series.
 
-The screens (ALMF, HALMV, HORZ, ALMT) do not use TGET yet.
+## 4. The screens use the tables automatically
+
+With the tables loaded (flag 10, set by TBL) and the date inside the table period:
+- SUNA takes the Sun's GHA/Dec and GHA Aries from the tables (the stars keep their
+  series, with that GHA Aries);
+- SUNG (used by the SUNRISE iterations) uses the tables and skips the series;
+- MOO2 and PLN2 use the tables and set flag 11 (Moon from the tables).
+Outside the period, or after CF 10, everything falls back to the series.
+
+Every screen shows **T** (tables, flag 11) or **S** (series): ALMF and HALMV bottom
+right, HORZ/HORZS bottom left, ALMT at the end of the first line. T means the Moon
+and everything else except the stars came from the tables.
+
+Program steps, series -> tables (simulator): ALMF 109,000 -> 44,000, HALMV
+119,000 -> 54,000, HORZS 69,000 -> 30,000 (45-62 % fewer). Values change by at most
+0.1' in the last digit (the series' own error).
+
+TGET, SUNG and the switch need the programs TGET, TBL (run once) and the updated
+SUNA, SUNRISE, MOON, PLAN and screens.

@@ -1,13 +1,11 @@
 LBL "TGET"
 REM "TGET - GHA and Dec from the loaded almanac tables (program TBL)"
 REM "IN : Y = JD (UT1), X = body: 0 Sun, 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn, 5 Moon, 6 Aries"
-REM "OUT: X = GHA, Y = Dec (deg); Moon also Z = HP, T = SD (arcmin); Aries Y = 0"
-REM "     X = -1 when the date is outside the table"
-REM "NEEDS: matrices TSU TVE TMA TJU TSA TMO TAR (run TBL once)"
-REM "REGS: R00-R09, R35-R39"
+REM "OUT: X = GHA, Y = Dec (deg), Moon also Z = HP, T = SD (arcmin), Aries Y = 0, X = -1 outside the table"
+REM "NEEDS: matrices TSU TVE TMA TJU TSA TMO TAR (run TBL once)   REGS: R00-R09, R35-R39"
 DEG
+REM "body R00, JD R01, label 20+body selects the matrix (R09 = 0 GHA only, 1 +Dec, 2 +HP)"
 STO 00
-REM "body R00, JD R01; label 20+body selects the matrix (R09 = 0 GHA only, 1 +Dec, 2 +HP)"
 R↓
 STO 01
 RCL 00
@@ -17,8 +15,8 @@ STO 02
 XEQ IND 02
 1
 1
-STOIJ
 REM "header row: JD0 R03, block length (days) R04, blocks R05, terms R06"
+STOIJ
 RCLEL
 STO 03
 J+
@@ -33,8 +31,8 @@ STO 06
 RCL 01
 RCL- 03
 RCL÷ 04
+REM "block index k = IP((JD - JD0) / length), outside the table -> LBL 09"
 X<0?
-REM "block index k = IP((JD - JD0) / length); outside the table -> LBL 09"
 GTO 09
 IP
 STO 07
@@ -51,8 +49,8 @@ RCL× 04
 RCL÷ 04
 1
 -
+REM "x = 2 (JD - block start) / length - 1 -> R08, data row = k + 2 -> R07"
 STO 08
-REM "x = 2 (JD - block start) / length - 1 -> R08; data row = k + 2 -> R07"
 RCL 07
 2
 +
@@ -60,8 +58,8 @@ STO 07
 RCL 06
 STO 02
 1
+REM "GHA from column 1, MOD 360 -> R35, Dec from column terms+1 -> R36"
 XEQ 30
-REM "GHA from column 1, MOD 360 -> R35; Dec from column terms+1 -> R36"
 360
 MOD
 STO 35
@@ -85,8 +83,8 @@ RCL 06
 1
 +
 XEQ 30
+REM "Moon: HP (4 terms) -> R37, SD = 358473400 sin(HP) / 6378.14 / 60"
 STO 37
-REM "Moon: HP (4 terms) -> R37; SD = 358473400 sin(HP) / 6378.14 / 60"
 60
 ÷
 SIN
@@ -112,8 +110,7 @@ LBL 09
 -1
 RTN
 LBL 30
-REM "Chebyshev sum (Clenshaw): X = first column, R02 = terms, row R07, x R08"
-REM "b_k = c_k + 2 x b_k+1 - b_k+2 (R38, R39); result c0 + x b1 - b2"
+REM "Chebyshev sum (Clenshaw): X = first column, R02 = terms, row R07, x R08, b_k = c_k + 2x b_k+1 - b_k+2"
 STO 04
 RCL+ 02
 1

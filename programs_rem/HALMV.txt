@@ -106,6 +106,7 @@ XEQ "PTXB"
 XEQ "PTXB"
 3
 105
+REM "T = Moon and planets from the tables (flag 11), S = series: bottom right"
 "S"
 XEQ "PTXB"
 3
@@ -467,6 +468,14 @@ REM "warning line (PTXT small font)"
 230
 "DOES NOT REPLACE THE NAUTICAL ALMANAC"
 XEQ "PTXT"
+"S"
+STO 43
+FS? 11
+XEQ 29
+8
+392
+RCL 43
+XEQ "PTXT"
 REM "hold screen 3 x PAUSE 99"
 3
 STO 37
@@ -485,6 +494,11 @@ IP
 +
 RCL 11
 RCL 12
+RTN
+LBL 29
+REM "letter T"
+"T"
+STO 43
 RTN
 LBL 28
 REM "text WANING"

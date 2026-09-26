@@ -201,19 +201,24 @@ EVENTS = {'RISE': (-0.8333333333333333, -1), 'SET': (-0.8333333333333333, 1),
           'TRAN': (0.0, 0)}
 
 
-def event(j0, lat, lon, kind):
-    """SUNRISE. j0 = JD at 0h UT. Returns UT hours, 99 if the event does not happen."""
+def event(j0, lat, lon, kind, sun=None):
+    """SUNRISE. j0 = JD at 0h UT. Returns UT hours, 99 if the event does not happen.
+    sun(jd) -> (gha, dec) replaces the series (SUNG with almanac tables)."""
     h0, sg = EVENTS[kind]
     t = sg * 6 + 12.0
     for _ in range(10):
-        s = Sun(t / 24.0 + j0)
+        if sun:
+            gha, dec = sun(t / 24.0 + j0)
+        else:
+            s = Sun(t / 24.0 + j0)
+            gha, dec = s.gha, s.dec
         target = 0.0
         if sg:
-            c = (dsin(h0) - dsin(lat) * dsin(s.dec)) / (dcos(lat) * dcos(s.dec))
+            c = (dsin(h0) - dsin(lat) * dsin(dec)) / (dcos(lat) * dcos(dec))
             if abs(c) > 1:
                 return 99.0
             target = degrees(acos(c)) * sg
-        dt = ((target - s.gha - lon + 540.0) % 360.0 - 180.0) / 15.0
+        dt = ((target - gha - lon + 540.0) % 360.0 - 180.0) / 15.0
         t += dt
         if abs(dt) <= 0.0003:
             break

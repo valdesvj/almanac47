@@ -203,6 +203,7 @@ XEQ "PTXT"
 XEQ "PTXT"
 7
 206
+REM "T = tables (flag 11), S = series: bottom left, small font"
 "S"
 XEQ "PTXT"
 7
@@ -313,6 +314,14 @@ GTO 42
 ISG 11
 GTO 44
 LBL 42
+"S"
+STO 15
+FS? 11
+XEQ 29
+7
+2
+RCL 15
+XEQ "PTXT"
 REM "info loop over the objects in HZT"
 RCL 10
 X=0?
@@ -389,6 +398,11 @@ RCL 42
 X>Y?
 RTN
 GTO 35
+LBL 29
+REM "letter T"
+"T"
+STO 15
+RTN
 LBL 40
 REM "record object X = id with Zn R97, Hc R96 in HZT (count R10)"
 STO 13

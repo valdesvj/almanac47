@@ -67,9 +67,11 @@ a('"WAXING"','STO 43','RCL 19','14.765','X<Y?','XEQ 28')
 a(29,X0,'"MOON "','XEQ "PTXB"','RCL 18','XEQ "PINB"','"% "','XEQ "PTXB"','RCL 43','XEQ "PTXB"','" AGE "','XEQ "PTXB"','RCL 19','XEQ "PF1"')
 a(19,X0,'"MOON HP "','XEQ "PTXB"','RCL 21','XEQ "PF1"','" SD "','XEQ "PTXB"','RCL 22','XEQ "PF1"')
 a(8,X0+24,'"DOES NOT REPLACE THE NAUTICAL ALMANAC"','XEQ "PTXT"')
+a('"S"','STO 43','FS? 11','XEQ 29',8,392,'RCL 43','XEQ "PTXT"')   # T = tables, S = series
 a('3','STO 37','LBL 20','PAUSE 99','DSE 37','GTO 20','RTN')
 # subroutines
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
+a('LBL 29','"T"','STO 43','RTN')
 a('LBL 28','"WANING"','STO 43','RTN','LBL 22','"S"','STO 43','RTN','LBL 27','"W"','STO 43','RTN')
 a('LBL 15','RCL 99','RCL 98','PIXEL','RTN')
 a('LBL 16','RCL 99','3','-','RCL 98','5','-','"@"','XEQ "PTXB"','RTN')

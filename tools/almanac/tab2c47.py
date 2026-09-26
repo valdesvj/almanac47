@@ -132,7 +132,8 @@ def program(tables, d0, d1, label):
         last = blocks[-1][0] + datetime.timedelta(hours=blocks[-1][1])
         sys.stderr.write('%s  %2d blocks  %s .. %s  (%d numbers)\n' %
                          (mat, len(blocks), blocks[0][0], last, len(vals)))
-    L += ['"TBL %s TO %s"' % (d0.strftime('%d-%m-%Y'), d1.strftime('%d-%m-%Y')), 'RTN', 'END']
+    L += ['SF 10',                     # flag 10: tables loaded (CF 10 = use the series)
+          '"TBL %s TO %s"' % (d0.strftime('%d-%m-%Y'), d1.strftime('%d-%m-%Y')), 'RTN', 'END']
     sys.stderr.write('total %d numbers, %d program lines\n' % (count, len(L)))
     return L
 

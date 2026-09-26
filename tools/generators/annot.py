@@ -241,6 +241,35 @@ A['ALMT']=[('LBL 92',1,'Hc < 0 (body below the horizon): line starts with "* "')
  ('LBL 40',1,'record body X = id with GHA R45, Dec R46, Hc R96, Zn R97'),('LBL 70',1,'body name: 0 SUN, -1 MOON, -2..-5 planets (LBL 80-85), n = number + star name'),
  ('LBL 80',1,'names (replace with symbols here if your C47 font has them)'),('LBL 90',1,'append X to the line R20'),('LBL 91',1,'show the line and wait for R/S')]
 
+
+# ---- almanac tables (Method B) and the table switch
+H['TGET']=["TGET - GHA and Dec from the loaded almanac tables (program TBL)",
+ "IN : Y = JD (UT1), X = body: 0 Sun, 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn, 5 Moon, 6 Aries",
+ "OUT: X = GHA, Y = Dec (deg); Moon also Z = HP, T = SD (arcmin); Aries Y = 0; X = -1 outside the table",
+ "NEEDS: matrices TSU TVE TMA TJU TSA TMO TAR (run TBL once)   REGS: R00-R09, R35-R39"]
+A['TGET']=[('STO 00',1,'body R00, JD R01; label 20+body selects the matrix (R09 = 0 GHA only, 1 +Dec, 2 +HP)'),
+ ('STOIJ',1,'header row: JD0 R03, block length (days) R04, blocks R05, terms R06'),
+ ('X<0?',1,'block index k = IP((JD - JD0) / length); outside the table -> LBL 09'),
+ ('STO 08',1,'x = 2 (JD - block start) / length - 1 -> R08; data row = k + 2 -> R07'),
+ ('XEQ 30',1,'GHA from column 1, MOD 360 -> R35; Dec from column terms+1 -> R36'),
+ ('STO 37',1,'Moon: HP (4 terms) -> R37; SD = 358473400 sin(HP) / 6378.14 / 60'),
+ ('LBL 30',1,'Chebyshev sum (Clenshaw): X = first column, R02 = terms, row R07, x R08; b_k = c_k + 2x b_k+1 - b_k+2'),
+ ('LBL 20',1,'matrix of each body: 20 Sun, 21-24 planets, 25 Moon, 26 Aries')]
+H['TBL']=["TBL - almanac tables (Chebyshev coefficients from JPL DE421) for a limited period",
+ "Written by tools/almanac/tab2c47.py. Run once: builds TSU TVE TMA TJU TSA TMO TAR and sets flag 10.",
+ "Row 1 of each matrix: JD of the first block, block length (days), blocks, terms. CF 10 = use the series."]
+A['TBL']=[('SF 10',1,'flag 10: tables loaded; SUNA, SUNG, MOO2 and PLN2 use them inside their period')]
+A['SUNA']+=[('FS? 10',1,'tables loaded (flag 10): Sun GHA/Dec and GHA Aries from TGET when the date is covered (LBL 45)'),
+ ('LBL 45',1,'Sun (body 0) -> R81 GHA, R77 Dec; Aries (body 6) -> R80; unchanged if outside the table'),
+ ('LBL "SUNG"',1,'SUNG: fast Sun GHA/Dec for the SUNRISE iterations: TGET if covered, else full SUNA')]
+A['SUNRISE']+=[('XEQ "SUNG"',1,'SUNG = SUNA, or the tables when loaded (much faster)')]
+A['MOON']+=[('FC? 10',1,'tables loaded and covering the date: TGET body 5, set flag 11 (T on the screens); else series, clear flag 11')]
+A['PLAN']+=[('FC? 10',1,'tables loaded and covering the date: GHA/Dec from TGET, SHA = GHA - GHA Aries, HP 0; else series (LBL 33)')]
+for k,y,x in (('ALMF',8,390),('HALMV',8,392)):
+    A[k]+=[('"S"',1,'T = Moon and planets from the tables (flag 11), S = series: bottom right'),('LBL 29',1,'letter T')]
+A['HORZ']+=[('"S"',1,'T = tables (flag 11), S = series: bottom left, small font'),('LBL 29',1,'letter T')]
+A['HORZS']+=[('"S"',1,'T = tables (flag 11), S = series: bottom left, small font'),('LBL 29',1,'letter T')]
+A['ALMT']+=[('"  S"',1,'first line ends with T (tables, flag 11) or S (series)')]
 FILEMAP={'PTBDEMO':'PTBDEM'}
 def process(fname):
     key=fname[:-4]; key=FILEMAP.get(key,key)

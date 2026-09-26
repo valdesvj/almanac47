@@ -71,8 +71,12 @@ Written against the documented Horizons output; the parser was tested offline on
 ## Almanac tables (Method B)
 
 `tools/almanac/` (generator, `tab2c47.py`), `programs/TBL.txt` (26 Sep 2026 - 31 Jan
-2027), `programs/TGET.txt`. Not yet used by the screens: the planned switch in MOO2,
-PLN2 and the SUNRISE iterations, with a T/S indicator on the screen, is still to do.
+2027), `programs/TGET.txt`. Flag 10 = tables loaded (TBL sets it; CF 10 = series).
+Switch: SUNA (end, LBL 45), SUNG (SUNRISE iterations), MOO2 (sets/clears flag 11),
+PLN2 (SHA = GHA - GHA Aries, HP 0). Screens show T (flag 11) or S. Python mirrors it
+(`c47tables.py`, Almanac(..., tables)); `tests/test_parity.py N seed T` checks it.
+Chart positions in Python use 34-digit decimals (chart_x/chart_y) like the C47, so
+dots exactly on the horizon match. `tools/js/c47engine.js` lacks SF/FS? (reference only).
 
 ## Ideas tried and dropped (PC version)
 

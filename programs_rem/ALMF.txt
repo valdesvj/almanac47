@@ -336,6 +336,15 @@ PIXEL
 89
 "DOES NOT REPLACE THE NAUTICAL ALMANAC"
 XEQ "PTXB"
+REM "T = Moon and planets from the tables (flag 11), S = series: bottom right"
+"S"
+STO 43
+FS? 11
+XEQ 29
+8
+390
+RCL 43
+XEQ "PTXB"
 REM "hold screen"
 3
 STO 37
@@ -354,6 +363,11 @@ IP
 +
 RCL 11
 RCL 12
+RTN
+LBL 29
+REM "letter T"
+"T"
+STO 43
 RTN
 LBL 28
 REM "text WANING"

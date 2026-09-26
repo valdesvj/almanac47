@@ -34,7 +34,7 @@ VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
              'ALMT': 'text almanac, one line per R/S'}
 FILES = ['MATA', 'MATST', 'MATM', 'MATP', 'SUNA', 'STAR', 'CHZ', 'SNMU', 'SBRT', 'MOON',
          'PLAN', 'PTXB', 'PTXT', 'SUNRISE', 'PHAS', 'STXT',
-         'ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT']
+         'ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'TGET']
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)
@@ -91,13 +91,15 @@ def parse_ut(s):
 class Engine:
     """Loads the C47 programs once, builds the matrices (NAV option INIT) once."""
 
-    def __init__(self, progdir=None):
+    def __init__(self, progdir=None, tables=False):
+        """tables=True also loads and runs TBL (almanac tables, flag 10), like on the C47."""
         progdir = progdir or os.path.join(HERE, '..', 'programs')
-        missing = [f for f in FILES if not os.path.exists(os.path.join(progdir, f + '.txt'))]
+        files = FILES + (['TBL'] if tables else [])
+        missing = [f for f in files if not os.path.exists(os.path.join(progdir, f + '.txt'))]
         if missing:
             raise FileNotFoundError('programs not found in %s: %s' % (progdir, ' '.join(missing)))
-        self.c = c47sim.load([os.path.join(progdir, f + '.txt') for f in FILES])
-        for m in ('MATA', 'MATST', 'MATM', 'MATP'):
+        self.c = c47sim.load([os.path.join(progdir, f + '.txt') for f in files])
+        for m in ('MATA', 'MATST', 'MATM', 'MATP') + (('TBL',) if tables else ()):
             self.c.run(m, maxsteps=10 ** 7)
 
     def _start(self, j, lat, lon):

@@ -28,7 +28,7 @@ a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "
   '10','RCL 96','X≤Y?','GTO 18','RCL 82','XEQ 40','LBL 18','ISG 42','GTO 17','LBL 19')
 # ---------------- text pages, one line per R/S, then start over (EXIT to stop)
 a('LBL 01')
-a(fmt(10,'SDAT')[1:].split('|')); a('STO 20'); app('  ',fmt('10|0.5|+|1|MOD|24|×','SHM'),' UT'); a('XEQ 91')
+a(fmt(10,'SDAT')[1:].split('|')); a('STO 20'); app('  ',fmt('10|0.5|+|1|MOD|24|×','SHM'),' UT'); a('"  S"','FS? 11','XEQ 29','XEQ 90','XEQ 91')   # T = tables, S = series
 s('DR '); a('STO 20'); app(fmt(11,'SNS'),'  ',fmt(12,'SEW')); a('XEQ 91')
 s('GHA ARIES '); a('STO 20'); app(fmt(48,'SDM')); a('XEQ 91')
 # bodies
@@ -48,6 +48,7 @@ a('GTO 01')
 # ---------------- subroutines
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
 a('LBL 27','"WANING"','STO 26','RTN')
+a('LBL 29','"  T"','RTN')
 a('LBL 40','STO 25','1','STO+ 41','INDEX "ALT"','RCL 41','1','STOIJ','RCL 25','STOEL','J+','RCL 45','STOEL','J+','RCL 46','STOEL','J+','RCL 96','STOEL','J+','RCL 97','STOEL','RTN')
 a('LBL 41','-1','XEQ 40','RTN')
 a('LBL 42','RCL 42','IP','1','+','CHS','XEQ 40','RTN')

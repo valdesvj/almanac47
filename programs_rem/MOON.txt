@@ -11,6 +11,18 @@ LBL "MOO2"
 REM "MOO2: entry when SUNA has already run for this JD"
 REM "mean arguments L' R00, D R01, M R02, M' R03, F R04 (deg), E R05"
 DEG
+REM "tables loaded and covering the date: TGET body 5, set flag 11 (T on the screens), else series, clear flag 11"
+FC? 10
+GTO 22
+RCL 70
+5
+XEQ "TGET"
+X<0?
+GTO 22
+SF 11
+RTN
+LBL 22
+CF 11
 -1.533883486E-08
 RCL× 54
 1.855835024E-06

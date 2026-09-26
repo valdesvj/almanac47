@@ -224,6 +224,17 @@ BELOW-HORIZON MARK (Hc < 0)
   Cost: one X<0? test per row; the line itself (about 160 steps) only when Hc < 0.
   Previews: docs/ALMF_below_horizon.png, docs/HALMV_below_horizon.png
 
+ALMANAC TABLES AND THE T / S SWITCH (Sep 2026)
+  TBL   tables for 26-09-2026 to 31-01-2027 (Chebyshev, from JPL DE421). Run once:
+        XEQ "TBL" builds the matrices and sets flag 10. It can then be deleted.
+  TGET  Y = JD, X = body (0 Sun 1-4 planets 5 Moon 6 Aries) -> X GHA, Y Dec
+        (Moon Z HP, T SD); X = -1 outside the table.
+  With flag 10 set, SUNA, SUNRISE (via SUNG), MOO2 and PLN2 use the tables inside
+  their period and the series outside it. The screens show T (tables) or S (series):
+  ALMF/HALMV bottom right, HORZ/HORZS bottom left, ALMT end of the first line.
+  Screens need about half the program steps with the tables. CF 10 = series only.
+  New tables: tools/almanac/tab2c47.py (see tools/almanac/README.md).
+
 PC VIEWER - python/c47view.py (+ c47sim.py)
   Shows ALMF, HALMV, HORZ, HORZS and ALMT on a PC exactly as on the C47: it runs
   the real programs/*.txt in a small RPN interpreter and draws the 400x240 screen.

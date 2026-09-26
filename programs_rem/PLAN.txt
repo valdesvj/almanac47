@@ -6,13 +6,43 @@ REM "VSOP87D truncated, light-time (2 iterations), FK5, aberration, nutation: ma
 REM "NEEDS: SUNA (+VL VB VR NU, SER), matrices from MATP"
 REM "REGS: R00-R09, R34-R39 (+ SUNA)"
 REM "planet no. R09, SUNA for T, tau, nutation, obliquity, GHA Aries"
-STO 09
+STO 34
 R↓
 XEQ "SUNA"
-GTO 31
+RCL 34
 LBL "PLN2"
 REM "PLN2: X = planet, SUNA already run for this JD (tau = T/10)"
 STO 09
+REM "tables loaded and covering the date: GHA/Dec from TGET, SHA = GHA - GHA Aries, HP 0, else series (LBL 33)"
+FC? 10
+GTO 33
+STO 34
+RCL 70
+RCL 09
+XEQ "TGET"
+X<0?
+GTO 32
+STO 04
+R↓
+STO 06
+RCL 04
+RCL- 80
+360
++
+360
+MOD
+STO 05
+0
+STO 07
+RCL 07
+RCL 05
+RCL 06
+RCL 04
+RTN
+LBL 32
+RCL 34
+STO 09
+LBL 33
 RCL 54
 10
 ÷
