@@ -489,6 +489,103 @@ def horz(al, info=True):
     return frames
 
 
+class _Quick:
+    """Time for the quick formulas (HANIM LBL 71): T (centuries TT), mean GHA Aries."""
+
+    def __init__(self, j):
+        d = j - 2451545.0
+        self.T = (d + A.DT / 86400.0) / 36525.0
+        self.aries = (d * 360.98564736629 + 280.46061837) % 360.0
+
+
+def anim_bodies(j):
+    """Sun, Moon, Venus, Mars, Jupiter, Saturn at JD j (quick formulas): [(sha, dec)]."""
+    q = _Quick(j)
+    out = []
+    g, d = A.sun_fast(j)
+    out.append(((g - q.aries) % 360.0, d))
+    g, d = A.moon_quick(q)
+    out.append(((g - q.aries) % 360.0, d))
+    for p in (1, 2, 3, 4):
+        g, d, _ = A.planet_quick(q, p)
+        out.append(((g - q.aries) % 360.0, d))
+    return out
+
+
+def hanim(j0, lat, lon, frames=12, step=1.0):
+    """HANIM: the horizon chart (as HORZ) for `frames` times `step` hours apart.
+    Sun, Moon and planets from the first and the last time, SHA and Dec interpolated;
+    stars from the catalogue. Only bodies above the horizon; up to 10 per frame.
+    Returns (list of frames, list of JD)."""
+    frames = max(2, int(frames))
+    HY, HS = 16, 196
+    off = 180 if lat < 0 else 0
+    b0 = anim_bodies(j0)
+    b1 = anim_bodies(j0 + (frames - 1) * step / 24.0)
+
+    def pos(dec, gha):
+        hc, zn, sh = A.hczs(lat, lon, dec, gha)
+        return hc, chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
+
+    eq = []
+    for g in range(0, 359, 2):                               # celestial equator: fixed on the chart
+        hc, x, y = pos(0, g)
+        if hc > 1e-4:
+            eq.append((y, x))
+    out, times = [], []
+    for k in range(frames):
+        with _lc() as ctx:                                   # frame time in 34 digits, as the C47
+            ctx.prec = 34
+            jdec = _D(repr(j0)) + _D(k) * _D(repr(float(step))) / 24
+            jday = int(jdec + _D('0.5')) - 0.5               # for the date
+            uth = float((jdec + _D('0.5')) % 1 * 24)         # UT hours
+        j = float(jdec)
+        q = _Quick(j)
+        f = k / (frames - 1)
+        sc = Screen(STD)
+        sc.pixel(-HY, 0)                                     # horizon: full-width line
+        for y in range(18, 213, 3):
+            sc.pixel(y, 18)
+        for v, dy in sine_ticks(HS):
+            y = HY + dy
+            sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
+            sc.ptns(y - 2, 2, v)
+        for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
+            for y in (15, 14, 13):
+                sc.pixel(y, c)
+        for x, l in zip((19, 112, 206, 300, 394), 'SWNES' if off else 'NESWN'):
+            sc.small(7, x, l)
+        for y, x in eq:
+            sc.dot4(y, x)
+        sc.pdat(227, 2, jday); x = sc.phm(227, 88, uth); sc.text(227, x, ' UT')
+        x = sc.pinb(227, 330, k + 1); x = sc.text(227, x, '/'); sc.pinb(227, x, frames)
+        n = 0
+        for i, ((s0, d0), (s1, d1)) in enumerate(zip(b0, b1)):
+            ds = (s1 - s0 + 540.0) % 360.0 - 180.0
+            sha = ds * f + s0
+            dec = (d1 - d0) * f + d0
+            hc, x, y = pos(dec, (q.aries + sha) % 360.0)
+            if hc > 0:
+                sc.glyph(STD, '@(<>=?'[i], y - 6, x - 6)
+                n += 1
+        for star in BRIGHT:
+            if n >= 10:
+                break
+            ra, dec = A.ST[star - 1][0], A.ST[star - 1][1]
+            sq = A.dcos(q.aries - ra + lon) * A.dcos(dec) * A.dcos(lat) + A.dsin(dec) * A.dsin(lat)
+            if not sq > 0:
+                continue
+            hc, x, y = pos(dec, q.aries - ra)
+            sc.glyph(STD, '*', y - 6, x - 6)
+            lx = x + 8
+            if lx > 380:
+                lx -= 32
+            sc.pinb(y - 6, lx, star)
+            n += 1
+        out.append(sc.rows()); times.append(j)
+    return out, times
+
+
 # ---------------------------------------------------------------- ALMT (text)
 def _int_str(n):
     s = ''

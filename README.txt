@@ -306,10 +306,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXS (status-bar font) / PTXT cut to the characters the
-               screens print. 11,177 lines, 70.6 KB as text.
+               screens print. 11,884 lines, 74.4 KB as text (with HANIM).
   NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
                load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 10,889 lines, 68.9 KB
+               (S always; X outside the FAST period stays). 11,596 lines, 72.7 KB
                (288 lines less). Same screens; about 5-24 steps less per screen (no speed
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
@@ -344,6 +344,26 @@ STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
   keep sin Hc in "SHC" (the value before ASIN): no extra trig.
   Celestial equator: each dot is 2 x 2 pixels (four PIXEL), easier to see.
   NAVFULL grows by 234 lines (the font +470, the views shorter).
+
+ANIMATION (Sep 2026) - HANIM, NAV option 9 (NAVFULL: 8 ANIM)
+  IN: Z = JD, Y = lat, X = lon (NAV asks date, UTC, lat, lon as for the other views).
+  The horizon chart of HORZ (sine scale) redrawn every hour for 12 frames, PAUSE 10
+  (1 s) after each; the last frame stays (PAUSE 99). Top line: date and UT of the frame,
+  frame number. Every frame shows only the bodies above the horizon: Sun, Moon, planets,
+  then the brightest stars until 10 bodies - bodies that set disappear, rising ones appear.
+  Change it by editing three program lines: "12 STO 14" (frames), "1 STO 15" (hours per
+  frame), "PAUSE 10" (tenths of a second per frame).
+  Speed: Sun, Moon and planets are calculated twice only (first and last frame, quick
+  formulas SUNF MOOQ PLNQ, about 0.3 deg) and interpolated; GHA Aries exact every frame;
+  stars from the catalogue (no precession, about 0.4 deg: under one chart pixel); the
+  equator is calculated once (matrix EQP). Each frame first calculates the positions
+  (the previous frame stays on the screen), then clears and draws.
+  About 10,000 steps and 110 trigonometric functions per frame: roughly 2.5 s on USB
+  power plus the 1 s pause, about 3.4 times longer on battery (estimate from the step
+  and trig timings measured before). Matrices ANB, ANP, EQP (about 400 numbers).
+  PC: c47pc.py view ANIM (window: Frames, Step h, Frame ms, Play; Save PNG = animated
+  PNG) or  --view ANIM --png anim.png --frames 12 --step 1 --frame-ms 1000
+  Check: python3 tests/test_anim.py (calculator program vs Python, frame by frame).
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,

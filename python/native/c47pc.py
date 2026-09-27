@@ -33,8 +33,8 @@ sys.path.insert(0, HERE)
 import c47screen
 import c47tables
 
-VERSION = '1.1'
-VERSION_DATE = '2026-09-26'
+VERSION = '1.2'
+VERSION_DATE = '2026-09-27'
 PROGRAM = 'C47 Nav PC'
 ABOUT = ("This program began as a set of RPN programs for the SwissMicros C47 calculator: "
          "Sun, Moon, planets and the 57 navigational stars, sight reduction, and the almanac "
@@ -67,6 +67,10 @@ VIEWS (same as on the C47)
   HORZ   full-screen horizon chart; R/S steps through the objects (name, Zn, Hc)
   HORZS  horizon chart only
   ALMT   text almanac, one page of two lines per R/S (as PROMPT on the C47)
+  ALMS   short almanac;  HALMH  chart on top, short almanac below
+  ANIM   animation (HANIM on the C47): the horizon chart every Step hours,
+         Frames frames, each shown Frame ms; only bodies above the horizon.
+         Plays in a loop; R/S steps one frame. Save PNG writes an animated PNG.
 
 MARKS
   Hc underlined (ALMF, HALMV) or line starting with "* " (ALMT):
@@ -86,6 +90,8 @@ COMMAND LINE
   python3 c47pc.py --view HALMV --date 2026-09-25 --ut 18:30 \\
           --lat "25 20 N" --lon "55 12 E" --png halmv.png
   python3 c47pc.py --view ALMT --date ... --lat ... --lon ...   (prints the lines)
+  python3 c47pc.py --view ANIM --date ... --lat ... --lon ... --png anim.png \
+          --frames 12 --step 1 --frame-ms 1000        (animated PNG; --all-frames: one PNG each)
   python3 c47pc.py --help    all options
 
 ALMANAC TABLES  (T / S in the corner of every screen)
@@ -112,11 +118,12 @@ ON BOARD
 DOES NOT REPLACE THE NAUTICAL ALMANAC."""
 
 W, H = 400, 240
-VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'ALMS', 'HALMH']
+VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'ALMS', 'HALMH', 'ANIM']
 VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
              'HORZ': 'horizon chart + info per object', 'HORZS': 'horizon chart',
              'ALMT': 'text almanac, one line per R/S', 'ALMS': 'short almanac: Sun, Moon, 1 planet, 3 stars',
-             'HALMH': 'horizon chart on top, short almanac below'}
+             'HALMH': 'horizon chart on top, short almanac below',
+             'ANIM': 'animation: the bodies moving on the horizon chart (HANIM)'}
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)
@@ -189,12 +196,16 @@ class Engine:
         self.tables = c47tables.Tables(tables) if tables else None
         self.use = bool(self.tables)
         self.last = None
+        self.anim = {'frames': 12, 'step': 1.0}          # ANIM: frames, hours between frames
 
     def _al(self, j, lat, lon):
         self.last = c47screen.Almanac(j, lat, lon, self.tables if self.use else None)
         return self.last
 
     def screen(self, view, j, lat, lon):
+        if view == 'ANIM':
+            self._al(j, lat, lon)
+            return c47screen.hanim(j, lat, lon, self.anim['frames'], self.anim['step'])[0], None
         return c47screen.VIEWS[view](self._al(j, lat, lon)), None
 
     def text(self, j, lat, lon):
@@ -232,6 +243,28 @@ def write_png(fn, w, h, rgb):
     with open(fn, 'wb') as fh:
         fh.write(b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0))
                  + chunk(b'IDAT', zlib.compress(raw, 9)) + chunk(b'IEND', b''))
+
+
+def write_apng(fn, frames, ms):
+    """Animated PNG: frames = list of (w, h, rgb), each shown ms milliseconds, endless loop."""
+    w, h = frames[0][0], frames[0][1]
+
+    def chunk(t, d):
+        return struct.pack('>I', len(d)) + t + d + struct.pack('>I', zlib.crc32(t + d) & 0xffffffff)
+    out = [b'\x89PNG\r\n\x1a\n', chunk(b'IHDR', struct.pack('>IIBBBBB', w, h, 8, 2, 0, 0, 0)),
+           chunk(b'acTL', struct.pack('>II', len(frames), 0))]
+    seq = 0
+    for k, (_, _, rgb) in enumerate(frames):
+        out.append(chunk(b'fcTL', struct.pack('>IIIIIHHBB', seq, w, h, 0, 0, int(ms), 1000, 0, 0)))
+        seq += 1
+        data = zlib.compress(b''.join(b'\x00' + bytes(rgb[y * w * 3:(y + 1) * w * 3]) for y in range(h)), 9)
+        if k == 0:
+            out.append(chunk(b'IDAT', data))
+        else:
+            out.append(chunk(b'fdAT', struct.pack('>I', seq) + data)); seq += 1
+    out.append(chunk(b'IEND', b''))
+    with open(fn, 'wb') as fh:
+        fh.write(b''.join(out))
 
 
 # ------------------------------------------------------------------ GTK window
@@ -355,6 +388,24 @@ def run_gtk(eng, args):
                                 else 'TBL.txt not found (programs/ or next to c47pc.py)')
             ct.connect('toggled', self.on_tables); hb.pack_end(ct, False, False, 6)
 
+            ab = Gtk.Box(spacing=6); box.pack_start(ab, False, False, 0)
+            ab.pack_start(Gtk.Label(label='ANIM:'), False, False, 0)
+            self.timer = None
+
+            def spin(label, lo, hi, step, val, digits, tip):
+                ab.pack_start(Gtk.Label(label=label), False, False, 0)
+                sp = Gtk.SpinButton.new_with_range(lo, hi, step); sp.set_digits(digits); sp.set_value(val)
+                sp.set_tooltip_text(tip); ab.pack_start(sp, False, False, 0)
+                return sp
+            self.s_frames = spin('Frames', 2, 96, 1, args.frames, 0, 'number of frames (HANIM: 12)')
+            self.s_step = spin('Step h', 0.05, 12, 0.25, args.step, 2, 'hours between frames (HANIM: 1)')
+            self.s_ms = spin('Frame ms', 50, 10000, 50, args.frame_ms, 0, 'time each frame is shown (HANIM: PAUSE 10 = 1 s)')
+            self.s_frames.connect('value-changed', lambda w: self.view == 'ANIM' and self.on_run())
+            self.s_step.connect('value-changed', lambda w: self.view == 'ANIM' and self.on_run())
+            self.s_ms.connect('value-changed', lambda w: self.view == 'ANIM' and self.play())
+            self.b_play = Gtk.ToggleButton(label='Play'); self.b_play.set_active(True)
+            self.b_play.connect('toggled', lambda w: self.play()); ab.pack_start(self.b_play, False, False, 6)
+
             self.area = Gtk.DrawingArea()
             b = 6 * self.scale
             self.area.set_size_request(W * self.scale + 2 * b, H * self.scale + 2 * b)
@@ -433,6 +484,7 @@ def run_gtk(eng, args):
             except Exception as ex:
                 self.status.set_text('Input error: %s' % ex); return
             t0 = time.time()
+            eng.anim = {'frames': int(self.s_frames.get_value()), 'step': self.s_step.get_value()}
             try:
                 if self.view == 'ALMT':
                     self.lines, n = eng.text(j, lat, lon); self.frames = [set()]
@@ -443,16 +495,34 @@ def run_gtk(eng, args):
             self.k = 0
             self.steps = n; self.secs = time.time() - t0
             self.update_status(); self.area.queue_draw()
+            self.play()
+
+        def play(self):
+            """ANIM: show the frames one after another (Frame ms each), in a loop."""
+            if self.timer:
+                GLib.source_remove(self.timer); self.timer = None
+            if self.view == 'ANIM' and len(self.frames) > 1 and self.b_play.get_active():
+                self.timer = GLib.timeout_add(int(self.s_ms.get_value()), self.on_tick)
+
+        def on_tick(self):
+            if self.view != 'ANIM':
+                self.timer = None; return False
+            self.k = (self.k + 1) % len(self.frames); self.update_status(); self.area.queue_draw()
+            return True
 
         def update_status(self):
             extra = ''
             if self.view == 'ALMT' and self.lines:
                 extra = '   page %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.lines))
+            elif self.view == 'ANIM':
+                extra = '   frame %d/%d, every %.2f h' % (self.k + 1, len(self.frames), self.s_step.get_value())
             elif len(self.frames) > 1:
                 extra = '   object %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.frames))
             grey = '   grey = next pages' if self.view == 'ALMT' else ''
             src = ''
-            if eng.last is not None:
+            if self.view == 'ANIM':
+                src = '   quick positions (as HANIM)'
+            elif eng.last is not None:
                 src = '   %s = %s' % (eng.last.source, 'almanac tables (%s)' % eng.tables.period
                                       if eng.last.moon_t else 'series')
             self.status.set_text('%s (%.2f s)%s%s%s' % (self.view, self.secs, src, extra, grey))
@@ -483,6 +553,8 @@ def run_gtk(eng, args):
                 if self.view == 'ALMT':
                     with open(fn, 'w', encoding='utf-8') as fh:
                         fh.write(pages_text(self.lines) + '\n')
+                elif self.view == 'ANIM':
+                    write_apng(fn, [render_rgb(f, self.scale, self.lcd, True) for f in self.frames], self.s_ms.get_value())
                 else:
                     write_png(fn, *render_rgb(self.frames[self.k], self.scale, self.lcd, True))
                 self.status.set_text('Saved %s' % fn)
@@ -538,13 +610,16 @@ def run_gtk(eng, args):
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser(description='C47_nav screens on the PC (native Python calculations).')
-    ap.add_argument('--view', choices=VIEWS, help='ALMF HALMV HORZ HORZS ALMT ALMS HALMH (default HALMV)')
+    ap.add_argument('--view', choices=VIEWS, help='ALMF HALMV HORZ HORZS ALMT ALMS HALMH ANIM (default HALMV)')
     ap.add_argument('--date', help='YYYY-MM-DD (default: today UTC)')
     ap.add_argument('--ut', help='hh:mm or hh:mm:ss UT (default: now)')
     ap.add_argument('--lat', help='e.g. "25 20.0 N" or 25.3333')
     ap.add_argument('--lon', help='e.g. "55 12.0 E" or -75.5')
     ap.add_argument('--png', help='write the screen to this PNG file (no window)')
-    ap.add_argument('--all-frames', action='store_true', help='HORZ: one PNG per object (_0, _1, ...)')
+    ap.add_argument('--all-frames', action='store_true', help='HORZ: one PNG per object; ANIM: one PNG per frame (_0, _1, ...)')
+    ap.add_argument('--frames', type=int, default=12, help='ANIM: number of frames (default 12)')
+    ap.add_argument('--step', type=float, default=1.0, help='ANIM: hours between frames (default 1)')
+    ap.add_argument('--frame-ms', type=float, default=1000, help='ANIM: time each frame is shown, ms (default 1000)')
     ap.add_argument('--scale', type=int, default=3, help='pixels per C47 pixel (default 3)')
     ap.add_argument('--plain', action='store_true', help='black on white instead of LCD colours')
     ap.add_argument('--no-bezel', action='store_true', help='PNG without the dark frame')
@@ -571,6 +646,7 @@ def main():
         return
 
     eng = Engine(None if args.series else (args.tables or c47tables.find()))
+    eng.anim = {'frames': args.frames, 'step': args.step}
     batch = bool(args.png) or (args.view == 'ALMT' and bool(args.lat)) or args.body is not None
     if not batch:
         try:
@@ -606,6 +682,10 @@ def main():
                 fh.write(pages_text(lines) + '\n')
         return
     frames, n = eng.screen(view, j, lat, lon)
+    if view == 'ANIM' and not args.all_frames:
+        write_apng(args.png, [render_rgb(f, args.scale, not args.plain, not args.no_bezel) for f in frames], args.frame_ms)
+        print('%s written: animated PNG, %d frames, %d ms each, every %g h' % (args.png, len(frames), args.frame_ms, args.step))
+        return
     if args.all_frames and len(frames) > 1:
         base, ext = os.path.splitext(args.png)
         for i, fr in enumerate(frames):
