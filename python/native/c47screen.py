@@ -500,8 +500,9 @@ class _Quick:
 
 def hanim(j0, lat, lon, frames=24, step=0.5):
     """HANIM: the Sun and the Moon on the horizon chart (as HORZ) for `frames` times `step`
-    hours apart; each shown only while above the horizon. Sun: SUNF, Moon: MOOQ, both for
-    the time of the frame. Returns (list of frames, list of JD)."""
+    hours apart; each drawn only while above the horizon. The chart is drawn once and every
+    frame adds the Sun and Moon (their paths build up); only the top line is rewritten.
+    Sun: SUNF, Moon: MOOQ, for the time of each frame. Returns (list of frames, list of JD)."""
     frames = max(1, int(frames))
     HY, HS = 16, 196
     off = 180 if lat < 0 else 0
@@ -510,11 +511,23 @@ def hanim(j0, lat, lon, frames=24, step=0.5):
         hc, zn, sh = A.hczs(lat, lon, dec, gha)
         return hc, chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
 
-    eq = []
-    for g in range(0, 359, 2):                               # celestial equator: fixed on the chart
+    sc = Screen(STD)
+    sc.pixel(-HY, 0)                                         # horizon: full-width line
+    for y in range(18, 213, 3):
+        sc.pixel(y, 18)
+    for v, dy in sine_ticks(HS):
+        y = HY + dy
+        sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
+        sc.ptns(y - 2, 2, v)
+    for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
+        for y in (15, 14, 13):
+            sc.pixel(y, c)
+    for x, l in zip((19, 112, 206, 300, 394), 'SWNES' if off else 'NESWN'):
+        sc.small(7, x, l)
+    for g in range(0, 359, 2):                               # celestial equator
         hc, x, y = pos(0, g)
         if hc > 1e-4:
-            eq.append((y, x))
+            sc.dot4(y, x)
     out, times = [], []
     for k in range(frames):
         with _lc() as ctx:                                   # frame time in 34 digits, as the C47
@@ -523,21 +536,7 @@ def hanim(j0, lat, lon, frames=24, step=0.5):
             jday = int(jdec + _D('0.5')) - 0.5               # for the date
             uth = float((jdec + _D('0.5')) % 1 * 24)         # UT hours
         j = float(jdec)
-        sc = Screen(STD)
-        sc.pixel(-HY, 0)                                     # horizon: full-width line
-        for y in range(18, 213, 3):
-            sc.pixel(y, 18)
-        for v, dy in sine_ticks(HS):
-            y = HY + dy
-            sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
-            sc.ptns(y - 2, 2, v)
-        for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
-            for y in (15, 14, 13):
-                sc.pixel(y, c)
-        for x, l in zip((19, 112, 206, 300, 394), 'SWNES' if off else 'NESWN'):
-            sc.small(7, x, l)
-        for y, x in eq:
-            sc.dot4(y, x)
+        sc.pix = {p for p in sc.pix if p[1] < 224}           # clear the top line only
         sc.pdat(227, 2, jday); x = sc.phm(227, 88, uth); sc.text(227, x, ' UT')
         x = sc.pinb(227, 330, k + 1); x = sc.text(227, x, '/'); sc.pinb(227, x, frames)
         g, d = A.sun_fast(j)
