@@ -72,6 +72,12 @@ class Screen:
         if y < 0:
             self.pix.update((xx, -y) for xx in range(400))
 
+    def dot4(self, y, x):
+        """Equator dot: 2 x 2 pixels (y, x) to (y + 1, x + 1)."""
+        for dy in (0, 1):
+            for dx in (0, 1):
+                self.pixel(y + dy, x + dx)
+
     def hline(self, y, x, n):                            # PHL
         for i in range(ip(n)):
             self.pix.add((ip(x) + i, ip(y)))
@@ -384,7 +390,7 @@ def halmv(al):
     for g in range(0, 358, 3):                               # celestial equator
         hc, zn, x, y = pos(0, g)
         if hc > 1e-4:
-            sc.pixel(y, x)
+            sc.dot4(y, x)
     sc.pdat(226, X0, al.j); sc.phm(226, X0 + 88, ut_hours(al.j)); sc.text(226, X0 + 129, 'UT')
     sc.text(226, 388, al.source)
     sc.text(212, X0, 'S' if al.lat < 0 else 'N'); sc.pdm(212, X0 + 2, abs(al.lat))
@@ -445,7 +451,7 @@ def horz(al, info=True):
     for g in range(0, 359, 2):
         hc, zn, x, y = pos(0, g)
         if hc > 1e-4:
-            sc.pixel(241 - y, x)
+            sc.dot4(241 - y, x)
     # same bodies as ALMF / HALMV / ALMT (Sun always, drawn only above the horizon)
     objs = []
     for ident, g, d, hc, zn in al.bodies():
@@ -662,7 +668,7 @@ def halmh(al):
     for g in range(0, 358, 3):
         hc, zn, x, y = pos(0, g)
         if hc > 1e-4:
-            sc.pixel(y, x)
+            sc.dot4(y, x)
     y = TOP
     for ident, g, d, hc, zn in al.bodies_short():
         _, _, cx, cy = pos(d, g)
@@ -815,7 +821,7 @@ def body_chart(al, code):
     for gg in range(0, 355, 6):
         h, x, y = pos(0, gg)
         if h > 1e-4:
-            sc.pixel(y, x)
+            sc.dot4(y, x)
     sym = '*' if code < 60 else '@(<>=?'[code - 60]
     h, cx, cy = pos(d, g)
     if h > 0:

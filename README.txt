@@ -306,10 +306,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXS (status-bar font) / PTXT cut to the characters the
-               screens print. 11,108 lines, 70.3 KB as text.
+               screens print. 11,177 lines, 70.6 KB as text.
   NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
                load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 10,820 lines, 68.6 KB
+               (S always; X outside the FAST period stays). 10,889 lines, 68.9 KB
                (288 lines less). Same screens; about 5-24 steps less per screen (no speed
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
@@ -342,6 +342,7 @@ STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
   Charts: sine altitude scale, height = sin(Hc) x scale: 0-30 deg takes half the height,
   90 deg stays at the top, nothing is cut. Marks 10 20 30 45 60 90. HCZ, HCZ0 and HCZR
   keep sin Hc in "SHC" (the value before ASIN): no extra trig.
+  Celestial equator: each dot is 2 x 2 pixels (four PIXEL), easier to see.
   NAVFULL grows by 234 lines (the font +470, the views shorter).
 
 MOON WORD (Sep 2026)

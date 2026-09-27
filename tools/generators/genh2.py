@@ -56,7 +56,7 @@ def gen(name, info, rows=10):
     a('LBL 43','XEQ 57','RCL 82','XEQ 40','RTN')
     for lab,s in ((71,'<'),(72,'>'),(73,'='),(74,'?')): a('LBL %d'%lab,'"%s"'%s,'RTN')
     for lab,s in ((81,'MOON'),(82,'VENUS'),(83,'MARS'),(84,'JUPITER'),(85,'SATURN')): a('LBL %d'%lab,'"%s"'%s,'RTN')
-    a('LBL 55','241','RCL- 99','RCL 98','PIXEL','RTN')
+    a('LBL 55','241','RCL- 99','STO 36','RCL 98','PIXEL','RCL 36','RCL 98','1','+','PIXEL','RCL 36','1','+','RCL 98','PIXEL','RCL 36','1','+','RCL 98','1','+','PIXEL','RTN')   # equator dot: 2 x 2 pixels
     a('LBL 51','XEQ "HCZR"','GTO 49')
     a('LBL 52','XEQ "HCZ"','LBL 49','RCL 97','RCL+ 44','360','MOD','375','×','360','÷','20','+','IP','STO 98',
       '225','RCL "SHC"',HS,'×','-','IP','STO 99','RTN')

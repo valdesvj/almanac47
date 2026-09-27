@@ -60,7 +60,7 @@ a('3', 'STO 37', 'LBL 20', 'PAUSE 99', 'DSE 37', 'GTO 20', 'RTN')
 a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
 a('LBL 25', '"FULL"', 'STO 43', 'RTN', 'LBL 30', '"NEW"', 'STO 43', 'RTN')
 a('LBL 28', '"WANING"', 'STO 43', 'RTN', 'LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
-a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RTN')
+a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')          # equator dot: 2 x 2 pixels
 a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "PTXS"', 'RTN')
 # chart column R98 = IP(((Zn + R44) MOD 360) * 178/360 + 18), row R99 = IP(sin(Hc) * 200 + 14)
 a('LBL 51', 'XEQ "HCZR"', 'GTO 49')

@@ -141,7 +141,7 @@ a('LBL 45', '-1', 'PROMPT 20', 'STO 21', '0', 'STO 43', 'RTN')
 a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
 a('LBL 55', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
   'RCL "SHC"', HS, '×', HY, '+', 'IP', 'STO 99', 'RTN')
-a('LBL 56', 'RCL 99', 'RCL 98', 'PIXEL', 'RTN')
+a('LBL 56', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')          # equator dot: 2 x 2 pixels
 a('LBL 60', 'RCL 13', '60', 'X=Y?', 'GTO 61', 'RCL 13', 'XEQ 38', 'STO 26', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'RCL 26', 'XEQ "PTXS"',
   'RCL 13', '59', 'X<Y?', 'RTN', 'RCL 98', '8', '+', 'STO 26', '380', 'RCL 26', 'X>Y?', 'XEQ 62',
   'RCL 99', '6', '-', 'RCL 26', 'RCL 13', 'XEQ "PINS"', 'RTN', 'LBL 62', '32', 'STO- 26', 'RTN',
