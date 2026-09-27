@@ -11,12 +11,12 @@ def split(path):
         if l=='END': progs.append(cur); cur=[]
     return progs
 def load(paths, tables, fast=False):
+    paths=[('build/NAVINIT_FAST.txt' if fast else 'build/NAVINIT_FULL.txt') if p=='build/NAVINIT.txt' else p for p in paths]
     tmp=tempfile.mkdtemp(); files=[]
     for p in paths:
         for i,pr in enumerate(split(p)):
             f=os.path.join(tmp,'%s_%d.txt'%(os.path.basename(p),i)); open(f,'w').write('\n'.join(pr)+'\n'); files.append(f)
     c=c47sim.load(files)
-    c.answers=[2] if fast else [1]
     c.run('INIT',maxsteps=10**7)
     if tables: c.run('TBL',maxsteps=10**7)
     return c

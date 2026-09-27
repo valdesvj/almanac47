@@ -8,9 +8,11 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                reduction, sunrise/twilight, Moon phase, star order and names,
                the table lookup TGET and the two fonts, cut down to the
                characters the screens really print)
-  NAVINIT.txt  MATA, MATST, MATM, MATP, MATF and INIT: load, XEQ "INIT" once (1 FULL
-               VSOP87 2000-2050, or 2 FAST fitted series for a few years, faster and
-               smaller), then delete these programs - the matrices they build stay
+  NAVINIT_FULL.txt  MATA MATST MATM MATP + INIT (VSOP87, 2000-2050)
+  NAVINIT_FAST.txt  MATN MATST MATM MATF + INIT (fitted series for a few years: faster,
+               smaller). Load ONE of them, XEQ "INIT" once, then delete the programs -
+               the matrices they build stay. Zero elements are not stored (NEWMAT
+               starts with zeros).
   TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
 
 Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
@@ -20,7 +22,7 @@ list above the horizon, key its number, text pages, then the chart).
 Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 
-  python3 tools/build_navfull.py            -> build/NAVFULL.txt, build/NAVINIT.txt, build/TBL.txt
+  python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL.txt
 """
 import os, re, shutil, sys
 
@@ -72,6 +74,17 @@ def nav_min(lines):
     return s.split('\n')
 
 
+def compact(lines):
+    """Drop '0' + 'STOEL' pairs: a new matrix is full of zeros already."""
+    out, i = [], 0
+    while i < len(lines):
+        if lines[i] == '0' and i + 1 < len(lines) and lines[i + 1] == 'STOEL':
+            i += 2
+            continue
+        out.append(lines[i]); i += 1
+    return out
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
@@ -86,17 +99,27 @@ def build():
     full = nav + [l for n in KEEP for l in progs[n]]
     import json
     period = json.load(open(os.path.join(ROOT, 'python', 'native', 'fast_series.json')))['period']
-    # INIT: 1 FULL (VSOP87, MATA + MATP, 2000-2050) or 2 FAST (MATF, fitted series for a few years)
-    init = (['LBL "INIT"', '"1 FULL 2000-2050  2 FAST %s"' % period, 'STO 39', 'PROMPT 39', 'STO 38',
-             'XEQ "MATA"', 'XEQ "MATST"', 'XEQ "MATM"', '2', 'RCL 38', 'X=Y?', 'GTO 01', 'XEQ "MATP"',
-             '"MATRICES READY: FULL"', 'RTN', 'LBL 01', 'XEQ "MATF"', '"MATRICES READY: FAST %s"' % period, 'RTN', 'END']
-            + [l for n in INIT + ['MATF'] for l in read(n)])
+    # matrix builders, compacted: NEWMAT starts with zeros, so "0 STOEL" is dropped (J+ stays)
+    mata = compact(read('MATA'))
+    k = mata.index('STO "NU"') - 4                    # NU (nutation) block: rows ENTER cols NEWMAT
+    matn = ['LBL "MATN"'] + mata[k:]                  # NU only, for FAST (MATF builds VL VB VR)
+    def init_prog(title, names, bodies):
+        return (['LBL "INIT"'] + ['XEQ "%s"' % n for n in names] + ['"MATRICES READY: %s"' % title, 'RTN', 'END']
+                + [l for b in bodies for l in b])
+    init_full = init_prog('FULL 2000-2050', ['MATA', 'MATST', 'MATM', 'MATP'],
+                          [mata, compact(read('MATST')), compact(read('MATM')), compact(read('MATP'))])
+    init_fast = init_prog('FAST ' + period, ['MATN', 'MATST', 'MATM', 'MATF'],
+                          [matn, compact(read('MATST')), compact(read('MATM')), compact(read('MATF'))])
+    init = init_full
     os.makedirs(OUT, exist_ok=True)
-    for name, L in (('NAVFULL', full), ('NAVINIT', init)):
+    old = os.path.join(OUT, 'NAVINIT.txt')
+    if os.path.exists(old):
+        os.remove(old)
+    for name, L in (('NAVFULL', full), ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(L) + '\n')
     shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(OUT, 'TBL.txt'))
-    return full, init, progs, nav
+    return full, init_full, init_fast, progs, nav
 
 
 def size(lines):
@@ -104,10 +127,11 @@ def size(lines):
 
 
 if __name__ == '__main__':
-    full, init, progs, nav = build()
+    full, init, init_fast, progs, nav = build()
     print('%-9s %7s %8s' % ('program', 'lines', 'bytes'))
     for n in ['NAV'] + KEEP:
         print('%-9s %7d %8d' % ((n,) + size(nav if n == 'NAV' else progs[n])))
     print('%-9s %7d %8d   <- stays on the calculator' % (('NAVFULL',) + size(full)))
-    print('%-9s %7d %8d   <- load, XEQ INIT, delete' % (('NAVINIT',) + size(init)))
+    print('%-12s %7d %8d   <- FULL: load, XEQ INIT, delete' % (('NAVINIT_FULL',) + size(init)))
+    print('%-12s %7d %8d   <- FAST: load, XEQ INIT, delete' % (('NAVINIT_FAST',) + size(init_fast)))
     print('written to', OUT)

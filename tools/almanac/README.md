@@ -65,5 +65,5 @@ to the FULL series (VSOP87) over the period with a quadratic plus the short-peri
 
     python3 fastseries.py 2026 5     # -> programs/MATF.txt and python/native/fast_series.json
 
-Needs numpy. On the calculator: load MATF (or NAVINIT) and run INIT, option 2 FAST. Each
+Needs numpy. On the calculator: load NAVINIT_FAST and run INIT (or MATF after the FULL matrices). Each
 period has its own coefficients; outside it the screens show X instead of T/S.

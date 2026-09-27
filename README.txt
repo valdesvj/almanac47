@@ -280,10 +280,10 @@ TIME (Sep 2026): on the C47 the trigonometric functions take most of the time (a
      HALMV       33.4      16.6 / 14.9
      HORZ        35.9      14.7 / 13.1
   Values shown are unchanged (all parity tests). Matrix layouts changed: load the new
-  NAVINIT and run INIT again. FULL matrices now hold about 5,700 numbers (was 4,300);
+  NAVINIT_FULL or NAVINIT_FAST and run INIT again. FULL matrices now hold about 5,700 numbers (was 4,300);
   FAST about 3,100.
 
-FULL OR FAST SERIES (Sep 2026) - INIT asks "1 FULL 2000-2050  2 FAST 2026-2030"
+FULL OR FAST SERIES (Sep 2026) - NAVINIT_FULL or NAVINIT_FAST (load one, XEQ "INIT")
   FULL: VSOP87 truncated (MATA, MATP), any date 2000-2050.
   FAST: a series fitted to 2026-2030 only (MATF, tools/almanac/fastseries.py): a
         quadratic for all slow effects plus the short-period terms. 677 terms -> 185,
@@ -307,8 +307,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXB / PTXT cut to the characters the screens print.
                10,555 lines, 64.2 KB as text (without HORZ, ALMS, HALMH, BODY: 6,619 lines, 40.5 KB).
-  NAVINIT.txt  MATA MATST MATM MATP MATF + INIT: load, XEQ "INIT" once (1 FULL or 2 FAST),
-               delete the programs.
+  NAVINIT_FULL.txt  MATA MATST MATM MATP + INIT, 12,235 lines (VSOP87, 2000-2050)
+  NAVINIT_FAST.txt  MATN MATST MATM MATF + INIT, 6,531 lines (fitted series, 2026-2030)
+               Load ONE of them, XEQ "INIT" once, delete the programs (the matrices stay).
+               Zero elements are not stored: a new matrix starts with zeros.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
                26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47
                that also holds NAVFULL and the matrices.
@@ -353,7 +355,7 @@ SPEED-UPS (Sep 2026)
               HORZ 76k -> 51k
      tables:  ALMT 20k -> 17k, ALMF 36k, HALMV 45k (almost unchanged)
   Rebuild the matrices after loading the new MATA/MATP (NAV option 3, or
-  NAVINIT + XEQ "INIT"): the old matrices do not work with the new SER.
+  NAVINIT_FULL/FAST + XEQ "INIT"): the old matrices do not work with the new SER.
 
 PC VIEWER - python/c47view.py (+ c47sim.py)
   Shows ALMF, HALMV, HORZ, HORZS and ALMT on a PC exactly as on the C47: it runs
