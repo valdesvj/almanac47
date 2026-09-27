@@ -8,6 +8,9 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                reduction, sunrise/twilight, Moon phase, star order and names,
                the table lookup TGET and the two fonts, cut down to the
                characters the screens really print)
+  NAVFULL_NOTBL.txt  the same without the almanac tables: no TGET, no table hooks in
+               SUNA/MOON/PLAN/BODY, no "T" letter (the "X" letter stays). Use it when
+               memory is short and you do not load TBL. Load NAVFULL OR NAVFULL_NOTBL.
   NAVINIT_FULL.txt  MATA MATST MATM MATP + INIT (VSOP87, 2000-2050)
   NAVINIT_FAST.txt  MATN MATST MATM MATF + INIT (fitted series for a few years: faster,
                smaller). Load ONE of them, XEQ "INIT" once, then delete the programs -
@@ -22,7 +25,7 @@ list above the horizon, key its number, text pages, then the chart).
 Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 
-  python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL.txt
+  python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVFULL_NOTBL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL.txt
 """
 import os, re, shutil, sys
 
@@ -85,6 +88,43 @@ def compact(lines):
     return out
 
 
+def cut(s, old, new='', count=1):
+    """Replace an exact block; fail loudly if the source changed."""
+    assert s.count(old) == count, 'no-tables: block not found %r' % old[:60]
+    return s.replace(old, new)
+
+
+def no_tables(progs):
+    """Programs without the almanac tables (TBL/TGET): the calculator always uses the
+    series. Removes TGET, the table hooks in SUNA, MOON, PLAN, BODY (flags 10 and 11)
+    and the "T" letter of the screens. The "X" letter (flag 12, date outside the FAST
+    period) stays. The Python version keeps the tables option."""
+    p = {n: '\n'.join(L) + '\n' for n, L in progs.items() if n != 'TGET'}
+    # SUNA: table override after the series, and SUNG goes straight to SUNF
+    p['SUNA'] = cut(p['SUNA'], 'FS? 10\nXEQ 45\n')
+    p['SUNA'] = cut(p['SUNA'], 'LBL 45\nRCL 70\n0\nXEQ "TGET"\nX<0?\nRTN\nSTO 81\nR↓\nSTO 77\nRCL 70\n6\nXEQ "TGET"\nX<0?\nRTN\nSTO 80\nRTN\n')
+    p['SUNA'] = cut(p['SUNA'], 'LBL "SUNG"\nFC? 10\nGTO "SUNF"\nSTO 70\n0\nXEQ "TGET"\nX≥0?\nRTN\nRCL 70\n', 'LBL "SUNG"\n')
+    # MOON: table lookup and the flag 11 (values from the tables)
+    p['MOON'] = cut(p['MOON'], 'FC? 10\nGTO 22\nRCL 70\n5\nXEQ "TGET"\nX<0?\nGTO 22\nSF 11\nRTN\nLBL 22\nCF 11\n', 'LBL 22\n')
+    # PLAN: table lookup in PLN2, and PLN3 no longer diverts to PLN2
+    s = p['PLAN']
+    i = s.index('LBL "PLN2"\nSTO 09\nFC? 10\n') + len('LBL "PLN2"\nSTO 09\n')
+    j = s.index('LBL 33\n', i)
+    assert 'XEQ "TGET"' in s[i:j] and s[i:j].endswith('LBL 32\nRCL 34\nSTO 09\n')
+    p['PLAN'] = cut(s[:i] + s[j:], 'LBL "PLN3"\nFS? 10\nGTO "PLN2"\n', 'LBL "PLN3"\n')
+    # BODY: Moon distance from the tables and its "T" letter
+    p['BODY'] = cut(p['BODY'], 'FC? 10\nGTO 15\nRCL 10\n6\nXEQ "TGET"\nX≥0?\nXEQ 59\n')
+    p['BODY'] = cut(p['BODY'], 'LBL 59\n"T"\nSTO 25\nRTN\n')
+    # screens: "T" letter (FS? 11 XEQ 29, LBL 29 "T" ...)
+    for n in ('ALMF', 'ALMS', 'ALMT', 'HALMV', 'HALMH', 'HORZ'):
+        p[n] = cut(p[n], 'FS? 11\nXEQ 29\n')
+        p[n] = re.sub(r'LBL 29\n"T"\n(STO \d+\n)?RTN\n', '', p[n], count=1)
+    s = ''.join(p.values())
+    for bad in ('TGET', 'FS? 10', 'FC? 10', 'FS? 11', 'SF 11', 'CF 11'):
+        assert bad not in s, 'no-tables: %s left' % bad
+    return {n: v.rstrip('\n').split('\n') for n, v in p.items()}
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
@@ -115,11 +155,13 @@ def build():
     old = os.path.join(OUT, 'NAVINIT.txt')
     if os.path.exists(old):
         os.remove(old)
-    for name, L in (('NAVFULL', full), ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
+    nt = no_tables(progs)
+    notbl = nav + [l for n in KEEP if n != 'TGET' for l in nt[n]]
+    for name, L in (('NAVFULL', full), ('NAVFULL_NOTBL', notbl), ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(L) + '\n')
     shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(OUT, 'TBL.txt'))
-    return full, init_full, init_fast, progs, nav
+    return full, init_full, init_fast, progs, nav, notbl
 
 
 def size(lines):
@@ -127,11 +169,12 @@ def size(lines):
 
 
 if __name__ == '__main__':
-    full, init, init_fast, progs, nav = build()
+    full, init, init_fast, progs, nav, notbl = build()
     print('%-9s %7s %8s' % ('program', 'lines', 'bytes'))
     for n in ['NAV'] + KEEP:
         print('%-9s %7d %8d' % ((n,) + size(nav if n == 'NAV' else progs[n])))
     print('%-9s %7d %8d   <- stays on the calculator' % (('NAVFULL',) + size(full)))
+    print('%-13s %7d %8d   <- or this one: the same without the tables (TBL/TGET)' % (('NAVFULL_NOTBL',) + size(notbl)))
     print('%-12s %7d %8d   <- FULL: load, XEQ INIT, delete' % (('NAVINIT_FULL',) + size(init)))
     print('%-12s %7d %8d   <- FAST: load, XEQ INIT, delete' % (('NAVINIT_FAST',) + size(init_fast)))
     print('written to', OUT)

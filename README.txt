@@ -306,7 +306,14 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXB / PTXT cut to the characters the screens print.
-               10,555 lines, 64.2 KB as text (without HORZ, ALMS, HALMH, BODY: 6,619 lines, 40.5 KB).
+               10,874 lines, 66.7 KB as text.
+  NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
+               load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
+               (S always; X outside the FAST period stays). 10,586 lines, 65.0 KB
+               (288 lines less). Same screens; about 5-24 steps less per screen (no speed
+               change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
+               Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
+               version keeps the tables option.
   NAVINIT_FULL.txt  MATA MATST MATM MATP + INIT, 12,235 lines (VSOP87, 2000-2050)
   NAVINIT_FAST.txt  MATN MATST MATM MATF + INIT, 6,531 lines (fitted series, 2026-2030)
                Load ONE of them, XEQ "INIT" once, delete the programs (the matrices stay).

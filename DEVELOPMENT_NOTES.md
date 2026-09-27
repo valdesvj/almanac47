@@ -136,6 +136,10 @@ dots exactly on the horizon match. `tools/js/c47engine.js` lacks SF/FS? (referen
 HALMV, ALMT, HORZ and what they call; fonts trimmed to the printed characters), `build/NAVINIT_FULL.txt` / `build/NAVINIT_FAST.txt` (matrix builders + INIT, zero elements dropped, run once and delete) and
 `build/TBL.txt`. Checked in the simulator (`tests/test_navfull.py`): identical screens, HORZ frames, ALMT pages
 and step counts to the full set, with and without tables. Rebuild after changing any program.
+`build/NAVFULL_NOTBL.txt` is made by `no_tables()` in the same script: exact blocks are cut
+(TGET, flag 10/11 hooks, the "T" letter) and the build fails if a block is not found, so a
+change in SUNA/MOON/PLAN/BODY/screens around those hooks needs `no_tables()` updated.
+`tests/test_notbl.py` compares it with NAVFULL view by view in the simulator (FULL and FAST).
 
 ## Ideas tried and dropped (PC version)
 
