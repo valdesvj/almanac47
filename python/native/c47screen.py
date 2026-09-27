@@ -551,6 +551,60 @@ def hanim(j0, lat, lon, frames=24, step=0.5):
     return out, times
 
 
+def allsky(al):
+    """ALLSKY: the whole sky, horizon across the middle; OVER HORIZON above, UNDER HORIZON
+    below (sine scale both ways). Every body: Sun, Moon, planets (big symbols), all 58
+    stars (small star and number, catalogue + first-order precession). Top line: date, UT,
+    DAY / TWILIGHT / NIGHT from the Sun's altitude."""
+    sc = Screen(STD)
+    HY, HS = 118, 100
+    off = 180 if al.lat < 0 else 0
+    sc.pixel(-HY, 0)
+    for y in range(HY - HS, HY + HS + 1, 3):
+        sc.pixel(y, 18)
+    for v, dy in sine_ticks(HS):
+        for y in (HY + dy, HY - dy):
+            sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
+            sc.ptns(y - 2, 2, v)
+    for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
+        sc.pixel(HY - 1, c); sc.pixel(HY - 2, c)
+    for x, l in zip((19, 112, 206, 300, 394), 'SWNES' if off else 'NESWN'):
+        sc.small(HY - 8, x, l)
+    sc.small(HY + HS + 1, 150, 'OVER HORIZON'); sc.small(2, 150, 'UNDER HORIZON')
+    s = al.sun
+    sc.pdat(227, 2, al.j); x = sc.phm(227, 88, ut_hours(al.j)); sc.text(227, x, ' UT')
+
+    def pos(dec, gha):
+        hc, zn, sh = al.hczs(dec, gha)
+        return hc, chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
+
+    for g in range(0, 358, 3):                               # celestial equator, all of it
+        _, x, y = pos(0, g)
+        sc.dot4(y, x)
+    ty = (al.j - 2451545.0) / 365.25 / 3600.0
+    for n in range(1, 59):                                   # every star
+        ra, dec = A.ST[n - 1][0], A.ST[n - 1][1]
+        dec2 = A.dcos(ra) * 20.0431 * ty + dec
+        ra2 = (A.dsin(ra) * A.dtan(dec) * 20.0431 + 46.1244) * ty + ra
+        _, x, y = pos(dec2, (s.aries - ra2) % 360.0)
+        sc.small(y - 2, x - 2, '*')
+        lx = x + 5
+        if lx > 388:
+            lx -= 17
+        sc.ptns(y - 2, lx, n)
+    for p in (1, 2, 3, 4):
+        g, d = al.planets[p][0], al.planets[p][1]
+        _, x, y = pos(d, g)
+        sc.glyph(STD, SYM[p], y - 6, x - 6)
+    m = al.moon
+    _, x, y = pos(m[1], m[0])
+    sc.glyph(STD, '(', y - 6, x - 6)
+    hs, x, y = pos(s.dec, s.gha)
+    sc.glyph(STD, '@', y - 6, x - 6)
+    sc.text(227, 300, 'DAY' if hs > 0 else 'TWILIGHT' if hs > -12 else 'NIGHT')
+    return [sc.rows()]
+
+
 # ---------------------------------------------------------------- ALMT (text)
 def _int_str(n):
     s = ''
@@ -911,4 +965,4 @@ def body_chart(al, code):
     return [sc.rows()]
 
 
-VIEWS = {'ALMS': lambda al: almf(al, True), 'HALMH': halmh, 'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}
+VIEWS = {'ALLSKY': allsky, 'ALMS': lambda al: almf(al, True), 'HALMH': halmh, 'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}

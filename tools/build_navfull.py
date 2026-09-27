@@ -24,7 +24,8 @@ Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
 4 SKY (HORZ, info line per body without end), 5 SMALL (ALMS: Sun, Moon, 1 planet,
 3 stars), 6 SPLIT (HALMH: chart on top, the same short table below), 7 BODY (one body:
 list above the horizon, key its number, text pages, then the chart), 8 ANIM (HANIM:
-the Sun and the Moon moving on the horizon chart, 24 frames 0.5 h apart, 1 s each).
+the Sun and the Moon moving on the horizon chart, 24 frames 0.5 h apart, 1 s each),
+9 ALLSKY (the whole sky: horizon across the middle, over / under the horizon).
 Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 
@@ -37,7 +38,7 @@ PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
 KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
-        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXS', 'PTXT', 'HANIM']
+        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -69,14 +70,14 @@ def nav_min(lines):
     """NAV menu: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT), 4 SKY (HORZ),
     5 SMALL (ALMS), 6 SPLIT (HALMH), 7 BODY (one body)."""
     s = '\n'.join(lines)
-    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 6 SMALL 7 SPLIT 8 BODY 9 ANIM 0 END"',
-                  '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 BODY 8 ANIM 0 END"')
+    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 6 SMALL 7 SPLIT 8 BODY 9 ANIM 10 ALLSKY 0 END"',
+                  '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 BODY 8 ANIM 9 ALLSKY 0 END"')
     s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n5\nRCL 38\nX=Y?\nGTO 14\n'
-                  '6\nRCL 38\nX=Y?\nGTO 15\n7\nRCL 38\nX=Y?\nGTO 16\n8\nRCL 38\nX=Y?\nGTO 17\n9\nRCL 38\nX=Y?\nGTO 18\n',
+                  '6\nRCL 38\nX=Y?\nGTO 15\n7\nRCL 38\nX=Y?\nGTO 16\n8\nRCL 38\nX=Y?\nGTO 17\n9\nRCL 38\nX=Y?\nGTO 18\n10\nRCL 38\nX=Y?\nGTO 19\n',
                   '3\nRCL 38\nX=Y?\nGTO 13\n4\nRCL 38\nX=Y?\nGTO 14\n'
-                  '5\nRCL 38\nX=Y?\nGTO 15\n6\nRCL 38\nX=Y?\nGTO 16\n7\nRCL 38\nX=Y?\nGTO 17\n8\nRCL 38\nX=Y?\nGTO 18\n')
+                  '5\nRCL 38\nX=Y?\nGTO 15\n6\nRCL 38\nX=Y?\nGTO 16\n7\nRCL 38\nX=Y?\nGTO 17\n8\nRCL 38\nX=Y?\nGTO 18\n9\nRCL 38\nX=Y?\nGTO 19\n')
     s = re.sub(r'LBL 12\n.*?GTO 01\n', '', s, flags=re.S)
-    assert 'MATA' not in s and 'XEQ "ALMT"' in s and 'GTO 18' in s and '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 BODY 8 ANIM 0 END"' in s
+    assert 'MATA' not in s and 'XEQ "ALMT"' in s and 'GTO 19' in s and '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 BODY 8 ANIM 9 ALLSKY 0 END"' in s
     return s.split('\n')
 
 
@@ -132,10 +133,10 @@ def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
-    big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU'])
+    big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU']) + strings(progs['ALLSKY'])
               + '0123456789-.: %')
     # small font: warning, T/S/X, chart axis letters and altitude marks
-    small = set(WARNING + 'TSX NEWZHC-.0123456789')
+    small = set(WARNING + 'TSX NEWZHC-.0123456789' + strings(progs['ALLSKY']))
     progs['PTXS'] = trim_font(progs['PTXS'], big)
     progs['PTXT'] = trim_font(progs['PTXT'], small)
     nav = nav_min(progs['NAV'])

@@ -306,10 +306,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXS (status-bar font) / PTXT cut to the characters the
-               screens print. 11,649 lines, 73.1 KB as text (with HANIM).
+               screens print. 12,332 lines, 76.8 KB as text (with HANIM and ALLSKY).
   NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
                load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 11,361 lines, 71.4 KB
+               (S always; X outside the FAST period stays). 12,044 lines, 75.1 KB
                (288 lines less). Same screens; about 5-24 steps less per screen (no speed
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
@@ -362,6 +362,17 @@ ANIMATION (Sep 2026) - HANIM, NAV option 9 (NAVFULL: 8 ANIM)
   PC: c47pc.py view ANIM (window: Frames, Step h, Frame ms, Play; Save PNG = animated
   PNG) or  --view ANIM --png anim.png --frames 24 --step 0.5 --frame-ms 1000
   Check: python3 tests/test_anim.py (calculator program vs Python, frame by frame).
+
+WHOLE SKY (Sep 2026) - ALLSKY, NAV option 10 (NAVFULL: 9 ALLSKY)
+  IN: Z = JD, Y = lat, X = lon. The horizon runs across the middle of the screen: the
+  upper half is OVER HORIZON (Hc 0 to 90), the lower half UNDER HORIZON (Hc 0 to -90),
+  both with the sine altitude scale; Zn across as on HORZ. Every body is drawn: Sun,
+  Moon, planets (big symbols) and all 58 stars (small star and number); the celestial
+  equator dotted in full. Top line: date, UT and DAY (Sun above the horizon), TWILIGHT
+  (Sun above -12 deg) or NIGHT.
+  Sun SUNA, Moon MOO2, planets PLN3; stars from the catalogue with first-order precession
+  (within about 0.05 deg, 9 trig each). About 32,000 steps and 1,100 trigonometric
+  functions: roughly 12 s on USB power (estimate), like HORZ.
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,

@@ -72,6 +72,8 @@ VIEWS (same as on the C47)
          every Step hours, Frames frames, each shown Frame ms; each only while it
          is above the horizon.
          Plays in a loop; R/S steps one frame. Save PNG writes an animated PNG.
+  ALLSKY whole sky: horizon across the middle, OVER HORIZON above, UNDER HORIZON
+         below; Sun, Moon, planets and all 58 stars; DAY / TWILIGHT / NIGHT.
 
 MARKS
   Hc underlined (ALMF, HALMV) or line starting with "* " (ALMT):
@@ -119,12 +121,13 @@ ON BOARD
 DOES NOT REPLACE THE NAUTICAL ALMANAC."""
 
 W, H = 400, 240
-VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'ALMS', 'HALMH', 'ANIM']
+VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'ALMS', 'HALMH', 'ANIM', 'ALLSKY']
 VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
              'HORZ': 'horizon chart + info per object', 'HORZS': 'horizon chart',
              'ALMT': 'text almanac, one line per R/S', 'ALMS': 'short almanac: Sun, Moon, 1 planet, 3 stars',
              'HALMH': 'horizon chart on top, short almanac below',
-             'ANIM': 'animation: the Sun and the Moon moving on the horizon chart (HANIM)'}
+             'ANIM': 'animation: the Sun and the Moon moving on the horizon chart (HANIM)',
+             'ALLSKY': 'whole sky: over the horizon above, under the horizon below, every body'}
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)
@@ -611,7 +614,7 @@ def run_gtk(eng, args):
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser(description='C47_nav screens on the PC (native Python calculations).')
-    ap.add_argument('--view', choices=VIEWS, help='ALMF HALMV HORZ HORZS ALMT ALMS HALMH ANIM (default HALMV)')
+    ap.add_argument('--view', choices=VIEWS, help='ALMF HALMV HORZ HORZS ALMT ALMS HALMH ANIM ALLSKY (default HALMV)')
     ap.add_argument('--date', help='YYYY-MM-DD (default: today UTC)')
     ap.add_argument('--ut', help='hh:mm or hh:mm:ss UT (default: now)')
     ap.add_argument('--lat', help='e.g. "25 20.0 N" or 25.3333')
