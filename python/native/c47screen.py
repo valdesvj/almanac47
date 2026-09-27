@@ -498,67 +498,8 @@ class _Quick:
         self.aries = (d * 360.98564736629 + 280.46061837) % 360.0
 
 
-def hanim(j0, lat, lon, frames=24, step=0.5):
-    """HANIM: the Sun and the Moon on the horizon chart (as HORZ) for `frames` times `step`
-    hours apart; each drawn only while above the horizon. The chart is drawn once and every
-    frame adds the Sun and Moon (their paths build up); only the top line is rewritten.
-    Sun: SUNF, Moon: MOOQ, for the time of each frame. Returns (list of frames, list of JD)."""
-    frames = max(1, int(frames))
-    HY, HS = 16, 196
-    off = 180 if lat < 0 else 0
-
-    def pos(dec, gha):
-        hc, zn, sh = A.hczs(lat, lon, dec, gha)
-        return hc, chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
-
-    sc = Screen(STD)
-    sc.pixel(-HY, 0)                                         # horizon: full-width line
-    for y in range(18, 213, 3):
-        sc.pixel(y, 18)
-    for v, dy in sine_ticks(HS):
-        y = HY + dy
-        sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
-        sc.ptns(y - 2, 2, v)
-    for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
-        for y in (15, 14, 13):
-            sc.pixel(y, c)
-    for x, l in zip((19, 112, 206, 300, 394), 'SWNES' if off else 'NESWN'):
-        sc.small(7, x, l)
-    for g in range(0, 359, 2):                               # celestial equator
-        hc, x, y = pos(0, g)
-        if hc > 1e-4:
-            sc.dot4(y, x)
-    out, times = [], []
-    for k in range(frames):
-        with _lc() as ctx:                                   # frame time in 34 digits, as the C47
-            ctx.prec = 34
-            jdec = _D(repr(j0)) + _D(k) * _D(repr(float(step))) / 24
-            jday = int(jdec + _D('0.5')) - 0.5               # for the date
-            uth = float((jdec + _D('0.5')) % 1 * 24)         # UT hours
-        j = float(jdec)
-        sc.pix = {p for p in sc.pix if p[1] < 224}           # clear the top line only
-        sc.pdat(227, 2, jday); x = sc.phm(227, 88, uth); sc.text(227, x, ' UT')
-        x = sc.pinb(227, 330, k + 1); x = sc.text(227, x, '/'); sc.pinb(227, x, frames)
-        g, d = A.sun_fast(j)
-        hc, x, y = pos(d, g)
-        if hc > 0:
-            sc.glyph(STD, '@', y - 6, x - 6)
-        g, d = A.moon_quick(_Quick(j))
-        hc, x, y = pos(d, g)
-        if hc > 0:
-            sc.glyph(STD, '(', y - 6, x - 6)
-        out.append(sc.rows()); times.append(j)
-    return out, times
-
-
-def allsky(al):
-    """ALLSKY: the whole sky, horizon across the middle; OVER HORIZON above, UNDER HORIZON
-    below (sine scale both ways). Every body: Sun, Moon, planets (big symbols), all 58
-    stars (small star and number, catalogue + first-order precession). Top line: date, UT,
-    DAY / TWILIGHT / NIGHT from the Sun's altitude."""
-    sc = Screen(STD)
-    HY, HS = 118, 100
-    off = 180 if al.lat < 0 else 0
+def _allsky_chart(sc, off, HY=118, HS=100):
+    """ALLSKY / HANIM background: horizon across the middle, marks up and down, letters."""
     sc.pixel(-HY, 0)
     for y in range(HY - HS, HY + HS + 1, 3):
         sc.pixel(y, 18)
@@ -571,6 +512,58 @@ def allsky(al):
     for x, l in zip((19, 112, 206, 300, 394), 'SWNES' if off else 'NESWN'):
         sc.small(HY - 8, x, l)
     sc.small(HY + HS + 1, 150, 'OVER HORIZON'); sc.small(2, 150, 'UNDER HORIZON')
+
+
+def hanim(j0, lat, lon, frames=24, step=0.5):
+    """HANIM: the Sun and the Moon on the ALLSKY chart (over the horizon above, under it
+    below) for `frames` times `step` hours apart. The chart is drawn once and every frame
+    adds the Sun and the Moon (their paths build up, through setting and rising); only the
+    top line is rewritten: date, UT, frame number, DAY / TWILIGHT / NIGHT.
+    Sun: SUNF, Moon: MOOQ, for the time of each frame. Returns (list of frames, list of JD)."""
+    frames = max(1, int(frames))
+    HY, HS = 118, 100
+    off = 180 if lat < 0 else 0
+
+    def pos(dec, gha):
+        hc, zn, sh = A.hczs(lat, lon, dec, gha)
+        return hc, chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
+
+    sc = Screen(STD)
+    _allsky_chart(sc, off)
+    for g in range(0, 359, 2):                               # celestial equator, all of it
+        _, x, y = pos(0, g)
+        sc.dot4(y, x)
+    out, times = [], []
+    for k in range(frames):
+        with _lc() as ctx:                                   # frame time in 34 digits, as the C47
+            ctx.prec = 34
+            jdec = _D(repr(j0)) + _D(k) * _D(repr(float(step))) / 24
+            jday = int(jdec + _D('0.5')) - 0.5               # for the date
+            uth = float((jdec + _D('0.5')) % 1 * 24)         # UT hours
+        j = float(jdec)
+        g, d = A.sun_fast(j)
+        hs, xs, ys = pos(d, g)
+        g, d = A.moon_quick(_Quick(j))
+        _, xm, ym = pos(d, g)
+        sc.pix = {p for p in sc.pix if p[1] < 224}           # clear the top line only
+        sc.pdat(227, 2, jday); x = sc.phm(227, 88, uth); sc.text(227, x, ' UT')
+        x = sc.pinb(227, 200, k + 1); x = sc.text(227, x, '/'); sc.pinb(227, x, frames)
+        sc.text(227, 300, 'DAY' if hs > 0 else 'TWILIGHT' if hs > -12 else 'NIGHT')
+        sc.glyph(STD, '@', ys - 6, xs - 6)
+        sc.glyph(STD, '(', ym - 6, xm - 6)
+        out.append(sc.rows()); times.append(j)
+    return out, times
+
+
+def allsky(al):
+    """ALLSKY: the whole sky, horizon across the middle; OVER HORIZON above, UNDER HORIZON
+    below (sine scale both ways). Every body: Sun, Moon, planets (big symbols), all 58
+    stars (small star and number, catalogue + first-order precession). Top line: date, UT,
+    DAY / TWILIGHT / NIGHT from the Sun's altitude."""
+    sc = Screen(STD)
+    HY, HS = 118, 100
+    off = 180 if al.lat < 0 else 0
+    _allsky_chart(sc, off)
     s = al.sun
     sc.pdat(227, 2, al.j); x = sc.phm(227, 88, ut_hours(al.j)); sc.text(227, x, ' UT')
 

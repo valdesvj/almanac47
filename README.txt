@@ -306,10 +306,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXS (status-bar font) / PTXT cut to the characters the
-               screens print. 12,332 lines, 76.8 KB as text (with HANIM and ALLSKY).
+               screens print. 12,375 lines, 77.1 KB as text (with HANIM and ALLSKY).
   NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
                load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 12,044 lines, 75.1 KB
+               (S always; X outside the FAST period stays). 12,087 lines, 75.4 KB
                (288 lines less). Same screens; about 5-24 steps less per screen (no speed
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
@@ -347,17 +347,18 @@ STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
 
 ANIMATION (Sep 2026) - HANIM, NAV option 9 (NAVFULL: 8 ANIM)
   IN: Z = JD, Y = lat, X = lon (NAV asks date, UTC, lat, lon as for the other views).
-  The Sun and the Moon on the horizon chart of HORZ (sine scale), every half hour for
+  The Sun and the Moon on the whole-sky chart of ALLSKY: horizon across the middle,
+  OVER HORIZON above, UNDER HORIZON below (sine scale both ways). Every half hour for
   24 frames (12 hours), PAUSE 10 (1 s) after each; the last frame stays (PAUSE 99).
   The chart is drawn once and the screen is not cleared: every frame adds the Sun and
-  the Moon (each only while above the horizon), so their paths build up. Only the top
-  line (date and UT of the frame, frame number) is cleared (CLLCDxy) and rewritten.
+  the Moon, above or below the horizon, so their paths build up through setting and
+  rising. Only the top line is cleared (CLLCDxy) and rewritten: date and UT of the frame,
+  frame number, DAY / TWILIGHT / NIGHT (Sun above the horizon / above -12 deg / below).
   Change it by editing three program lines: "24 STO 14" (frames), "0.5 STO 15" (hours
-  per frame; 1 = a whole day in 24 frames, e.g. the midnight sun), "PAUSE 10" (tenths of
-  a second per frame).
+  per frame; 1 = a whole day in 24 frames), "PAUSE 10" (tenths of a second per frame).
   Every frame: Sun (SUNF) and Moon (MOOQ, geocentric, within about 0.3 deg) for its own
   time, GHA Aries exact. No matrices.
-  About 54,000 steps in all (chart and equator once, then about 1,500 steps and
+  About 62,000 steps in all (chart and equator once, then about 1,800 steps and
   25 trigonometric functions per frame: roughly 0.5 s on USB power plus the 1 s pause).
   PC: c47pc.py view ANIM (window: Frames, Step h, Frame ms, Play; Save PNG = animated
   PNG) or  --view ANIM --png anim.png --frames 24 --step 0.5 --frame-ms 1000
