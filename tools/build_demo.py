@@ -29,6 +29,34 @@ RENAME_S = (('PTXS', 'PTXP'), ('PINS', 'PINP'), ('PF1S', 'PF1P'), ('PHMS', 'PHMP
 RENAME_T = (('PTXT', 'PTTP'), ('PTNS', 'PTNP'), ('"PT1"', '"PT1P"'))
 
 
+LABEL_TEXT = {
+ 'DALA': 'page: the almanac page drawn with the AGRAPH fonts (menu option 1)',
+ 'DALP': 'page: the same page drawn with the PIXEL fonts (menu option 2)',
+ 'PTXS': 'FONT, big (status-bar font), AGRAPH: draw a string',
+ 'PINS': 'FONT, big, AGRAPH: whole number',
+ 'PF1S': 'FONT, big, AGRAPH: number with one decimal',
+ 'PHMS': 'FONT, big, AGRAPH: hh:mm from hours',
+ 'PDMS': 'FONT, big, AGRAPH: degrees and minutes ddd mm.m',
+ 'PDTS': 'FONT, big, AGRAPH: date dd-mm-yyyy from a Julian Date',
+ 'PZNS': 'FONT, big, AGRAPH: azimuth ddd.d',
+ 'PHLS': 'FONT, big, AGRAPH: horizontal line',
+ 'PTXT': 'FONT, small 3x5, AGRAPH: draw a string',
+ 'PTNS': 'FONT, small, AGRAPH: whole number',
+ 'PT1':  'FONT, small, AGRAPH: number with one decimal',
+ 'PTXP': 'FONT, big, PIXEL copy: draw a string dot by dot',
+ 'PINP': 'FONT, big, PIXEL copy: whole number',
+ 'PF1P': 'FONT, big, PIXEL copy: number with one decimal',
+ 'PHMP': 'FONT, big, PIXEL copy: hh:mm from hours',
+ 'PDMP': 'FONT, big, PIXEL copy: degrees and minutes ddd mm.m',
+ 'PDTP': 'FONT, big, PIXEL copy: date dd-mm-yyyy from a Julian Date',
+ 'PZNP': 'FONT, big, PIXEL copy: azimuth ddd.d',
+ 'PHLP': 'FONT, big, PIXEL copy: horizontal line',
+ 'PTTP': 'FONT, small, PIXEL copy: draw a string dot by dot',
+ 'PTNP': 'FONT, small, PIXEL copy: whole number',
+ 'PT1P': 'FONT, small, PIXEL copy: number with one decimal',
+}
+
+
 def num(v):
     if isinstance(v, int) or float(v).is_integer() and abs(v) < 1e6:
         return str(int(v))
@@ -140,12 +168,19 @@ def build():
             '1', 'RCL 44', 'X=Y?', 'XEQ "DALA"', '2', 'RCL 44', 'X=Y?', 'XEQ "DALP"', 'GTO 01', 'END']
     prog = (menu + page(calls, NA, 'DALA', 'AGRAPH') + page(calls, NP, 'DALP', 'PIXEL')
             + ptxs + ptxt + pixel_font(ptxs, RENAME_S) + pixel_font(ptxt, RENAME_T))
+    # only DEMO keeps its name; every other label becomes N01, N02 ... (table in DEMOALM_LABELS.txt)
+    mapping = B.label_map(prog, keep=('DEMO',))
+    renamed = B.rename_keep(prog, mapping, 'DEMO')
     out = os.path.join(ROOT, 'build', 'DEMOALM.txt')
     with open(out, 'w', encoding='utf-8') as fh:
-        fh.write('\n'.join(prog) + '\n')
-    return out, prog, rows
+        fh.write('\n'.join(renamed) + '\n')
+    with open(os.path.join(ROOT, 'build', 'DEMOALM_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('DEMOALM: program labels on the calculator (left), original name, what it does.\n'
+                 'Only DEMO keeps its name.\n\n')
+        fh.write('\n'.join('%s  %-5s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in mapping.items()) + '\n')
+    return out, prog, rows, mapping, renamed
 
 
 if __name__ == '__main__':
-    out, prog, rows = build()
-    print(out, len(prog), 'lines')
+    out, prog, rows, mapping, renamed = build()
+    print(out, len(renamed), 'lines,', len(mapping), 'labels renamed')

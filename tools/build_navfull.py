@@ -158,6 +158,19 @@ def rename(lines, m):
     return out
 
 
+def rename_keep(lines, m, keep):
+    """rename() for another program set: keep = the one label that keeps its name."""
+    out = []
+    for l in lines:
+        g = re.fullmatch(r'(LBL|XEQ|GTO) "(.+)"', l)
+        if g and g.group(2) in m:
+            l = '%s "%s"' % (g.group(1), m[g.group(2)])
+        elif g and g.group(2) != keep:
+            raise ValueError('call to a label that is not in the file: %s' % l)
+        out.append(l)
+    return out
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,

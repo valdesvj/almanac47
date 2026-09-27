@@ -285,7 +285,7 @@ def split(prog):
 
 
 def main():
-    out_plain, prog, _ = build_demo.build()
+    out_plain, prog, _, mapping, renamed = build_demo.build()
     parts = split(prog)
     src_b, src_t = rem_source('PTXB'), rem_source('PTXT')
     SB = [('PTXB', 'PTXS'), ('PINB', 'PINS'), ('"PF1"', '"PF1S"'), ('"PHM"', '"PHMS"'), ('"PDM"', '"PDMS"'),
@@ -314,11 +314,37 @@ def main():
         else:
             res += p
     # PTXT keeps its own header REMs from programs_rem/PTXT.txt
+    code = [l for l in res if not l.startswith('REM ')]
+    assert code == prog, 'comments changed the program'
+    # labels: N01 ... (only DEMO keeps its name); after every global label say what it is
+    import build_navfull as B
+    res2 = []
+    for l in B.rename_keep(res, mapping, 'DEMO') if False else res:
+        g = re.fullmatch(r'(LBL|XEQ|GTO) "(.+)"', l)
+        if g and g.group(2) in mapping:
+            res2.append('%s "%s"' % (g.group(1), mapping[g.group(2)]))
+            if g.group(1) == 'LBL':
+                res2.append(R('%s = %s - %s' % (mapping[g.group(2)], g.group(2), build_demo.LABEL_TEXT.get(g.group(2), ''))))
+        elif g and g.group(1) in ('XEQ', 'GTO') and g.group(2) != 'DEMO':
+            raise ValueError(l)
+        else:
+            res2.append(l)
+            if l == 'LBL "DEMO"':
+                res2.append(R('Labels: only DEMO keeps its name; N01 ... are the page and font routines'))
+                res2.append(R('(table: DEMOALM_LABELS.txt). FONT = one of the text-drawing routines.'))
+        # comments that name routines: add the new label in brackets
+    res = []
+    names = sorted(mapping, key=len, reverse=True)
+    for l in res2:
+        if l.startswith('REM ') and not re.match(r'REM "N\d\d = ', l):
+            for n in names:
+                l = re.sub(r'(?<![A-Z0-9])%s(?![A-Z0-9])' % n, '%s (%s)' % (n, mapping[n]), l, count=1) if n in l and '(%s)' % mapping[n] not in l else l
+        res.append(l)
     out = os.path.join(ROOT, 'build', 'DEMOALM_rem.txt')
     with open(out, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(res) + '\n')
     code = [l for l in res if not l.startswith('REM ')]
-    assert code == prog, 'comments changed the program'
+    assert code == renamed, 'comments changed the program'
     print(out, len(res), 'lines (%d REM)' % (len(res) - len(code)))
 
 

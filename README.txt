@@ -395,6 +395,9 @@ AGRAPH / PIXEL DEMO (Sep 2026) - build/DEMOALM.txt (python3 tools/build_demo.py)
   build/DEMOALM_rem.txt (python3 tools/annotate_demo.py): the same program with ~2,000 REM
   comments - every drawing call (row, column, what it prints), the font routines, a picture
   of every character, and the PIXEL routine LBL 99 line by line. Same steps, same pages.
+  Labels: only DEMO keeps its name; the pages and font routines are N01-N24, and in the
+  commented file each one says what it does and whether it is a FONT routine
+  (table: build/DEMOALM_LABELS.txt).
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,

@@ -1,0 +1,27 @@
+DEMOALM: program labels on the calculator (left), original name, what it does.
+Only DEMO keeps its name.
+
+N01  DALA  page: the almanac page drawn with the AGRAPH fonts (menu option 1)
+N02  DALP  page: the same page drawn with the PIXEL fonts (menu option 2)
+N03  PTXS  FONT, big (status-bar font), AGRAPH: draw a string
+N04  PINS  FONT, big, AGRAPH: whole number
+N05  PF1S  FONT, big, AGRAPH: number with one decimal
+N06  PHMS  FONT, big, AGRAPH: hh:mm from hours
+N07  PDMS  FONT, big, AGRAPH: degrees and minutes ddd mm.m
+N08  PDTS  FONT, big, AGRAPH: date dd-mm-yyyy from a Julian Date
+N09  PZNS  FONT, big, AGRAPH: azimuth ddd.d
+N10  PHLS  FONT, big, AGRAPH: horizontal line
+N11  PTXT  FONT, small 3x5, AGRAPH: draw a string
+N12  PTNS  FONT, small, AGRAPH: whole number
+N13  PT1   FONT, small, AGRAPH: number with one decimal
+N14  PTXP  FONT, big, PIXEL copy: draw a string dot by dot
+N15  PINP  FONT, big, PIXEL copy: whole number
+N16  PF1P  FONT, big, PIXEL copy: number with one decimal
+N17  PHMP  FONT, big, PIXEL copy: hh:mm from hours
+N18  PDMP  FONT, big, PIXEL copy: degrees and minutes ddd mm.m
+N19  PDTP  FONT, big, PIXEL copy: date dd-mm-yyyy from a Julian Date
+N20  PZNP  FONT, big, PIXEL copy: azimuth ddd.d
+N21  PHLP  FONT, big, PIXEL copy: horizontal line
+N22  PTTP  FONT, small, PIXEL copy: draw a string dot by dot
+N23  PTNP  FONT, small, PIXEL copy: whole number
+N24  PT1P  FONT, small, PIXEL copy: number with one decimal
