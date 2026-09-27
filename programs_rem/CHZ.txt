@@ -108,6 +108,16 @@ LBL "HCZR"
 REM "HCZR: next equator point: Hc, Zn from EQC/EQS, then rotate LHA by the step (no COS/SIN)"
 RCL "EQC"
 RCL× "HZC"
+STO 93
+ABS
+1
+X≥Y?
+GTO 02
+RCL 93
+SIGN
+STO 93
+LBL 02
+RCL 93
 ASIN
 STO 96
 RCL "EQS"

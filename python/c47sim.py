@@ -118,6 +118,7 @@ class Calc:
                       'MOD': lambda y, x: y - x*(y/x).__floor__()}[op]
                 self.binary(fn); continue
             if op == 'ABS': self.unary(lambda x: abs(x)); continue
+            if op == 'SIGN': self.unary(lambda x: D(1) if x > 0 else (D(-1) if x < 0 else D(0))); continue
             if op == 'ACOS': self.unary(lambda x: self.ang_out(math.acos(f(x)))); continue
             if op in ('X<Y?','X≥Y?','X=0?','X<0?','X>0?','X≤Y?','X≥0?','X>Y?','X=Y?','X≤0?','X≠0?','X≠Y?'):
                 x,y=self.s[0],self.s[1]
