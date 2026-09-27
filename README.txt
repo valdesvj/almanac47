@@ -306,10 +306,10 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXS (status-bar font) / PTXT cut to the characters the
-               screens print. 12,375 lines, 77.1 KB as text (with HANIM and ALLSKY).
+               screens print. 12,427 lines, 77.5 KB as text (with HANIM and ALLSKY).
   NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
                load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 12,087 lines, 75.4 KB
+               (S always; X outside the FAST period stays). 12,139 lines, 75.8 KB
                (288 lines less). Same screens; about 5-24 steps less per screen (no speed
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
@@ -330,12 +330,16 @@ STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
   capitals 12 px) as a drawing program, same calls as PTXB with S names:
   PTXS PINS PF1S PHMS PDMS PDTS PZNS PHLS. The symbols @ ( * < > = ? are the PTXB ones
   scaled to 12 rows and made bold. WSIZE 14 (13 rows + sign bit); line pitch 14 px.
+  Narrow spacing: one blank column less after every glyph than on the C47 (digits and
+  space 7 px, letters 8-11 px) - still clear, and the star numbers fit again.
   All pixel views use it (ALMT uses PROMPT, which already draws this font):
-    ALMF   ARIES row + 9 bodies (no star numbers: no room), Sun/Moon lines below.
-    ALMS   ARIES, Sun, Moon, 1 planet, 3 stars.
-    HALMV  panel: date/UT, DR, ARIES, then symbol + star number, HC, ZN of 10 bodies,
-           Moon phase. (Sun GHA/Dec/SD and the twilight block are on ALMF.)
-    HALMH  chart on top; table without titles; footer RISE SET MER ARIES / TWI MOON.
+    ALMF   ARIES row + 9 bodies, stars with their number; NAUT TWI, RISE/SET, MER PASS,
+           Sun SD and the Moon below.
+    ALMS   ARIES, Sun, Moon, 1 planet, 3 stars (same layout).
+    HALMV  chart 18..168 on the left; panel from x 176: date/UT, DR, ARIES, then symbol,
+           star number, name, HC, ZN of 10 bodies, Moon phase.
+    HALMH  chart on top; table rows as ALMF (with star numbers), no titles; footer
+           RISE SET MER ARIES / TWI MOON.
     HORZ   info line in the big font (clears y 224 and up); bodies and star numbers big.
     BODY   chart bigger (horizon y 86); rows GHA DEC / HC ZN / SHA ARIES (SD, HP SD).
   Axis letters and altitude marks use the small font PTXT.

@@ -327,52 +327,61 @@ def body_name(ident):
 
 # ---------------------------------------------------------------- ALMF
 def almf(al, short=False):
-    """ALMF / ALMS in the status-bar font (PTXS): ARIES row, then the bodies (9 rows ALMF)."""
+    """ALMF / ALMS in the status-bar font (PTXS, narrow): ARIES row, then the bodies (9 rows
+    ALMF), stars with their number."""
     sc = Screen(STD)
-    NX, GX, DX, HX, ZX = 20, 120, 197, 268, 359
+    NX, GX, DX, HX, ZX = 36, 128, 196, 262, 338
     TOP, PITCH = 193, 14
     s, t = al.sun, al.times
     sc.pdat(226, 2, al.j)
-    sc.phm(226, 88, ut_hours(al.j)); sc.text(226, 129, 'UT')
-    sc.text(226, 162, 'DR')
-    sc.text(226, 188, 'S' if al.lat < 0 else 'N'); sc.pdm(226, 190, abs(al.lat))
-    sc.text(226, 270, 'W' if al.lon < 0 else 'E'); sc.pdm(226, 272, abs(al.lon))
+    sc.phm(226, 80, ut_hours(al.j)); sc.text(226, 116, 'UT')
+    sc.text(226, 150, 'DR')
+    sc.text(226, 174, 'S' if al.lat < 0 else 'N'); sc.pdm(226, 176, abs(al.lat))
+    sc.text(226, 244, 'W' if al.lon < 0 else 'E'); sc.pdm(226, 246, abs(al.lon))
     sc.text(226, 388, al.source)                             # T tables / S series / X
     sc.pixel(-221, 0)
-    sc.text(207, NX, 'BODY'); sc.text(207, GX + 30, 'GHA'); sc.text(207, DX + 30, 'DEC')
-    sc.text(207, HX + 36, 'HC'); sc.text(207, ZX + 6, 'ZN')
+    sc.text(207, NX, 'BODY'); sc.text(207, GX + 26, 'GHA'); sc.text(207, DX + 28, 'DEC')
+    sc.text(207, HX + 30, 'HC'); sc.text(207, ZX + 6, 'ZN')
     sc.text(TOP, NX, 'ARIES'); sc.pdm(TOP, GX, s.aries)
     y = TOP - PITCH
     for ident, g, d, hc, zn in (al.bodies_short() if short else al.bodies(max_rows=9)):
-        mark(sc, y, 2, ident, STD)
-        sc.text(y, NX, body_name(ident))
-        sc.pdm(y, GX, g)
-        sc.text(y, DX, 'S' if d < 0 else 'N'); sc.pdm(y, DX + 2, abs(d))
-        sc.pdm(y, HX, hc); sc.pzn(y, ZX, zn)
-        if hc < 0:
-            sc.hline(y + 5, HX + 8, 64)
+        _row(sc, y, ident, g, d, hc, zn, NX, GX, DX, HX, ZX)
         y -= PITCH
     FY = TOP - PITCH * 10
     sc.pixel(-(FY + 8), 0)
     y1, y2, y3 = FY - 6, FY - 20, FY - 34
-    sc.text(y1, 2, 'TWI'); sc.phm(y1, 36, t['NTWA']); sc.phm(y1, 78, t['NTWP'])
-    sc.text(y2, 2, 'RISE/SET'); sc.phm(y2, 84, t['RISE']); sc.phm(y2, 126, t['SET'])
-    sc.text(y3, 2, 'MER'); sc.phm(y3, 40, t['TRAN']); x = sc.text(y3, 88, 'SD '); sc.pf1(y3, x, s.sd)
-    x = sc.text(y1, 176, 'MOON '); x = sc.pinb(y1, x, al.illum); x = sc.text(y1, x, '% '); sc.text(y1, x, moon_word(al))
-    x = sc.text(y2, 176, 'AGE '); x = sc.pf1(y2, x, al.age); sc.text(y2, x, ' DAYS')
-    x = sc.text(y3, 176, 'HP '); x = sc.pf1(y3, x, al.moon[2]); x = sc.text(y3, x, ' SD '); sc.pf1(y3, x, al.moon[3])
+    sc.text(y1, 2, 'NAUT TWI'); sc.phm(y1, 80, t['NTWA']); sc.phm(y1, 118, t['NTWP'])
+    sc.text(y2, 2, 'RISE/SET'); sc.phm(y2, 80, t['RISE']); sc.phm(y2, 118, t['SET'])
+    sc.text(y3, 2, 'MER PASS'); sc.phm(y3, 80, t['TRAN']); x = sc.text(y3, 122, 'SD '); sc.pf1(y3, x, s.sd)
+    x = sc.text(y1, 196, 'MOON '); x = sc.pinb(y1, x, al.illum); x = sc.text(y1, x, '% '); sc.text(y1, x, moon_word(al))
+    x = sc.text(y2, 196, 'AGE '); x = sc.pf1(y2, x, al.age); sc.text(y2, x, ' DAYS')
+    x = sc.text(y3, 196, 'HP '); x = sc.pf1(y3, x, al.moon[2]); x = sc.text(y3, x, ' SD '); sc.pf1(y3, x, al.moon[3])
     sc.small(1, 126, WARNING)
     return [sc.rows()]
 
 
+def _row(sc, y, ident, g, d, hc, zn, NX, GX, DX, HX, ZX):
+    """Table row (ALMF, ALMS, HALMH): symbol, star number, name, GHA, Dec, Hc, Zn."""
+    mark(sc, y, 1, ident, STD)
+    if ident > 0:
+        sc.pinb(y, 17, ident)
+    sc.text(y, NX, body_name(ident))
+    sc.pdm(y, GX, g)
+    sc.text(y, DX, 'S' if d < 0 else 'N'); sc.pdm(y, DX + 2, abs(d))
+    sc.pdm(y, HX, hc); sc.pzn(y, ZX, zn)
+    if hc < 0:
+        sc.hline(y + 5, HX + 7, 56)
+
+
 # ---------------------------------------------------------------- HALMV
 def halmv(al):
-    """Chart on the left (sine scale), panel in the status-bar font: HC ZN of 10 bodies."""
+    """Chart on the left (sine scale), panel in the status-bar font: symbol, star number,
+    name, HC, ZN of 10 bodies."""
     sc = Screen(STD)
-    X0, HY, HS = 204, 14, 200
+    X0, HY, HS, CW = 176, 14, 200, 150
     s = al.sun
-    sc.pixel(0, -201)
-    sc.hline(HY, 18, 179)
+    sc.pixel(0, -(X0 - 4))
+    sc.hline(HY, 18, CW + 1)
     for y in range(HY, HY + HS + 1):
         sc.pixel(y, 17)
     for v, dy in sine_ticks(HS):
@@ -380,23 +389,23 @@ def halmv(al):
         sc.pixel(y, 15); sc.pixel(y, 16)
         sc.ptns(y - 2, 2, v)
     off = 180 if al.lat < 0 else 0
-    for x, l in zip((16, 60, 105, 149, 192), 'SWNES' if off else 'NESWN'):
+    for x, l in zip([16 + CW * k // 4 for k in range(5)], 'SWNES' if off else 'NESWN'):
         sc.small(5, x, l)
 
     def pos(dec, gha):
         hc, zn, sh = al.hczs(dec, gha)
-        return hc, zn, chart_x(zn, off, 178, 18), chart_ys(sh, HY, 1, HS)
+        return hc, zn, chart_x(zn, off, CW, 18), chart_ys(sh, HY, 1, HS)
 
     for g in range(0, 358, 3):                               # celestial equator
         hc, zn, x, y = pos(0, g)
         if hc > 1e-4:
             sc.dot4(y, x)
-    sc.pdat(226, X0, al.j); sc.phm(226, X0 + 88, ut_hours(al.j)); sc.text(226, X0 + 129, 'UT')
+    sc.pdat(226, X0, al.j); sc.phm(226, X0 + 78, ut_hours(al.j)); sc.text(226, X0 + 114, 'UT')
     sc.text(226, 388, al.source)
     sc.text(212, X0, 'S' if al.lat < 0 else 'N'); sc.pdm(212, X0 + 2, abs(al.lat))
-    sc.text(212, X0 + 78, 'W' if al.lon < 0 else 'E'); sc.pdm(212, X0 + 80, abs(al.lon))
-    sc.text(198, X0, 'ARIES'); sc.pdm(198, X0 + 56, s.aries)
-    sc.text(184, X0 + 80, 'HC'); sc.text(184, X0 + 126, 'ZN')
+    sc.text(212, X0 + 70, 'W' if al.lon < 0 else 'E'); sc.pdm(212, X0 + 72, abs(al.lon))
+    sc.text(198, X0, 'ARIES'); sc.pdm(198, X0 + 50, s.aries)
+    sc.text(184, X0 + 34, 'BODY'); sc.text(184, X0 + 148, 'HC'); sc.text(184, X0 + 194, 'ZN')
     y = 170
     for ident, g, d, hc, zn in al.bodies():
         _, _, cx, cy = pos(d, g)
@@ -408,18 +417,19 @@ def halmv(al):
         else:
             sc.glyph(STD, '*', cy - 6, cx - 6)
             lx = cx + 8
-            if lx > 180:
+            if lx > 18 + CW - 16:
                 lx -= 32
             sc.pinb(cy - 6, lx, ident)
         mark(sc, y, X0, ident, STD)
         if ident > 0:
             sc.pinb(y, X0 + 16, ident)
-        sc.pdm(y, X0 + 44, hc); sc.pzn(y, X0 + 120, zn)
+        sc.text(y, X0 + 34, body_name(ident))
+        sc.pdm(y, X0 + 120, hc); sc.pzn(y, X0 + 188, zn)
         if hc < 0:
-            sc.hline(y + 5, X0 + 52, 64)
+            sc.hline(y + 5, X0 + 127, 56)
         y -= 14
     x = sc.text(24, X0, 'MOON '); x = sc.pinb(24, x, al.illum); x = sc.text(24, x, '% '); sc.text(24, x, moon_word(al))
-    sc.small(8, X0 + 24, WARNING)
+    sc.small(8, X0 + 38, WARNING)
     return [sc.rows()]
 
 
@@ -749,13 +759,13 @@ def prompt_lines(text, width=PROMPT_W):
 def halmh(al):
     """Horizon chart on top (full width, sine scale), short almanac table below (PTXS)."""
     sc = Screen(STD)
-    NX, GX, DX, HX, ZX = 20, 120, 197, 268, 359
+    NX, GX, DX, HX, ZX = 36, 128, 196, 262, 338
     HY, HS, TOP = 129, 89, 107
     s, t = al.sun, al.times
     sc.pdat(226, 2, al.j)
-    sc.phm(226, 88, ut_hours(al.j)); sc.text(226, 129, 'UT')
-    sc.text(226, 162, 'S' if al.lat < 0 else 'N'); sc.pdm(226, 164, abs(al.lat))
-    sc.text(226, 244, 'W' if al.lon < 0 else 'E'); sc.pdm(226, 246, abs(al.lon))
+    sc.phm(226, 80, ut_hours(al.j)); sc.text(226, 116, 'UT')
+    sc.text(226, 150, 'S' if al.lat < 0 else 'N'); sc.pdm(226, 152, abs(al.lat))
+    sc.text(226, 222, 'W' if al.lon < 0 else 'E'); sc.pdm(226, 224, abs(al.lon))
     sc.text(226, 388, al.source)
     sc.hline(HY, 20, 376)
     for y in range(HY, HY + HS + 1, 3):
@@ -792,13 +802,7 @@ def halmh(al):
             if lx > 380:
                 lx -= 32
             sc.pinb(cy - 6, lx, ident)
-        mark(sc, y, 2, ident, STD)
-        sc.text(y, NX, body_name(ident))
-        sc.pdm(y, GX, g)
-        sc.text(y, DX, 'S' if d < 0 else 'N'); sc.pdm(y, DX + 2, abs(d))
-        sc.pdm(y, HX, hc); sc.pzn(y, ZX, zn)
-        if hc < 0:
-            sc.hline(y + 5, HX + 8, 64)
+        _row(sc, y, ident, g, d, hc, zn, NX, GX, DX, HX, ZX)
         y -= 14
     sc.text(23, 2, 'RISE'); sc.phm(23, 44, t['RISE']); sc.text(23, 92, 'SET'); sc.phm(23, 128, t['SET'])
     sc.text(23, 176, 'MER'); sc.phm(23, 214, t['TRAN']); sc.text(23, 262, 'ARIES'); sc.pdm(23, 312, s.aries)

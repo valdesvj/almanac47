@@ -78,6 +78,11 @@ def columns_sym(code):
     return nw + 3, out
 
 
+def narrow(adv, cols):
+    """One blank column less after every glyph (at least one stays): digits 7 px, letters 8-11."""
+    return max(adv - 1, max(c for c, _ in cols) + 2) if cols else adv - 1
+
+
 def glyph_prog(code, adv, cols):
     L = ['LBL %d' % code, 'RCL 31', 'RCL 30']
     x = 0
@@ -99,25 +104,27 @@ def main():
                  ('"PDM"', '"PDMS"'), ('"PDAT"', '"PDTS"'), ('"PZN"', '"PZNS"'), ('"PHL"', '"PHLS"')):
         s = s.replace(a, b)
     s = s.replace('WSIZE 8', 'WSIZE %d' % WS, 2)            # PTXS and the number setup; PHLS keeps 8
-    s = s.replace('LBL 32\n6\nSTO+ 30', 'LBL 32\n8\nSTO+ 30')      # space: 8 px
+    s = s.replace('LBL 32\n6\nSTO+ 30', 'LBL 32\n7\nSTO+ 30')      # space: 7 px (= a digit, keeps columns aligned)
     assert s.count('\n6\nSTO+ 30') == 2                             # PDM padding for 1-2 digit degrees
-    s = s.replace('\n6\nSTO+ 30', '\n8\nSTO+ 30')
+    s = s.replace('\n6\nSTO+ 30', '\n7\nSTO+ 30')
     L = ['LBL "PTXS"' if l == 'LBL "PTXS"' else l for l in s.split('\n')]
     font = {}
     for ch in CHARS:
         if ch == ' ':
             continue
         adv, cols = columns_std(G[ord(ch)])
+        adv = narrow(adv, cols)
         font[ord(ch)] = (adv, 0, cols)
         L += glyph_prog(ord(ch), adv, cols)
     for ch in SYMBOLS:
         adv, cols = columns_sym(ord(ch))
+        adv = narrow(adv, cols)
         font[ord(ch)] = (adv, 0, cols)
         L += glyph_prog(ord(ch), adv, cols)
     L.append('END')
     out = os.path.join(ROOT, 'programs', 'PTXS.txt')
     open(out, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
-    font[32] = (8, 0, [])
+    font[32] = (7, 0, [])
     with open(os.path.join(ROOT, 'python', 'native', 'c47fonts2.py'), 'w') as fh:
         fh.write('"""c47fonts2.py - PTXS (C47 status-bar font) as used by the calculator program.\n'
                  'code: (advance, y offset, [(column, bit mask), ...]); bit 0 = base line."""\nSTD = {\n')
