@@ -134,6 +134,102 @@ def no_tables(progs):
 
 LABEL_OPS = ('LBL', 'XEQ', 'GTO')
 
+# what every program label does (NAVFULL_LABELS.txt); FONT = text-drawing routine
+LABEL_TEXT = {
+ 'NAV':   'menu: asks DATE UTC LAT LON and runs the view chosen (the only named program)',
+ 'ALMF':  'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
+ 'HALMV': 'view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right',
+ 'ALMT':  'view 3 TEXT: the almanac as PROMPT text, two lines per R/S',
+ 'HORZ':  'view 4 SKY: horizon chart, info line per body (endless, EXIT to stop)',
+ 'ALMS':  'view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)',
+ 'HALMH': 'view 6 SPLIT: horizon chart on top, short almanac below',
+ 'BODY':  'view 7 BODY: list above the horizon, pick one body, its pages and chart',
+ 'HANIM': 'view 8 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
+ 'ALLSKY':'view 9 ALLSKY: whole sky, over the horizon above, under the horizon below',
+ 'SDM':   'text for ALMT: degrees and minutes "ddd°mm.m\'" as a string',
+ 'SNS':   'text for ALMT: latitude with N / S',
+ 'SEW':   'text for ALMT: longitude with E / W',
+ 'SZN':   'text for ALMT: azimuth "ddd.d°"',
+ 'SHM':   'text for ALMT: time "hh:mm" (--:-- when no event)',
+ 'SF1':   'text for ALMT: number with one decimal',
+ 'SINT':  'text for ALMT: whole number',
+ 'SDAT':  'text for ALMT: date "dd-mm-yyyy" from a Julian Date',
+ 'SUNA':  'Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries',
+ 'SUNG':  'Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)',
+ 'SUNF':  'Sun, low-precision formula (0.01 deg) for sunrise/twilight',
+ 'SER':   'sum of one series matrix with the matrix functions (COS, DOT)',
+ 'SERT':  'the time vectors SV1 SV2 used by SER',
+ 'NUT':   'nutation in longitude and obliquity (matrix NU)',
+ 'STAR':  'star: SUNA, then STR2',
+ 'STR2':  'star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)',
+ 'SQK':   'star, quick sin(Hc) from the catalogue (to skip stars below the horizon)',
+ 'MOON':  'Moon: SUNA, then MOO2',
+ 'MOO2':  'Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA',
+ 'MOOQ':  'Moon, quick low-precision formula (BODY list, ANIM)',
+ 'PLAN':  'planet: SUNA, then PLN2',
+ 'PLN2':  'planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA',
+ 'PLN3':  'planet for the screens: quick position first, full series only if it can be above the horizon',
+ 'PLNQ':  'planet, quick position from mean elements (BODY list)',
+ 'CHZ':   'sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn',
+ 'HCZ':   'sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")',
+ 'HCZ0':  'sight reduction for Dec 0 (equator points)',
+ 'HCZQ':  'celestial equator: start of the dot-by-dot rotation',
+ 'HCZR':  'celestial equator: next point by rotation (no trig)',
+ 'HCZI':  'keeps sin/cos of the latitude for HCZ',
+ 'DHA':   'inverse: from Hc and Zn back to Dec and GHA (star identification)',
+ 'RISE':  'sunrise time UT (SUNRISE program)',
+ 'SET':   'sunset time UT',
+ 'NTWA':  'nautical twilight, morning, UT',
+ 'NTWP':  'nautical twilight, evening, UT',
+ 'CTWA':  'civil twilight, morning, UT',
+ 'CTWP':  'civil twilight, evening, UT',
+ 'TRAN':  'meridian passage of the Sun, UT',
+ 'PHAS':  'Moon phase: SUNA, then PHA2',
+ 'PHA2':  'Moon phase after SUNA: illumination % and age in days',
+ 'SBRT':  'star number by brightness rank (1st brightest ... 58th)',
+ 'SNMU':  'star name from its number',
+ 'TGET':  'almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)',
+ 'CWID':  'pixel width of a character in the PROMPT font (to align ALMT)',
+ 'PTXS':  'FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text',
+ 'PINS':  'FONT big: whole number',
+ 'PF1S':  'FONT big: number with one decimal',
+ 'PHMS':  'FONT big: hh:mm from hours',
+ 'PDMS':  'FONT big: degrees and minutes "ddd mm.m" with sign',
+ 'PZNS':  'FONT big: azimuth "ddd.d"',
+ 'PDTS':  'FONT big: date "dd-mm-yyyy" from a Julian Date',
+ 'PHLS':  'FONT big: horizontal line (X = length in pixels)',
+ 'PTXT':  'FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text',
+ 'PTNS':  'FONT small: whole number',
+ 'PT1':   'FONT small: number with one decimal',
+}
+
+
+NAVINIT_TEXT = """NAVINIT_FULL / NAVINIT_FAST - labels
+=====================================
+Each file is ONE program, INIT. XEQ "INIT" builds the matrices the navigation programs read,
+then shows MATRICES READY. After that delete it (GTO "INIT", CLP): the matrices stay.
+No font routines in these files.
+
+NAVINIT_FULL (VSOP87 series, valid 2000-2050, about 5,700 numbers)
+  INIT     runs LBL 01-04, then MATRICES READY: FULL 2000-2050
+  LBL 01   (MATA)  Earth series VL VB VR (for the Sun) and the nutation series NU
+  LBL 02   (MATST) star catalogue ST: 58 stars, RA, Dec, proper motion
+  LBL 03   (MATM)  Moon series ML (longitude, distance) and MB (latitude) - Meeus ch. 47 -
+                   and MCL MCB, extra terms fitted to JPL DE421
+  LBL 04   (MATP)  planet series: Earth EEL EEB EER, Venus VN.., Mars MA.., Jupiter JU..,
+                   Saturn SA.. (L, B, R each)
+
+NAVINIT_FAST (fitted series, valid %(period)s only, about 3,100 numbers, faster)
+  INIT     runs LBL 01-04, then MATRICES READY: FAST %(period)s
+  LBL 01   (MATN)  nutation series NU
+  LBL 02   (MATST) star catalogue ST (same as FULL)
+  LBL 03   (MATM)  Moon series ML MB MCL MCB (same as FULL)
+  LBL 04   (MATF)  fitted Earth and planet series VL VB VR, EEL EEB EER, VN.. MA.. JU.. SA..
+                   (outside %(period)s the screens show X)
+
+Matrix names are variables, not program labels: they keep their names in every build.
+"""
+
 
 def label_map(lines, keep=('NAV',)):
     """Every global label except NAV -> N01, N02 ... in the order they appear."""
@@ -220,9 +316,18 @@ def build():
             fh.write('\n'.join(L) + '\n')
     mapping = label_map(full)
     with open(os.path.join(OUT, 'NAVFULL_LABELS.txt'), 'w', encoding='utf-8') as fh:
-        fh.write('NAVFULL / NAVFULL_NOTBL: program labels on the calculator (left) and their names\n'
-                 'in the sources, build/dev/ and the documentation (right). Only NAV keeps its name.\n\n')
-        fh.write('\n'.join('%s  %s' % (v, k) for k, v in mapping.items()) + '\n')
+        fh.write('NAVFULL / NAVFULL_NOTBL - program labels\n'
+                 '==========================================\n'
+                 'Label on the calculator, original name (sources, build/dev/, documentation), what it does.\n'
+                 'Only NAV keeps its name. FONT = a text-drawing routine (draws on the graphics screen with\n'
+                 'AGRAPH, one call per glyph column): Z = row of the base line (0 = bottom), Y = column,\n'
+                 'X = text or number; returns Y = row, X = next column. PTXS is the C47 status-bar font\n'
+                 '(bold capitals 12 px, glyphs from the firmware, GPL-3.0), PTXT a small 3x5 font.\n\n')
+        fh.write('NAV     NAV     %s\n' % LABEL_TEXT['NAV'])
+        fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in mapping.items()) + '\n')
+        fh.write('\nNAVFULL_NOTBL has no TGET; its labels are the same (N50 is simply missing there).\n')
+    with open(os.path.join(OUT, 'NAVINIT_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        fh.write(NAVINIT_TEXT % {'period': period})
     for name, L in (('NAVFULL', rename(full, mapping)), ('NAVFULL_NOTBL', rename(notbl, mapping)),
                     ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:

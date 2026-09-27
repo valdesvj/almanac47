@@ -1,0 +1,24 @@
+NAVINIT_FULL / NAVINIT_FAST - labels
+=====================================
+Each file is ONE program, INIT. XEQ "INIT" builds the matrices the navigation programs read,
+then shows MATRICES READY. After that delete it (GTO "INIT", CLP): the matrices stay.
+No font routines in these files.
+
+NAVINIT_FULL (VSOP87 series, valid 2000-2050, about 5,700 numbers)
+  INIT     runs LBL 01-04, then MATRICES READY: FULL 2000-2050
+  LBL 01   (MATA)  Earth series VL VB VR (for the Sun) and the nutation series NU
+  LBL 02   (MATST) star catalogue ST: 58 stars, RA, Dec, proper motion
+  LBL 03   (MATM)  Moon series ML (longitude, distance) and MB (latitude) - Meeus ch. 47 -
+                   and MCL MCB, extra terms fitted to JPL DE421
+  LBL 04   (MATP)  planet series: Earth EEL EEB EER, Venus VN.., Mars MA.., Jupiter JU..,
+                   Saturn SA.. (L, B, R each)
+
+NAVINIT_FAST (fitted series, valid 2026-2030 only, about 3,100 numbers, faster)
+  INIT     runs LBL 01-04, then MATRICES READY: FAST 2026-2030
+  LBL 01   (MATN)  nutation series NU
+  LBL 02   (MATST) star catalogue ST (same as FULL)
+  LBL 03   (MATM)  Moon series ML MB MCL MCB (same as FULL)
+  LBL 04   (MATF)  fitted Earth and planet series VL VB VR, EEL EEB EER, VN.. MA.. JU.. SA..
+                   (outside 2026-2030 the screens show X)
+
+Matrix names are variables, not program labels: they keep their names in every build.
