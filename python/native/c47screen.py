@@ -31,11 +31,12 @@ def chart_x(zn, off, width, x0):
         return int(v * width / 360 + x0)
 
 
-def chart_y(hc, base, sign):
-    """HALMV: IP(Hc*200/90 + 14); HORZ: IP(225 - Hc*200/90), in 34-digit decimals."""
+def chart_y(hc, base, sign, scale=200):
+    """HALMV: IP(Hc*200/90 + 14); HORZ: IP(225 - Hc*200/90); HALMH: IP(Hc*96/90 + 118),
+    in 34-digit decimals."""
     with _lc() as c:
         c.prec = 34
-        h = _D(repr(hc)) * 200 / 90
+        h = _D(repr(hc)) * scale / 90
         return int(h + base) if sign > 0 else int(base - h)
 
 
@@ -246,6 +247,34 @@ class Almanac:
         return out
 
 
+    def bodies_short(self):
+        """ALMS / HALMH: Sun; Moon if above the horizon; the first planet above the
+        horizon in the order Venus, Jupiter, Mars, Saturn; the 3 brightest stars higher
+        than 10 deg."""
+        s = self.sun
+        out = [(0, s.gha, s.dec) + self.hcz(s.dec, s.gha)]
+        m = self.moon
+        hc, zn = self.hcz(m[1], m[0])
+        if hc > 0:
+            out.append((-1, m[0], m[1], hc, zn))
+        for p in (1, 3, 2, 4):
+            g, d = self.planets[p][0], self.planets[p][1]
+            hc, zn = self.hcz(d, g)
+            if hc > 0:
+                out.append((-(p + 1), g, d, hc, zn))
+                break
+        k = 0
+        for n in BRIGHT:
+            if k >= 3:
+                break
+            g, d, _ = self.star(n)
+            hc, zn = self.hcz(d, g)
+            if hc > 10.0:
+                out.append((n, g, d, hc, zn))
+                k += 1
+        return out
+
+
 def mark(sc, y, x, ident):
     """Symbol of a body in the big font."""
     ch = '@' if ident == 0 else '(' if ident == -1 else SYM[-ident - 1] if ident < 0 else '*'
@@ -266,7 +295,7 @@ def body_name(ident):
 
 
 # ---------------------------------------------------------------- ALMF
-def almf(al):
+def almf(al, short=False):
     sc = Screen()
     GX, DX, HX, ZX = 112, 184, 256, 330
     s, t = al.sun, al.times
@@ -280,7 +309,7 @@ def almf(al):
     sc.text(207, 34, 'BODY'); sc.text(207, GX + 36, 'GHA'); sc.text(207, DX + 36, 'DEC')
     sc.text(207, HX + 42, 'HC'); sc.text(207, ZX + 18, 'ZN')
     y = 194
-    for ident, g, d, hc, zn in al.bodies():
+    for ident, g, d, hc, zn in (al.bodies_short() if short else al.bodies()):
         mark(sc, y, 4, ident)
         if ident > 0:
             sc.pinb(y, 16, ident)
@@ -587,4 +616,76 @@ def prompt_lines(text, width=PROMPT_W):
     return lines + [cur]
 
 
-VIEWS = {'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}
+# ---------------------------------------------------------------- HALMH
+def halmh(al):
+    """Horizon chart on top (full width), short almanac table below."""
+    sc = Screen()
+    GX, DX, HX, ZX = 112, 184, 256, 330
+    HY, HS = 118, 96
+    s, t = al.sun, al.times
+    sc.pdat(229, 4, al.j)
+    sc.phm(229, 76, ut_hours(al.j)); sc.text(229, 112, 'UT')
+    sc.text(229, 142, 'DR')
+    sc.text(229, 160, 'S' if al.lat < 0 else 'N'); sc.pdm(229, 160, abs(al.lat))
+    sc.text(229, 220, 'W' if al.lon < 0 else 'E'); sc.pdm(229, 226, abs(al.lon))
+    sc.text(229, 292, 'ARIES'); sc.pdm(229, 328, s.aries)
+    sc.hline(HY, 20, 376)
+    for y in range(HY, HY + HS + 1, 3):
+        sc.pixel(y, 18)
+    for v in (30, 60, 90):
+        y = HY + HS * v // 90
+        sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
+        sc.pinb(y - 3, 2, v)
+    for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
+        sc.pixel(HY - 1, c); sc.pixel(HY - 2, c)
+    off = 180 if al.lat < 0 else 0
+    for x, l in zip((18, 111, 205, 299, 393), 'SWNES' if off else 'NESWN'):
+        sc.text(HY - 12, x, l)
+
+    def pos(dec, gha):
+        hc, zn = al.hcz(dec, gha)
+        return hc, zn, chart_x(zn, off, 375, 20), chart_y(hc, HY, 1, HS)
+
+    for g in range(0, 358, 3):
+        hc, zn, x, y = pos(0, g)
+        if hc > 0:
+            sc.pixel(y, x)
+    sc.pixel(-102, 0)
+    sc.text(92, 34, 'BODY'); sc.text(92, GX + 36, 'GHA'); sc.text(92, DX + 36, 'DEC')
+    sc.text(92, HX + 42, 'HC'); sc.text(92, ZX + 18, 'ZN')
+    y = 80
+    for ident, g, d, hc, zn in al.bodies_short():
+        _, _, cx, cy = pos(d, g)
+        if ident == 0:
+            if hc > 0:
+                sc.glyph(BIG, '@', cy - 3, cx - 5)
+        elif ident < 0:
+            mark(sc, cy - 3, cx - 3, ident)
+        else:
+            sc.glyph(BIG, '*', cy - 3, cx - 3)
+            lx = cx + 6
+            if lx > 385:
+                lx -= 22
+            sc.pinb(cy - 3, lx, ident)
+        mark(sc, y, 4, ident)
+        if ident > 0:
+            sc.pinb(y, 16, ident)
+        sc.text(y, 34, body_name(ident))
+        sc.pdm(y, GX, g)
+        sc.text(y, DX, 'S' if d < 0 else 'N'); sc.pdm(y, DX, abs(d))
+        sc.pdm(y, HX, hc); sc.pzn(y, ZX, zn)
+        if hc < 0:
+            sc.hline(y - 1, HX, 54)
+        y -= 11
+    sc.text(13, 4, 'TWI'); sc.phm(13, 26, t['NTWA'])
+    sc.text(13, 62, 'RISE'); sc.phm(13, 90, t['RISE'])
+    sc.text(13, 126, 'MER'); sc.phm(13, 148, t['TRAN'])
+    sc.text(13, 184, 'SET'); sc.phm(13, 206, t['SET'])
+    sc.text(13, 242, 'TWI'); sc.phm(13, 264, t['NTWP'])
+    x = sc.text(13, 304, 'MOON '); x = sc.pinb(13, x, al.illum); sc.text(13, x, '%')
+    sc.small(2, 126, WARNING)
+    sc.small(2, 392, al.source)
+    return [sc.rows()]
+
+
+VIEWS = {'ALMS': lambda al: almf(al, True), 'HALMH': halmh, 'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}

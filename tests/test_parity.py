@@ -19,7 +19,7 @@ from c47view import Engine, jd          # simulator of the C47 programs
 import c47screen as S                   # native Python version
 import c47tables
 
-VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS']
+VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMS', 'HALMH']
 
 
 def main():

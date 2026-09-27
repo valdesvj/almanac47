@@ -34,7 +34,7 @@ for tables in (False, True):
             import datetime; d=datetime.date(2026,9,26)+datetime.timedelta(days=random.randint(0,120)); y,m,dd=d.year,d.month,d.day
         else: y,m,dd=random.choice([2025,2026,2027,2028]),random.randint(1,12),random.randint(1,28)
         j=jd(y,m,dd,random.uniform(0,24)); la=random.uniform(-65,65); lo=random.uniform(-180,180)
-        for v in ('ALMF','HALMV'):
+        for v in ('ALMF','HALMV','ALMS','HALMH'):
             a,sa=screen(mini,v,j,la,lo); b,sb=ref.screen(v,j,la,lo)
             n+=1
             if a!=b[0]: bad+=1; print('DIFF',v,(y,m,dd),la,lo)
@@ -87,3 +87,11 @@ c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); 
 try: c.run('NAV',maxsteps=10**7)
 except StopIteration: pass
 print('NAV option 4:', [str(m) for m in c.msgs][:1], 'HORZ frames', len(c.frames), 'pixels', len(c.pix))
+for opt,name in ((5,'ALMS'),(6,'HALMH')):
+    c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+    c.s=[D(0)]*4; c.answers=[opt,0]; c.msgs=[]; c.pix=[]
+    c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+    ref=Engine('programs'); b,_=ref.screen(name,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
+    c.run('NAV',maxsteps=10**7)
+    a={(x,239-y) for y,x in c.pix if 0<=x<400 and 0<=y<240}
+    print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])

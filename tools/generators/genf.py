@@ -1,3 +1,6 @@
+import sys
+SHORT = len(sys.argv) > 1 and sys.argv[1] == 'short'   # ALMS: Sun, Moon, 1 planet, 3 stars
+NAME = 'ALMS' if SHORT else 'ALMF'
 P=[]
 def a(*xs):
     for x in xs: P.extend(str(x).split('\n'))
@@ -6,7 +9,7 @@ def num(y,x,reg,fn): a(y,x,'RCL %s'%reg,'XEQ "%s"'%fn)
 def hline(y,lab):
     a('-%d'%y,'0','PIXEL')
 GX,DX,HX,ZX=112,184,256,330
-a('LBL "ALMF"','STO 12','R↓','STO 11','R↓','STO 10')
+a('LBL "%s"'%NAME,'STO 12','R↓','STO 11','R↓','STO 10')
 for reg,lab in ((13,'NTWA'),(14,'RISE'),(15,'TRAN'),(16,'SET'),(17,'NTWP')):
     a('XEQ 26','XEQ "%s"'%lab,'STO %d'%reg)
 a('RCL 10','STO 90','RCL 11','STO 91','RCL 12','STO 92','CLLCD')
@@ -26,10 +29,21 @@ a('RCL 40','4','"@"','XEQ "PTXB"','RCL 40','34','"SUN"','XEQ "PTXB"','XEQ 60')
 a('1','STO 41')
 # Moon, if above the horizon
 a('XEQ "MOO2"','STO 45','R↓','STO 46','R↓','STO 21','R↓','STO 22','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 61')
-# planets above the horizon
-a('1.004','STO 42','LBL 16','RCL 42','IP','XEQ "PLN3"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 63','ISG 42','GTO 16')
-# brightest stars higher than 10 deg until the table has 10 rows
-a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
+if SHORT:
+    # the first planet above the horizon in the order Venus, Jupiter, Mars, Saturn (LBL 91-94)
+    a('1.004','STO 24','LBL 16','RCL 24','IP','90','+','STO 43','XEQ IND 43','STO 42','XEQ "PLN3"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
+      'RCL 96','X>0?','GTO 15','ISG 24','GTO 16','GTO 14','LBL 15','XEQ 63','LBL 14')
+    # the 3 brightest stars higher than 10 deg (count R24)
+    a('0','STO 24','1.058','STO 42','LBL 17','3','RCL 24','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
+  '10','RCL 96','X≤Y?','GTO 18',
+  'RCL 40','4','"*"','XEQ "PTXB"','RCL 40','16','RCL 82','XEQ "PINB"',
+  'RCL 82','XEQ "SNMU"','STO 43','RCL 40','34','RCL 43','XEQ "PTXB"','XEQ 60',
+  '1','STO+ 41','1','STO+ 24','LBL 18','ISG 42','GTO 17','LBL 19')
+else:
+    # planets above the horizon
+    a('1.004','STO 42','LBL 16','RCL 42','IP','XEQ "PLN3"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 63','ISG 42','GTO 16')
+    # brightest stars higher than 10 deg until the table has 10 rows
+    a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
   '10','RCL 96','X≤Y?','GTO 18',
   'RCL 40','4','"*"','XEQ "PTXB"','RCL 40','16','RCL 82','XEQ "PINB"',
   'RCL 82','XEQ "SNMU"','STO 43','RCL 40','34','RCL 43','XEQ "PTXB"','XEQ 60',
@@ -59,5 +73,7 @@ a('LBL 64','RCL 40','1','-',HX,'54','XEQ "PHL"','RTN')
 a('LBL 61','RCL 40','4','"("','XEQ "PTXB"','RCL 40','34','"MOON"','XEQ "PTXB"','XEQ 60','1','STO+ 41','RTN')
 a('LBL 63','RCL 42','IP','70','+','STO 43','RCL 40','4','XEQ IND 43','XEQ "PTXB"','RCL 42','IP','81','+','STO 43','RCL 40','34','XEQ IND 43','XEQ "PTXB"','XEQ 60','1','STO+ 41','RTN')
 for lab,t in ((71,'<'),(72,'>'),(73,'='),(74,'?'),(82,'VENUS'),(83,'MARS'),(84,'JUPITER'),(85,'SATURN')): a('LBL %d'%lab,'"%s"'%t,'RTN')
+if SHORT:
+    for lab,pn in ((91,1),(92,3),(93,2),(94,4)): a('LBL %d'%lab,str(pn),'RTN')
 a('END')
-open('/home/claude/ALMF.txt','w').write('\n'.join(P)+'\n'); print(len(P))
+open('/home/claude/%s.txt'%NAME,'w').write('\n'.join(P)+'\n'); print(len(P))

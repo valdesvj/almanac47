@@ -151,7 +151,8 @@ extras/  DM42/Free42 graphics tests (AGDEMO_DM42, AGTEST_DM42 - do NOT use the
 NAV   start program with prompts (does not change any other program)
       XEQ "NAV" -> "1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 0 END": key the number, R/S.
       1 = ALMF page, 2 = HALMV chart + data, 3 = build the matrices (first time),
-      4 = ALMT text almanac, 5 = HORZ sky chart with the info line (endless, R/S stops).
+      4 = ALMT text almanac, 5 = HORZ sky chart with the info line (endless, R/S stops),
+      6 = ALMS short almanac, 7 = HALMH chart on top + short table.
       Then it asks (INPUT, R/S keeps the value shown):
         DATE  YYYY.MMDD   e.g. 2026.0923
         UTC   HH.MMSS     e.g. 23.3000
@@ -237,13 +238,22 @@ BELOW-HORIZON MARK (Hc < 0)
   Cost: one X<0? test per row; the line itself (about 160 steps) only when Hc < 0.
   Previews: docs/ALMF_below_horizon.png, docs/HALMV_below_horizon.png
 
+SHORT VIEWS (Sep 2026) - ALMS and HALMH, NAV options 6 and 7 (NAVFULL: 5 and 6)
+  Body list: Sun; Moon if above the horizon; the first planet above the horizon in
+  the order Venus, Jupiter, Mars, Saturn; the 3 brightest stars higher than 10 deg.
+  ALMS  = ALMF layout with that list.  HALMH = horizon chart across the top (full
+  width, Hc 90 deg = 96 px) and the same table below, Sun times and Moon % on one line.
+  Steps, average of 20 cases 2025-2050 (series): ALMF 46.6k -> ALMS 32.6k,
+  HALMV 56.3k -> HALMH 43.3k. Previews: docs/ALMS_preview.png, docs/HALMH_preview.png
+
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
                3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
-               body without end; EXIT to stop), ALMF, HALMV, ALMT, HORZ,
+               body without end; EXIT to stop, 5 SMALL = ALMS, 6 SPLIT = HALMH),
+               ALMF, HALMV, ALMT, HORZ, ALMS, HALMH,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXB / PTXT cut to the characters the screens print.
-               7,704 lines, 46.9 KB as text (without HORZ: 6,619 lines, 40.5 KB).
+               9,352 lines, 57.1 KB as text (without HORZ, ALMS, HALMH: 6,619 lines, 40.5 KB).
   NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
                26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47

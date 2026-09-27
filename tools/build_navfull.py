@@ -13,7 +13,8 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
   TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
 
 Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
-4 SKY (HORZ, info line per body without end).
+4 SKY (HORZ, info line per body without end), 5 SMALL (ALMS: Sun, Moon, 1 planet,
+3 stars), 6 SPLIT (HALMH: chart on top, the same short table below).
 Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 
@@ -25,7 +26,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
-KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
+KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
         'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXB', 'PTXT']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -55,13 +56,17 @@ def trim_font(lines, keep):
 
 
 def nav_min(lines):
-    """NAV menu: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT), 4 SKY (HORZ)."""
+    """NAV menu: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT), 4 SKY (HORZ),
+    5 SMALL (ALMS), 6 SPLIT (HALMH)."""
     s = '\n'.join(lines)
-    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 0 END"', '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 0 END"')
-    s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n5\nRCL 38\nX=Y?\nGTO 14\n',
-                  '3\nRCL 38\nX=Y?\nGTO 13\n4\nRCL 38\nX=Y?\nGTO 14\n')
+    s = s.replace('"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 6 SMALL 7 SPLIT 0 END"',
+                  '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 0 END"')
+    s = s.replace('3\nRCL 38\nX=Y?\nGTO 12\n4\nRCL 38\nX=Y?\nGTO 13\n5\nRCL 38\nX=Y?\nGTO 14\n'
+                  '6\nRCL 38\nX=Y?\nGTO 15\n7\nRCL 38\nX=Y?\nGTO 16\n',
+                  '3\nRCL 38\nX=Y?\nGTO 13\n4\nRCL 38\nX=Y?\nGTO 14\n'
+                  '5\nRCL 38\nX=Y?\nGTO 15\n6\nRCL 38\nX=Y?\nGTO 16\n')
     s = re.sub(r'LBL 12\n.*?GTO 01\n', '', s, flags=re.S)
-    assert 'MATA' not in s and 'XEQ "ALMT"' in s and 'GTO 14' in s and '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 0 END"' in s
+    assert 'MATA' not in s and 'XEQ "ALMT"' in s and 'GTO 16' in s and '"1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 0 END"' in s
     return s.split('\n')
 
 
@@ -69,10 +74,10 @@ def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
-    big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['SNMU'])
+    big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['SNMU'])
               + '0123456789-.: %')
     # small font: warning, T/S, and HORZ (axis letters, info line: names, numbers, - .)
-    small = set(WARNING + 'TS NEWZHC-.0123456789' + strings(progs['HORZ']) + strings(progs['SNMU']))
+    small = set(WARNING + 'TS NEWZHC-.0123456789' + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['SNMU']))
     progs['PTXB'] = trim_font(progs['PTXB'], big)
     progs['PTXT'] = trim_font(progs['PTXT'], small)
     nav = nav_min(progs['NAV'])
