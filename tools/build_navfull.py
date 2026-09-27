@@ -7,7 +7,9 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                (menu NAV, the three screens, the text almanac, Sun, stars, Moon, planets, sight
                reduction, sunrise/twilight, Moon phase, star order and names,
                the table lookup TGET and the two fonts, cut down to the
-               characters the screens really print)
+               characters the screens really print: PTXS, the C47 status-bar
+               font, for text, numbers and the bodies; PTXT, the small font, for the
+               warning and the chart axes)
   NAVFULL_NOTBL.txt  the same without the almanac tables: no TGET, no table hooks in
                SUNA/MOON/PLAN/BODY, no "T" letter (the "X" letter stays). Use it when
                memory is short and you do not load TBL. Load NAVFULL OR NAVFULL_NOTBL.
@@ -34,7 +36,7 @@ PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
 KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
-        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXB', 'PTXT']
+        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXS', 'PTXT']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -131,9 +133,9 @@ def build():
     # plus what the number routines print (digits, sign, point, colon, space)
     big = set(strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU'])
               + '0123456789-.: %')
-    # small font: warning, T/S, and HORZ (axis letters, info line: names, numbers, - .)
-    small = set(WARNING + 'TS NEWZHC-.0123456789' + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU']))
-    progs['PTXB'] = trim_font(progs['PTXB'], big)
+    # small font: warning, T/S/X, chart axis letters and altitude marks
+    small = set(WARNING + 'TSX NEWZHC-.0123456789')
+    progs['PTXS'] = trim_font(progs['PTXS'], big)
     progs['PTXT'] = trim_font(progs['PTXT'], small)
     nav = nav_min(progs['NAV'])
     full = nav + [l for n in KEEP for l in progs[n]]

@@ -169,3 +169,13 @@ change in SUNA/MOON/PLAN/BODY/screens around those hooks needs `no_tables()` upd
 
 `tools/generators/` holds the Python scripts that wrote most of the program files
 (fonts, screens, Moon and planet programs, REM listings). See the README there.
+
+## Status-bar font and sine charts (Sep 2026)
+
+`tools/generators/mkstd.py` reads the C47 standardFont bitmaps from the C43 source
+(`src/generated/rasterFontsData.c`) and writes `programs/PTXS.txt` plus
+`python/native/c47fonts2.py` (the same glyphs for the Python version). Views are generated
+by genf.py (ALMF, ALMS with `short`), genv.py (HALMV), genhh.py (HALMH), genh2.py
+(HORZ, HORZS), genbody.py (BODY) and write straight to `programs/`. Chart rows use
+`RCL "SHC"` (sin Hc kept by HCZ/HCZ0/HCZR); Python mirrors this with `Almanac.hczs`,
+`chart_ys` and `sine_ticks`. The T/S/X letter is drawn last because MOO2 sets flag 11.

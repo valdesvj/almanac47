@@ -3,7 +3,7 @@
 as a text-drawing program, same calls as PTXB with other names:
 
   PTXB -> PTXS   PINB -> PINS   PF1 -> PF1S   PHM -> PHMS   PDM -> PDMS
-  PDAT -> PDTS   PZN -> PZNS    (PHL is shared with PTXB)
+  PDAT -> PDTS   PZN -> PZNS    PHL -> PHLS
 
 Y = row of the base line (0 = bottom), X = column, then the string or number.
 Glyphs are the calculator's own standardFont bitmaps (C43 source, rasterFontsData.c);
@@ -71,6 +71,10 @@ def columns_sym(code):
                 v |= 1 << r
         if v:
             out.append((c, v))
+    if code != 42:                                    # bold (as the text): OR with the column before
+        d = dict(out)
+        out = [(c, d.get(c, 0) | d.get(c - 1, 0)) for c in range(nw + 1) if d.get(c, 0) | d.get(c - 1, 0)]
+        nw += 1
     return nw + 3, out
 
 
@@ -89,12 +93,12 @@ def glyph_prog(code, adv, cols):
 def main():
     G = std_glyphs()
     ptxb = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'programs', 'PTXB.txt'), encoding='utf-8') if l.strip()]
-    frame = ptxb[:ptxb.index('LBL "PHL"')]              # up to PHL (shared)
+    frame = ptxb[:ptxb.index('LBL 37')]                 # framework and PHL, up to the glyphs
     s = '\n'.join(frame)
     for a, b in (('PTXB', 'PTXS'), ('PINB', 'PINS'), ('"PF1"', '"PF1S"'), ('"PHM"', '"PHMS"'),
-                 ('"PDM"', '"PDMS"'), ('"PDAT"', '"PDTS"'), ('"PZN"', '"PZNS"')):
+                 ('"PDM"', '"PDMS"'), ('"PDAT"', '"PDTS"'), ('"PZN"', '"PZNS"'), ('"PHL"', '"PHLS"')):
         s = s.replace(a, b)
-    s = s.replace('WSIZE 8', 'WSIZE %d' % WS)
+    s = s.replace('WSIZE 8', 'WSIZE %d' % WS, 2)            # PTXS and the number setup; PHLS keeps 8
     s = s.replace('LBL 32\n6\nSTO+ 30', 'LBL 32\n8\nSTO+ 30')      # space: 8 px
     assert s.count('\n6\nSTO+ 30') == 2                             # PDM padding for 1-2 digit degrees
     s = s.replace('\n6\nSTO+ 30', '\n8\nSTO+ 30')

@@ -305,11 +305,11 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                body without end; EXIT to stop, 5 SMALL = ALMS, 6 SPLIT = HALMH,
                7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
-               and the fonts PTXB / PTXT cut to the characters the screens print.
-               10,874 lines, 66.7 KB as text.
+               and the fonts PTXS (status-bar font) / PTXT cut to the characters the
+               screens print. 11,108 lines, 70.3 KB as text.
   NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
                load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 10,586 lines, 65.0 KB
+               (S always; X outside the FAST period stays). 10,820 lines, 68.6 KB
                (288 lines less). Same screens; about 5-24 steps less per screen (no speed
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
@@ -324,6 +324,25 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   TBL_OCT2026.txt  the same for 27 Sep - 31 Oct 2026 only (906 numbers, 2,759 lines).
                Make one month at a time: python3 tools/almanac/tab2c47.py START END
   Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
+
+STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
+  PTXS (tools/generators/mkstd.py) is the C47's own status-bar font (standardFont, bold
+  capitals 12 px) as a drawing program, same calls as PTXB with S names:
+  PTXS PINS PF1S PHMS PDMS PDTS PZNS PHLS. The symbols @ ( * < > = ? are the PTXB ones
+  scaled to 12 rows and made bold. WSIZE 14 (13 rows + sign bit); line pitch 14 px.
+  All pixel views use it (ALMT uses PROMPT, which already draws this font):
+    ALMF   ARIES row + 9 bodies (no star numbers: no room), Sun/Moon lines below.
+    ALMS   ARIES, Sun, Moon, 1 planet, 3 stars.
+    HALMV  panel: date/UT, DR, ARIES, then symbol + star number, HC, ZN of 10 bodies,
+           Moon phase. (Sun GHA/Dec/SD and the twilight block are on ALMF.)
+    HALMH  chart on top; table without titles; footer RISE SET MER ARIES / TWI MOON.
+    HORZ   info line in the big font (clears y 224 and up); bodies and star numbers big.
+    BODY   chart bigger (horizon y 86); rows GHA DEC / HC ZN / SHA ARIES (SD, HP SD).
+  Axis letters and altitude marks use the small font PTXT.
+  Charts: sine altitude scale, height = sin(Hc) x scale: 0-30 deg takes half the height,
+  90 deg stays at the top, nothing is cut. Marks 10 20 30 45 60 90. HCZ, HCZ0 and HCZR
+  keep sin Hc in "SHC" (the value before ASIN): no extra trig.
+  NAVFULL grows by 234 lines (the font +470, the views shorter).
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,

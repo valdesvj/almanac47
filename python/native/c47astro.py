@@ -290,6 +290,17 @@ def hcz(lat, lon, dec, gha):
     return hc, zn
 
 
+def hczs(lat, lon, dec, gha):
+    """HCZ with sin Hc (the value HCZ keeps in "SHC" for the sine-scale charts).
+    Returns (hc, zn, sin hc)."""
+    lha = gha + lon
+    sh = dsin(lat) * dsin(dec) + dcos(lat) * dcos(dec) * dcos(lha)
+    sh = max(-1.0, min(1.0, sh))
+    zn = (datan2(-(dcos(dec) * dsin(lha)), dcos(lat) * dsin(dec) - dsin(lat) * dcos(dec) * dcos(lha))
+          + 360.0) % 360.0
+    return dasin(sh), zn, sh
+
+
 EVENTS = {'RISE': (-0.8333333333333333, -1), 'SET': (-0.8333333333333333, 1),
           'NTWA': (-12.0, -1), 'NTWP': (-12.0, 1), 'CTWA': (-6.0, -1), 'CTWP': (-6.0, 1),
           'TRAN': (0.0, 0)}

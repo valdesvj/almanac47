@@ -7,7 +7,7 @@
 # 2. Legend page "BODY NO. ..." - key the number, R/S. Nothing keyed or 0: list again.
 # 3. The chosen body in full precision: two text pages (GHA, Dec / Hc, Zn, SHA or SD, HP),
 #    R/S: horizon chart on top with the body, its data below (3 x PAUSE 99), then the legend.
-import json, os
+import json, math, os
 HERE = os.path.dirname(os.path.abspath(__file__))
 WID = {' ': 8, ':': 5, '.': 5, '%': 13, "'": 8, '-': 8, '/': 8, '*': 8, '°': 8,
        'A': 11, 'I': 6, 'J': 8, 'K': 11, 'L': 9, 'M': 12, 'N': 11, 'Q': 11, 'W': 12}
@@ -75,45 +75,42 @@ a('LBL 20'); lit('SHA '); num('RCL 16|XEQ "SDM"'); a('GTO 23')
 a('LBL 21'); lit('SUN SD '); num('RCL 17|XEQ "SF1"'); lit("'"); a('GTO 23')
 a('LBL 22'); lit('HP '); num('RCL 16|XEQ "SF1"'); lit("'  SD "); num('RCL 17|XEQ "SF1"'); lit("'")
 a('LBL 23'); lit('  '); a('RCL 25', 'XEQ 90', 'XEQ 91')
-# ---------------- chart on top, the body's data below
-HY, HS = 118, 96
-def txt(y, x, s): a(y, x, '"%s"' % s, 'XEQ "PTXB"')
+# ---------------- chart on top (sine altitude scale), the body's data below, status-bar font (PTXS)
+HY, HS = 86, 132
+def txt(y, x, s): a(y, x, '"%s"' % s, 'XEQ "PTXS"')
 a('CLLCD')
-a(229, 4, 'RCL 10', 'XEQ "PDAT"')
-a(229, 76, 'RCL 10', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHM"'); txt(229, 112, 'UT')
-txt(229, 142, 'DR')
-a('"N"', 'STO 26', 'RCL 11', 'X<0?', 'XEQ 99'); a(229, 160, 'RCL 26', 'XEQ "PTXB"'); a(229, 160, 'RCL 11', 'ABS', 'XEQ "PDM"')
-a('"E"', 'STO 26', 'RCL 12', 'X<0?', 'XEQ 98'); a(229, 220, 'RCL 26', 'XEQ "PTXB"'); a(229, 226, 'RCL 12', 'ABS', 'XEQ "PDM"')
-txt(229, 292, 'ARIES'); a(229, 328, 'RCL 80', 'XEQ "PDM"')
-a(HY, '20', '376', 'XEQ "PHL"')
+a(226, 2, 'RCL 10', 'XEQ "PDTS"')
+a(226, 88, 'RCL 10', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"'); txt(226, 129, 'UT')
+a('"N"', 'STO 26', 'RCL 11', 'X<0?', 'XEQ 99'); a(226, 162, 'RCL 26', 'XEQ "PTXS"'); a(226, 164, 'RCL 11', 'ABS', 'XEQ "PDMS"')
+a('"E"', 'STO 26', 'RCL 12', 'X<0?', 'XEQ 98'); a(226, 244, 'RCL 26', 'XEQ "PTXS"'); a(226, 246, 'RCL 12', 'ABS', 'XEQ "PDMS"')
+a(226, 388, 'RCL 25', 'XEQ "PTXS"')
+a(HY, '20', '376', 'XEQ "PHLS"')
 a('%d.%03d03' % (HY, HY + HS), 'STO 47', 'LBL 57', 'RCL 47', 'IP', '18', 'PIXEL', 'ISG 47', 'GTO 57')
-for v in (30, 60, 90):
-    y = HY + HS * v // 90
-    a(y, 15, 'PIXEL', y, 16, 'PIXEL', y, 17, 'PIXEL', y - 3, 2, v, 'XEQ "PINB"')
+for v in (10, 20, 30, 45, 60, 90):
+    y = HY + int(HS * math.sin(math.radians(v)))
+    a(y, 15, 'PIXEL', y, 16, 'PIXEL', y, 17, 'PIXEL', y - 2, 2, v, 'XEQ "PTNS"')
 for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
     a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
-xs = (18, 111, 205, 299, 393)
+xs = (19, 112, 206, 300, 394)
 a('0', 'STO 44', 'RCL 11', 'X<0?', 'GTO 24')
-for x, l in zip(xs, 'NESWN'): txt(HY - 12, x, l)
+for x, l in zip(xs, 'NESWN'): a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
 a('GTO 25', 'LBL 24', '180', 'STO 44')
-for x, l in zip(xs, 'SWNES'): txt(HY - 12, x, l)
+for x, l in zip(xs, 'SWNES'): a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
 a('LBL 25')
 a('0', '6', 'XEQ "HCZQ"', '0', 'STO 47', 'LBL 58', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 56', '6', 'STO+ 47', '354', 'RCL 47', 'X≤Y?', 'GTO 58')   # equator: a dot every 6 deg (speed)
 a('RCL 15', 'RCL 14', 'XEQ 55', 'RCL 96', 'X>0?', 'XEQ 60')       # the body on the chart
-a('-102', '0', 'PIXEL')
-# data below: symbol + name | GHA DEC | HC ZN | SHA / SD / HP SD
-a('RCL 13', 'XEQ 38', 'STO 26', '88', '4', 'RCL 26', 'XEQ "PTXB"', 'RCL 13', 'XEQ 47', 'STO 26', '88', '16', 'RCL 26', 'XEQ "PTXB"')
-txt(72, 4, 'GHA'); a(72, 40, 'RCL 14', 'XEQ "PDM"')
-txt(72, 184, 'DEC'); a('"N"', 'STO 26', 'RCL 15', 'X<0?', 'XEQ 99'); a(72, 214, 'RCL 26', 'XEQ "PTXB"'); a(72, 214, 'RCL 15', 'ABS', 'XEQ "PDM"')
-txt(58, 4, 'HC'); a(58, 40, 'RCL 18', 'XEQ "PDM"')
-txt(58, 184, 'ZN'); a(58, 226, 'RCL 19', 'XEQ "PZN"')
+# data below: symbol + name | GHA DEC | HC ZN | SHA ARIES / SD / HP SD
+a('RCL 13', 'XEQ 38', 'STO 26', '62', '2', 'RCL 26', 'XEQ "PTXS"', 'RCL 13', 'XEQ 47', 'STO 26', '62', '20', 'RCL 26', 'XEQ "PTXS"')
+txt(47, 2, 'GHA'); a(47, 40, 'RCL 14', 'XEQ "PDMS"')
+txt(47, 184, 'DEC'); a('"N"', 'STO 26', 'RCL 15', 'X<0?', 'XEQ 99'); a(47, 220, 'RCL 26', 'XEQ "PTXS"'); a(47, 222, 'RCL 15', 'ABS', 'XEQ "PDMS"')
+txt(33, 2, 'HC'); a(33, 40, 'RCL 18', 'XEQ "PDMS"')
+txt(33, 184, 'ZN'); a(33, 230, 'RCL 19', 'XEQ "PZNS"')
 a('RCL 13', '60', 'X>Y?', 'GTO 26', 'X=Y?', 'GTO 27', '61', 'RCL 13', 'X=Y?', 'GTO 28')
-a('LBL 26'); txt(44, 4, 'SHA'); a(44, 40, 'RCL 16', 'XEQ "PDM"'); a('GTO 29')
-a('LBL 27'); txt(44, 4, 'SUN SD'); a(44, 46, 'RCL 17', 'XEQ "PF1"'); a('GTO 29')
-a('LBL 28'); txt(44, 4, 'HP'); a(44, 40, 'RCL 16', 'XEQ "PF1"'); txt(44, 184, 'SD'); a(44, 226, 'RCL 17', 'XEQ "PF1"')
+a('LBL 26'); txt(19, 2, 'SHA'); a(19, 40, 'RCL 16', 'XEQ "PDMS"'); txt(19, 184, 'ARIES'); a(19, 232, 'RCL 80', 'XEQ "PDMS"'); a('GTO 29')
+a('LBL 27'); txt(19, 2, 'SD'); a(19, 40, 'RCL 17', 'XEQ "PF1S"'); txt(19, 184, 'ARIES'); a(19, 232, 'RCL 80', 'XEQ "PDMS"'); a('GTO 29')
+a('LBL 28'); txt(19, 2, 'HP'); a(19, 40, 'RCL 16', 'XEQ "PF1S"'); txt(19, 184, 'SD'); a(19, 230, 'RCL 17', 'XEQ "PF1S"')
 a('LBL 29')
 a(2, 126, '"DOES NOT REPLACE THE NAUTICAL ALMANAC"', 'XEQ "PTXT"')
-a(2, 392, 'RCL 25', 'XEQ "PTXT"')
 a('3', 'STO 37', 'LBL 09', 'PAUSE 99', 'DSE 37', 'GTO 09', 'GTO 04')
 # ---------------- subroutines: list
 a('LBL 11', '60', 'XEQ 36', 'XEQ 40', 'RTN')
@@ -143,12 +140,12 @@ a('LBL 45', '-1', 'PROMPT 20', 'STO 21', '0', 'STO 43', 'RTN')
 # ---------------- subroutines: chart
 a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
 a('LBL 55', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
-  'RCL 96', HS, '×', '90', '÷', HY, '+', 'IP', 'STO 99', 'RTN')
+  'RCL "SHC"', HS, '×', HY, '+', 'IP', 'STO 99', 'RTN')
 a('LBL 56', 'RCL 99', 'RCL 98', 'PIXEL', 'RTN')
-a('LBL 60', 'RCL 13', '60', 'X=Y?', 'GTO 61', 'RCL 13', 'XEQ 38', 'STO 26', 'RCL 99', '3', '-', 'RCL 98', '3', '-', 'RCL 26', 'XEQ "PTXB"',
-  'RCL 13', '59', 'X<Y?', 'RTN', 'RCL 98', '6', '+', 'STO 26', '385', 'RCL 26', 'X>Y?', 'XEQ 62',
-  'RCL 99', '3', '-', 'RCL 26', 'RCL 13', 'XEQ "PINB"', 'RTN', 'LBL 62', '22', 'STO- 26', 'RTN',
-  'LBL 61', 'RCL 99', '3', '-', 'RCL 98', '5', '-', '"@"', 'XEQ "PTXB"', 'RTN')
+a('LBL 60', 'RCL 13', '60', 'X=Y?', 'GTO 61', 'RCL 13', 'XEQ 38', 'STO 26', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'RCL 26', 'XEQ "PTXS"',
+  'RCL 13', '59', 'X<Y?', 'RTN', 'RCL 98', '8', '+', 'STO 26', '380', 'RCL 26', 'X>Y?', 'XEQ 62',
+  'RCL 99', '6', '-', 'RCL 26', 'RCL 13', 'XEQ "PINS"', 'RTN', 'LBL 62', '32', 'STO- 26', 'RTN',
+  'LBL 61', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "PTXS"', 'RTN')
 a('LBL 59', '"T"', 'STO 25', 'RTN', 'LBL 65', '"X"', 'STO 25', 'RTN')
 a('LBL 99', '"S"', 'STO 26', 'RTN', 'LBL 98', '"W"', 'STO 26', 'RTN')
 # ---------------- subroutines: text lines (as ALMT)
@@ -160,5 +157,5 @@ a('LBL 89', 'STO 28', 'LBL 73', 'RCL 43', '8', '+', 'RCL 28', 'X<Y?', 'RTN', '" 
 a('LBL 94', 'STO 28', 'R↓', 'STO 27', 'LBL 97', 'αLENG 27', 'RCL 28', 'X≤Y?', 'GTO 96',
   '" "', 'RCL 27', '+', 'STO 27', 'GTO 97', 'LBL 96', 'RCL 27', 'RTN')
 a('END')
-open('/home/claude/BODY.txt', 'w').write('\n'.join(P) + '\n')
+open(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'programs', 'BODY.txt'), 'w').write('\n'.join(P) + '\n')
 print(len(P), repr(LEG1P), pxw(LEG1P), pxw(LEG2))
