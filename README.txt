@@ -261,6 +261,22 @@ ONE BODY (Sep 2026) - BODY, NAV option 8 (NAVFULL: 7)
   PC: python3 python/native/c47pc.py --lat .. --lon .. --body 18 [--png sirius.png]
   Preview: docs/BODY_preview.png
 
+FULL OR FAST SERIES (Sep 2026) - INIT asks "1 FULL 2000-2050  2 FAST 2026-2030"
+  FULL: VSOP87 truncated (MATA, MATP), any date 2000-2050.
+  FAST: a series fitted to 2026-2030 only (MATF, tools/almanac/fastseries.py): a
+        quadratic for all slow effects plus the short-period terms. 677 terms -> 185,
+        about a third of the memory for these matrices. Checked against JPL DE421
+        over 2026-2030, max error (GHA / Dec): Sun 0.016' / 0.013', Venus 0.082' /
+        0.042', Mars 0.033' / 0.034', Jupiter 0.010' / 0.022', Saturn 0.045' / 0.026'.
+        Steps (average 2026-2030): ALMT 28.6k -> 24.2k, ALMF 47.4k -> 43.1k,
+        HALMV 57.1k -> 52.8k, HORZ 50.7k -> 46.4k.
+        Outside its years SUNA sets flag 12 and the screens show X instead of T/S:
+        run INIT again (FULL) or load a new MATF (python3 tools/almanac/fastseries.py
+        2031 5). The coefficients differ for every period.
+  The series matrices now carry their number of terms in row 1 (SER reads it), so
+  SUNA and PLAN work with either set. Rebuild the matrices after loading these programs.
+  PC: c47pc.py --fast
+
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
                3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
@@ -269,7 +285,8 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXB / PTXT cut to the characters the screens print.
                10,555 lines, 64.2 KB as text (without HORZ, ALMS, HALMH, BODY: 6,619 lines, 40.5 KB).
-  NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
+  NAVINIT.txt  MATA MATST MATM MATP MATF + INIT: load, XEQ "INIT" once (1 FULL or 2 FAST),
+               delete the programs.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
                26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47
                that also holds NAVFULL and the matrices.

@@ -10,12 +10,13 @@ def split(path):
         cur.append(l)
         if l=='END': progs.append(cur); cur=[]
     return progs
-def load(paths, tables):
+def load(paths, tables, fast=False):
     tmp=tempfile.mkdtemp(); files=[]
     for p in paths:
         for i,pr in enumerate(split(p)):
             f=os.path.join(tmp,'%s_%d.txt'%(os.path.basename(p),i)); open(f,'w').write('\n'.join(pr)+'\n'); files.append(f)
     c=c47sim.load(files)
+    c.answers=[2] if fast else [1]
     c.run('INIT',maxsteps=10**7)
     if tables: c.run('TBL',maxsteps=10**7)
     return c
@@ -102,3 +103,13 @@ c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); 
 try: c.run('NAV',maxsteps=10**8)
 except StopIteration: pass
 print('NAV option 7 (BODY):', [str(m) for m in c.msgs][1:4])
+# FAST series through INIT option 2
+pass
+mini=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False,fast=True)
+ref=Engine('programs',fast=True); bad=0; n=0
+for k in range(8):
+    j=jd(2026+k%5,1+k,3+3*k,2.5+2*k); la=-50+14*k; lo=-170+45*k
+    for v in ('ALMF','HALMV','ALMS','HALMH'):
+        a,_=screen(mini,v,j,la,lo); b,_=ref.screen(v,j,la,lo); n+=1
+        if a!=b[0]: bad+=1; print('FAST DIFF',v,k)
+print('FAST via INIT: %d screens, %d differences'%(n,bad), [str(m) for m in mini.msgs][-1:] if mini.msgs else '')

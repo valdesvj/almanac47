@@ -348,6 +348,8 @@ REM "T = Moon and planets from the tables (flag 11), S = series: bottom right"
 STO 43
 FS? 11
 XEQ 29
+FS? 12
+XEQ 65
 8
 390
 RCL 43
@@ -374,6 +376,10 @@ RTN
 LBL 29
 REM "letter T"
 "T"
+STO 43
+RTN
+LBL 65
+"X"
 STO 43
 RTN
 LBL 23

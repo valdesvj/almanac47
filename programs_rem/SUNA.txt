@@ -24,21 +24,20 @@ STO 54
 STO 50
 REM "series in radians: L (56 terms), B (3), R (7) via SER"
 RAD
-56
-STO 55
+CF 12
 REM "heliocentric L -> R71"
 INDEX "VL"
+1
+2
+STOIJ
+RCLEL
+X≠0?
+XEQ 14
 XEQ "SER"
 STO 71
-REM "heliocentric B -> R72"
-3
-STO 55
 INDEX "VB"
 XEQ "SER"
 STO 72
-REM "radius vector R -> R73 (au)"
-7
-STO 55
 INDEX "VR"
 XEQ "SER"
 STO 73
@@ -256,13 +255,29 @@ X<>Y
 360
 MOD
 RTN
+LBL 14
+REM "FAST series (VL header holds first and end JD): outside the period set flag 12 (X on the screens)"
+RCL 70
+X<Y?
+SF 12
+J+
+RCLEL
+RCL 70
+X>Y?
+SF 12
+RTN
 LBL "SER"
-REM "SER: sum A*cos(B+C*tau)*tau^k over matrix rows (R55 = rows). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8"
+REM "SER: sum A*cos(B+C*tau)*tau^k over the rows of the indexed matrix. Row 1 = header, element 1 = number of terms (R55). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8"
 0
 STO 30
 STO 31
 STO 32
 1
+1
+STOIJ
+RCLEL
+STO 55
+2
 1
 STOIJ
 LBL 12

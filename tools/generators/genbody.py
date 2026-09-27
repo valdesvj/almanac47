@@ -54,7 +54,7 @@ a('LBL 05', 'RCL 21', 'FP', 'X≠0?', 'GTO 01', 'RCL 21', '60', 'X≤Y?', 'GTO 0
   'LBL 06', 'RCL 21', '65', 'X<Y?', 'GTO 01')
 # ---------------- 3. the body in full precision
 a('LBL 07', 'RCL 21', 'STO 13', '0', 'STO 16', 'STO 17', 'RCL 10', 'XEQ "SUNA"')
-a('"S"', 'STO 25', 'FC? 10', 'GTO 15', 'RCL 10', '6', 'XEQ "TGET"', 'X≥0?', 'XEQ 59', 'LBL 15')   # T = tables
+a('"S"', 'STO 25', 'FC? 10', 'GTO 15', 'RCL 10', '6', 'XEQ "TGET"', 'X≥0?', 'XEQ 59', 'LBL 15', 'FS? 12', 'XEQ 65')   # T = tables
 a('RCL 13', '60', 'X>Y?', 'GTO 16', 'X=Y?', 'GTO 17', '61', 'RCL 13', 'X=Y?', 'GTO 18')
 # planets 62-65
 a('RCL 13', '61', '-', 'XEQ "PLN2"', 'STO 14', 'R↓', 'STO 15', 'R↓', 'STO 16', 'GTO 19')
@@ -148,7 +148,7 @@ a('LBL 60', 'RCL 13', '60', 'X=Y?', 'GTO 61', 'RCL 13', 'XEQ 38', 'STO 26', 'RCL
   'RCL 13', '59', 'X<Y?', 'RTN', 'RCL 98', '6', '+', 'STO 26', '385', 'RCL 26', 'X>Y?', 'XEQ 62',
   'RCL 99', '3', '-', 'RCL 26', 'RCL 13', 'XEQ "PINB"', 'RTN', 'LBL 62', '22', 'STO- 26', 'RTN',
   'LBL 61', 'RCL 99', '3', '-', 'RCL 98', '5', '-', '"@"', 'XEQ "PTXB"', 'RTN')
-a('LBL 59', '"T"', 'STO 25', 'RTN')
+a('LBL 59', '"T"', 'STO 25', 'RTN', 'LBL 65', '"X"', 'STO 25', 'RTN')
 a('LBL 99', '"S"', 'STO 26', 'RTN', 'LBL 98', '"W"', 'STO 26', 'RTN')
 # ---------------- subroutines: text lines (as ALMT)
 a('LBL 90', 'STO 27', 'RCL 20', 'RCL 27', '+', 'STO 20', 'RTN')

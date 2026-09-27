@@ -28,7 +28,7 @@ def gen(name, info, rows=10):
       # brightest stars higher than 10 deg until the list has 10 bodies (same rule as ALMF)
       '1.058','STO 11','LBL 44','%d'%rows,'RCL 10','X≥Y?','GTO 42','RCL 11','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','XEQ 52',
       '10','RCL 96','X>Y?','XEQ 43','ISG 11','GTO 44','LBL 42')
-    a('"S"','STO 15','FS? 11','XEQ 29','7','2','RCL 15','XEQ "PTXT"')   # T = tables, S = series (bottom left)
+    a('"S"','STO 15','FS? 11','XEQ 29','FS? 12','XEQ 65','7','2','RCL 15','XEQ "PTXT"')   # T = tables, S = series (bottom left)
     if info:
         a('RCL 10','X=0?','RTN','1','STO 42',
           'LBL 35','INDEX "HZT"','RCL 42','1','STOIJ','RCLEL','J+','STO 13','RCLEL','J+','STO 97','RCLEL','STO 96',
@@ -44,7 +44,7 @@ def gen(name, info, rows=10):
     else:
         a('3','STO 37','LBL 21','PAUSE 99','DSE 37','GTO 21','RTN')
     # record object: X = id (0 Sun, -1 Moon, -2..-5 planets, n star) with Zn R97 and Hc R96
-    a('LBL 29','"T"','STO 15','RTN')
+    a('LBL 29','"T"','STO 15','RTN','LBL 65','"X"','STO 15','RTN')
     a('LBL 40','STO 13','1','STO+ 10','INDEX "HZT"','RCL 10','1','STOIJ','RCL 13','STOEL','J+','RCL 97','STOEL','J+','RCL 96','STOEL','RTN')
     a('LBL 47','241','RCL- 99','3','-','RCL 98','3','-','"("','XEQ "PTXB"','-1','XEQ 40','RTN')
     a('LBL 48','RCL 11','IP','70','+','STO 14','241','RCL- 99','3','-','RCL 98','3','-','XEQ IND 14','XEQ "PTXB"',

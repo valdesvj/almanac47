@@ -76,6 +76,15 @@ each character at its C47 pixel position; the text export uses a fixed-column la
   (differs from the two-pass PLN2 by 0.0002'). `c47astro.planet_quick`, `planet(s, p, lt)`.
 - Steps before -> after (series): ALMT 81k -> 28k, ALMF 100k -> 48k, HALMV 110k -> 57k.
 
+## FULL and FAST series
+
+Series matrices: row 1 = [terms, 0, 0, 0], then (30+k, A, B, C); SER reads the count.
+FAST (MATF, `tools/almanac/fastseries.py START YEARS`): each Earth/planet series fitted to
+the FULL series over the period (+-1 year margin) with 1, tau, tau^2 and the periodic terms
+in order of size, tolerance 0.02' (distances: 0.02' seen from the Earth). VL header holds
+the first and end JD; outside it SUNA sets flag 12 and the screens show X.
+Python: `c47astro.use_series(json)`; tests: `test_parity.py N seed F`, `test_body.py N seed F`.
+
 ## Methods and accuracy
 
 - Sun: VSOP87D Earth (truncated), FK5, IAU1980 nutation (10 terms), aberration.

@@ -12,15 +12,19 @@ from c47pc import jd
 def main():
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 10
     random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
-    tables = len(sys.argv) > 3 and sys.argv[3] == 'T'
+    opt = sys.argv[3].upper() if len(sys.argv) > 3 else ''
+    tables, fast = 'T' in opt, 'F' in opt
+    if fast:
+        import c47astro
+        c47astro.use_series(os.path.join(ROOT, 'python', 'native', 'fast_series.json'))
     tb = c47tables.Tables(os.path.join(ROOT, 'programs', 'TBL.txt')) if tables else None
-    E = Engine(os.path.join(ROOT, 'programs'), tables=tables); c = E.c
+    E = Engine(os.path.join(ROOT, 'programs'), tables=tables, fast=fast); c = E.c
     bad = 0
     for k in range(n):
         if tables:
             d = datetime.date(2026, 9, 26) + datetime.timedelta(days=random.randint(0, 127)); y, m, dd = d.year, d.month, d.day
         else:
-            y, m, dd = random.randint(2025, 2050), random.randint(1, 12), random.randint(1, 28)
+            y, m, dd = random.randint(2025, 2032) if fast else random.randint(2025, 2050), random.randint(1, 12), random.randint(1, 28)
         j = jd(y, m, dd, random.uniform(0, 24)); la = random.uniform(-70, 70); lo = random.uniform(-180, 180)
         al = S.Almanac(j, la, lo, tb)
         codes, pages = S.body_list(al)

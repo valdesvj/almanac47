@@ -60,10 +60,10 @@ txt(33,4,'MER PASS'); num(33,106,15,'PHM')
 a(33,184,'"MOON HP "','XEQ "PTXB"','RCL 21','XEQ "PF1"','" SD "','XEQ "PTXB"','RCL 22','XEQ "PF1"')
 a('-22','0','PIXEL')
 txt(8,89,'DOES NOT REPLACE THE NAUTICAL ALMANAC')
-a('"S"','STO 43','FS? 11','XEQ 29',8,390,'RCL 43','XEQ "PTXB"')   # T = tables, S = series
+a('"S"','STO 43','FS? 11','XEQ 29','FS? 12','XEQ 65',8,390,'RCL 43','XEQ "PTXB"')   # T = tables, S = series
 a('3','STO 37','LBL 20','PAUSE 99','DSE 37','GTO 20','RTN')
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
-a('LBL 29','"T"','STO 43','RTN')
+a('LBL 29','"T"','STO 43','RTN','LBL 65','"X"','STO 43','RTN')
 a('LBL 23','"FULL"','STO 43','RTN','LBL 24','"NEW"','STO 43','RTN')
 a('LBL 28','"WANING"','STO 43','RTN','LBL 22','"S"','STO 43','RTN','LBL 27','"W"','STO 43','RTN')
 a('LBL 60','RCL 40',GX,'RCL 45','XEQ "PDM"',

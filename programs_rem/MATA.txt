@@ -2,12 +2,24 @@ LBL "MATA"
 REM "MATA - build matrices VL (56x4), VB (3x4), VR (7x4), NU (10x9) for SUNA"
 REM "Run once. Can be deleted afterwards, never delete the matrices."
 REM "VL: Earth L series (k, A, B, C)"
-56
+57
 ENTER
 4
 NEWMAT
 STO "VL"
 INDEX "VL"
+56
+STOEL
+J+
+0
+STOEL
+J+
+0
+STOEL
+J+
+0
+STOEL
+J+
 30
 STOEL
 J+
@@ -680,13 +692,24 @@ J+
 0
 STOEL
 J+
-REM "VB: Earth B series"
-3
+4
 ENTER
 4
 NEWMAT
 STO "VB"
 INDEX "VB"
+3
+STOEL
+J+
+0
+STOEL
+J+
+0
+STOEL
+J+
+0
+STOEL
+J+
 30
 STOEL
 J+
@@ -723,13 +746,24 @@ J+
 5223.6939198022
 STOEL
 J+
-REM "VR: Earth R series"
-7
+8
 ENTER
 4
 NEWMAT
 STO "VR"
 INDEX "VR"
+7
+STOEL
+J+
+0
+STOEL
+J+
+0
+STOEL
+J+
+0
+STOEL
+J+
 30
 STOEL
 J+

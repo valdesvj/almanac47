@@ -9,6 +9,7 @@ ALMT text line.
     python3 tests/test_parity.py            # 12 cases
     python3 tests/test_parity.py 60 7       # 60 cases, random seed 7
     python3 tests/test_parity.py 20 1 T     # with the almanac tables (TBL loaded, flag 10)
+    python3 tests/test_parity.py 20 1 F     # FAST series (MATF), 2025-2032 (X outside 2026-2030)
 """
 import os, random, sys, time
 
@@ -25,7 +26,12 @@ VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMS', 'HALMH']
 def main():
     n = int(sys.argv[1]) if len(sys.argv) > 1 else 12
     seed = int(sys.argv[2]) if len(sys.argv) > 2 else 1
-    tables = len(sys.argv) > 3 and sys.argv[3].upper().startswith('T')
+    opt = sys.argv[3].upper() if len(sys.argv) > 3 else ''
+    tables = 'T' in opt
+    fast = 'F' in opt                           # FAST series (MATF), dates 2025-2032
+    if fast:
+        import c47astro
+        c47astro.use_series(os.path.join(ROOT, 'python', 'native', 'fast_series.json'))
     random.seed(seed)
     cases = [(2026, 9, 25, 18.5, 25 + 20 / 60, 55.2),       # Dubai, Sun below the horizon
              (2026, 9, 23, 9.0, -33.9, 18.4),               # Cape Town, south
@@ -41,10 +47,10 @@ def main():
             cases.append((d.year, d.month, d.day, round(random.uniform(0, 24), 3),
                           round(random.uniform(-72, 72), 3), round(random.uniform(-180, 180), 3)))
     while len(cases) < n:
-        cases.append((random.choice([2025, 2026, 2027, 2028]), random.randint(1, 12), random.randint(1, 28),
+        cases.append((random.choice(list(range(2025, 2033)) if fast else [2025, 2026, 2027, 2028]), random.randint(1, 12), random.randint(1, 28),
                       round(random.uniform(0, 24), 3), round(random.uniform(-72, 72), 3),
                       round(random.uniform(-180, 180), 3)))
-    eng = Engine(os.path.join(ROOT, 'programs'), tables=tables)
+    eng = Engine(os.path.join(ROOT, 'programs'), tables=tables, fast=fast)
     bad = 0; t0 = time.time()
     for (y, m, d, h, la, lo) in cases[:n]:
         j = jd(y, m, d, h)
@@ -59,7 +65,7 @@ def main():
         if ref != S.almt(al):
             bad += 1
             print('DIFF ALMT  %s' % ((y, m, d, h, la, lo),))
-    print('%d cases%s, %d differences (%.0f s)' % (n, ' with tables' if tables else '', bad, time.time() - t0))
+    print('%d cases%s%s, %d differences (%.0f s)' % (n, ' with tables' if tables else '', ' FAST' if fast else '', bad, time.time() - t0))
     sys.exit(1 if bad else 0)
 
 

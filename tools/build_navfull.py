@@ -8,8 +8,9 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                reduction, sunrise/twilight, Moon phase, star order and names,
                the table lookup TGET and the two fonts, cut down to the
                characters the screens really print)
-  NAVINIT.txt  MATA, MATST, MATM, MATP and INIT: load, XEQ "INIT" once, then
-               delete these programs - the matrices they build stay
+  NAVINIT.txt  MATA, MATST, MATM, MATP, MATF and INIT: load, XEQ "INIT" once (1 FULL
+               VSOP87 2000-2050, or 2 FAST fitted series for a few years, faster and
+               smaller), then delete these programs - the matrices they build stay
   TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
 
 Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
@@ -83,8 +84,13 @@ def build():
     progs['PTXT'] = trim_font(progs['PTXT'], small)
     nav = nav_min(progs['NAV'])
     full = nav + [l for n in KEEP for l in progs[n]]
-    init = (['LBL "INIT"'] + ['XEQ "%s"' % n for n in INIT] + ['"MATRICES READY"', 'RTN', 'END']
-            + [l for n in INIT for l in read(n)])
+    import json
+    period = json.load(open(os.path.join(ROOT, 'python', 'native', 'fast_series.json')))['period']
+    # INIT: 1 FULL (VSOP87, MATA + MATP, 2000-2050) or 2 FAST (MATF, fitted series for a few years)
+    init = (['LBL "INIT"', '"1 FULL 2000-2050  2 FAST %s"' % period, 'STO 39', 'PROMPT 39', 'STO 38',
+             'XEQ "MATA"', 'XEQ "MATST"', 'XEQ "MATM"', '2', 'RCL 38', 'X=Y?', 'GTO 01', 'XEQ "MATP"',
+             '"MATRICES READY: FULL"', 'RTN', 'LBL 01', 'XEQ "MATF"', '"MATRICES READY: FAST %s"' % period, 'RTN', 'END']
+            + [l for n in INIT + ['MATF'] for l in read(n)])
     os.makedirs(OUT, exist_ok=True)
     for name, L in (('NAVFULL', full), ('NAVINIT', init)):
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:

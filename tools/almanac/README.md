@@ -57,3 +57,13 @@ Program steps, series -> tables (simulator): ALMF 109,000 -> 44,000, HALMV
 
 TGET, SUNG and the switch need the programs TGET, TBL (run once) and the updated
 SUNA, SUNRISE, MOON, PLAN and screens.
+
+## FAST series (fastseries.py)
+
+Not tables but a shorter formula for a few years: the Earth and planet series are fitted
+to the FULL series (VSOP87) over the period with a quadratic plus the short-period terms.
+
+    python3 fastseries.py 2026 5     # -> programs/MATF.txt and python/native/fast_series.json
+
+Needs numpy. On the calculator: load MATF (or NAVINIT) and run INIT, option 2 FAST. Each
+period has its own coefficients; outside it the screens show X instead of T/S.

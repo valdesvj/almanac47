@@ -30,7 +30,7 @@ A['SUNA']=[('LBL "SUNA"',1,'main entry'),('DEG',1,'T = Julian centuries TT (UT1+
  ('84381.448',1,'true obliquity eps = eps0 + deps -> R76'),('RCL 75\nSIN\nRCL 76',1,'declination -> R77'),
  ('RCL 74\nSIN\nRCL 76\nCOS',1,'right ascension (->POL) -> R78'),('RCL 70\n2451545',1,'GMST + equation of equinoxes = GHA Aries -> R80'),
  ('RCL- 78',1,'GHA Sun = GHA Aries - RA -> R81'),('RCL 80\nRCL 77\nRCL 81',1,'stack Z=Aries Y=Dec X=GHA'),
- ('LBL "SER"',1,'SER: sum A*cos(B+C*tau)*tau^k over matrix rows (R55 = rows). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8'),
+ ('LBL "SER"',1,'SER: sum A*cos(B+C*tau)*tau^k over the rows of the indexed matrix. Row 1 = header, element 1 = number of terms (R55). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8'),('LBL 14',1,'FAST series (VL header holds first and end JD): outside the period set flag 12 (X on the screens)'),
  ('LBL 12',1,'loop over rows (DSE 55)'),
  ('LBL "NUT"',1,'NUT: fundamental arguments D M M\' F Omega -> R60-R64, 10-term IAU1980 nutation'),
  ('LBL 13',1,'loop over NU rows: dpsi -> R66, deps -> R67 (0.0001" units, scaled at end)')]
@@ -288,6 +288,11 @@ A['BODY']=[('LBL 01',1,'list: SUNA, then Sun, Moon (MOOQ), planets (PLNQ), stars
  ('LBL 07',1,'full precision: SUNA; T when the tables cover the date (TGET body 6)'),
  ('LBL 19',1,'HCZ; text pages'),('CLLCD',1,'chart on top (Hc 90 deg = 96 px, equator a dot every 6 deg), data below'),
  ('LBL 40',1,'add entry X to the list page: width by CWID; line 1 padded to 400 px; full page shown by LBL 45')]
+
+H['MATF']=["MATF - FAST series: builds VL VB VR and EEL ... SAR with a fitted series for a few years",
+ "  (quadratic + short-period terms, tools/almanac/fastseries.py). Same matrix format as MATA/MATP:",
+ "  row 1 = [terms, 0, 0, 0] (VL: [terms, first JD, end JD, 0]); rows (30+k, A, B, C).",
+ "  Run instead of MATA/MATP (INIT option 2). Outside its period SUNA sets flag 12: X on the screens."]
 
 # ---- almanac tables (Method B) and the table switch
 H['TGET']=["TGET - GHA and Dec from the loaded almanac tables (program TBL)",

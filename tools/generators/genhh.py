@@ -63,11 +63,11 @@ txt(13, 184, 'SET'); num(13, 206, 16, 'PHM')
 txt(13, 242, 'TWI'); num(13, 264, 17, 'PHM')
 a(13, 304, '"MOON "', 'XEQ "PTXB"', 'RCL 18', 'XEQ "PINB"', '"%"', 'XEQ "PTXB"')
 a(2, 126, '"DOES NOT REPLACE THE NAUTICAL ALMANAC"', 'XEQ "PTXT"')
-a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 2, 392, 'RCL 43', 'XEQ "PTXT"')   # T = tables, S = series
+a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 2, 392, 'RCL 43', 'XEQ "PTXT"')   # T = tables, S = series
 a('3', 'STO 37', 'LBL 20', 'PAUSE 99', 'DSE 37', 'GTO 20', 'RTN')
 # subroutines
 a('LBL 26', 'RCL 10', '0.5', '-', 'IP', '0.5', '+', 'RCL 11', 'RCL 12', 'RTN')
-a('LBL 29', '"T"', 'STO 43', 'RTN')
+a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
 a('LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
 a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RTN')
 a('LBL 16', 'RCL 99', '3', '-', 'RCL 98', '5', '-', '"@"', 'XEQ "PTXB"', 'RTN')

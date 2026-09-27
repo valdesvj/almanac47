@@ -212,6 +212,8 @@ class Almanac:
     @property
     def source(self):
         """'T' when the Moon (and so everything but the stars) came from the tables."""
+        if A.fast_out(self.j):
+            return 'X'                                        # FAST series outside their years
         return 'T' if self.moon_t else 'S'
 
     def star(self, n):
@@ -759,7 +761,7 @@ def body_values(al, code):
     else:
         g, d, sha = al.star(code); extra = (sha, 0.0)
     hc, zn = al.hcz(d, g)
-    letter = 'T' if tb and tb.get(j, 6) else 'S'
+    letter = 'X' if A.fast_out(j) else 'T' if tb and tb.get(j, 6) else 'S'
     return g, d, extra, hc, zn, letter
 
 

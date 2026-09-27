@@ -211,6 +211,39 @@ def moon_quick(s):
     return (s.aries - ra) % 360.0, dec
 
 
+_FULL = {}
+FAST_JD = None          # (first JD, end JD) of the FAST series in use, None = FULL
+
+
+def fast_out(j):
+    """True when FAST series are in use and j is outside their period (flag 12: X)."""
+    return FAST_JD is not None and not (FAST_JD[0] <= j <= FAST_JD[1])
+
+
+def use_series(path=None):
+    """Switch the Sun and planet series: None = FULL (VSOP87, as MATA/MATP), or the
+    fast_series.json written by tools/almanac/fastseries.py (as MATF). Returns the period."""
+    global VL, VB, VR, FAST_JD
+    names = ['VL', 'VB', 'VR', 'EEL', 'EEB', 'EER', 'VNL', 'VNB', 'VNR', 'MAL', 'MAB', 'MAR',
+             'JUL', 'JUB', 'JUR', 'SAL', 'SAB', 'SAR']
+    if not _FULL:
+        _FULL.update({n: getattr(_D, n) for n in names})
+    if path is None:
+        data, period = _FULL, 'FULL'
+        FAST_JD = None
+    else:
+        import json
+        with open(path) as fh:
+            j = json.load(fh)
+        data = {k: [tuple(r) for r in v] for k, v in j['series'].items()}
+        period = j['period']
+        FAST_JD = tuple(j['jd'])
+    for n in names:
+        setattr(_D, n, data[n])
+    VL, VB, VR = data['VL'], data['VB'], data['VR']
+    return period
+
+
 def planet(s, p, lt=None):
     """PLAN / PLN2. p = 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn.
     Returns (gha, dec, sha, hp) with hp in arcmin. Light time: two passes of the

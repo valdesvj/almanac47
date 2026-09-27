@@ -552,8 +552,12 @@ def main():
     ap.add_argument('--tables', help='almanac tables TBL.txt (default: programs/TBL.txt or next to this file)')
     ap.add_argument('--series', action='store_true', help='do not use the almanac tables (like CF 10 on the C47)')
     ap.add_argument('--body', type=int, help='BODY: list the bodies above the horizon; with a number (1-58 stars, 60 Sun, 61 Moon, 62-65 planets) also its pages and, with --png, its chart')
+    ap.add_argument('--fast', nargs='?', const=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fast_series.json'),
+                    help='FAST series (as INIT option 2 / MATF), from fast_series.json')
     ap.add_argument('--version', action='version', version='%s %s (%s)' % (PROGRAM, VERSION, VERSION_DATE))
     args = ap.parse_args()
+    if args.fast:
+        print('FAST series', c47screen.A.use_series(args.fast))
 
     if args.check:
         import jplcheck

@@ -47,7 +47,7 @@ a('LBL 01')
 # page 1: date, UT, DR  |  GHA Aries, T/S
 a('RCL 10','XEQ "SDAT"','STO 20','80','STO 43'); lit(' '); num(fmt('10|0.5|+|1|MOD|24|×','SHM'))
 lit(' UT  DR '); a('RCL 11','XEQ 77'); num(fmt(11,'SNS'),'RCL 47'); lit('  '); a('RCL 12','XEQ 79'); num(fmt(12,'SEW'),'RCL 47'); pad(BRK)
-newline(); lit('ARIES '); num(fmt(48,'SDM')); pad(390); a('"S"','FS? 11','XEQ 29','XEQ 90','XEQ 91')   # T = tables, S = series
+newline(); lit('ARIES '); num(fmt(48,'SDM')); pad(390); a('"S"','FS? 11','XEQ 29','FS? 12','XEQ 65','XEQ 90','XEQ 91')   # T = tables, S = series
 # one page per body: name, HC, ZN  |  GHA, DEC (columns placed by pixels)
 a('1','STO 24','LBL 02','INDEX "ALT"','RCL 24','1','STOIJ','RCLEL','J+','STO 25','RCLEL','J+','STO 45','RCLEL','J+','STO 46','RCLEL','J+','STO 96','RCLEL','STO 97')
 a('RCL 25','XEQ 70','XEQ 68','RCL 96','X<0?','XEQ 92'); pad(136); lit('HC'); rjn(fmt(96,'SDM'),10); lit('  ZN  '); num(fmt(97,'SZN')); pad(BRK)
@@ -67,7 +67,7 @@ a('GTO 01')
 # ---------------- subroutines
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
 a('LBL 27','"WANING"','STO 26','RTN')
-a('LBL 29','"T"','RTN')
+a('LBL 29','"T"','RTN','LBL 65','"X"','RTN')
 a('LBL 20','"FULL"','STO 26','RTN','LBL 21','"NEW"','STO 26','RTN')
 a('LBL 40','STO 25','1','STO+ 41','INDEX "ALT"','RCL 41','1','STOIJ','RCL 25','STOEL','J+','RCL 45','STOEL','J+','RCL 46','STOEL','J+','RCL 96','STOEL','J+','RCL 97','STOEL','RTN')
 a('LBL 41','-1','XEQ 40','RTN')
