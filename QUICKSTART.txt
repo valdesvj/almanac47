@@ -20,12 +20,11 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
                        MATRICES READY: FAST 2026-2030.
    The matrices (VL VB VR, NU, ST, ML MB MCL MCB, the planets ...) now stay in memory.
 
-3. DELETE THE INIT PROGRAMS (frees memory - the matrices stay)
-   NAVINIT loaded five programs. Delete each one: GTO "name", then CLP.
-     FAST:  INIT  MATN  MATST  MATM  MATF
-     FULL:  INIT  MATA  MATST  MATM  MATP
+3. DELETE THE INIT PROGRAM (frees memory - the matrices stay)
+   NAVINIT is one program, INIT (the matrix builders are numbered labels inside it).
+   Delete it: GTO "INIT", then CLP.
    Do not use CLPALL: it would delete NAV and the views as well.
-   (Run INIT again only for a new period: load NAVINIT again, XEQ "INIT", delete again.)
+   (Run INIT again only for a new period: load NAVINIT again, XEQ "INIT", delete it again.)
 
 4. RUN
    XEQ "NAV"  -> menu:

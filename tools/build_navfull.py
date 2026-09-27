@@ -13,10 +13,11 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
   NAVFULL_NOTBL.txt  the same without the almanac tables: no TGET, no table hooks in
                SUNA/MOON/PLAN/BODY, no "T" letter (the "X" letter stays). Use it when
                memory is short and you do not load TBL. Load NAVFULL OR NAVFULL_NOTBL.
-  NAVINIT_FULL.txt  MATA MATST MATM MATP + INIT (VSOP87, 2000-2050)
-  NAVINIT_FAST.txt  MATN MATST MATM MATF + INIT (fitted series for a few years: faster,
-               smaller). Load ONE of them, XEQ "INIT" once, then delete the programs -
-               the matrices they build stay. Zero elements are not stored (NEWMAT
+  NAVINIT_FULL.txt  one program INIT: builds the matrices of MATA MATST MATM MATP (VSOP87,
+               2000-2050) - the builders are LBL 01-04 inside INIT
+  NAVINIT_FAST.txt  one program INIT: MATN MATST MATM MATF (fitted series for a few years:
+               faster, smaller). Load ONE of them, XEQ "INIT" once, then delete INIT
+               (GTO "INIT", CLP) - the matrices it built stay. Zero elements are not stored (NEWMAT
                starts with zeros).
   TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
 
@@ -148,8 +149,17 @@ def build():
     k = mata.index('STO "NU"') - 4                    # NU (nutation) block: rows ENTER cols NEWMAT
     matn = ['LBL "MATN"'] + mata[k:]                  # NU only, for FAST (MATF builds VL VB VR)
     def init_prog(title, names, bodies):
-        return (['LBL "INIT"'] + ['XEQ "%s"' % n for n in names] + ['"MATRICES READY: %s"' % title, 'RTN', 'END']
-                + [l for b in bodies for l in b])
+        """ONE program with one name, INIT: the matrix builders become LBL 01-04 inside it,
+        so after XEQ "INIT" only INIT has to be deleted (CLP)."""
+        out = ['LBL "INIT"'] + ['XEQ %02d' % (k + 1) for k in range(len(names))] + ['"MATRICES READY: %s"' % title, 'RTN']
+        for k, (n, b) in enumerate(zip(names, bodies)):
+            assert b[0] == 'LBL "%s"' % n and b[-1] == 'END', n
+            assert not any(l.startswith(('XEQ', 'GTO', 'LBL')) for l in b[1:]), n     # no labels or calls inside
+            body = b[1:-1]
+            if body and body[-1] == 'RTN':
+                body = body[:-1]
+            out += ['LBL %02d' % (k + 1)] + [l for l in body if l != '"FAST SERIES %s"' % period] + ['RTN']
+        return out + ['END']
     init_full = init_prog('FULL 2000-2050', ['MATA', 'MATST', 'MATM', 'MATP'],
                           [mata, compact(read('MATST')), compact(read('MATM')), compact(read('MATP'))])
     init_fast = init_prog('FAST ' + period, ['MATN', 'MATST', 'MATM', 'MATF'],

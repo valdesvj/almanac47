@@ -314,9 +314,11 @@ MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
                change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
                Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
                version keeps the tables option.
-  NAVINIT_FULL.txt  MATA MATST MATM MATP + INIT, 12,235 lines (VSOP87, 2000-2050)
-  NAVINIT_FAST.txt  MATN MATST MATM MATF + INIT, 6,531 lines (fitted series, 2026-2030)
-               Load ONE of them, XEQ "INIT" once, delete the programs (the matrices stay).
+  NAVINIT_FULL.txt  one program INIT (builders MATA MATST MATM MATP as LBL 01-04 inside),
+               12,235 lines (VSOP87, 2000-2050)
+  NAVINIT_FAST.txt  one program INIT (MATN MATST MATM MATF as LBL 01-04), 6,529 lines
+               (fitted series, 2026-2030)
+               Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", CLP); the matrices stay.
                Zero elements are not stored: a new matrix starts with zeros.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
                26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47
