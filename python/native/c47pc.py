@@ -68,8 +68,9 @@ VIEWS (same as on the C47)
   HORZS  horizon chart only
   ALMT   text almanac, one page of two lines per R/S (as PROMPT on the C47)
   ALMS   short almanac;  HALMH  chart on top, short almanac below
-  ANIM   animation (HANIM on the C47): the horizon chart every Step hours,
-         Frames frames, each shown Frame ms; only bodies above the horizon.
+  ANIM   animation (HANIM on the C47): the Sun and the Moon on the horizon chart
+         every Step hours, Frames frames, each shown Frame ms; each only while it
+         is above the horizon.
          Plays in a loop; R/S steps one frame. Save PNG writes an animated PNG.
 
 MARKS
@@ -91,7 +92,7 @@ COMMAND LINE
           --lat "25 20 N" --lon "55 12 E" --png halmv.png
   python3 c47pc.py --view ALMT --date ... --lat ... --lon ...   (prints the lines)
   python3 c47pc.py --view ANIM --date ... --lat ... --lon ... --png anim.png \
-          --frames 12 --step 1 --frame-ms 1000        (animated PNG; --all-frames: one PNG each)
+          --frames 24 --step 0.5 --frame-ms 1000        (animated PNG; --all-frames: one PNG each)
   python3 c47pc.py --help    all options
 
 ALMANAC TABLES  (T / S in the corner of every screen)
@@ -123,7 +124,7 @@ VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
              'HORZ': 'horizon chart + info per object', 'HORZS': 'horizon chart',
              'ALMT': 'text almanac, one line per R/S', 'ALMS': 'short almanac: Sun, Moon, 1 planet, 3 stars',
              'HALMH': 'horizon chart on top, short almanac below',
-             'ANIM': 'animation: the bodies moving on the horizon chart (HANIM)'}
+             'ANIM': 'animation: the Sun and the Moon moving on the horizon chart (HANIM)'}
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)
@@ -196,7 +197,7 @@ class Engine:
         self.tables = c47tables.Tables(tables) if tables else None
         self.use = bool(self.tables)
         self.last = None
-        self.anim = {'frames': 12, 'step': 1.0}          # ANIM: frames, hours between frames
+        self.anim = {'frames': 24, 'step': 0.5}          # ANIM: frames, hours between frames
 
     def _al(self, j, lat, lon):
         self.last = c47screen.Almanac(j, lat, lon, self.tables if self.use else None)
@@ -397,8 +398,8 @@ def run_gtk(eng, args):
                 sp = Gtk.SpinButton.new_with_range(lo, hi, step); sp.set_digits(digits); sp.set_value(val)
                 sp.set_tooltip_text(tip); ab.pack_start(sp, False, False, 0)
                 return sp
-            self.s_frames = spin('Frames', 2, 96, 1, args.frames, 0, 'number of frames (HANIM: 12)')
-            self.s_step = spin('Step h', 0.05, 12, 0.25, args.step, 2, 'hours between frames (HANIM: 1)')
+            self.s_frames = spin('Frames', 2, 96, 1, args.frames, 0, 'number of frames (HANIM: 24)')
+            self.s_step = spin('Step h', 0.05, 12, 0.25, args.step, 2, 'hours between frames (HANIM: 0.5)')
             self.s_ms = spin('Frame ms', 50, 10000, 50, args.frame_ms, 0, 'time each frame is shown (HANIM: PAUSE 10 = 1 s)')
             self.s_frames.connect('value-changed', lambda w: self.view == 'ANIM' and self.on_run())
             self.s_step.connect('value-changed', lambda w: self.view == 'ANIM' and self.on_run())
@@ -617,8 +618,8 @@ def main():
     ap.add_argument('--lon', help='e.g. "55 12.0 E" or -75.5')
     ap.add_argument('--png', help='write the screen to this PNG file (no window)')
     ap.add_argument('--all-frames', action='store_true', help='HORZ: one PNG per object; ANIM: one PNG per frame (_0, _1, ...)')
-    ap.add_argument('--frames', type=int, default=12, help='ANIM: number of frames (default 12)')
-    ap.add_argument('--step', type=float, default=1.0, help='ANIM: hours between frames (default 1)')
+    ap.add_argument('--frames', type=int, default=24, help='ANIM: number of frames (default 24)')
+    ap.add_argument('--step', type=float, default=0.5, help='ANIM: hours between frames (default 0.5)')
     ap.add_argument('--frame-ms', type=float, default=1000, help='ANIM: time each frame is shown, ms (default 1000)')
     ap.add_argument('--scale', type=int, default=3, help='pixels per C47 pixel (default 3)')
     ap.add_argument('--plain', action='store_true', help='black on white instead of LCD colours')

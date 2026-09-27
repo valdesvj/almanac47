@@ -24,7 +24,7 @@ Menu NAV: 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
 4 SKY (HORZ, info line per body without end), 5 SMALL (ALMS: Sun, Moon, 1 planet,
 3 stars), 6 SPLIT (HALMH: chart on top, the same short table below), 7 BODY (one body:
 list above the horizon, key its number, text pages, then the chart), 8 ANIM (HANIM:
-the bodies moving on the horizon chart, 12 frames 1 h apart, 1 s each).
+the Sun and the Moon moving on the horizon chart, 24 frames 0.5 h apart, 1 s each).
 Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 

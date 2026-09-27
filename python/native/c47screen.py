@@ -498,30 +498,13 @@ class _Quick:
         self.aries = (d * 360.98564736629 + 280.46061837) % 360.0
 
 
-def anim_bodies(j):
-    """Sun, Moon, Venus, Mars, Jupiter, Saturn at JD j (quick formulas): [(sha, dec)]."""
-    q = _Quick(j)
-    out = []
-    g, d = A.sun_fast(j)
-    out.append(((g - q.aries) % 360.0, d))
-    g, d = A.moon_quick(q)
-    out.append(((g - q.aries) % 360.0, d))
-    for p in (1, 2, 3, 4):
-        g, d, _ = A.planet_quick(q, p)
-        out.append(((g - q.aries) % 360.0, d))
-    return out
-
-
-def hanim(j0, lat, lon, frames=12, step=1.0):
-    """HANIM: the horizon chart (as HORZ) for `frames` times `step` hours apart.
-    Sun, Moon and planets from the first and the last time, SHA and Dec interpolated;
-    stars from the catalogue. Every body above the horizon (all 58 stars), none below.
-    Returns (list of frames, list of JD)."""
-    frames = max(2, int(frames))
+def hanim(j0, lat, lon, frames=24, step=0.5):
+    """HANIM: the Sun and the Moon on the horizon chart (as HORZ) for `frames` times `step`
+    hours apart; each shown only while above the horizon. Sun: SUNF, Moon: MOOQ, both for
+    the time of the frame. Returns (list of frames, list of JD)."""
+    frames = max(1, int(frames))
     HY, HS = 16, 196
     off = 180 if lat < 0 else 0
-    b0 = anim_bodies(j0)
-    b1 = anim_bodies(j0 + (frames - 1) * step / 24.0)
 
     def pos(dec, gha):
         hc, zn, sh = A.hczs(lat, lon, dec, gha)
@@ -533,13 +516,6 @@ def hanim(j0, lat, lon, frames=12, step=1.0):
         if hc > 1e-4:
             eq.append((y, x))
     out, times = [], []
-    ty = (j0 - 2451545.0) / 365.25 / 3600.0                 # stars: first-order precession (once)
-    stars = []
-    for star in BRIGHT:
-        ra, dec = A.ST[star - 1][0], A.ST[star - 1][1]
-        ra2 = (A.dsin(ra) * A.dtan(dec) * 20.0431 + 46.1244) * ty + ra
-        dec = A.dcos(ra) * 20.0431 * ty + dec
-        stars.append((star, ra2, A.dsin(dec), A.dcos(dec)))
     for k in range(frames):
         with _lc() as ctx:                                   # frame time in 34 digits, as the C47
             ctx.prec = 34
@@ -547,8 +523,6 @@ def hanim(j0, lat, lon, frames=12, step=1.0):
             jday = int(jdec + _D('0.5')) - 0.5               # for the date
             uth = float((jdec + _D('0.5')) % 1 * 24)         # UT hours
         j = float(jdec)
-        q = _Quick(j)
-        f = k / (frames - 1)
         sc = Screen(STD)
         sc.pixel(-HY, 0)                                     # horizon: full-width line
         for y in range(18, 213, 3):
@@ -566,28 +540,14 @@ def hanim(j0, lat, lon, frames=12, step=1.0):
             sc.dot4(y, x)
         sc.pdat(227, 2, jday); x = sc.phm(227, 88, uth); sc.text(227, x, ' UT')
         x = sc.pinb(227, 330, k + 1); x = sc.text(227, x, '/'); sc.pinb(227, x, frames)
-        n = 0
-        for i, ((s0, d0), (s1, d1)) in enumerate(zip(b0, b1)):
-            ds = (s1 - s0 + 540.0) % 360.0 - 180.0
-            sha = ds * f + s0
-            dec = (d1 - d0) * f + d0
-            hc, x, y = pos(dec, (q.aries + sha) % 360.0)
-            if hc > 0:
-                sc.glyph(STD, '@(<>=?'[i], y - 6, x - 6)
-                n += 1
-        for star, ra, sd, cd in stars:                       # every star above the horizon
-            lha = q.aries - ra + lon
-            c = A.dcos(lha)
-            sh = sd * A.dsin(lat) + cd * c * A.dcos(lat)
-            if not sh > 0:
-                continue
-            zn = (A.datan2(-(A.dsin(lha) * cd), sd * A.dcos(lat) - cd * c * A.dsin(lat)) + 360.0) % 360.0
-            x, y = chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
-            sc.glyph(STD, '*', y - 6, x - 6)
-            lx = x + 8
-            if lx > 380:
-                lx -= 32
-            sc.pinb(y - 6, lx, star)
+        g, d = A.sun_fast(j)
+        hc, x, y = pos(d, g)
+        if hc > 0:
+            sc.glyph(STD, '@', y - 6, x - 6)
+        g, d = A.moon_quick(_Quick(j))
+        hc, x, y = pos(d, g)
+        if hc > 0:
+            sc.glyph(STD, '(', y - 6, x - 6)
         out.append(sc.rows()); times.append(j)
     return out, times
 

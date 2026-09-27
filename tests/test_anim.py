@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""HANIM (animation of the bodies on the horizon chart): calculator program in the
+"""HANIM (animation of the Sun and the Moon on the horizon chart): calculator program in the
 simulator vs native Python, frame by frame, pixel for pixel. Also prints the steps and
 trigonometric functions per frame (time estimate for the C47).
   python3 tests/test_anim.py [cases] [seed]"""
@@ -28,19 +28,19 @@ def main():
     bad = 0
     for (y, m, d, h, la, lo) in cases[:n]:
         j = jd(y, m, d, h)
-        E._start(j, la, lo); c.maxpauses = 12; ntrig[0] = 0
+        E._start(j, la, lo); c.maxpauses = 24; ntrig[0] = 0
         try:
             c.run('HANIM', maxsteps=10 ** 8)
         except StopIteration:
             pass
-        got = [{(x, H - 1 - yy) for yy, x in fr if 0 <= x < W and 0 <= yy < H} for fr in c.frames[:12]]
-        want, _ = S.hanim(j, la, lo, 12, 1.0)
-        diff = [k for k in range(12) if k >= len(got) or got[k] != want[k]]
+        got = [{(x, H - 1 - yy) for yy, x in fr if 0 <= x < W and 0 <= yy < H} for fr in c.frames[:24]]
+        want, _ = S.hanim(j, la, lo, 24, 0.5)
+        diff = [k for k in range(24) if k >= len(got) or got[k] != want[k]]
         if diff:
             bad += 1
             print('DIFF', (y, m, d, h, la, lo), 'frames', diff)
-        print('  %s  steps %d (%.0f per frame)  trig %d' % ((y, m, d, h, la, lo), c.steps, c.steps / 12, ntrig[0]))
-    print('%d cases x 12 frames, %d differences' % (n, bad))
+        print('  %s  steps %d (%.0f per frame)  trig %d' % ((y, m, d, h, la, lo), c.steps, c.steps / 24, ntrig[0]))
+    print('%d cases x 24 frames, %d differences' % (n, bad))
     sys.exit(1 if bad else 0)
 
 
