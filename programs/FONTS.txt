@@ -56,6 +56,11 @@ HOW THE GLYPHS ARE BUILT
     ...
     2  +  STO 30  RTN             (advance to the next character)
 
+IN NAVFULL
+  The build for the navigation suite renames every label except NAV (PTXS becomes N..., see
+  build/NAVFULL_LABELS.txt). To use the fonts in your own programs, load programs/PTXS.txt,
+  PTXT.txt or PTXB.txt, which keep their names.
+
 LICENCE
   PTXT and PTXB: MIT (see LICENSE in this folder).
   PTXS: GPL-3.0 - its glyph bitmaps come from the C43/C47 standardFont, part of the

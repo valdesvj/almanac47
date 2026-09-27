@@ -27,7 +27,7 @@ def screen(c,view,j,la,lo):
     return {(x,239-y) for y,x in c.pix if 0<=x<400 and 0<=y<240}, c.steps
 random.seed(2); bad=0; n=0
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables)
     print('flags', sorted(mini.flags))
     for k in range(10):
@@ -42,14 +42,14 @@ for tables in (False, True):
             if k==0: print('  %s %s steps mini %d  full %d'%('T' if tables else 'S',v,sa,sb))
 print('%d screens compared, %d differences'%(n,bad))
 # NAV menu smoke test: choose 1 (ALMF) with inputs, then 0
-c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.answers=[1,0]; c.msgs=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12'); c.pix=[]
 c.run('NAV',maxsteps=10**7)
 print('NAV prompts:', [str(m) for m in c.msgs][:3], 'pixels drawn', len(c.pix))
 # ALMT through the minimum set
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(6):
         j=jd(2026,10+k%3,3+5*k,7.5+k); la=-40+15*k; lo=-150+50*k
@@ -60,7 +60,7 @@ for tables in (False, True):
         m=[str(x) for x in mini.msgs]; m=m[:m.index(m[0],1)] if m[0] in m[1:] else m
         if m!=ref.text(j,la,lo)[0]: bad+=1
     print('ALMT', 'tables' if tables else 'series', 'differences', bad, '| first line:', m[0])
-c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.answers=[3]; c.msgs=[]; c.maxprompts=6
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 try: c.run('NAV',maxsteps=10**7)
@@ -75,21 +75,21 @@ def horz(c,j,la,lo):
     c.maxpauses=None
     return [{(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240} for f in c.frames[:int(c.rget('10'))]]
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(5):
         j=jd(2026,10+k%3,3+5*k,4.5+4*k); la=-50+25*k; lo=-150+60*k
         a=horz(mini,j,la,lo); b,_=ref.screen('HORZ',j,la,lo)
         if a!=b: bad+=1; print('HORZ DIFF',k,len(a),len(b))
     print('HORZ', 'tables' if tables else 'series', 'differences', bad, 'frames last case', len(a))
-c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.answers=[4]; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxpauses=3
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 try: c.run('NAV',maxsteps=10**7)
 except StopIteration: pass
 print('NAV option 4:', [str(m) for m in c.msgs][:1], 'HORZ frames', len(c.frames), 'pixels', len(c.pix))
 for opt,name in ((5,'ALMS'),(6,'HALMH')):
-    c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+    c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
     c.s=[D(0)]*4; c.answers=[opt,0]; c.msgs=[]; c.pix=[]
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
     ref=Engine('programs'); b,_=ref.screen(name,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
@@ -97,7 +97,7 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     a={(x,239-y) for y,x in c.pix if 0<=x<400 and 0<=y<240}
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
 # option 7 BODY: first list page and a chosen star
-c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.answers=[7,18,None,None]; c.msgs=[]; c.maxprompts=6
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 try: c.run('NAV',maxsteps=10**8)
@@ -105,7 +105,7 @@ except StopIteration: pass
 print('NAV option 7 (BODY):', [str(m) for m in c.msgs][1:4])
 # FAST series through INIT option 2
 pass
-mini=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False,fast=True)
+mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False,fast=True)
 ref=Engine('programs',fast=True); bad=0; n=0
 for k in range(8):
     j=jd(2026+k%5,1+k,3+3*k,2.5+2*k); la=-50+14*k; lo=-170+45*k

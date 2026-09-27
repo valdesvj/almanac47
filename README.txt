@@ -300,6 +300,9 @@ FULL OR FAST SERIES (Sep 2026) - NAVINIT_FULL or NAVINIT_FAST (load one, XEQ "IN
   PC: c47pc.py --fast
 
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
+  In NAVFULL and NAVFULL_NOTBL only NAV keeps its name: every other program label is
+  N01 ... N64 (list: build/NAVFULL_LABELS.txt). The same files with the original names
+  are in build/dev/ (used by the tests); tests/test_labels.py checks that both work alike.
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
                3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
                body without end; EXIT to stop, 5 SMALL = ALMS, 6 SPLIT = HALMH,

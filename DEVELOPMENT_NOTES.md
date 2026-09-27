@@ -179,3 +179,11 @@ by genf.py (ALMF, ALMS with `short`), genv.py (HALMV), genhh.py (HALMH), genh2.p
 (HORZ, HORZS), genbody.py (BODY) and write straight to `programs/`. Chart rows use
 `RCL "SHC"` (sin Hc kept by HCZ/HCZ0/HCZR); Python mirrors this with `Almanac.hczs`,
 `chart_ys` and `sine_ticks`. The T/S/X letter is drawn last because MOO2 sets flag 11.
+
+## Hidden program names (Sep 2026)
+
+`build_navfull.py` writes the NAVFULL builds with every global label except NAV renamed to
+N01... (`label_map`, `rename`: only LBL/XEQ/GTO, never variable names in STO/RCL/INDEX/INPUT).
+Named copies go to `build/dev/` for the tests; `build/NAVFULL_LABELS.txt` is the table.
+`tests/test_labels.py` runs every NAV option on both and compares. NAVINIT is one program
+INIT with the builders as LBL 01-04.

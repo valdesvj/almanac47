@@ -3,6 +3,8 @@
 
 Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
 
+  Program labels: only NAV keeps its name; every other label is N01, N02 ... on the calculator
+  (build/NAVFULL_LABELS.txt lists them; build/dev/ has the named versions used by the tests).
   NAVFULL.txt  everything that must stay on the calculator for ALMF, HALMV, ALMT and HORZ
                (menu NAV, the three screens, the text almanac, Sun, stars, Moon, planets, sight
                reduction, sunrise/twilight, Moon phase, star order and names,
@@ -130,6 +132,32 @@ def no_tables(progs):
     return {n: v.rstrip('\n').split('\n') for n, v in p.items()}
 
 
+LABEL_OPS = ('LBL', 'XEQ', 'GTO')
+
+
+def label_map(lines, keep=('NAV',)):
+    """Every global label except NAV -> N01, N02 ... in the order they appear."""
+    m = {}
+    for l in lines:
+        g = re.fullmatch(r'LBL "(.+)"', l)
+        if g and g.group(1) not in keep and g.group(1) not in m:
+            m[g.group(1)] = 'N%02d' % (len(m) + 1)
+    return m
+
+
+def rename(lines, m):
+    """LBL / XEQ / GTO "name" -> the N.. label (variables in STO, RCL, INDEX, INPUT stay)."""
+    out = []
+    for l in lines:
+        g = re.fullmatch(r'(LBL|XEQ|GTO) "(.+)"', l)
+        if g and g.group(2) in m:
+            l = '%s "%s"' % (g.group(1), m[g.group(2)])
+        elif g and g.group(2) != 'NAV' and g.group(1) != 'LBL':
+            raise ValueError('call to a label that is not in NAVFULL: %s' % l)
+        out.append(l)
+    return out
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
@@ -171,7 +199,19 @@ def build():
         os.remove(old)
     nt = no_tables(progs)
     notbl = nav + [l for n in KEEP if n != 'TGET' for l in nt[n]]
-    for name, L in (('NAVFULL', full), ('NAVFULL_NOTBL', notbl), ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
+    # named versions (development, tests) in build/dev/; the files to load get N01... labels
+    dev = os.path.join(OUT, 'dev')
+    os.makedirs(dev, exist_ok=True)
+    for name, L in (('NAVFULL', full), ('NAVFULL_NOTBL', notbl)):
+        with open(os.path.join(dev, name + '.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('\n'.join(L) + '\n')
+    mapping = label_map(full)
+    with open(os.path.join(OUT, 'NAVFULL_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('NAVFULL / NAVFULL_NOTBL: program labels on the calculator (left) and their names\n'
+                 'in the sources, build/dev/ and the documentation (right). Only NAV keeps its name.\n\n')
+        fh.write('\n'.join('%s  %s' % (v, k) for k, v in mapping.items()) + '\n')
+    for name, L in (('NAVFULL', rename(full, mapping)), ('NAVFULL_NOTBL', rename(notbl, mapping)),
+                    ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(L) + '\n')
     shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(OUT, 'TBL.txt'))

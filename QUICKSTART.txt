@@ -27,6 +27,8 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
    (Run INIT again only for a new period: load NAVINIT again, XEQ "INIT", delete it again.)
 
 4. RUN
+   Only NAV has a name; the other programs show as N01, N02 ... (build/NAVFULL_LABELS.txt
+   says which is which). Start everything from NAV:
    XEQ "NAV"  -> menu:
      1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 BODY  8 ANIM  9 ALLSKY  0 END
    Key the number, R/S. NAV asks:
