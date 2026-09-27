@@ -379,6 +379,15 @@ WHOLE SKY (Sep 2026) - ALLSKY, NAV option 10 (NAVFULL: 9 ALLSKY)
   (within about 0.05 deg, 9 trig each). About 32,000 steps and 1,100 trigonometric
   functions: roughly 12 s on USB power (estimate), like HORZ.
 
+AGRAPH / PIXEL DEMO (Sep 2026) - build/DEMOALM.txt (python3 tools/build_demo.py)
+  No navigation programs: the almanac page ALMF with fixed sample data (Dubai,
+  02-10-2026 18:00 UT) and the text programs. XEQ "DEMO" -> 1 AGRAPH 2 PIXEL 0 END.
+    1  DALA  the page with PTXS/PTXT: one AGRAPH per glyph column (2,925 AGRAPH calls).
+    2  DALP  the same page and glyph data drawn dot by dot: each column's bits are tested
+             and every lit dot is one PIXEL (19,372 PIXEL calls).
+  The bottom line shows the time measured with TICKS. Simulator estimate (USB power):
+  AGRAPH about 4 s, PIXEL about 90 s. 6,690 lines; GPL-3.0 (contains PTXS).
+
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
   otherwise WAXING (age under 14.765 d) or WANING.

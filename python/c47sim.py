@@ -126,6 +126,7 @@ class Calc:
                 if not ok: pc+=1
                 continue
             if op == 'CLLCD': self.pix=[]; self.txt=[]; continue
+            if op == 'TICKS': self.push(D(int(self.steps * 0.0017))); continue   # 1/10 s, model: 0.17 ms per step
             if op == 'PIXEL':
                 x,y=int(self.s[0]),int(self.s[1])
                 if x>=0 and y>=0: self.pix.append((y,x))
