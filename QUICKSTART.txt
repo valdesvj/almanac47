@@ -1,0 +1,54 @@
+C47_nav - QUICK START (install and run)
+=======================================
+
+You need two files from build/ (convert each .txt to .p47 with rejig first):
+
+  rejig build/NAVFULL_NOTBL.txt -o NAVFULL_NOTBL.p47
+  rejig build/NAVINIT_FAST.txt  -o NAVINIT_FAST.p47
+
+  NAVFULL_NOTBL  the programs that stay on the calculator (all views, no almanac tables).
+                 NAVFULL is the same with the almanac-tables option; load one of the two.
+  NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
+                 NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
+
+1. LOAD THE PROGRAMS
+   Copy both .p47 files to the calculator (USB disk) and load them as you load any
+   program file (I/O menu, READP).
+
+2. BUILD THE MATRICES (once)
+   XEQ "INIT"          takes a while (it stores a few thousand numbers); it ends with
+                       MATRICES READY: FAST 2026-2030.
+   The matrices (VL VB VR, NU, ST, ML MB MCL MCB, the planets ...) now stay in memory.
+
+3. DELETE THE INIT PROGRAMS (frees memory - the matrices stay)
+   NAVINIT loaded five programs. Delete each one: GTO "name", then CLP.
+     FAST:  INIT  MATN  MATST  MATM  MATF
+     FULL:  INIT  MATA  MATST  MATM  MATP
+   Do not use CLPALL: it would delete NAV and the views as well.
+   (Run INIT again only for a new period: load NAVINIT again, XEQ "INIT", delete again.)
+
+4. RUN
+   XEQ "NAV"  -> menu:
+     1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 BODY  8 ANIM  9 ALLSKY  0 END
+   Key the number, R/S. NAV asks:
+     DATE  YYYY.MMDD      e.g. 2026.0927
+     UTC   HH.MMSS        e.g. 18.30
+     LAT   DD.MMmm        e.g. 25.12   (25 deg 12 min N; minus = S)
+     LON   DDD.MMmm       e.g. 55.18   (55 deg 18 min E; minus = W)
+   Screens stay for about 30 s (PAUSE); R/S or EXIT to go on.
+     1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
+                meridian passage, Moon
+     2 CHART    horizon chart left, the bodies' HC ZN right
+     3 TEXT     the almanac as text, two lines per R/S
+     4 SKY      horizon chart, R/S names each body in turn (EXIT to stop)
+     5 SMALL    short almanac (Sun, Moon, 1 planet, 3 stars)
+     6 SPLIT    horizon chart on top, short almanac below
+     7 BODY     one body: key its number (stars 1-58, Sun 60, Moon 61, planets 62-65)
+     8 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
+     9 ALLSKY   the whole sky: over the horizon above, under the horizon below
+
+   An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
+
+MEMORY (estimate): programs about 40 KB, FAST matrices about 50 KB (FULL about 90 KB).
+
+DOES NOT REPLACE THE NAUTICAL ALMANAC.

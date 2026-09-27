@@ -11,6 +11,11 @@ The C47 calculator programs are free software under the MIT licence:
   rtf/            the listings as RTF
 See the LICENSE file in each of those folders.
 
+Exception - PTXS (the status-bar font program): its glyph bitmaps come from the C43/C47
+firmware's standardFont (GPL-3.0), so programs/PTXS.txt, the combined build/NAVFULL*.txt,
+tools/generators/mkstd.py and python/native/c47fonts2.py are under GPL-3.0.
+See programs/LICENSE-PTXS.txt and programs/COPYING-GPL-3.0.txt.
+
 SwissMicros, C47, R47, DM42 and HP are trademarks of their owners.
 This project is not affiliated with or endorsed by them.
 
