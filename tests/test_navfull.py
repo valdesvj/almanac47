@@ -95,3 +95,10 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     c.run('NAV',maxsteps=10**7)
     a={(x,239-y) for y,x in c.pix if 0<=x<400 and 0<=y<240}
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
+# option 7 BODY: first list page and a chosen star
+c=load(['build/NAVINIT.txt','build/NAVFULL.txt'],False)
+c.s=[D(0)]*4; c.answers=[7,18,None,None]; c.msgs=[]; c.maxprompts=6
+c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+try: c.run('NAV',maxsteps=10**8)
+except StopIteration: pass
+print('NAV option 7 (BODY):', [str(m) for m in c.msgs][1:4])

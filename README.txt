@@ -152,7 +152,7 @@ NAV   start program with prompts (does not change any other program)
       XEQ "NAV" -> "1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 0 END": key the number, R/S.
       1 = ALMF page, 2 = HALMV chart + data, 3 = build the matrices (first time),
       4 = ALMT text almanac, 5 = HORZ sky chart with the info line (endless, R/S stops),
-      6 = ALMS short almanac, 7 = HALMH chart on top + short table.
+      6 = ALMS short almanac, 7 = HALMH chart on top + short table, 8 = BODY one body.
       Then it asks (INPUT, R/S keeps the value shown):
         DATE  YYYY.MMDD   e.g. 2026.0923
         UTC   HH.MMSS     e.g. 23.3000
@@ -246,14 +246,29 @@ SHORT VIEWS (Sep 2026) - ALMS and HALMH, NAV options 6 and 7 (NAVFULL: 5 and 6)
   Steps, average of 20 cases 2025-2050 (series): ALMF 46.6k -> ALMS 32.6k,
   HALMV 56.3k -> HALMH 43.3k. Previews: docs/ALMS_preview.png, docs/HALMH_preview.png
 
+ONE BODY (Sep 2026) - BODY, NAV option 8 (NAVFULL: 7)
+  1. A list of the bodies above the horizon, text pages: 60 SUN, 61 MOON, 62 VENUS,
+     63 MARS, 64 JUPITER, 65 SATURN, then the stars by Nautical Almanac number,
+     brightest first (higher than 10 deg). R/S = next page. Key a number on any page
+     and R/S to choose it.
+  2. The legend page: key the number, R/S (nothing or 0 shows the list again).
+  3. Two text pages: name, date, GHA, Dec / Hc, Zn and SHA (stars, planets), SD (Sun)
+     or HP and SD (Moon). R/S: the horizon chart with the body and its data. Then the
+     legend again for the next body. EXIT stops.
+  Numbers only: a single letter S would be both Sun and Saturn.
+  Steps (average, series): list 6.6k; result Sun 3.2k, star 3.5k, Venus 6.4k,
+  Mars/Jupiter 8.5k, Saturn 11.2k, Moon 10.3k; chart 12.3k.
+  PC: python3 python/native/c47pc.py --lat .. --lon .. --body 18 [--png sirius.png]
+  Preview: docs/BODY_preview.png
+
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
                3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
-               body without end; EXIT to stop, 5 SMALL = ALMS, 6 SPLIT = HALMH),
-               ALMF, HALMV, ALMT, HORZ, ALMS, HALMH,
+               body without end; EXIT to stop, 5 SMALL = ALMS, 6 SPLIT = HALMH,
+               7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
                STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
                and the fonts PTXB / PTXT cut to the characters the screens print.
-               9,352 lines, 57.1 KB as text (without HORZ, ALMS, HALMH: 6,619 lines, 40.5 KB).
+               10,555 lines, 64.2 KB as text (without HORZ, ALMS, HALMH, BODY: 6,619 lines, 40.5 KB).
   NAVINIT.txt  MATA MATST MATM MATP + INIT: load, XEQ "INIT" once, delete the programs.
   TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
                26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47

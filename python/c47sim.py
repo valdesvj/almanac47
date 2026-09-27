@@ -121,7 +121,9 @@ class Calc:
             if op == 'PROMPT':
                 self.msgs=getattr(self,'msgs',[]); self.msgs.append(self.rget(arg))
                 ans=getattr(self,'answers',[])
-                if ans: self.push(D(ans.pop(0)))
+                if ans:
+                    v = ans.pop(0)
+                    if v is not None: self.push(D(v))     # None: R/S without keying a number
                 elif len(self.msgs)>getattr(self,'maxprompts',10**9): raise StopIteration
                 continue
             if op == 'PAUSE':

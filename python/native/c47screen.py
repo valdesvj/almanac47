@@ -688,4 +688,157 @@ def halmh(al):
     return [sc.rows()]
 
 
+# ---------------------------------------------------------------- BODY (one body)
+BODY_NAMES = {60: 'SUN', 61: 'MOON', 62: 'VENUS', 63: 'MARS', 64: 'JUPITER', 65: 'SATURN'}
+BODY_LEGEND = ('BODY NO.  STARS 1-58  SUN 60  MOON 61', 'VENUS 62  MARS 63  JUPITER 64  SATURN 65')
+
+
+def _pad(t, w, target=PROMPT_W):
+    while w + 8 <= target:
+        t += ' '; w += 8
+    return t
+
+
+def body_entry(code):
+    return '%d %s' % (code, STAR_NAME[code] if code < 60 else BODY_NAMES[code])
+
+
+def body_list(al):
+    """BODY step 1: codes above the horizon (quick positions) and the PROMPT pages."""
+    s = al.sun
+    codes = []
+    if al.hcz(s.dec, s.gha)[0] > 0:
+        codes.append(60)
+    g, d = A.moon_quick(s)
+    if al.hcz(d, g)[0] > -1:
+        codes.append(61)
+    for p in (1, 2, 3, 4):
+        g, d, _ = A.planet_quick(s, p)
+        if al.hcz(d, g)[0] > -1:
+            codes.append(61 + p)
+    for n in BRIGHT:
+        a0, d0 = A.ST[n - 1][0], A.ST[n - 1][1]
+        if al.hcz(d0, s.aries - a0)[0] > 9:
+            codes.append(n)
+    pages, page, w, line = [], '', 0, 1
+    for c in codes:
+        e = body_entry(c); ew = text_width(e)
+        if w == 0:
+            page, w, line = e, ew, 1
+        elif w + 16 + ew <= PROMPT_W:
+            page += '  ' + e; w += 16 + ew
+        elif line == 1:
+            page = _pad(page, w) + e; w, line = ew, 2
+        else:
+            pages.append(page); page, w, line = e, ew, 1
+    if w:
+        pages.append(page)
+    return codes, pages
+
+
+def body_legend():
+    l1 = BODY_LEGEND[0]
+    return _pad(l1, text_width(l1)) + BODY_LEGEND[1]
+
+
+def body_values(al, code):
+    """GHA, Dec, SHA or HP, SD of the chosen body in full precision (as BODY)."""
+    s, tb, j = al.sun, al.tables, al.j
+    extra = (0.0, 0.0)
+    if code == 60:
+        g, d = s.gha, s.dec; extra = (0.0, s.sd)
+    elif code == 61:
+        g, d, hp, sd = al.moon; extra = (hp, sd)
+    elif code > 61:
+        p = code - 61
+        t = tb.get(j, p) if tb else None
+        if t:
+            g, d = t[0], t[1]; extra = ((t[0] - s.aries + 360) % 360, 0.0)
+        else:
+            g, d, sha, _ = A.planet(s, p); extra = (sha, 0.0)
+    else:
+        g, d, sha = al.star(code); extra = (sha, 0.0)
+    hc, zn = al.hcz(d, g)
+    letter = 'T' if tb and tb.get(j, 6) else 'S'
+    return g, d, extra, hc, zn, letter
+
+
+def body_pages(al, code):
+    g, d, extra, hc, zn, letter = body_values(al, code)
+    name = body_entry(code) if code < 60 else BODY_NAMES[code]
+    l1 = name + '  ' + sdat(al.j) + ' ' + shm(ut_hours(al.j)) + ' UT'
+    p1 = _pad(l1, text_width(l1)) + 'GHA ' + sdm(g) + '  DEC ' + ('S' if d < 0 else 'N') + ' ' + sdm(abs(d))
+    l1 = 'HC ' + sdm(hc) + '  ZN ' + szn(zn)
+    if code == 60:
+        l2 = 'SUN SD ' + sf1(extra[1]) + "'"
+    elif code == 61:
+        l2 = 'HP ' + sf1(extra[0]) + "'  SD " + sf1(extra[1]) + "'"
+    else:
+        l2 = 'SHA ' + sdm(extra[0])
+    p2 = _pad(l1, text_width(l1)) + l2 + '  ' + letter
+    return [p1, p2]
+
+
+def body_chart(al, code):
+    g, d, extra, hc, zn, letter = body_values(al, code)
+    sc = Screen()
+    HY, HS = 118, 96
+    s = al.sun
+    sc.pdat(229, 4, al.j)
+    sc.phm(229, 76, ut_hours(al.j)); sc.text(229, 112, 'UT')
+    sc.text(229, 142, 'DR')
+    sc.text(229, 160, 'S' if al.lat < 0 else 'N'); sc.pdm(229, 160, abs(al.lat))
+    sc.text(229, 220, 'W' if al.lon < 0 else 'E'); sc.pdm(229, 226, abs(al.lon))
+    sc.text(229, 292, 'ARIES'); sc.pdm(229, 328, s.aries)
+    sc.hline(HY, 20, 376)
+    for y in range(HY, HY + HS + 1, 3):
+        sc.pixel(y, 18)
+    for v in (30, 60, 90):
+        y = HY + HS * v // 90
+        sc.pixel(y, 15); sc.pixel(y, 16); sc.pixel(y, 17)
+        sc.pinb(y - 3, 2, v)
+    for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
+        sc.pixel(HY - 1, c); sc.pixel(HY - 2, c)
+    off = 180 if al.lat < 0 else 0
+    for x, l in zip((18, 111, 205, 299, 393), 'SWNES' if off else 'NESWN'):
+        sc.text(HY - 12, x, l)
+
+    def pos(dec, gha):
+        h, z = al.hcz(dec, gha)
+        return h, chart_x(z, off, 375, 20), chart_y(h, HY, 1, HS)
+
+    for gg in range(0, 355, 6):
+        h, x, y = pos(0, gg)
+        if h > 0:
+            sc.pixel(y, x)
+    sym = '*' if code < 60 else '@(<>=?'[code - 60]
+    h, cx, cy = pos(d, g)
+    if h > 0:
+        if code == 60:
+            sc.glyph(BIG, '@', cy - 3, cx - 5)
+        else:
+            sc.glyph(BIG, sym, cy - 3, cx - 3)
+            if code < 60:
+                lx = cx + 6
+                if lx > 385:
+                    lx -= 22
+                sc.pinb(cy - 3, lx, code)
+    sc.pixel(-102, 0)
+    sc.text(88, 4, sym)
+    sc.text(88, 16, body_entry(code) if code < 60 else BODY_NAMES[code])
+    sc.text(72, 4, 'GHA'); sc.pdm(72, 40, g)
+    sc.text(72, 184, 'DEC'); sc.text(72, 214, 'S' if d < 0 else 'N'); sc.pdm(72, 214, abs(d))
+    sc.text(58, 4, 'HC'); sc.pdm(58, 40, hc)
+    sc.text(58, 184, 'ZN'); sc.pzn(58, 226, zn)
+    if code == 60:
+        sc.text(44, 4, 'SUN SD'); sc.pf1(44, 46, extra[1])
+    elif code == 61:
+        sc.text(44, 4, 'HP'); sc.pf1(44, 40, extra[0]); sc.text(44, 184, 'SD'); sc.pf1(44, 226, extra[1])
+    else:
+        sc.text(44, 4, 'SHA'); sc.pdm(44, 40, extra[0])
+    sc.small(2, 126, WARNING)
+    sc.small(2, 392, letter)
+    return [sc.rows()]
+
+
 VIEWS = {'ALMS': lambda al: almf(al, True), 'HALMH': halmh, 'ALMF': almf, 'HALMV': halmv, 'HORZ': lambda al: horz(al, True), 'HORZS': lambda al: horz(al, False)}

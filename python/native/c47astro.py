@@ -194,6 +194,23 @@ def planet_quick(s, p):
     return (s.aries - ra) % 360.0, dec, dist
 
 
+def moon_quick(s):
+    """MOOQ: low-precision Moon (Astronomical Almanac), geocentric, within 0.3 deg in Hc.
+    Used by BODY to list the bodies above the horizon. Returns (gha, dec)."""
+    T = s.T
+    lam = T * 481267.881 + 218.32
+    for amp, c0, c1 in ((6.29, 135.0, 477198.87), (-1.27, 259.3, -413335.36), (0.66, 235.7, 890534.22),
+                        (0.21, 269.9, 954397.74), (-0.19, 357.5, 35999.05), (-0.11, 186.5, 966404.03)):
+        lam += dsin(T * c1 + c0) * amp
+    bet = 0.0
+    for amp, c0, c1 in ((5.13, 93.3, 483202.02), (0.28, 228.2, 960400.89), (-0.28, 318.3, 6003.15),
+                        (-0.17, 217.6, -407332.21)):
+        bet += dsin(T * c1 + c0) * amp
+    dec = dasin(dsin(bet) * dcos(23.4393) + dcos(bet) * dsin(23.4393) * dsin(lam))
+    ra = datan2(dsin(lam) * dcos(23.4393) - dtan(bet) * dsin(23.4393), dcos(lam))
+    return (s.aries - ra) % 360.0, dec
+
+
 def planet(s, p, lt=None):
     """PLAN / PLN2. p = 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn.
     Returns (gha, dec, sha, hp) with hp in arcmin. Light time: two passes of the

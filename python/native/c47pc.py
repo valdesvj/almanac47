@@ -551,6 +551,7 @@ def main():
     ap.add_argument('--check', action='store_true', help='online: compare Sun, Moon, planets and Aries with JPL Horizons')
     ap.add_argument('--tables', help='almanac tables TBL.txt (default: programs/TBL.txt or next to this file)')
     ap.add_argument('--series', action='store_true', help='do not use the almanac tables (like CF 10 on the C47)')
+    ap.add_argument('--body', type=int, help='BODY: list the bodies above the horizon; with a number (1-58 stars, 60 Sun, 61 Moon, 62-65 planets) also its pages and, with --png, its chart')
     ap.add_argument('--version', action='version', version='%s %s (%s)' % (PROGRAM, VERSION, VERSION_DATE))
     args = ap.parse_args()
 
@@ -566,7 +567,7 @@ def main():
         return
 
     eng = Engine(None if args.series else (args.tables or c47tables.find()))
-    batch = bool(args.png) or (args.view == 'ALMT' and bool(args.lat))
+    batch = bool(args.png) or (args.view == 'ALMT' and bool(args.lat)) or args.body is not None
     if not batch:
         try:
             run_gtk(eng, args); return
@@ -582,6 +583,17 @@ def main():
     lat = parse_angle(args.lat, 'N', 'S', 90); lon = parse_angle(args.lon, 'E', 'WO', 180)
     j = jd(y, m, d, h)
     view = args.view or 'HALMV'
+    if args.body is not None:
+        al = eng._al(j, lat, lon)
+        codes, pages = c47screen.body_list(al)
+        print('\n\n'.join('\n'.join(page_lines(p)) for p in pages + [c47screen.body_legend()]))
+        if args.body in c47screen.BODY_NAMES or 1 <= args.body <= 58:
+            print()
+            print('\n\n'.join('\n'.join(page_lines(p)) for p in c47screen.body_pages(al, args.body)))
+            if args.png:
+                write_png(args.png, *render_rgb(c47screen.body_chart(al, args.body)[0], args.scale, not args.plain, not args.no_bezel))
+                print('%s written' % args.png)
+        return
     if view == 'ALMT':
         lines, n = eng.text(j, lat, lon)
         print(pages_text(lines))
