@@ -387,6 +387,9 @@ AGRAPH / PIXEL DEMO (Sep 2026) - build/DEMOALM.txt (python3 tools/build_demo.py)
              and every lit dot is one PIXEL (19,372 PIXEL calls).
   The bottom line shows the time measured with TICKS. Simulator estimate (USB power):
   AGRAPH about 4 s, PIXEL about 90 s. 6,690 lines; GPL-3.0 (contains PTXS).
+  build/DEMOALM_rem.txt (python3 tools/annotate_demo.py): the same program with ~2,000 REM
+  comments - every drawing call (row, column, what it prints), the font routines, a picture
+  of every character, and the PIXEL routine LBL 99 line by line. Same steps, same pages.
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
