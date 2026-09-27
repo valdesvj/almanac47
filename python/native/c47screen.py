@@ -515,7 +515,7 @@ def anim_bodies(j):
 def hanim(j0, lat, lon, frames=12, step=1.0):
     """HANIM: the horizon chart (as HORZ) for `frames` times `step` hours apart.
     Sun, Moon and planets from the first and the last time, SHA and Dec interpolated;
-    stars from the catalogue. Only bodies above the horizon; up to 10 per frame.
+    stars from the catalogue. Every body above the horizon (all 58 stars), none below.
     Returns (list of frames, list of JD)."""
     frames = max(2, int(frames))
     HY, HS = 16, 196
@@ -533,6 +533,13 @@ def hanim(j0, lat, lon, frames=12, step=1.0):
         if hc > 1e-4:
             eq.append((y, x))
     out, times = [], []
+    ty = (j0 - 2451545.0) / 365.25 / 3600.0                 # stars: first-order precession (once)
+    stars = []
+    for star in BRIGHT:
+        ra, dec = A.ST[star - 1][0], A.ST[star - 1][1]
+        ra2 = (A.dsin(ra) * A.dtan(dec) * 20.0431 + 46.1244) * ty + ra
+        dec = A.dcos(ra) * 20.0431 * ty + dec
+        stars.append((star, ra2, A.dsin(dec), A.dcos(dec)))
     for k in range(frames):
         with _lc() as ctx:                                   # frame time in 34 digits, as the C47
             ctx.prec = 34
@@ -568,20 +575,19 @@ def hanim(j0, lat, lon, frames=12, step=1.0):
             if hc > 0:
                 sc.glyph(STD, '@(<>=?'[i], y - 6, x - 6)
                 n += 1
-        for star in BRIGHT:
-            if n >= 10:
-                break
-            ra, dec = A.ST[star - 1][0], A.ST[star - 1][1]
-            sq = A.dcos(q.aries - ra + lon) * A.dcos(dec) * A.dcos(lat) + A.dsin(dec) * A.dsin(lat)
-            if not sq > 0:
+        for star, ra, sd, cd in stars:                       # every star above the horizon
+            lha = q.aries - ra + lon
+            c = A.dcos(lha)
+            sh = sd * A.dsin(lat) + cd * c * A.dcos(lat)
+            if not sh > 0:
                 continue
-            hc, x, y = pos(dec, q.aries - ra)
+            zn = (A.datan2(-(A.dsin(lha) * cd), sd * A.dcos(lat) - cd * c * A.dsin(lat)) + 360.0) % 360.0
+            x, y = chart_x(zn, off, 375, 20), chart_ys(sh, HY, 1, HS)
             sc.glyph(STD, '*', y - 6, x - 6)
             lx = x + 8
             if lx > 380:
                 lx -= 32
             sc.pinb(y - 6, lx, star)
-            n += 1
         out.append(sc.rows()); times.append(j)
     return out, times
 

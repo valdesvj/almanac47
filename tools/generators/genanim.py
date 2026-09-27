@@ -9,10 +9,10 @@ scale, status-bar font). IN: Z = JD (UT1), Y = lat (N+), X = lon (E+).
 Speed: the Sun, Moon and planets are calculated only twice, for the first and the last
 frame (quick formulas: SUNF, MOOQ, PLNQ, within about 0.3 deg), and their SHA and Dec
 interpolated in between; GHA Aries is exact for every frame. Stars: catalogue positions
-(no precession, about 0.4 deg - under one chart pixel). The celestial equator does not
+with first-order precession to the first frame (within about 0.05 deg). The celestial equator does not
 move on the chart: its dots are calculated once and kept in the matrix EQP.
-Every frame shows only the bodies above the horizon: Sun, Moon and planets, then the
-brightest stars until 10 bodies. Top line: date and UT of the frame, frame number.
+Every frame shows every body above the horizon (Sun, Moon, planets, all 58 stars) and
+hides it when it sets. Top line: date and UT of the frame, frame number.
 Writes programs/HANIM.txt"""
 import math, os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +25,16 @@ a('12', 'STO 14', '1', 'STO 15')                                  # frames, hour
 a('RCL 11', 'STO 91', 'RCL 12', 'STO 92', 'XEQ "HCZI"', '-1', 'STO "PQK"')   # PQK: PLNQ Earth cache (normally set by SUNA)
 a('0', 'STO 44', 'RCL 11', 'X<0?', 'XEQ 44')                        # south: chart centred on N
 # Sun, Moon, planets at the first and the last frame: matrix ANB [SHA0 DEC0 SHA1 DEC1]
-a('6', 'ENTER', '4', 'NEWMAT', 'STO "ANB"', '10', 'ENTER', '3', 'NEWMAT', 'STO "ANP"')
+a('6', 'ENTER', '4', 'NEWMAT', 'STO "ANB"', '64', 'ENTER', '3', 'NEWMAT', 'STO "ANP"')
+# stars, brightest first: ANS rows [star number, RA, sin Dec, cos Dec] (Dec fixed: its trig once)
+# precession to the first frame, first order (once): RA += (46.1244" + 20.0431" sinRA tanDec) t,
+# Dec += 20.0431" cosRA t, t = years from J2000
+a('58', 'ENTER', '4', 'NEWMAT', 'STO "ANS"', 'RCL 10', '2451545', '-', '365.25', '÷', '3600', '÷', 'STO 26', '1.058', 'STO 42',
+  'LBL 20', 'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'INDEX "ST"', 'RCL 82', '1', 'STOIJ', 'RCLEL', 'STO 22', 'J+', 'RCLEL', 'STO 23',
+  'RCL 22', 'SIN', 'RCL 23', 'TAN', '×', '20.0431', '×', '46.1244', '+', 'RCL× 26', 'RCL+ 22', 'STO 27',
+  'RCL 22', 'COS', '20.0431', '×', 'RCL× 26', 'RCL+ 23', 'STO 23',
+  'INDEX "ANS"', 'RCL 42', 'IP', '1', 'STOIJ', 'RCL 82', 'STOEL', 'J+', 'RCL 27', 'STOEL', 'J+', 'RCL 23', 'SIN', 'STOEL', 'J+',
+  'RCL 23', 'COS', 'STOEL', 'ISG 42', 'GTO 20')
 a('RCL 10', 'STO 17', '1', 'STO 20', 'XEQ 70')
 a('RCL 14', '1', '-', 'RCL× 15', '24', '÷', 'RCL+ 10', 'STO 17', '3', 'STO 20', 'XEQ 70')
 # celestial equator: dots every 2 deg of GHA, chart positions kept in EQP (fixed on the chart)
@@ -42,9 +51,13 @@ a('1.006', 'STO 21', 'LBL 02', 'INDEX "ANB"', 'RCL 21', 'IP', '1', 'STOIJ', 'RCL
   'RCLEL', 'RCL- 22', '540', '+', '360', 'MOD', '180', '-', 'RCL× 18', 'RCL+ 22', 'STO 24', 'J+',
   'RCLEL', 'RCL- 23', 'RCL× 18', 'RCL+ 23', 'RCL 80', 'RCL+ 24', '360', 'MOD', 'XEQ "HCZ"', 'XEQ 48',
   'RCL 96', 'X>0?', 'XEQ 03', 'ISG 21', 'GTO 02')
-a('1.058', 'STO 42', 'LBL 04', '10', 'RCL 19', 'X≥Y?', 'GTO 05', 'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"',
-  '0', 'X≥Y?', 'GTO 06', 'INDEX "ST"', 'RCL 82', '1', 'STOIJ', 'RCLEL', 'J+', 'RCLEL', 'X<>Y', 'RCL 80', 'X<>Y', '-',
-  'XEQ "HCZ"', 'XEQ 48', 'RCL 82', 'XEQ 16', 'LBL 06', 'ISG 42', 'GTO 04', 'LBL 05')
+# every star above the horizon: sin Hc = sinDec sinLat + cosDec cosLHA cosLat (1 trig);
+# above: Zn = atan2(-cosDec sinLHA, cosLat sinDec - sinLat cosDec cosLHA) (1 trig more)
+a('1.058', 'STO 42', 'LBL 04', 'INDEX "ANS"', 'RCL 42', 'IP', '1', 'STOIJ', 'RCLEL', 'STO 82', 'J+',
+  'RCLEL', 'RCL 80', 'X<>Y', '-', 'RCL+ 92', 'STO 22', 'COS', 'STO 23', 'J+', 'RCLEL', 'STO 24', 'J+', 'RCLEL', 'STO 25',
+  'RCL 24', 'RCL× "HZS"', 'RCL 25', 'RCL× 23', 'RCL× "HZC"', '+', 'STO "SHC"', '0', 'X≥Y?', 'GTO 06',
+  'RCL 22', 'SIN', 'RCL× 25', 'CHS', 'RCL 24', 'RCL× "HZC"', 'RCL 25', 'RCL× 23', 'RCL× "HZS"', '-', '→POL', 'X<>Y',
+  '360', '+', '360', 'MOD', 'STO 97', 'XEQ 48', 'RCL 82', 'XEQ 16', 'LBL 06', 'ISG 42', 'GTO 04')
 # 2. draw: background, top line, the bodies
 a('CLLCD', 'XEQ 72')
 a(227, 2, 'RCL 17', 'XEQ "PDTS"', 227, 88, 'RCL 17', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"', '" UT"', 'XEQ "PTXS"')
