@@ -4,55 +4,49 @@ REM "CHZ: T = lat, Z = lon (E+), Y = Dec, X = GHA -> X = Hc, Y = Zn"
 REM "HCZ: same with lat in R91, lon in R92 (used by the screens)"
 REM "DHA: inverse. T lat, Z lon, Y Hc, X Zn -> X Dec, Y LHA, Z GHA"
 REM "REGS: R91 lat, R92 lon, R94 Dec, R95 LHA, R96 Hc, R97 Zn"
-REM "store lat R91, lon R92, fall into HCZ"
+REM "store lat R91, lon R92, HCZI, then HCZ"
+STO 97
 R↓
+STO 96
 R↓
 STO 92
 R↓
 STO 91
-R↓
+XEQ "HCZI"
+RCL 96
+RCL 97
 LBL "HCZ"
-REM "LHA = GHA + lon -> R95, Dec -> R94"
+REM "HCZ: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin/cos of the latitude from HCZI (HZS, HZC): 6 trig functions"
 RCL+ 92
 STO 95
 R↓
 STO 94
-REM "Hc = asin(sin lat sin dec + cos lat cos dec cos LHA) -> R96"
-RCL 91
 SIN
-RCL 94
-SIN
-×
-RCL 91
-COS
+STO 93
 RCL 94
 COS
-×
+STO 98
 RCL 95
 COS
+STO 99
+×
+RCL "HZC"
+×
+RCL 93
+RCL "HZS"
 ×
 +
 ASIN
 STO 96
-REM "Zn = atan2(-cos dec sin LHA, cos lat sin dec - sin lat cos dec cos LHA) -> R97"
-RCL 94
-COS
 RCL 95
 SIN
-×
+RCL× 98
 CHS
-RCL 91
-COS
-RCL 94
-SIN
-×
-RCL 91
-SIN
-RCL 94
-COS
-×
-RCL 95
-COS
+RCL "HZC"
+RCL× 93
+RCL 98
+RCL× 99
+RCL "HZS"
 ×
 -
 →POL
@@ -64,8 +58,96 @@ MOD
 STO 97
 RCL 96
 RTN
+LBL "HCZ0"
+REM "HCZ0: Dec = 0 (celestial equator): 4 trig functions"
+RCL+ 92
+STO 95
+0
+STO 94
+RCL 95
+COS
+STO 99
+RCL "HZC"
+×
+ASIN
+STO 96
+RCL 95
+SIN
+CHS
+RCL "HZS"
+RCL× 99
+CHS
+→POL
+X<>Y
+360
++
+360
+MOD
+STO 97
+RCL 96
+RTN
+LBL "HCZQ"
+REM "HCZQ: Y = first GHA, X = step: cos/sin of LHA and of the step (EQC EQS EQCH EQSH)"
+STO 93
+COS
+STO "EQCH"
+RCL 93
+SIN
+STO "EQSH"
+R↓
+R↓
+RCL+ 92
+STO 93
+COS
+STO "EQC"
+RCL 93
+SIN
+STO "EQS"
+RTN
+LBL "HCZR"
+REM "HCZR: next equator point: Hc, Zn from EQC/EQS, then rotate LHA by the step (no COS/SIN)"
+RCL "EQC"
+RCL× "HZC"
+ASIN
+STO 96
+RCL "EQS"
+CHS
+RCL "HZS"
+RCL× "EQC"
+CHS
+→POL
+X<>Y
+360
++
+360
+MOD
+STO 97
+RCL "EQC"
+RCL× "EQCH"
+RCL "EQS"
+RCL× "EQSH"
+-
+RCL "EQS"
+RCL× "EQCH"
+RCL "EQC"
+RCL× "EQSH"
++
+STO "EQS"
+X<>Y
+STO "EQC"
+RCL 96
+RTN
+LBL "HCZI"
+REM "HCZI: sin and cos of the latitude R91 -> HZS, HZC (once per screen)"
+RCL 91
+SIN
+STO "HZS"
+RCL 91
+COS
+STO "HZC"
+RTN
 LBL "DHA"
-REM "inverse: store lat, lon, Zn R97, Hc R96"
+REM "DHA: Hc, Zn -> Dec, LHA, GHA"
 R↓
 R↓
 STO 92
@@ -75,7 +157,6 @@ R↓
 STO 97
 R↓
 STO 96
-REM "Dec = asin(sin lat sin Hc + cos lat cos Hc cos Zn) -> R94"
 RCL 91
 SIN
 RCL 96
@@ -92,7 +173,6 @@ COS
 +
 ASIN
 STO 94
-REM "LHA from atan2 -> R95"
 RCL 97
 SIN
 RCL 96
@@ -120,7 +200,6 @@ X<>Y
 360
 MOD
 STO 95
-REM "GHA = LHA - lon, stack Z=GHA Y=LHA X=Dec"
 RCL 95
 RCL- 92
 360

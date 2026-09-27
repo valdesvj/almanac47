@@ -13,7 +13,7 @@ def fmt(reg,fn): return '~RCL %s|XEQ "%s"'%(reg,fn)
 a('LBL "ALMT"','STO 12','R↓','STO 11','R↓','STO 10')
 for reg,lab in ((13,'NTWA'),(14,'RISE'),(15,'TRAN'),(16,'SET'),(17,'NTWP')):
     a('XEQ 26','XEQ "%s"'%lab,'STO %d'%reg)
-a('RCL 10','STO 90','RCL 11','STO 91','RCL 12','STO 92')
+a('RCL 10','STO 90','RCL 11','STO 91','RCL 12','STO 92','XEQ "HCZI"')
 a('RCL 10','XEQ "SUNA"','STO 45','R↓','STO 46','R↓','STO 48','RCL 73','15.99383','X<>Y','÷','STO 29')
 a('XEQ "PHA2"','STO 18','X<>Y','STO 19')          # Moon phase from the SUNA just run
 a('10','ENTER','5','NEWMAT','STO "ALT"','0','STO 41')
@@ -24,7 +24,7 @@ a('XEQ "MOO2"','STO 45','R↓','STO 46','R↓','STO 21','R↓','STO 22','RCL 46'
 # planets above the horizon
 a('1.004','STO 42','LBL 16','RCL 42','IP','XEQ "PLN3"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"','RCL 96','X>0?','XEQ 42','ISG 42','GTO 16')
 # brightest stars higher than 10 deg until 10 bodies
-a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
+a('1.058','STO 42','LBL 17','10','RCL 41','X≥Y?','GTO 19','RCL 42','IP','XEQ "SBRT"','STO 82','XEQ "SQK"','0.15643','X>Y?','GTO 18','XEQ "STR2"','STO 45','X<>Y','STO 46','RCL 46','RCL 45','XEQ "HCZ"',
   '10','RCL 96','X≤Y?','GTO 18','RCL 82','XEQ 40','LBL 18','ISG 42','GTO 17','LBL 19')
 # ---------------- text pages: two lines per R/S in the C47 standard (proportional) font.
 # PROMPT wraps at a space when the next word does not fit in 400 pixels, so line 1 is

@@ -28,17 +28,20 @@ CF 12
 REM "heliocentric L -> R71"
 INDEX "VL"
 1
-2
+4
 STOIJ
 RCLEL
 X≠0?
 XEQ 14
+REM "vectors SV1 = [1, tau, tau^2, 0, 0], SV2 = [0, 0, 0, 1, tau] for the series"
+XEQ "SERT"
+RCL "VL"
 XEQ "SER"
 STO 71
-INDEX "VB"
+RCL "VB"
 XEQ "SER"
 STO 72
-INDEX "VR"
+RCL "VR"
 XEQ "SER"
 STO 73
 DEG
@@ -162,6 +165,7 @@ RCL- 78
 360
 MOD
 STO 81
+XEQ 15
 REM "tables loaded (flag 10): Sun GHA/Dec and GHA Aries from TGET when the date is covered (LBL 45)"
 FS? 10
 XEQ 45
@@ -169,6 +173,85 @@ REM "stack Z=Aries Y=Dec X=GHA"
 RCL 80
 RCL 77
 RCL 81
+RTN
+LBL 15
+REM "per-page constants for STR2 (named variables): zeta, z, sin/cos theta, sin/cos mean and true obliquity, e, perihelion, PQK = -1 (PLAN Earth cache)"
+RCL 54
+0.01801828
+×
+0.2988499
++
+RCL× 54
+2306.083227
++
+RCL× 54
+2.650545
++
+3600
+÷
+STO "SZE"
+RCL 54
+0.01826837
+×
+1.0927348
++
+RCL× 54
+2306.077181
++
+RCL× 54
+-2.650545
++
+3600
+÷
+STO "SZZ"
+RCL 54
+-0.04182264
+×
+-0.4294934
++
+RCL× 54
+2004.191903
++
+RCL× 54
+3600
+÷
+STO 93
+SIN
+STO "SSTH"
+RCL 93
+COS
+STO "SCTH"
+RCL 76
+RCL 67
+3600
+÷
+-
+STO 93
+SIN
+STO "SSE0"
+RCL 93
+COS
+STO "SCE0"
+RCL 76
+SIN
+STO "SSEP"
+RCL 76
+COS
+STO "SCEP"
+RCL 54
+-0.000042037
+×
+0.016708634
++
+STO "SEK"
+RCL 54
+1.71946
+×
+102.93735
++
+STO "SPI"
+-1
+STO "PQK"
 RTN
 LBL 45
 REM "Sun (body 0) -> R81 GHA, R77 Dec, Aries (body 6) -> R80, unchanged if outside the table"
@@ -268,43 +351,45 @@ SF 12
 RTN
 LBL "SER"
 REM "SER: sum A*cos(B+C*tau)*tau^k over the rows of the indexed matrix. Row 1 = header, element 1 = number of terms (R55). Column 1 holds 30+k: each term is added to R30+k, then (R32*tau + R31)*tau + R30, *1E-8"
-0
-STO 30
-STO 31
-STO 32
-1
-1
-STOIJ
-RCLEL
-STO 55
-2
-1
-STOIJ
-LBL 12
-REM "loop over rows (DSE 55)"
-RCLEL
-J+
-STO 52
-RCLEL
-J+
-RCLEL
-J+
-RCLEL
-J+
-RCL× 50
-+
-COS
+ENTER
+X<>Y
+RCL "SV2"
 ×
-STO+ IND 52
-DSE 55
-GTO 12
-RCL 32
-RCL× 50
-RCL+ 31
-RCL× 50
-RCL+ 30
+COS
+X<>Y
+RCL "SV1"
+×
+DOT
 1E-8
 ×
+RTN
+LBL "SERT"
+REM "SERT: build SV1 and SV2 from tau (R50)"
+5
+ENTER
+1
+NEWMAT
+STO "SV1"
+STO "SV2"
+INDEX "SV1"
+1
+STOEL
+J+
+RCL 50
+STOEL
+J+
+RCL 50
+X↑2
+STOEL
+INDEX "SV2"
+4
+1
+STOIJ
+1
+STOEL
+J+
+RCL 50
+STOEL
 RTN
 LBL "NUT"
 REM "NUT: fundamental arguments D M M' F Omega -> R60-R64, 10-term IAU1980 nutation"

@@ -65,14 +65,15 @@ GTO 28
 R↓
 STO 03
 RAD
-REM "Earth heliocentric L R00, B R01, R R02 (radians, au), computed once for the four planets"
-INDEX "EEL"
+REM "Earth heliocentric L R00, B R01, R R02 (series with matrix functions)"
+XEQ "SERT"
+RCL "EEL"
 XEQ "SER"
 STO 00
-INDEX "EEB"
+RCL "EEB"
 XEQ "SER"
 STO 01
-INDEX "EER"
+RCL "EER"
 XEQ "SER"
 STO 02
 LBL 28
@@ -85,6 +86,7 @@ RCL 08
 ÷
 -
 STO 50
+XEQ "SERT"
 RCL 09
 10
 +
@@ -312,49 +314,49 @@ RCL 04
 RTN
 LBL 11
 REM "Venus L B R -> R04 R05 R06"
-INDEX "VNL"
+RCL "VNL"
 XEQ "SER"
 STO 04
-INDEX "VNB"
+RCL "VNB"
 XEQ "SER"
 STO 05
-INDEX "VNR"
+RCL "VNR"
 XEQ "SER"
 STO 06
 RTN
 LBL 12
 REM "Mars"
-INDEX "MAL"
+RCL "MAL"
 XEQ "SER"
 STO 04
-INDEX "MAB"
+RCL "MAB"
 XEQ "SER"
 STO 05
-INDEX "MAR"
+RCL "MAR"
 XEQ "SER"
 STO 06
 RTN
 LBL 13
 REM "Jupiter"
-INDEX "JUL"
+RCL "JUL"
 XEQ "SER"
 STO 04
-INDEX "JUB"
+RCL "JUB"
 XEQ "SER"
 STO 05
-INDEX "JUR"
+RCL "JUR"
 XEQ "SER"
 STO 06
 RTN
 LBL 14
 REM "Saturn"
-INDEX "SAL"
+RCL "SAL"
 XEQ "SER"
 STO 04
-INDEX "SAB"
+RCL "SAB"
 XEQ "SER"
 STO 05
-INDEX "SAR"
+RCL "SAR"
 XEQ "SER"
 STO 06
 RTN
@@ -387,8 +389,22 @@ STO 07
 RCL 59
 STO 09
 GTO 27
+LBL 48
+REM "Earth from mean elements, kept for the page in PQX PQY PQZ (key PQK = T)"
+0
+XEQ 50
+RCL 31
+STO "PQX"
+RCL 33
+STO "PQY"
+RCL 30
+STO "PQZ"
+RCL 54
+STO "PQK"
+RTN
 LBL 50
 REM "heliocentric x R31, y R33, z R30 of body X from mean elements, Kepler equation 4 iterations"
+REM "heliocentric x R31, y R33, z R30 of body X from mean elements (13 trig functions)"
 60
 +
 STO 52
@@ -449,40 +465,43 @@ RCL- 53
 STO 52
 RCL 52
 SIN
+STO 68
+RCL 52
+COS
+STO 33
+RCL 53
+SIN
+STO 31
+RCL 53
+COS
+STO 51
 RCL 32
 SIN
-×
+STO 30
+RCL 32
+COS
+STO 32
+RCL 68
+RCL× 30
 RCL× 69
 STO 30
-RCL 52
-SIN
-RCL 32
-COS
-×
+RCL 68
+RCL× 32
 STO 32
-RCL 52
-COS
-RCL 53
-COS
-×
+RCL 33
+RCL× 31
 RCL 32
-RCL 53
-SIN
-×
+RCL× 51
++
+RCL× 69
+RCL 33
+RCL× 51
+RCL 32
+RCL× 31
 -
 RCL× 69
 STO 31
-RCL 52
-COS
-RCL 53
-SIN
-×
-RCL 32
-RCL 53
-COS
-×
-+
-RCL× 69
+X<>Y
 STO 33
 RTN
 LBL 60
@@ -654,13 +673,15 @@ RCL 53
 RTN
 LBL 49
 DEG
-0
-XEQ 50
-RCL 31
+RCL 54
+RCL "PQK"
+X≠Y?
+XEQ 48
+RCL "PQX"
 STO 56
-RCL 33
+RCL "PQY"
 STO 57
-RCL 30
+RCL "PQZ"
 STO 58
 RCL 59
 XEQ 50

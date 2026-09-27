@@ -11,6 +11,22 @@ getcontext().prec = 34
 
 def f(x): return float(x)
 
+class Mat:
+    """A real matrix on the stack (RCL of a named matrix, results of matrix operations)."""
+    def __init__(self, rows): self.rows = [[float(v) for v in r] for r in rows]
+    def dims(self): return len(self.rows), len(self.rows[0])
+    def mul(self, o):
+        if isinstance(o, Mat):
+            n, k = self.dims(); k2, m = o.dims()
+            if k != k2: raise ValueError('matrix size mismatch %dx%d * %dx%d' % (n, k, k2, m))
+            return Mat([[sum(self.rows[i][t] * o.rows[t][j] for t in range(k)) for j in range(m)] for i in range(n)])
+        return Mat([[v * float(o) for v in r] for r in self.rows])
+    def add(self, o):
+        if not isinstance(o, Mat) or o.dims() != self.dims(): raise ValueError('matrix size mismatch')
+        return Mat([[a + b for a, b in zip(r, q)] for r, q in zip(self.rows, o.rows)])
+    def elementwise(self, fn): return Mat([[fn(v) for v in r] for r in self.rows])
+    def flat(self): return [v for r in self.rows for v in r]
+
 class Calc:
     def __init__(self, prog_text, mats=None):
         self.s = [D(0)]*4; self.lift = True; self.reg = {}; self.flags = set()
@@ -75,6 +91,23 @@ class Calc:
             if op == 'XEQ':
                 if arg.startswith('IND '): arg=self.indlab(int(self.rget(arg[4:].strip())),pc-1)
                 rs.append(pc); pc = self.labels[arg] + 1; continue
+            if isinstance(self.s[0], Mat) or (op in ('×', '+', 'DOT') and isinstance(self.s[1], Mat)):
+                x, y = self.s[0], self.s[1]
+                if op == '×':
+                    self.binary(lambda y, x: y.mul(x) if isinstance(y, Mat) else x.mul(y)); continue
+                if op == '+':
+                    self.binary(lambda y, x: y.add(x)); continue
+                if op == 'DOT':
+                    a, b = y.flat(), x.flat()
+                    if len(a) != len(b): raise ValueError('DOT size mismatch')
+                    self.binary(lambda y, x: D(repr(sum(p * q for p, q in zip(a, b))))); continue
+                if op in ('COS', 'SIN'):
+                    fn = math.cos if op == 'COS' else math.sin
+                    self.unary(lambda m: m.elementwise(lambda v: float(self.trig(fn, D(repr(v))))) ); continue
+                if op == 'RCL×':
+                    v = self.rget(self.regkey(arg)); self.s[0] = x.mul(v); self.lift = True; continue
+                if op == 'STO' and arg.startswith('"'):
+                    pass
             if op == 'ENTER': self.s = [self.s[0]] + self.s[:3]; self.lift = False; continue
             if op == 'DEG': self.deg = True; continue
             if op == 'RAD': self.deg = False; continue
@@ -86,9 +119,9 @@ class Calc:
                 self.binary(fn); continue
             if op == 'ABS': self.unary(lambda x: abs(x)); continue
             if op == 'ACOS': self.unary(lambda x: self.ang_out(math.acos(f(x)))); continue
-            if op in ('X<Y?','X≥Y?','X=0?','X<0?','X>0?','X≤Y?','X≥0?','X>Y?','X=Y?','X≤0?','X≠0?'):
+            if op in ('X<Y?','X≥Y?','X=0?','X<0?','X>0?','X≤Y?','X≥0?','X>Y?','X=Y?','X≤0?','X≠0?','X≠Y?'):
                 x,y=self.s[0],self.s[1]
-                ok={'X<Y?':lambda:x<y,'X≥Y?':lambda:x>=y,'X=0?':lambda:x==0,'X<0?':lambda:x<0,'X>0?':lambda:x>0,'X≤Y?':lambda:x<=y,'X≥0?':lambda:x>=0,'X>Y?':lambda:x>y,'X=Y?':lambda:x==y,'X≠0?':lambda:x!=0,'X≤0?':lambda:x<=0}[op]()
+                ok={'X<Y?':lambda:x<y,'X≥Y?':lambda:x>=y,'X=0?':lambda:x==0,'X<0?':lambda:x<0,'X>0?':lambda:x>0,'X≤Y?':lambda:x<=y,'X≥0?':lambda:x>=0,'X>Y?':lambda:x>y,'X=Y?':lambda:x==y,'X≠0?':lambda:x!=0,'X≠Y?':lambda:x!=y,'X≤0?':lambda:x<=0}[op]()
                 if not ok: pc+=1
                 continue
             if op == 'CLLCD': self.pix=[]; self.txt=[]; continue
@@ -166,12 +199,18 @@ class Calc:
             if op == '→POL':
                 x, y = f(self.s[0]), f(self.s[1])
                 self.s[0] = D(math.hypot(x, y)); self.s[1] = self.ang_out(math.atan2(y, x)); self.lift = True; continue
+            if op == 'STO' and isinstance(self.s[0], Mat):
+                self.mats[arg] = [list(r) for r in self.s[0].rows]; continue
             if op == 'STO' and isinstance(self.s[0], tuple):
                 _, r, c = self.s[0]; self.mats[arg] = [[0.0]*c for _ in range(r)]; continue
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue
-            if op == 'RCL': self.push(self.rget(self.regkey(arg))); continue
+            if op == 'RCL':
+                k = self.regkey(arg)
+                if isinstance(k, str) and k in self.mats and k not in self.reg:
+                    self.push(Mat(self.mats[k])); continue
+                self.push(self.rget(k)); continue
             if op in ('RCL+', 'RCL-', 'RCL×', 'RCL÷'):
                 v = self.rget(self.regkey(arg)); self.lastx = self.s[0]
                 x0 = self.s[0]; self.s[0] = {'RCL+': lambda: x0+v, 'RCL-': lambda: x0-v, 'RCL×': lambda: x0*v, 'RCL÷': lambda: x0/v}[op]()

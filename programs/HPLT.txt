@@ -4,6 +4,7 @@ R↓
 STO 91
 R↓
 STO 90
+XEQ "HCZI"
 CLΣ
 RCL 90
 XEQ "SUNA"

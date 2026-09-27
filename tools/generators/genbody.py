@@ -34,7 +34,7 @@ LEG2 = 'VENUS 62  MARS 63  JUPITER 64  SATURN 65'
 w = pxw(LEG1)
 LEG1P = LEG1 + ' ' * ((400 - w) // 8)
 
-a('LBL "BODY"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10', 'RCL 10', 'STO 90', 'RCL 11', 'STO 91', 'RCL 12', 'STO 92')
+a('LBL "BODY"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10', 'RCL 10', 'STO 90', 'RCL 11', 'STO 91', 'RCL 12', 'STO 92', 'XEQ "HCZI"')
 # ---------------- 1. list of the bodies above the horizon
 a('LBL 01', '-1', 'STO 21', '0', 'STO 43', 'RCL 10', 'XEQ "SUNA"')
 a('RCL 77', 'RCL 81', 'XEQ "HCZ"', 'RCL 96', 'X>0?', 'XEQ 11')                          # Sun (exact)
@@ -98,7 +98,7 @@ for x, l in zip(xs, 'NESWN'): txt(HY - 12, x, l)
 a('GTO 25', 'LBL 24', '180', 'STO 44')
 for x, l in zip(xs, 'SWNES'): txt(HY - 12, x, l)
 a('LBL 25')
-a('0', 'STO 47', 'LBL 58', '0', 'RCL 47', 'XEQ 55', 'RCL 96', 'X>0?', 'XEQ 56', '6', 'STO+ 47', '354', 'RCL 47', 'X≤Y?', 'GTO 58')   # equator: a dot every 6 deg (speed)
+a('0', '6', 'XEQ "HCZQ"', '0', 'STO 47', 'LBL 58', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 56', '6', 'STO+ 47', '354', 'RCL 47', 'X≤Y?', 'GTO 58')   # equator: a dot every 6 deg (speed)
 a('RCL 15', 'RCL 14', 'XEQ 55', 'RCL 96', 'X>0?', 'XEQ 60')       # the body on the chart
 a('-102', '0', 'PIXEL')
 # data below: symbol + name | GHA DEC | HC ZN | SHA / SD / HP SD
@@ -141,7 +141,8 @@ a('LBL 40', 'STO 26', 'STO 44', '0', 'STO 29', 'LBL 41', 'αLENG 44', 'X=0?', 'G
   'LBL 44', '"  "', 'XEQ 90', '16', 'STO+ 43', 'RCL 26', 'XEQ 90', 'RCL 29', 'STO+ 43', 'RTN')
 a('LBL 45', '-1', 'PROMPT 20', 'STO 21', '0', 'STO 43', 'RTN')
 # ---------------- subroutines: chart
-a('LBL 55', 'XEQ "HCZ"', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
+a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
+a('LBL 55', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
   'RCL 96', HS, '×', '90', '÷', HY, '+', 'IP', 'STO 99', 'RTN')
 a('LBL 56', 'RCL 99', 'RCL 98', 'PIXEL', 'RTN')
 a('LBL 60', 'RCL 13', '60', 'X=Y?', 'GTO 61', 'RCL 13', 'XEQ 38', 'STO 26', 'RCL 99', '3', '-', 'RCL 98', '3', '-', 'RCL 26', 'XEQ "PTXB"',

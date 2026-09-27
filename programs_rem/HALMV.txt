@@ -33,6 +33,7 @@ RCL 11
 STO 91
 RCL 12
 STO 92
+XEQ "HCZI"
 CLLCD
 REM "vertical divider at x = 201 (one PIXEL, negative x)"
 0
@@ -155,15 +156,17 @@ XEQ "PHA2"
 STO 18
 X<>Y
 STO 19
+0
+3
+XEQ "HCZQ"
 REM "dotted celestial equator every 3 deg"
 0
 STO 47
 LBL 14
-0
-RCL 47
-XEQ 52
+XEQ 51
 RCL 96
-X>0?
+1E-4
+X<Y?
 XEQ 15
 3
 STO+ 47
@@ -342,6 +345,10 @@ RCL 42
 IP
 XEQ "SBRT"
 STO 82
+XEQ "SQK"
+0.15643
+X>Y?
+GTO 18
 XEQ "STR2"
 STO 45
 X<>Y
@@ -553,9 +560,13 @@ RCL 98
 "@"
 XEQ "PTXB"
 RTN
+LBL 51
+XEQ "HCZR"
+GTO 49
 LBL 52
 REM "HCZ, column R98 = 18 + Zn*178/360, row R99 = 14 + Hc*200/90"
 XEQ "HCZ"
+LBL 49
 RCL 97
 RCL+ 44
 360

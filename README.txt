@@ -261,6 +261,28 @@ ONE BODY (Sep 2026) - BODY, NAV option 8 (NAVFULL: 7)
   PC: python3 python/native/c47pc.py --lat .. --lon .. --body 18 [--png sirius.png]
   Preview: docs/BODY_preview.png
 
+TIME (Sep 2026): on the C47 the trigonometric functions take most of the time (about
+6 ms each at 34 digits, measured with tools/tests_calc/TVEC; an ordinary step about
+0.2 ms). The programs now avoid repeating them:
+  - HCZ keeps sin/cos of the latitude (HCZI, once per screen): 6 trig functions
+    instead of 14; the celestial equator on the charts uses HCZQ/HCZR (LHA rotated by
+    the step, no COS/SIN per dot).
+  - STR2 uses constants computed once per page in SUNA (precession, obliquity,
+    aberration): about 25 instead of 45; the screens skip stars whose catalogue
+    altitude is below 9 deg (SQK, 3 trig functions) before the full calculation.
+  - The Sun/planet series (SER) and the Moon terms use the matrix functions
+    (matrix x vector, COS/SIN of a vector, DOT) instead of a loop per term.
+  - PLN3: the Earth from mean elements once per page; shorter heliocentric routine.
+  Estimated seconds per screen (simulator counts x measured costs), FULL / FAST:
+                 before    now
+     ALMT        19.1      10.7 / 9.1
+     ALMF        22.3      13.9 / 12.3
+     HALMV       33.4      16.6 / 14.9
+     HORZ        35.9      14.7 / 13.1
+  Values shown are unchanged (all parity tests). Matrix layouts changed: load the new
+  NAVINIT and run INIT again. FULL matrices now hold about 5,700 numbers (was 4,300);
+  FAST about 3,100.
+
 FULL OR FAST SERIES (Sep 2026) - INIT asks "1 FULL 2000-2050  2 FAST 2026-2030"
   FULL: VSOP87 truncated (MATA, MATP), any date 2000-2050.
   FAST: a series fitted to 2026-2030 only (MATF, tools/almanac/fastseries.py): a

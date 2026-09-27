@@ -15,9 +15,9 @@ to the FULL series, and writes
                     FULL ones, so SUNA and PLAN need no change). Run it instead of MATA/MATP.
   fast_series.json  the same coefficients for the Python version (c47pc.py --fast)
 
-Each series matrix has a header row [number of terms, 0, 0, 0] (VL: [terms, first JD, end JD,
-0]), then one row per term
-(30 + power of tau, A, B, C): A * tau^power * cos(B + C tau), units 1E-8 (rad or au),
+Each series matrix (N+1 x 5) has a header row [0, 0, 0, 0, 0] (VL: [0, 0, 0, first JD, end JD]),
+then one row per term [A if power 0, A if power 1, A if power 2, B, C]:
+A * tau^power * cos(B + C tau), units 1E-8 (rad or au),
 tau = Julian millennia TT from J2000 - the format of the FULL matrices.
 
   python3 fastseries.py 2026 5          -> MATF.txt, fast_series.json (2026-01-01 .. 2030-12-31)
@@ -110,12 +110,13 @@ def main():
     L = ['LBL "MATF"']
     for name in ['VL', 'VB', 'VR'] + SERIES:
         rows = fitted[name]
-        L += [str(len(rows) + 1), 'ENTER', '4', 'NEWMAT', 'STO "%s"' % name, 'INDEX "%s"' % name,
-              str(len(rows)), 'STOEL', 'J+']
-        # VL header: first and last JD of the period (SUNA sets flag 12 outside it: X on the screens)
-        L += ([num(j0), 'STOEL', 'J+', num(j1), 'STOEL', 'J+'] if name == 'VL' else ['0', 'STOEL', 'J+', '0', 'STOEL', 'J+'])
-        L += ['0', 'STOEL', 'J+']
-        vals = [v for n, A, B, C in rows for v in (30 + n, A, B, C)]
+        L += [str(len(rows) + 1), 'ENTER', '5', 'NEWMAT', 'STO "%s"' % name, 'INDEX "%s"' % name]
+        # header row [0, 0, 0, first JD, end JD] (VL only; SUNA sets flag 12 outside: X on the screens)
+        head = [0, 0, 0, j0, j1] if name == 'VL' else [0, 0, 0, 0, 0]
+        vals = list(head)
+        for n, A, B, C in rows:                       # [A (power 0), A (power 1), A (power 2), B, C]
+            a3 = [0, 0, 0]; a3[n] = A
+            vals += a3 + [B, C]
         for i, v in enumerate(vals):
             L += [num(v) if isinstance(v, float) else str(v), 'STOEL']
             if i < len(vals) - 1:

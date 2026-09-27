@@ -8,6 +8,7 @@ R↓
 STO 91
 R↓
 STO 90
+XEQ "HCZI"
 CLLCD
 REM "separator y = 118"
 0.399

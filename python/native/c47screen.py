@@ -361,7 +361,7 @@ def halmv(al):
 
     for g in range(0, 358, 3):                               # celestial equator
         hc, zn, x, y = pos(0, g)
-        if hc > 0:
+        if hc > 1e-4:
             sc.pixel(y, x)
     sc.text(230, X0, 'DR')
     sc.text(230, X0 + 18, 'S' if al.lat < 0 else 'N'); sc.pdm(230, X0 + 18, abs(al.lat))
@@ -433,7 +433,7 @@ def horz(al, info=True):
 
     for g in range(0, 359, 2):
         hc, zn, x, y = pos(0, g)
-        if hc >= 0:
+        if hc > 1e-4:
             sc.pixel(241 - y, x)
     # same bodies as ALMF / HALMV / ALMT (Sun always, drawn only above the horizon)
     objs = []
@@ -650,7 +650,7 @@ def halmh(al):
 
     for g in range(0, 358, 3):
         hc, zn, x, y = pos(0, g)
-        if hc > 0:
+        if hc > 1e-4:
             sc.pixel(y, x)
     sc.pixel(-102, 0)
     sc.text(92, 34, 'BODY'); sc.text(92, GX + 36, 'GHA'); sc.text(92, DX + 36, 'DEC')
@@ -811,7 +811,7 @@ def body_chart(al, code):
 
     for gg in range(0, 355, 6):
         h, x, y = pos(0, gg)
-        if h > 0:
+        if h > 1e-4:
             sc.pixel(y, x)
     sym = '*' if code < 60 else '@(<>=?'[code - 60]
     h, cx, cy = pos(d, g)

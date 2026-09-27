@@ -3,7 +3,7 @@ def gen(name, info, rows=10):
     def a(*xs):
         for x in xs: P.extend(str(x).split('\n'))
     def t(y,x,s): a(y,x,'"%s"'%s,'XEQ "PTXT"')
-    a('LBL "%s"'%name,'STO 92','R↓','STO 91','R↓','STO 90','CLLCD')
+    a('LBL "%s"'%name,'STO 92','R↓','STO 91','R↓','STO 90','XEQ "HCZI"','CLLCD')
     a('16','20','376','XEQ "PHL"')
     a('18.21603','STO 86','LBL 50','RCL 86','IP','18','PIXEL','ISG 86','GTO 50')
     for c in (20,51,82,113,145,176,207,238,270,301,332,363,395):
@@ -18,7 +18,7 @@ def gen(name, info, rows=10):
     for x,l in zip(xs,'SWNES'): t(7,x,l)
     a('LBL 37','RCL 90','XEQ "SUNA"',
       '%d'%rows,'ENTER','3','NEWMAT','STO "HZT"','0','STO 10',
-      '0','STO 86','LBL 53','0','RCL 86','XEQ 52','RCL 96','X≥0?','XEQ 55','2','STO+ 86','358','RCL 86','X≤Y?','GTO 53',
+      '0','2','XEQ "HCZQ"','0','STO 86','LBL 53','XEQ 51','RCL 96','1E-4','X<Y?','XEQ 55','2','STO+ 86','358','RCL 86','X≤Y?','GTO 53',
       # Sun: always in the list (as ALMF, HALMV, ALMT), drawn only above the horizon
       'RCL 77','RCL 81','XEQ 52','RCL 96','X>0?','XEQ 56','0','XEQ 40',
       # Moon
@@ -26,8 +26,8 @@ def gen(name, info, rows=10):
       # planets 1-4
       '1.004','STO 11','LBL 45','RCL 11','IP','XEQ "PLN3"','XEQ 52','RCL 96','X>0?','XEQ 48','ISG 11','GTO 45',
       # brightest stars higher than 10 deg until the list has 10 bodies (same rule as ALMF)
-      '1.058','STO 11','LBL 44','%d'%rows,'RCL 10','X≥Y?','GTO 42','RCL 11','IP','XEQ "SBRT"','STO 82','XEQ "STR2"','XEQ 52',
-      '10','RCL 96','X>Y?','XEQ 43','ISG 11','GTO 44','LBL 42')
+      '1.058','STO 11','LBL 44','%d'%rows,'RCL 10','X≥Y?','GTO 42','RCL 11','IP','XEQ "SBRT"','STO 82','XEQ "SQK"','0.15643','X>Y?','GTO 36','XEQ "STR2"','XEQ 52',
+      '10','RCL 96','X>Y?','XEQ 43','LBL 36','ISG 11','GTO 44','LBL 42')
     a('"S"','STO 15','FS? 11','XEQ 29','FS? 12','XEQ 65','7','2','RCL 15','XEQ "PTXT"')   # T = tables, S = series (bottom left)
     if info:
         a('RCL 10','X=0?','RTN','1','STO 42',
@@ -53,7 +53,8 @@ def gen(name, info, rows=10):
     for lab,s in ((71,'<'),(72,'>'),(73,'='),(74,'?')): a('LBL %d'%lab,'"%s"'%s,'RTN')
     for lab,s in ((81,'MOON'),(82,'VENUS'),(83,'MARS'),(84,'JUPITER'),(85,'SATURN')): a('LBL %d'%lab,'"%s"'%s,'RTN')
     a('LBL 55','241','RCL- 99','RCL 98','PIXEL','RTN')
-    a('LBL 52','XEQ "HCZ"','RCL 97','RCL+ 44','360','MOD','375','×','360','÷','20','+','IP','STO 98',
+    a('LBL 51','XEQ "HCZR"','GTO 49')
+    a('LBL 52','XEQ "HCZ"','LBL 49','RCL 97','RCL+ 44','360','MOD','375','×','360','÷','20','+','IP','STO 98',
       '225','RCL 96','200','×','90','÷','-','IP','STO 99','RTN')
     a('LBL 56','238','RCL- 99','RCL 98','5','-','"@"','XEQ "PTXB"','RTN')
     a('LBL 57','241','RCL- 99','3','-','RCL 98','3','-','"*"','XEQ "PTXB"',

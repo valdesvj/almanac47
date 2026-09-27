@@ -76,6 +76,19 @@ each character at its C47 pixel position; the text export uses a fixed-column la
   (differs from the two-pass PLN2 by 0.0002'). `c47astro.planet_quick`, `planet(s, p, lt)`.
 - Steps before -> after (series): ALMT 81k -> 28k, ALMF 100k -> 48k, HALMV 110k -> 57k.
 
+## Time on the calculator
+
+TVEC (tools/tests_calc) measured about 5.8 ms per COS at 34 digits and about 0.17 ms per
+other step, so time is counted in trig functions. /tmp-style estimate: steps*0.17 ms +
+(trig + vector elements)*5.8 ms. Caches: HZS/HZC (HCZI), EQC/EQS/EQCH/EQSH (HCZQ/HCZR),
+SZE SZZ SSTH SCTH SSE0 SCE0 SSEP SCEP SEK SPI (SUNA LBL 15), PQX PQY PQZ PQK (PLAN LBL 48),
+vectors SV1 SV2 (SERT), MA10 MS10 MC10 MA7 MS7 (MOON LBL 20). Equator dots are drawn when
+Hc > 1E-4 deg (C47 and Python) so the rotated LHA cannot flip a dot at Hc = 0.
+Series matrices: rows [A tau^0, A tau^1, A tau^2, B, C], row 1 = header (VL: JD range in
+columns 4-5). Moon tables: [d m mp f, sin coeff |m| = 0 1 2, cos coeff |m| = 0 1 2].
+The simulator (python/c47sim.py) implements RCL of a named matrix, matrix x matrix,
+matrix + matrix, COS/SIN of a matrix, DOT and X≠Y?.
+
 ## FULL and FAST series
 
 Series matrices: row 1 = [terms, 0, 0, 0], then (30+k, A, B, C); SER reads the count.

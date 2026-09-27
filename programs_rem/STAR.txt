@@ -10,7 +10,7 @@ STO 82
 R↓
 XEQ "SUNA"
 LBL "STR2"
-REM "entry without SUNA: read ST row R82"
+REM "entry after SUNA: read ST row R82"
 DEG
 INDEX "ST"
 RCL 82
@@ -27,7 +27,7 @@ J+
 STO 85
 RCLEL
 STO 86
-REM "proper motion: years since J2000 = 100T -> R87, RA -> R83, Dec -> R84"
+REM "proper motion (years since J2000 = 100T)"
 RCL 54
 100
 ×
@@ -45,215 +45,155 @@ RCL× 87
 3600000
 ÷
 STO+ 84
-REM "IAU 2006 precession angles zeta R56, z R57, theta R58"
-RCL 54
-0.01801828
-×
-0.2988499
-+
-RCL× 54
-2306.083227
-+
-RCL× 54
-2.650545
-+
-3600
-÷
-STO 56
-RCL 54
-0.01826837
-×
-1.0927348
-+
-RCL× 54
-2306.077181
-+
-RCL× 54
--2.650545
-+
-3600
-÷
-STO 57
-RCL 54
--0.04182264
-×
--0.4294934
-+
-RCL× 54
-2004.191903
-+
-RCL× 54
-3600
-÷
-STO 58
-REM "precess: Dec -> R88, RA -> R89 (mean of date)"
-RCL 83
-RCL+ 56
-STO 59
-RCL 58
+RCL 84
 SIN
+STO 56
 RCL 84
 COS
-×
+STO 57
+REM "precession with the constants from SUNA (SZE, SZZ, SSTH, SCTH)"
+RCL 83
+RCL+ "SZE"
+STO 59
+SIN
+STO 58
 RCL 59
 COS
-×
-RCL 58
-COS
-RCL 84
-SIN
-×
+STO 59
+RCL "SSTH"
+RCL× 57
+RCL× 59
+RCL "SCTH"
+RCL× 56
 +
 ASIN
 STO 88
-RCL 84
-COS
-RCL 59
-SIN
-×
-RCL 58
-COS
-RCL 84
-COS
-×
-RCL 59
-COS
-×
-RCL 58
-SIN
-RCL 84
-SIN
-×
+RCL 57
+RCL× 58
+RCL "SCTH"
+RCL× 57
+RCL× 59
+RCL "SSTH"
+RCL× 56
 -
 →POL
 X<>Y
-RCL+ 57
+RCL+ "SZZ"
 STO 89
-REM "to ecliptic of date: mean obliquity -> R68, beta -> R57, lambda -> R56"
-RCL 76
-RCL 67
-3600
-÷
--
-STO 68
 RCL 88
 SIN
-RCL 68
-COS
-×
+STO 56
 RCL 88
 COS
-RCL 68
-SIN
-×
-RCL 89
-SIN
-×
--
-ASIN
 STO 57
 RCL 89
 SIN
-RCL 68
-COS
-×
-RCL 88
-TAN
-RCL 68
-SIN
-×
-+
+STO 58
 RCL 89
 COS
+STO 59
+REM "to the ecliptic of date (mean obliquity SSE0, SCE0)"
+RCL 56
+RCL× "SCE0"
+RCL 57
+RCL× "SSE0"
+RCL× 58
+-
+ASIN
+STO 68
+RCL 58
+RCL× "SCE0"
+RCL× 57
+RCL 56
+RCL× "SSE0"
++
+RCL 59
+RCL× 57
 →POL
 X<>Y
-STO 56
-REM "annual aberration (e, perihelion) + nutation in longitude"
-RCL 54
--0.000042037
-×
-0.016708634
-+
-STO 59
-RCL 54
-1.71946
-×
-102.93735
-+
-STO 58
+STO 69
+REM "annual aberration (SEK, SPI) and nutation in longitude"
 RCL 74
-RCL- 56
+RCL- 69
+STO 88
 SIN
+STO 56
+RCL 88
+COS
+STO 57
+RCL "SPI"
+RCL- 69
+STO 88
+SIN
+STO 58
+RCL 88
+COS
+STO 59
+RCL 68
+SIN
+STO 88
+RCL 68
+COS
+STO 89
+RCL 56
 RCL 58
-RCL- 56
-SIN
-RCL× 59
+RCL× "SEK"
 -
-RCL 57
-SIN
-×
+RCL× 88
 -20.49552
 ×
 3600
 ÷
-STO 69
-RCL 74
-RCL- 56
-COS
+STO 87
+RCL 57
 -20.49552
 ×
-RCL 58
-RCL- 56
-COS
-RCL× 59
+RCL 59
+RCL× "SEK"
 20.49552
 ×
 +
-RCL 57
-COS
-÷
+RCL÷ 89
 RCL+ 66
 3600
 ÷
-STO+ 56
+STO+ 69
+RCL 87
+STO+ 68
+RCL 68
+SIN
+STO 56
+RCL 68
+COS
+STO 57
 RCL 69
-STO+ 57
-REM "back to equator (true obliquity): Dec -> R88, RA -> R89"
-RCL 57
 SIN
-RCL 76
+STO 58
+RCL 69
 COS
-×
-RCL 57
-COS
-RCL 76
-SIN
-×
+STO 59
+REM "back to the equator (true obliquity SSEP, SCEP), SHA, GHA"
 RCL 56
-SIN
-×
+RCL× "SCEP"
+RCL 57
+RCL× "SSEP"
+RCL× 58
 +
 ASIN
 STO 88
+RCL 58
+RCL× "SCEP"
+RCL× 57
 RCL 56
-SIN
-RCL 76
-COS
-×
-RCL 57
-TAN
-RCL 76
-SIN
-×
+RCL× "SSEP"
 -
-RCL 56
-COS
+RCL 59
+RCL× 57
 →POL
 X<>Y
 360
 MOD
 STO 89
-REM "SHA = 360 - RA -> R57, GHA = GHA Aries + SHA -> R59"
 360
 RCL- 89
 360
@@ -264,8 +204,33 @@ RCL 80
 360
 MOD
 STO 59
-REM "stack Z=SHA Y=Dec X=GHA"
 RCL 57
 RCL 88
 RCL 59
+RTN
+LBL "SQK"
+REM "SQK: X = star -> sin of a quick Hc from the catalogue (no precession): screens skip stars below 9 deg"
+STO 87
+INDEX "ST"
+RCL 87
+1
+STOIJ
+RCLEL
+STO 89
+J+
+RCLEL
+STO 88
+RCL 80
+RCL- 89
+RCL+ 92
+COS
+RCL 88
+COS
+×
+RCL× "HZC"
+RCL 88
+SIN
+RCL× "HZS"
++
+RTN
 END

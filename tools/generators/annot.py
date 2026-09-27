@@ -338,6 +338,38 @@ def process(fname):
     return key,lines,notes,H.get(key,[key])
 
 os.makedirs('/home/claude/C47_nav/listings',exist_ok=True); os.makedirs('/home/claude/C47_nav/programs_rem',exist_ok=True)
+# ---- speed (Sep 2026): trig functions cached, series and Moon with matrix functions
+def _drop(k, keys):
+    A[k] = [a for a in A[k] if a[0] not in keys]
+_drop('SUNA', {'3\nSTO 55', '7\nSTO 55', 'LBL 12'})
+A['SUNA'] += [('XEQ "SERT"',1,'vectors SV1 = [1, tau, tau^2, 0, 0], SV2 = [0, 0, 0, 1, tau] for the series'),
+ ('LBL "SERT"',1,'SERT: build SV1 and SV2 from tau (R50)'),
+ ('LBL 15',1,'per-page constants for STR2 (named variables): zeta, z, sin/cos theta, sin/cos mean and true obliquity, e, perihelion; PQK = -1 (PLAN Earth cache)')]
+A['CHZ'] = [('LBL "CHZ"',1,'store lat R91, lon R92, HCZI, then HCZ'),
+ ('LBL "HCZ"',1,'HCZ: Y = Dec, X = GHA -> Hc (R96), Zn (R97); sin/cos of the latitude from HCZI (HZS, HZC): 6 trig functions'),
+ ('LBL "HCZ0"',1,'HCZ0: Dec = 0 (celestial equator): 4 trig functions'),
+ ('LBL "HCZQ"',1,'HCZQ: Y = first GHA, X = step: cos/sin of LHA and of the step (EQC EQS EQCH EQSH)'),
+ ('LBL "HCZR"',1,'HCZR: next equator point: Hc, Zn from EQC/EQS, then rotate LHA by the step (no COS/SIN)'),
+ ('LBL "HCZI"',1,'HCZI: sin and cos of the latitude R91 -> HZS, HZC (once per screen)'),
+ ('LBL "DHA"',1,'DHA: Hc, Zn -> Dec, LHA, GHA')]
+A['STAR'] = [('LBL "STAR"',1,'save star no. -> R82, run SUNA for JD'),('LBL "STR2"',1,'entry after SUNA: read ST row R82'),
+ ('RCL 54\n100',1,'proper motion (years since J2000 = 100T)'),
+ ('RCL 83\nRCL+ "SZE"',1,'precession with the constants from SUNA (SZE, SZZ, SSTH, SCTH)'),
+ ('RCL 56\nRCL× "SCE0"',1,'to the ecliptic of date (mean obliquity SSE0, SCE0)'),
+ ('RCL 74\nRCL- 69',1,'annual aberration (SEK, SPI) and nutation in longitude'),
+ ('RCL 56\nRCL× "SCEP"',1,'back to the equator (true obliquity SSEP, SCEP); SHA, GHA'),
+ ('LBL "SQK"',1,'SQK: X = star -> sin of a quick Hc from the catalogue (no precession): screens skip stars below 9 deg')]
+A['MATA'] = [('LBL "MATA"',1,'VL VB VR: Earth L B R series, rows [A (tau^0), A (tau^1), A (tau^2), B, C], row 1 = header'),
+ ('NEWMAT\nSTO "NU"',1,'NU: nutation terms')]
+A['MATM'] = [('LBL "MATM"',1,'ML MCL MCB: [d m mp f, sin coeff for |m| = 0 1 2, cos coeff for |m| = 0 1 2]; MB: sin only (7 columns)')]
+A['MOON'] = [a for a in A['MOON'] if a[0] not in ('LBL 20', 'LBL 21')] + [
+ ('XEQ 20\nRCL "ML"',1,'sums with matrix functions: angles = table x [D M M\' F ...], SIN/COS on the vector, DOT with the weights [1 E E^2]'),
+ ('LBL 20',1,'vectors MA10 MS10 MC10 MA7 MS7 from D M M\' F (R01-R04) and E (R05)')]
+A['PLAN'] = [a for a in A['PLAN'] if a[0] != 'INDEX "EEL"'] + [
+ ('XEQ "SERT"\nRCL "EEL"',1,'Earth heliocentric L R00, B R01, R R02 (series with matrix functions)'),
+ ('LBL 48',1,'Earth from mean elements, kept for the page in PQX PQY PQZ (key PQK = T)'),
+ ('LBL 50',1,'heliocentric x R31, y R33, z R30 of body X from mean elements (13 trig functions)')]
+
 for f in sorted(os.listdir(SRC)):
     if not f.endswith('.txt'): continue
     key,lines,notes,head=process(f)
