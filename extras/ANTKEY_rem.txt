@@ -1,0 +1,68 @@
+LBL "ANTKEY"
+REM "ANTKEY: one ant, then KEY? waits; every key (not R/S or EXIT) adds an ant to the right, 5 keys."
+REM "No PAUSE before KEY?. Real C47: the ant is NOT shown until you press a key (the display is only"
+REM "updated at a PAUSE or a key). PC simulator: the ant shows at once, and when you RELEASE a key the"
+REM "stack is drawn again over the ants."
+CLLCD
+50
+STO 01
+5
+STO 02
+LBL 01
+110
+RCL 01
+XEQ 10
+LBL 02
+KEY? 03
+GTO 02
+60
+STO+ 01
+DSE 02
+GTO 01
+RTN
+LBL "ANTKEY2"
+REM "ANTKEY2: the same with PAUSE 1 after each ant (the fix for the real C47)."
+REM "Real C47: each ant shows at once and all stay on the screen. PC simulator: the ants show, but"
+REM "releasing a key still brings the stack back over them (the simulator's problem, not the program's)."
+CLLCD
+50
+STO 01
+5
+STO 02
+LBL 21
+110
+RCL 01
+XEQ 10
+PAUSE 1
+LBL 22
+KEY? 03
+GTO 22
+60
+STO+ 01
+DSE 02
+GTO 21
+RTN
+LBL 10
+WSIZE 16
+11000000000000#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+00111100111111#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+11000000000000#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+WSIZE 64
+RTN
+END
