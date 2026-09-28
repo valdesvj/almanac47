@@ -5,4 +5,5 @@ Copyright (c) 2026 The C47/R47 Development Team, GNU Free Documentation License 
 Original documents: https://47calc.com/doc/C47/
 
 Graphics entries used by this project: PIXEL, POINT, AGRAPH, CLLCD, CLLCDxy, PAUSE, and the
-reserved variable GRAMOD (graphics mode for AGRAPH: 0 OR, 1 SET, 2 OFF, 3 XOR; a LongInteger).
+graphics mode for AGRAPH (0 OR, 1 SET, 2 OFF, 3 XOR): set it with the command GRMOD and read it
+with GRMOD# (this index lists only the reserved variable GRAMOD).

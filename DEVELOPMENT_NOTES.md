@@ -188,10 +188,12 @@ Named copies go to `build/dev/` for the tests; `build/NAVFULL_LABELS.txt` is the
 `tests/test_labels.py` runs every NAV option on both and compares. NAVINIT is one program
 INIT with the builders as LBL 01-04.
 
-## AGRAPH and GRAMOD (Sep 2026)
-- Command reference: `docs/reference/C47_Full_index.txt` (C47 team, GFDL).
-- AGRAPH draws according to the reserved variable GRAMOD: 0 OR, 1 SET, 2 OFF, 3 XOR. It is a
-  LongInteger variable (there is no GRMOD command). A plain `3 STO "GRAMOD"` had no visible
-  effect in GMOD; GMOD2 converts with LINT first (`3 LINT STO "GRAMOD"`).
+## AGRAPH and GRMOD (Sep 2026)
+- Command reference: `docs/reference/C47_Full_index.txt` (C47 team, GFDL, 04/08/2026).
+- AGRAPH draws according to the graphics mode: 0 OR, 1 SET, 2 OFF, 3 XOR. The index lists the
+  reserved variable GRAMOD; the C47 documentation also has the commands GRMOD (set the mode) and
+  GRMOD# (recall it), which are the ones to use. `STO "GRAMOD"` had no visible effect (GMOD).
+- GMOD2 sets the mode with `3 STO 03 GRMOD 03` (works whether GRMOD reads the number or the
+  register) and shows GRMOD# after the drawing (VIEW would wipe the graphics).
 - The reference says AGRAPH "will be redesigned and should not be used in programming".
-- The fonts use the default OR mode (GRAMOD 0) only.
+- The fonts use the default OR mode only.
