@@ -26,6 +26,7 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
+ANTS = 8                               # ants over the old screen after + or an arrow, 0.1 s apart
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -98,7 +99,7 @@ def program(inp, items=ALL, autoinit=False):
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
-      'LBL 22', 1, 'STO+ "DH"', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'GTO 01')
+      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01')
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
             a('LBL 12', *text_steps(24)); a('REGS', 'RTN')
@@ -109,8 +110,20 @@ def program(inp, items=ALL, autoinit=False):
         y, x = place(d, items)
         a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 3', d, 'STO "VW"', 'GTO 03')
     # after a view (it returns on +, up or down, R39): up one hour later, down one hour earlier, + the menu
-    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
-      'LBL 06', 1, 'STO+ "DH"', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'GTO 03')
+    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'XEQ 48', 'GTO 01',
+      'LBL 06', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'XEQ 48', 'GTO 03',
+      # LBL 48: ants over the screen that is shown (XOR, so they show on black too), 0.1 s apart.
+      # The C47 shows the screen only at a PAUSE: while the next screen is computed and drawn the
+      # display keeps this one, ants included, until the new screen's PAUSE 1.
+      'LBL 48', ANTS, 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
+      # LBL 47: one ant (10 x 14 pixels) at a random place, column by column, GRMOD 3 (XOR)
+      'LBL 47', 'WSIZE 16', 3, 'STO 32', 'GRMOD 32',
+      'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37', 'RCL 37', 'RCL 36',
+      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32',                    # feelers
+      '00111100111111#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',        # head and body
+      'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',
+      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32',                    # feelers
+      0, 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN')
     # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
     # date, time and DR position in use (the arrows change the time: shown here too)
     a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',
