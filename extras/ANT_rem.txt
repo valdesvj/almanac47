@@ -1,0 +1,57 @@
+LBL "ANT"
+REM "ANT - draw a small bug at a random place, over whatever is on the screen (no CLLCD)."
+REM "The bug is the inverted 5x7 A (see BIGA) made 2 times bigger: 10 pixels wide, 14 high,"
+REM "about the size of the big almanac font (capitals 12 pixels)."
+REM "Registers: R30 = column (x), R31 = row (y), R32 = column pattern."
+REM "Screen: 400 x 240 pixels, (0,0) = bottom left."
+REM "--- 1. Random place ---"
+REM "Column 0-389 (the bug is 10 wide), row 0-205 (keeps it below the status bar)"
+RAN#
+390
+×
+IP
+STO 30
+RAN#
+206
+×
+IP
+STO 31
+REM "--- 2. Prepare ---"
+REM "WSIZE 16: binary numbers up to 15 bits (the bug is 14 pixels high)"
+WSIZE 16
+REM "Mode 0 = OR: only the bug's pixels are switched on, the screen behind stays"
+0
+STO 00
+GRMOD 00
+REM "--- 3. Draw the bug, column by column (bit 0 = bottom pixel) ---"
+REM "Y = row, X = column; each AGRAPH draws one column and leaves X = next column"
+RCL 31
+RCL 30
+REM "Left feeler: 2 columns, only the top 2 pixels"
+11000000000000#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+REM "Head and body: 6 columns; head (4 px), gap (neck, 2 px), body (6 px), gap at the top"
+00111100111111#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+REM "Right feeler: the same as the left one"
+11000000000000#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+REM "--- 4. Tidy up and show ---"
+WSIZE 64
+REM "Keep the screen with the bug for 10 seconds"
+PAUSE 99
+RTN
+END
