@@ -80,7 +80,7 @@ AGRAPH COLUMN HEIGHT
   BIGA uses 56 (WSIZE 63). PTXS uses 12 (WSIZE 14), PTXT/PTXB 5-7 (WSIZE 8).
 
 LICENCE
-  PTXT and PTXB: MIT (see LICENSE in this folder).
+  PTXT and PTXB: GPL-3.0-or-later, like the whole project (see LICENSE).
   PTXS: GPL-3.0 - its glyph bitmaps come from the C43/C47 standardFont, part of the
   C43/C47 project (GPL-3.0). See LICENSE-PTXS.txt. build/NAVFULL*.txt contain PTXS and
   are therefore distributed under GPL-3.0 as a whole.

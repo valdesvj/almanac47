@@ -51,6 +51,8 @@ ABOUT = ("This program began as a set of RPN programs for the SwissMicros C47 ca
          "and to SwissMicros for the hardware that makes it a pleasure to use.\n\n"
          "Not affiliated with or endorsed by SwissMicros or the C43/C47 project. "
          "Names are trademarks of their owners.\n\n"
+         "Copyright (C) 2026 Victor Valdes <valdes.vj@gmail.com>. Free software under the GNU General "
+         "Public License v3.0 or later, with NO WARRANTY. Written with the help of AI (Claude, by Anthropic).\n\n"
          "DOES NOT REPLACE THE NAUTICAL ALMANAC.")
 HELP = """INPUT
   Date     YYYY-MM-DD (or DD-MM-YYYY), UT date

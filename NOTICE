@@ -1,22 +1,26 @@
-Copyright (c) 2026 Victorio Valdes. All rights reserved.
+Almanac 47 - C47 celestial navigation
+Copyright (C) 2026 Victor Valdes <valdes.vj@gmail.com>
 
-This applies to everything in this repository except the folders listed below:
-the PC versions (python/), the tests, the tools, the documentation, the texts
-and the Almanac 47 app.
+This program is free software: you can redistribute it and/or modify it under the terms of
+the GNU General Public License as published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.
 
-The C47 calculator programs are free software under the MIT licence:
-  programs/       the programs (plain text, one command per line)
-  programs_rem/   the same programs with REM comments
-  listings/       the annotated listings
-  rtf/            the listings as RTF
-See the LICENSE file in each of those folders.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details: the LICENSE file in this folder
+(also programs/COPYING-GPL-3.0.txt), or https://www.gnu.org/licenses/.
 
-Exception - PTXS (the status-bar font program): its glyph bitmaps come from the C43/C47
-firmware's standardFont (GPL-3.0), so programs/PTXS.txt, the combined build/NAVFULL*.txt,
-tools/generators/mkstd.py and python/native/c47fonts2.py are under GPL-3.0.
-See programs/LICENSE-PTXS.txt and programs/COPYING-GPL-3.0.txt.
+This covers everything in this repository: the C47 calculator programs (programs/,
+programs_rem/, listings/, rtf/, build/), the PC versions (python/), the tools, the tests,
+the documentation and the texts - with these exceptions:
+  - docs/reference/C47_Full_index.txt: (c) the C47/R47 development team, GNU Free
+    Documentation License (see docs/reference/README).
+  - PTXS glyph bitmaps: from the C43/C47 firmware's standardFont, (c) the C43/C47 authors,
+    GPL-3.0 (see programs/LICENSE-PTXS.txt).
+
+Written with the help of AI (Claude, by Anthropic).
 
 SwissMicros, C47, R47, DM42 and HP are trademarks of their owners.
 This project is not affiliated with or endorsed by them.
 
-DOES NOT REPLACE THE NAUTICAL ALMANAC.
+DOES NOT REPLACE THE NAUTICAL ALMANAC. Not for use as the primary means of navigation.

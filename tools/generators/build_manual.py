@@ -18,10 +18,10 @@ def hms(t):
     s = int(round(t * 3600)); return '%02d:%02d:%02d' % (s // 3600 % 24, s % 3600 // 60, s % 60)
 def foot(c, d):
     c.saveState(); c.setFont('DV', 7); c.setFillColor(colors.HexColor('#7a8a9a'))
-    c.drawString(15 * mm, 8 * mm, 'Almanac 47 — C47 celestial navigation — user manual — Victorio Valdes')
+    c.drawString(15 * mm, 8 * mm, 'Almanac 47 — C47 celestial navigation — user manual — Victor Valdes')
     c.drawRightString(A4[0] - 15 * mm, 8 * mm, 'p. %d' % d.page); c.restoreState()
 doc = BaseDocTemplate(OUT, pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm, topMargin=14 * mm, bottomMargin=15 * mm,
-                      title='C47 celestial navigation — user manual', author='Victorio Valdes')
+                      title='C47 celestial navigation — user manual', author='Victor Valdes')
 doc.addPageTemplates([PageTemplate('P', [Frame(15 * mm, 15 * mm, A4[0] - 30 * mm, A4[1] - 29 * mm, id='f')], onPage=foot)])
 W = 180 * mm
 S = []

@@ -7,7 +7,7 @@ which is part of the C43/C47 project and licensed under the GNU General Public L
 version 3 (GPL-3.0). PTXS is therefore distributed under the same licence:
 
   PTXS - text drawing in the C47 status-bar font
-  Copyright (c) 2026 Victorio Valdes (program, number printers, symbols)
+  Copyright (C) 2026 Victor Valdes <valdes.vj@gmail.com> (program, number printers, symbols)
   Glyph bitmaps: C43/C47 standardFont, (c) the C43/C47 authors.
 
   This program is free software: you can redistribute it and/or modify it under the
@@ -18,8 +18,7 @@ version 3 (GPL-3.0). PTXS is therefore distributed under the same licence:
   PARTICULAR PURPOSE. See COPYING-GPL-3.0.txt in this folder.
 
 The combined files build/NAVFULL.txt and build/NAVFULL_NOTBL.txt contain PTXS and are
-distributed under GPL-3.0 as a whole. The other programs in this folder stay MIT
-(see LICENSE) and can be used under MIT on their own.
+distributed under GPL-3.0 as a whole, like the rest of the project (see ../NOTICE).
 
 The generator (tools/generators/mkstd.py) and python/native/c47fonts2.py carry the same
 glyph data and are covered by this note as well.

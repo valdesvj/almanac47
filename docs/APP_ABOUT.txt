@@ -11,3 +11,5 @@ Thanks to the developers of the C43 / C47 firmware for such an open, programmabl
 Not affiliated with or endorsed by SwissMicros or the C43/C47 project. Names are trademarks of their owners.
 
 DOES NOT REPLACE THE NAUTICAL ALMANAC.
+
+Copyright (C) 2026 Victor Valdes <valdes.vj@gmail.com>. Free software under the GNU General Public License v3.0 or later, with NO WARRANTY. Written with the help of AI (Claude, by Anthropic).

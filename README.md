@@ -24,15 +24,13 @@ charts drawn on the calculator screen.
 
 ## Author
 
-Victorio Valdes. Written with the help of AI (Claude, by Anthropic); results checked
-against JPL Horizons and USNO, screens tested on the calculator.
+Victor Valdes (valdes.vj@gmail.com). Written with the help of AI (Claude, by Anthropic);
+results checked against JPL Horizons and USNO, screens tested on the calculator.
 
 ## Licence
 
-The calculator programs (`programs/`, `programs_rem/`, `listings/`, `rtf/`) are
-MIT-licensed, see the `LICENSE` file in each folder, except PTXS (and the combined
-`build/NAVFULL*.txt`), which is GPL-3.0 because its glyphs come from the C47 firmware's
-font (`programs/LICENSE-PTXS.txt`). Everything else is
-Copyright (c) 2026 Victorio Valdes, all rights reserved. See `NOTICE`.
+GNU General Public License v3.0 or later (`LICENSE`), for the whole project. Exceptions:
+`docs/reference/C47_Full_index.txt` (C47 team, GFDL) and the PTXS glyph bitmaps from the C47
+firmware (GPL-3.0, `programs/LICENSE-PTXS.txt`). See `NOTICE`.
 
 **Does not replace the Nautical Almanac.**

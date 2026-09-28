@@ -25,9 +25,11 @@ S += [P('Almanac 47', title),
         'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation); optional '
         'Chebyshev tables fitted to JPL make it faster for a chosen period.'),
       P('<b>It supports, and does not replace, the Nautical Almanac.</b> Every screen says so.'),
-      P('<b>Author:</b> Victorio Valdes. The programs, the PC version and this manual were written with the help of '
+      P('<b>Author:</b> Victor Valdes (valdes.vj@gmail.com). The programs, the PC version and this manual were written with the help of '
         'AI (Claude, by Anthropic). The results were checked against JPL Horizons and USNO data, and the screens '
         'were tested on the calculator and pixel for pixel against the PC version.', small),
+      P('Copyright © 2026 Victor Valdes. Free software under the GNU General Public License v3.0 or later: you may '
+        'use, share and change it under its terms. It comes with NO WARRANTY. See the files LICENSE and NOTICE.', small),
       P('Part 1 — using NAV', h1),
       P('1. What to load', h2),
       prose_tbl([
