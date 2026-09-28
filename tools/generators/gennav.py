@@ -26,9 +26,8 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
-DOT = 83                               # . key: SNAP (screenshot of what is shown)
 ANTS = 6                               # ants shown after an arrow, 0.1 s apart
-HINT = 'KEY A NUMBER  + MENU  UP DOWN 1 HOUR  . SNAP'
+HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 
@@ -88,7 +87,6 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
-      'RCL 39', DOT, 'X=Y?', 'GTO 27',                                         # . : screenshot of the menu
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 26', 'RCL 38', 7, 'X<Y?', 'GTO 26',     # row 5-7
       'RCL 39', 10, 'MOD', 'STO 37', 2, 'X>Y?', 'GTO 26', 'RCL 37', 4, 'X<Y?', 'GTO 26',        # column 2-4
       7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38')                                   # the digit
@@ -99,8 +97,7 @@ def program(inp, items=ALL, autoinit=False):
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
-      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01',
-      'LBL 27', 'SNAP', 'XEQ 48', 'GTO 01')
+      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01')
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
             a('LBL 12', *text_steps(24)); a('REGS', 'RTN')
@@ -114,7 +111,6 @@ def program(inp, items=ALL, autoinit=False):
     # after a view (it returns on any key, R39): + the menu, up arrow one hour later, down arrow one
     # hour earlier, any other key the same view again (its release would leave the stack on the screen)
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07',
-      'RCL 39', DOT, 'X=Y?', 'SNAP',                           # . : screenshot (taken before the key is released), then drawn again
       'RCL 39', 'X=0?', 'GTO 25', 85, 'X≠Y?', 'GTO 08', 'LBL 25', 'XEQ 48', 'GTO 01',
       'LBL 06', 1, 'STO+ "DH"', 'GTO 08', 'LBL 07', 1, 'STO- "DH"',
       # while the key is released (its release would bring the stack back over a new drawing):

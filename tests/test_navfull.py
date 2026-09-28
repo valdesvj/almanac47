@@ -179,9 +179,3 @@ c.run('NAV',maxsteps=10**8)
 ref=Engine('programs'); b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60),25+20/60,55+12/60)
 n=sum(1 for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
 print('NAV other key on ALMF: drawn', n, 'times (2 expected)')
-# . key: SNAP on the menu and on a view, then drawn again
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
-c.s=[D(0)]*4; c.keys=[83,KEYCODE[1],83,85,KEYCODE[0]]; c.frames=[]; c.pix=[]
-c.run('NAV',maxsteps=10**8)
-print('NAV . key: screenshots', getattr(c,'snaps',0), '(2 expected)')

@@ -54,7 +54,6 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    the date, time and DR position in use.
    Press the number key (no R/S): the item is highlighted and the view is drawn.
    On a drawn view:  +  back to the menu
-                     .  (point)  screenshot (SNAP: SCREENS/*.bmp), then drawn again
                      any other key  the same view drawn again (R/S stops the program)
                      UP arrow    the same view one hour later
                      DOWN arrow  the same view one hour earlier
