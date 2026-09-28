@@ -51,8 +51,12 @@ def place(d, items=ALL):
 OLD_INPUT = 'LBL 20|INPUT "DATE"|INPUT "UTC"|INPUT "LAT"|INPUT "LON"|RCL "DATE"|10000|×|0.5|+|IP|STO 03|10000|÷|IP|STO 01|RCL 03|100|÷|IP|100|MOD|STO 02|RCL 03|100|MOD|STO 03|RCL "UTC"|10000|×|0.5|+|IP|STO 04|100|MOD|3600|÷|RCL 04|100|÷|IP|100|MOD|60|÷|+|RCL 04|10000|÷|IP|+|STO 04|RCL 02|3|X>Y?|XEQ 31|RCL 01|100|÷|IP|STO 05|2|RCL- 05|RCL 05|4|÷|IP|+|STO 05|RCL 01|4716|+|365.25|×|IP|RCL 02|1|+|30.6001|×|IP|+|RCL+ 03|RCL+ 05|1524.5|-|RCL 04|24|÷|+|STO 06|RCL "LAT"|XEQ 30|STO 07|RCL "LON"|XEQ 30|STO 08|RCL 06|RCL 07|RCL 08|RTN|LBL 30|STO 38|IP|RCL 38|FP|100|×|60|÷|+|RTN|LBL 31|1|STO- 01|12|STO+ 02|RTN'
 
 
+# the four inputs: the format on the screen, the value in use in X (R/S keeps it)
+PROMPTS = [('DATE', 'DATE YYYY.MMDD'), ('UTC', 'UT HH.MMSS'), ('LAT', 'LAT DD.MMm  S -'), ('LON', 'LON DDD.MMm  W -')]
+
+
 def inputs():
-    """LBL 20: INPUT DATE UTC LAT LON (once, at the start).
+    """LBL 20: DATE UTC LAT LON (once, at the start): PROMPT with the format, the value in use in X.
     LBL 21: Z JD (+ R"DH" hours from the arrow keys), Y lat, X lon from those variables; JD also in R06.
     The date with the calculator's own functions: x→ⅅ (the DATE number in the calculator's date
     format, e.g. YYYY.MMDD) and ⅅ→J (Julian day number, .0 = noon): JD of 0 h UT = JDN - 0.5."""
@@ -64,7 +68,10 @@ def inputs():
     body = (['RCL "DATE"', 'x→ⅅ', 'ⅅ→J', '0.5', '-', 'STO 06'] + hours + ['24', '÷', 'STO+ 06',
             'RCL "DH"', '24', '÷', 'STO+ 06'] + tail)
     body = body[:body.index('LBL 31')]                                                # month shift: not needed
-    return L[:k] + ['RTN', 'LBL 21'] + body
+    ask = ['FS? 82', 'GTO 19', 0, 'STO "DATE"', 'STO "UTC"', 'STO "LAT"', 'STO "LON"', 'SF 82', 'LBL 19']   # first run: the variables exist
+    for var, text in PROMPTS:
+        ask += ['"%s"' % text, 'STO 38', 'RCL "%s"' % var, 'PROMPT 38', 'STO "%s"' % var]
+    return ['LBL 20'] + [str(x) for x in ask] + ['RTN', 'LBL 21'] + body
 
 
 LETTERED = 'IJKMNPQRSEFGHOUVW'
@@ -108,11 +115,11 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL 03', 0, 'STO 39')                                                # LBL 03: (re)draw view VW
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
-    a('GTO 01', 'LBL 09', 'CLLCD', 'LBL 08', 'RCL "SSZ"', 4, 'X=Y?', 'SSIZE4', 'RTN',   # LBL 08: the user's stack size back
+    a('GTO 01', 'LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN', 'LBL 08', 'RCL "SSZ"', 4, 'X=Y?', 'SSIZE4', 'RTN',   # 0: nothing left on the stack   # LBL 08: the user's stack size back
       'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01')
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
-            a('LBL 12', *text_steps(24)); a('XEQ 08', 'REGS', 'RTN')
+            a('LBL 12', 'XEQ 08', *text_steps(24)); a('REGS', 'RTN')      # stack size back first: the lines go onto the stack last
         else:
             a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
     # LBL 6d: item d chosen: invert it for a moment, then its view

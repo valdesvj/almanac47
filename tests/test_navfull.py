@@ -16,7 +16,7 @@ def load(paths, tables, fast=False):
     for p in paths:
         for i,pr in enumerate(split(p)):
             f=os.path.join(tmp,'%s_%d.txt'%(os.path.basename(p),i)); open(f,'w').write('\n'.join(pr)+'\n'); files.append(f)
-    c=c47sim.load(files)
+    c=c47sim.load(files); c.flags.add(82)            # flag 82: the input variables exist (NAV set them once)
     c.run('INIT',maxsteps=10**7)
     if tables: c.run('TBL',maxsteps=10**7)
     return c
@@ -50,6 +50,7 @@ c.s=[D(0)]*4; c.keys=[KEYCODE[1],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12'); c.pix=[]
 c.run('NAV',maxsteps=10**7)
 print('NAV menu: 1, +, 0 -> frames', len(c.frames), '(menu, item inverted, ALMF, 6 ants, menu), ended', c.pix==[])
+print('NAV inputs shown:', [str(m) for m in c.msgs][:4], '| stack after 0:', [str(v) for v in c.s])
 # arrows: 1 (ALMF), up (one hour later), down twice (one hour earlier), +, 0
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[1],51,61,61,85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
@@ -110,11 +111,11 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
 # option 7 BODY: first list page and a chosen star
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-c.s=[D(0)]*4; c.keys=[KEYCODE[7]]; c.answers=[18,None,None]; c.msgs=[]; c.maxprompts=6
+c.s=[D(0)]*4; c.keys=[KEYCODE[7]]; c.answers=[None]*4+[18,None,None]; c.msgs=[]; c.maxprompts=10
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 try: c.run('NAV',maxsteps=10**8)
 except StopIteration: pass
-print('NAV option 7 (BODY):', [str(m) for m in c.msgs][0:3])
+print('NAV option 7 (BODY):', [str(m) for m in c.msgs][4:7])
 # FAST series through INIT option 2
 pass
 mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False,fast=True)
@@ -130,7 +131,8 @@ def load_one(path):
     tmp=tempfile.mkdtemp(); files=[]
     for i,pr in enumerate(split(path)+split('build/NAVINIT_FAST.txt')):
         f=os.path.join(tmp,'p_%d.txt'%i); open(f,'w').write('\n'.join(pr)+'\n'); files.append(f)
-    return c47sim.load(files)
+    c=c47sim.load(files); c.flags.add(82)
+    return c
 ref=Engine('programs',fast=True)
 for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,9)),('build/NAVCOMP.txt',(1,2,4,9))):
     c=load_one(name)

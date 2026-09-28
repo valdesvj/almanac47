@@ -135,6 +135,7 @@ class Calc:
                 if y<0: self.pix.extend((-y,xx) for xx in range(400))
                 continue
             if op == 'CLA': self.alpha=''; continue
+            if op == 'CLSTK': self.s = [D(0)] * 4; continue
             if op == 'SSIZE#': self.push(D(8)); continue          # stack size (C47 default 8; modelled as 4 levels)
             if op in ('SSIZE4', 'SSIZE8'): continue
             # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ reads YYYY.MMDD (date format Y.MD)

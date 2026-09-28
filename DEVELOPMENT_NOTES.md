@@ -346,3 +346,8 @@ INIT with the builders as LBL 01-04.
   the N-label map of NAVFULL without the font routines; part 2 the programs (PTXS names, WPLS).
   PROGRAM_MAP.txt from tools/progmap.py. annot.py: anchors for the current ALMF/HALMV/NAV,
   skips the licence files. c47pc 1.3 (help: Hc white on black).
+- Inputs: PROMPT with the format ("DATE YYYY.MMDD", "UT HH.MMSS", "LAT DD.MMm  S -",
+  "LON DDD.MMm  W -", text in R38) and the value in use recalled into X (R/S keeps it); flag 82
+  = the four variables exist (the first NAV stores 0 in them). 0 on the menu: CLLCD, stack size
+  back, CLSTK. TEXT: stack size back before the lines go onto the stack (it pushed onto them).
+  Tests set flag 82 and answer the four prompts with None.
