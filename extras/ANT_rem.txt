@@ -1,43 +1,52 @@
 LBL "ANT"
-REM "Write an A, invert it with XOR: you get a bug"
-REM "Random place: column R30 (copy in R34), row R31"
-RAN#
-390
-×
-IP
-STO 30
-STO 34
-RAN#
-134
-×
-IP
-72
-+
+REM "Write an A, then redraw it inverted (XOR): you get a bug"
+WSIZE 8
+REM "Middle of the screen: row R31, column R30"
+116
 STO 31
-WSIZE 16
+198
+STO 30
 REM "GRMOD 0 = OR: normal drawing"
 0
 STO 00
 GRMOD 00
-REM "The A: pattern, number of columns, draw"
-111111111111#2
-2
+REM "The A, column by column (bit 0 = bottom pixel)"
+0111111#2
+STO 32
 XEQ 10
-11000011000000#2
-6
+1001000#2
+STO 32
 XEQ 10
-111111111111#2
-2
+1001000#2
+STO 32
+XEQ 10
+1001000#2
+STO 32
+XEQ 10
+0111111#2
+STO 32
 XEQ 10
 PAUSE 10
-REM "GRMOD 3 = XOR: a solid block over the A inverts it"
+REM "GRMOD 3 = XOR: a solid column over each A column inverts it"
 3
 STO 03
 GRMOD 03
-RCL 34
+198
 STO 30
-11111111111111#2
-10
+1111111#2
+STO 32
+XEQ 10
+1111111#2
+STO 32
+XEQ 10
+1111111#2
+STO 32
+XEQ 10
+1111111#2
+STO 32
+XEQ 10
+1111111#2
+STO 32
 XEQ 10
 REM "Back to normal and show the bug 5 s"
 0
@@ -46,17 +55,12 @@ GRMOD 00
 WSIZE 64
 PAUSE 50
 RTN
-REM "LBL 10: Y = pattern, X = columns; one AGRAPH per column"
+REM "LBL 10: draw column R32 at row R31, column R30, then next column"
 LBL 10
-STO 33
-R↓
-STO 32
-LBL 11
 RCL 31
 RCL 30
 AGRAPH 32
-STO 30
-DSE 33
-GTO 11
+1
+STO+ 30
 RTN
 END
