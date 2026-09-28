@@ -12,14 +12,14 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
 NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these + NAVINIT_FAST
-  NAVALL    all nine views                          12,588 lines
-  NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY  8,467 lines
-  NAVTXT    text only, no drawing                    4,367 lines: XEQ "NAV" asks DATE UTC LAT
+  NAVALL    all nine views                          12,656 lines
+  NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY  8,515 lines
+  NAVTXT    text only, no drawing                    4,497 lines: XEQ "NAV" asks DATE UTC LAT
             LON and writes the almanac page into R50 ... R76, and lines 1-26 also into the
             stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
             L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
             ends by opening the register browser (REGS).
-  NAVINIT_FAST  (6,531 lines) builds the matrices.
+  NAVINIT_FAST  (6,546 lines) builds the matrices.
   rejig both files, load both, XEQ "NAV". The first NAV runs INIT (takes a while) and sets
   flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (it frees the memory;
   the matrices stay). New INIT later: CF 81 first.
@@ -75,7 +75,7 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
                 meridian passage, Moon
      2 CHART    horizon chart left, the bodies' HC ZN right
      3 TEXT     the almanac as text in the registers, shown with REGS (NAV ends)
-     4 SKY      horizon chart, R/S names each body in turn (EXIT to stop)
+     4 SKY      horizon chart, the top line names each body in turn (3 s each)
      5 SMALL    short almanac (Sun, Moon, 1 planet, 3 stars)
      6 SPLIT    horizon chart on top, short almanac below
      7 BODY     one body: key its number (stars 1-58, Sun 60, Moon 61, planets 62-65)
@@ -83,7 +83,14 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
      9 ALLSKY   the whole sky: over the horizon above, under the horizon below
 
    An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
+   A body below the horizon (in practice the Sun) has its Hc shown white on black.
+   NAV uses the 8-level stack while it runs (the fonts need it) and puts your stack size
+   back when you leave with 0 or TEXT.
 
-MEMORY (estimate): programs about 40 KB, FAST matrices about 50 KB (FULL about 90 KB).
+The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
+N01, N02 ... labels.
+
+MEMORY (estimate): programs about 40 KB, FAST matrices about 55 KB (FULL about 95 KB),
+the cache matrices ALMC and ALMQ about 20 KB.
 
 DOES NOT REPLACE THE NAUTICAL ALMANAC.

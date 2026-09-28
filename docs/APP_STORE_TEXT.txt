@@ -25,7 +25,7 @@ The rest is yours. You choose the bodies, take the sight, note the time, apply i
 
 Check it against the book. The figures come from published methods (VSOP87 for the Sun and planets, Meeus with corrections fitted to the JPL ephemeris for the Moon, IAU precession and nutation for the stars). In our tests against the JPL ephemeris for 2025-2028 they agree to within a few tenths of a minute of arc. Work the same sight from the Nautical Almanac now and then. If the two ever disagree, trust the almanac and tell us.
 
-Born on a calculator, twice. In the 1990s the author wrote VIT97, a celestial navigation program for the HP 48, still on hpcalc.org. That HP 48 was lent out years ago and never came back. Almanac 47 is the new start: RPN programs for the C47/R47 calculator, rebuilt with the help of AI, and the screens look exactly like its display. On the calculator each screen takes about 35 seconds to draw. Here it takes a blink. For the authentic experience, count to 35 before looking.
+Born on a calculator, twice. In the 1990s the author wrote VIT97, a celestial navigation program for the HP 48, still on hpcalc.org. That HP 48 was lent out years ago and never came back. Almanac 47 is the new start: RPN programs for the C47/R47 calculator, rebuilt with the help of AI, and the screens look exactly like its display. On the calculator the sky is computed once and each screen is drawn column by column. Here it takes a blink. For the authentic experience, count to ten before looking.
 
 Works fully offline. No account, no advertising, no data collected. Nothing leaves your phone.
 

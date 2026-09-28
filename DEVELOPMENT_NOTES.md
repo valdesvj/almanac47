@@ -52,7 +52,7 @@ each character at its C47 pixel position; the text export uses a fixed-column la
   planets if Hc > 0; then the brightest stars with Hc > 10 deg until the table is full.
   HORZ and HORZS show the same bodies (the Sun below the horizon is listed in the HORZ
   info loop but not drawn). The HORZ info loop is endless.
-- Below the horizon (Hc < 0, in practice only the Sun): Hc underlined in ALMF/HALMV,
+- Below the horizon (Hc < 0, in practice only the Sun): Hc white on black (XOR box) in ALMF/HALMV,
   line starts with `* ` in ALMT.
 - Horizon charts: north latitude has S in the centre (N E S W N), south latitude has
   N in the centre (S W N E S), so the celestial equator is a symmetric arch.
@@ -341,3 +341,8 @@ INIT with the builders as LBL 01-04.
   (line 382 NAVFULL / NAVFULL_NOTBL, 389 NAVALL, 220 NAVCOMP). LBL 48 returns at once for 0
   (X=0? RTN); any other number = that many ants, 0.1 s each, after a number, + or an arrow.
   The menu highlight gets its own PAUSE 1 so it shows while the view computes.
+- Docs (Sep 29): manual rebuilt (tools/generators/build_manual.py + manual_nav.py -> docs/):
+  part 1 NAV, the menu, the views with current screens (c47pc --plain --no-bezel), speed notes,
+  the N-label map of NAVFULL without the font routines; part 2 the programs (PTXS names, WPLS).
+  PROGRAM_MAP.txt from tools/progmap.py. annot.py: anchors for the current ALMF/HALMV/NAV,
+  skips the licence files. c47pc 1.3 (help: Hc white on black).

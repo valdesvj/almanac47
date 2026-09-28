@@ -1,6 +1,6 @@
 This program began as a set of RPN programs for the SwissMicros C47 calculator: Sun, Moon, planets and the 57 navigational stars, sight reduction, and the almanac and horizon screens drawn pixel by pixel on its display.
 
-On the calculator each screen takes about 35 seconds to draw. Here it takes a blink. For the authentic experience, count to 35 before looking.
+On the calculator the sky is computed once and each screen is drawn column by column. Here it takes a blink. For the authentic experience, count to ten before looking.
 
 Same methods and coefficients as the calculator programs: VSOP87D (Sun, planets), Meeus 47 + corrections fitted to JPL DE421 (Moon), IAU2006 precession (stars), IAU1980 nutation. The screens are the same as on the calculator, checked pixel for pixel.
 

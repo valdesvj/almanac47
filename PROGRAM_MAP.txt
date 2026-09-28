@@ -2,39 +2,141 @@ C47 NAV - PROGRAM MAP (global labels and calls)
 
 FILE      GLOBAL LABELS                          CALLS                                            STEPS
 --------------------------------------------------------------------------------------------------------
+ALLSKY    ALLSKY                                 HCZ, HCZI, HCZQ, HCZR, MOO2, PDTS, PHMS, PLN3, PTNS, PTXS, PTXT, SUNA, WPLS 559
 ALM       ALM, HP, CHEB                          -                                                63
-ALMF      ALMF                                   HCZ, MOO2, NTWA, NTWP, PDAT, PDM, PF1, PHAS, PHM, PINB, PLN2, PTXB, PZN, RISE, SBRT, SET, SNMU, STR2, SUNA, TRAN 435
-ALMT      ALMT                                   HCZ, MOO2, NTWA, NTWP, PHAS, PLN2, RISE, SBRT, SDAT, SDM, SET, SEW, SF1, SHM, SINT, SNMU, SNS, STR2, SUNA, SZN, TRAN 383
-CHZ       CHZ, HCZ, DHA                          -                                                119
-HALM      HALM                                   HCZ, PDM, PINB, PTXB, PZN, SNMU, STR2, SUNA      353
-HALMV     HALMV                                  HCZ, MOO2, NTWA, NTWP, PDAT, PDM, PF1, PHAS, PHL, PHM, PINB, PLN2, PTXB, PTXT, PZN, RISE, SBRT, SET, SNMU, STR2, SUNA, TRAN 622
-HORZ      HORZ                                   HCZ, MOO2, PHL, PLN2, PT1, PTNS, PTXB, PTXT, SBRT, SNMU, STR2, SUNA 525
-HORZS     HORZS                                  HCZ, MOO2, PHL, PLN2, PTNS, PTXB, PTXT, SBRT, STR2, SUNA 461
-HPLT      HPLT                                   HCZ, STR2, SUNA                                  41
-MATA      MATA                                   -                                                1088
-MATM      MATM                                   -                                                3176
-MATP      MATP                                   -                                                8216
+ALMF      ALMF                                   HCZ, HCZI, MOO2, NTWA, NTWP, PDMS, PDTS, PF1S, PHA2, PHMS, PINS, PLN3, PTXS, PTXT, PZNS, RISE, SBRT, SET, SNMU, SQK, STR2, SUNA, TRAN, WPLS 475
+ALMS      ALMS                                   HCZ, HCZI, MOO2, NTWA, NTWP, PDMS, PDTS, PF1S, PHA2, PHMS, PINS, PLN3, PTXS, PTXT, PZNS, RISE, SBRT, SET, SNMU, SQK, STR2, SUNA, TRAN, WPLS 500
+ALMT      ALMT                                   CWID, HCZ, HCZI, MOO2, NTWA, NTWP, PHA2, PLN3, RISE, SBRT, SDAT, SDM, SET, SEW, SF1, SHM, SINT, SNMU, SNS, SQK, STR2, SUNA, SZN, TRAN 620
+BODY      BODY                                   CWID, HCZ, HCZI, HCZQ, HCZR, MOO2, MOOQ, PDMS, PDTS, PF1S, PHLS, PHMS, PINS, PLN2, PLNQ, PTNS, PTXS, PTXT, PZNS, SBRT, SDAT, SDM, SF1, SHM, SINT, SNMU, STR2, SUNA, SZN, TGET, WPLS 1111
+CACHE     CSUN, CMOO, CPLN, CSTR, CSQK, CHCZ, CPHA, CNTA, CRIS, CTRN, CSET, CNTP, CALC, CEQQ, CEQR HCZ, HCZQ, HCZR, MOO2, NTWA, NTWP, PHA2, PLN3, RISE, SET, SQK, STR2, SUNA, TRAN 623
+CHZ       CHZ, HCZ, HCZ0, HCZQ, HCZR, HCZI, DHA  -                                                212
+CWID      CWID                                   -                                                118
+FONTS                                            -                                                72
+HALM      HALM                                   HCZ, HCZI, PDM, PINB, PTXB, PZN, SNMU, STR2, SUNA 354
+HALMH     HALMH                                  HCZ, HCZI, HCZQ, HCZR, MOO2, NTWA, NTWP, PDMS, PDTS, PHA2, PHLS, PHMS, PINS, PLN3, PTNS, PTXS, PTXT, PZNS, RISE, SBRT, SET, SNMU, SQK, STR2, SUNA, TRAN, WPLS 775
+HALMV     HALMV                                  HCZ, HCZI, HCZQ, HCZR, MOO2, PDMS, PDTS, PHA2, PHLS, PHMS, PINS, PLN3, PTNS, PTXS, PTXT, PZNS, SBRT, SNMU, SQK, STR2, SUNA, WPLS 598
+HANIM     HANIM                                  HCZ, HCZI, HCZQ, HCZR, MOOQ, PDTS, PHMS, PINS, PTNS, PTXS, PTXT, SUNF, WPLS 507
+HORZ      HORZ                                   HCZ, HCZI, HCZQ, HCZR, MOO2, PF1S, PHLS, PHMS, PINS, PLN3, PTNS, PTXS, PTXT, SBRT, SNMU, SQK, STR2, SUNA 706
+HORZS     HORZS                                  HCZ, HCZI, HCZQ, HCZR, MOO2, PHLS, PINS, PLN3, PTNS, PTXS, PTXT, SBRT, SQK, STR2, SUNA 570
+HPLT      HPLT                                   HCZ, HCZI, STR2, SUNA                            42
+MATA      MATA                                   -                                                1331
+MATF      MATF                                   -                                                3859
+MATM      MATM                                   -                                                4736
+MATP      MATP                                   -                                                10472
 MATST     MATST                                  -                                                704
-MOON      MOON, MOO2                             SUNA                                             331
-NAV       NAV                                    ALMF, ALMT, HALMV, MATA, MATM, MATP, MATST       166
-PHAS      PHAS                                   SUNA                                             184
-PLAN      PLAN, PLN2                             SER, SUNA                                        330
+MOON      MOON, MOO2, MOOQ                       SUNA, TGET                                       557
+NAV       NAV                                    ALLSKY, ALMF, ALMR, ALMS, BODY, CNTA, CSQK, CSUN, HALMH, HALMV, HANIM, HCZI, HORZ, PDMS, PDTS, PHLS, PHMS, PTXS 691
+PHAS      PHAS, PHA2                             SUNA                                             185
+PLAN      PLAN, PLN2, PLN3, PLNQ                 HCZ, SER, SERT, SUNA, TGET                       730
 PTBDEMO   PTBDEM                                 PTXB, PTXT                                       33
 PTDEMO    PTDEMO                                 PTXT                                             25
 PTFULL    PTFULL                                 PTXB                                             89
-PTXB      PTXB, PINB, PF1, PHM, PDM, PDAT, PZN, PHL -                                                1746
+PTXB      PTXB, PINB, PF1, PHM, PDM, PDAT, PZN, PHL -                                                1745
+PTXS      PTXS, PINS, PF1S, PHMS, PDMS, PDTS, PZNS, PHLS -                                                2283
 PTXT      PTXT, PTNS, PT1                        -                                                915
 SBRT      SBRT                                   -                                                178
 SNAM      SNAM                                   -                                                182
 SNMU      SNMU                                   -                                                178
-STAR      STAR, STR2                             SUNA                                             255
+STAR      STAR, STR2, SQK                        SUNA                                             222
 STXT      SDM, SNS, SEW, SZN, SHM, SF1, SINT, SDAT -                                                388
-SUNA      SUNA, SER, NUT                         -                                                272
-SUNRISE   RISE, SET, NTWA, NTWP, CTWA, CTWP, TRAN SUNA                                             122
+SUNA      SUNA, SUNG, SUNF, SER, SERT, NUT       TGET                                             456
+SUNRISE   RISE, SET, NTWA, NTWP, CTWA, CTWP, TRAN SUNG                                             122
 SUNSD     SUNSD                                  SUNA                                             8
+TBL       TBL                                    -                                                9203
+TGET      TGET                                   -                                                176
+WPLS      WPLS                                   -                                                19
 
 Folders:
   programs/      programs to load (no comments)
   programs_rem/  same programs with REM comment lines (try one file with the converter first)
   listings/      numbered listings with comments per subroutine, for reading and debugging
                  (step numbers = line numbers of the plain programs)
+  build/         the files for the calculator: NAVFULL, NAVFULL_NOTBL, NAVALL, NAVCOMP, NAVTXT,
+                 NAVINIT_FULL, NAVINIT_FAST, TBL (python3 tools/build_navfull.py)
+
+LABELS IN THE NAV FILES
+  In the build/ files only NAV (and INIT) keep their names; every other global label is
+  N01, N02 ... The map for NAVFULL / NAVFULL_NOTBL (fonts included) follows; NAVALL, NAVCOMP
+  and NAVTXT have their own numbering in build/<file>_LABELS.txt.
+
+  NAV     NAV     graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the view; 0 ends (the only named program)
+  N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
+  N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
+  N03     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
+  N04     HORZ    view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
+  N05     ALMS    view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)
+  N06     HALMH   view 6 SPLIT: horizon chart on top, short almanac below
+  N07     BODY    view 7 BODY: list above the horizon, pick one body, its pages and chart
+  N08     SDM     text: degrees and minutes "ddd°mm.m'" as a string
+  N09     SNS     text: latitude with N / S
+  N10     SEW     text: longitude with E / W
+  N11     SZN     text: azimuth "ddd.d°"
+  N12     SHM     text: time "hh:mm" (--:-- when no event)
+  N13     SF1     text: number with one decimal
+  N14     SINT    text: whole number
+  N15     SDAT    text: date "dd-mm-yyyy" from a Julian Date
+  N16     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+  N17     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+  N18     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
+  N19     SER     sum of one series matrix with the matrix functions (COS, DOT)
+  N20     SERT    the time vectors SV1 SV2 used by SER
+  N21     NUT     nutation in longitude and obliquity (matrix NU)
+  N22     STAR    star: SUNA, then STR2
+  N23     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
+  N24     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
+  N25     MOON    Moon: SUNA, then MOO2
+  N26     MOO2    Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
+  N27     MOOQ    Moon, quick low-precision formula (BODY list, ANIM)
+  N28     PLAN    planet: SUNA, then PLN2
+  N29     PLN2    planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
+  N30     PLN3    planet for the screens: quick position first, full series only if it can be above the horizon
+  N31     PLNQ    planet, quick position from mean elements (BODY list)
+  N32     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
+  N33     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
+  N34     HCZ0    sight reduction for Dec 0 (equator points)
+  N35     HCZQ    celestial equator: start of the dot-by-dot rotation
+  N36     HCZR    celestial equator: next point by rotation (no trig)
+  N37     HCZI    keeps sin/cos of the latitude for HCZ
+  N38     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
+  N39     RISE    sunrise time UT (SUNRISE program)
+  N40     SET     sunset time UT
+  N41     NTWA    nautical twilight, morning, UT
+  N42     NTWP    nautical twilight, evening, UT
+  N43     CTWA    civil twilight, morning, UT
+  N44     CTWP    civil twilight, evening, UT
+  N45     TRAN    meridian passage of the Sun, UT
+  N46     PHAS    Moon phase: SUNA, then PHA2
+  N47     PHA2    Moon phase after SUNA: illumination % and age in days
+  N48     SBRT    star number by brightness rank (1st brightest ... 58th)
+  N49     SNMU    star name from its number
+  N50     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
+  N51     CWID    pixel width of a character in the PROMPT font (to align the BODY pages)
+  N52     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
+  N53     PINS    FONT big: whole number
+  N54     PF1S    FONT big: number with one decimal
+  N55     PHMS    FONT big: hh:mm from hours
+  N56     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
+  N57     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
+  N58     PZNS    FONT big: azimuth "ddd.d"
+  N59     PHLS    FONT big: horizontal line (X = length in pixels)
+  N60     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
+  N61     PTNS    FONT small: whole number
+  N62     PT1     FONT small: number with one decimal
+  N63     HANIM   view 8 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
+  N64     ALLSKY  view 9 ALLSKY: whole sky, over the horizon above, under the horizon below
+  N65     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
+  N66     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
+  N67     CMOO    Moon from the cache
+  N68     CPLN    planet from the cache
+  N69     CSTR    star R82 from the cache
+  N70     CSQK    star from the cache: over the horizon test (computes the star the first time: SQK, STR2, HCZ)
+  N71     CHCZ    Hc Zn from the cache for the body just read (else the real HCZ)
+  N72     CPHA    Moon phase from the cache
+  N73     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
+  N74     CRIS    sunrise from the cache
+  N75     CTRN    meridian passage from the cache
+  N76     CSET    sunset from the cache
+  N77     CNTP    nautical twilight pm from the cache
+  N78     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
+  N79     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
+  N80     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)

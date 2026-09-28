@@ -5,7 +5,7 @@ NAV     NAV     graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the vi
 INIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
-N03     HORZ    view 4 SKY: horizon chart, info line per body (any key: next body, + back to the menu)
+N03     HORZ    view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
 N04     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N05     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
 N06     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
@@ -52,19 +52,19 @@ N46     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X tex
 N47     PTNS    FONT small: whole number
 N48     PT1     FONT small: number with one decimal
 N49     ALLSKY  view 9 ALLSKY: whole sky, over the horizon above, under the horizon below
-N50     WPLS    waits for the + key (KEY?): every view holds its screen until +, then back to the menu
+N50     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N51     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 N52     CMOO    Moon from the cache
 N53     CPLN    planet from the cache
 N54     CSTR    star R82 from the cache
-N55     CSQK    
-N56     CHCZ    
+N55     CSQK    star from the cache: over the horizon test (computes the star the first time: SQK, STR2, HCZ)
+N56     CHCZ    Hc Zn from the cache for the body just read (else the real HCZ)
 N57     CPHA    Moon phase from the cache
 N58     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
 N59     CRIS    sunrise from the cache
 N60     CTRN    meridian passage from the cache
 N61     CSET    sunset from the cache
 N62     CNTP    nautical twilight pm from the cache
-N63     CALC    computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC
-N64     CEQQ    
-N65     CEQR    
+N63     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
+N64     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
+N65     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)

@@ -1,0 +1,86 @@
+C47 TEXT DRAWING PROGRAMS - PTXT, PTXB, PTXS
+REM "FONTS"
+============================================
+
+Three fonts for the C47 graphics screen (400 x 240), one call style. Each glyph column is
+drawn with one AGRAPH (a binary integer = the column's pixels), so text is fast: in the
+almanac screens 2,376 AGRAPH calls replaced 7,280 PIXEL calls (6 min -> 30-35 s).
+
+  program  font                                     characters
+  PTXT     small 3 x 5                              A-Z 0-9 space * + - . / : @
+  PTXB     5 x 7                                    A-Z 0-9 space % + - . / : and the
+                                                    symbols @ Sun ( Moon * star
+                                                    < Venus > Mars = Jupiter ? Saturn
+  PTXS     the C47 status-bar font (standardFont),  A-Z 0-9 space % - . / : and the same
+           bold, capitals 12 px, narrow spacing     symbols (scaled to 12 rows, bold)
+
+CALL (all three)
+  Z = row of the base line (0 = bottom of the screen), Y = column (0 = left), X = "TEXT"
+  XEQ "PTXS"  (or "PTXB", "PTXT")
+  Returns Y = row, X = column after the last character: the next call can follow directly,
+    227  2  "DATE "  XEQ "PTXS"   "27-09"  XEQ "PTXS"
+
+NUMBER PRINTERS (same stack: Z = row, Y = column, X = number)
+  PTXS      PTXB      PTXT
+  PINS      PINB      PTNS    whole number (rounded, no sign), 1-3 digits
+  PF1S      PF1       PT1     one decimal (absolute value)
+  PHMS      PHM               hh:mm from hours; 99 or more prints --:--
+  PDMS      PDM               degrees and minutes "ddd mm.m", right-aligned in 3 digits,
+                              with a sign cell (- for negative)
+  PZNS      PZN               ddd.d (azimuth, 3 digits)
+  PDTS      PDAT              dd-mm-yyyy from a Julian Date
+  PHLS      PHL               horizontal line: Z = row, Y = column, X = length in pixels
+
+WIDTHS
+  PTXT  4 px per character (* and @ 6).        PTXB  6 px (symbols 12).
+  PTXS  digits and space 7 px, . and : 4 px, letters 8-11 px, symbols 12-15 px.
+
+REGISTERS AND MODES
+  R30-R36 are used. The programs switch WSIZE for the binary literals (8 for PTXT/PTXB,
+  14 for PTXS) and set WSIZE 64 again at the end. Nothing else is changed.
+
+SIZE (lines = program steps)
+  PTXT 915, PTXB 1,745, PTXS 2,244 with every character. A program that prints only a
+  few characters needs only those glyph labels: tools/build_navfull.py (trim_font) keeps
+  the glyphs a set of programs really uses (in NAVFULL: PTXS 2,201, PTXT 769).
+
+DEMOS
+  PTDEMO (PTXT) and PTBDEMO (PTXB) draw the whole character set.
+
+HOW THE GLYPHS ARE BUILT
+  PTXT, PTXB and the symbols: drawn for this project.
+  PTXS: tools/generators/mkstd.py reads the C47 standardFont bitmaps from the C43/C47
+  source (src/generated/rasterFontsData.c) and writes one label per character:
+    LBL 65                        (character code, "A")
+    RCL 31  RCL 30                (row, column)
+    111111111111#2  STO 32  R↓  AGRAPH 32      (one line per column, bit 0 = base line)
+    ...
+    2  +  STO 30  RTN             (advance to the next character)
+
+IN NAVFULL
+  The build for the navigation suite renames every label except NAV (PTXS becomes N..., see
+  build/NAVFULL_LABELS.txt). To use the fonts in your own programs, load programs/PTXS.txt,
+  PTXT.txt or PTXB.txt, which keep their names.
+
+INVERTED TEXT (white on black) - GRMOD XOR
+  AGRAPH draws in the graphics mode set with GRMOD (0 OR, 1 SET, 2 OFF, 3 XOR); GRMOD# recalls
+  it. The fonts use OR (0). For white text on a black box (e.g. a highlighted value):
+    0 STO 00 GRMOD 00      draw a solid box one or two pixels bigger than the text
+                           (PHLS lines, or AGRAPH columns of 1s)
+    3 STO 03 GRMOD 03      draw the text over it with the normal font call: XOR clears its pixels
+    0 STO 00 GRMOD 00      back to OR before anything else is drawn
+  The box needs a margin: a glyph that fills its own cell (the 'A' legs are its first and
+  last columns) inverted without a margin loses its outline (the "ant", extras/GMOD2.txt).
+  Tested on the C47 with extras/GMOD2.txt: box XOR A = inverted A, A XOR A = blank.
+  Big example of the missing margin: extras/BIGA.txt writes a big 'A', then inverts it (a bug).
+
+AGRAPH COLUMN HEIGHT
+  One AGRAPH draws one column of the bits of a short integer, bit 0 at the given row. The
+  literal must be positive in the current WSIZE, so a column can be up to 63 pixels (WSIZE 64);
+  BIGA uses 56 (WSIZE 63). PTXS uses 12 (WSIZE 14), PTXT/PTXB 5-7 (WSIZE 8).
+
+LICENCE
+  PTXT and PTXB: MIT (see LICENSE in this folder).
+  PTXS: GPL-3.0 - its glyph bitmaps come from the C43/C47 standardFont, part of the
+  C43/C47 project (GPL-3.0). See LICENSE-PTXS.txt. build/NAVFULL*.txt contain PTXS and
+  are therefore distributed under GPL-3.0 as a whole.

@@ -232,7 +232,7 @@ STXT  number -> text: SDM (deg min), SNS, SEW, SZN, SHM, SF1, SINT, SDAT.
   if the C47 font has astronomical symbols they can be put there instead.
 
 BELOW-HORIZON MARK (Hc < 0)
-  ALMF / HALMV: the Hc value is underlined (54 px line, PHL, LBL 64).
+  ALMF / HALMV: the Hc value is shown white on black (XOR box, GRMOD 3, LBL 64); it was underlined before.
   ALMT: the body line starts with "* " (LBL 92), e.g.  * SUN HC -55°39.9' ZN 311.0°
   Only the Sun can get it: Moon and planets are listed only when above the horizon.
   Cost: one X<0? test per row; the line itself (about 160 steps) only when Hc < 0.
@@ -301,7 +301,7 @@ FULL OR FAST SERIES (Sep 2026) - NAVINIT_FULL or NAVINIT_FAST (load one, XEQ "IN
 
 MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
   In NAVFULL and NAVFULL_NOTBL only NAV keeps its name: every other program label is
-  N01 ... N64 (list: build/NAVFULL_LABELS.txt). The same files with the original names
+  N01 ... N80 (list: build/NAVFULL_LABELS.txt). The same files with the original names
   are in build/dev/ (used by the tests); tests/test_labels.py checks that both work alike.
   NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
                3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
@@ -472,3 +472,15 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   Check against JPL (online, optional): link under the screen or menu Info opens a
   window with every C47 value beside JPL Horizons and the difference; --check prints it.
   Almanac tables: box "Almanac tables" (TBL.txt), --tables FILE, --series.
+
+SEPTEMBER 29, 2026 - NAV AS IT IS NOW
+  NAV asks DATE (YYYY.MMDD, read with x→ⅅ ⅅ→J: date format YYYY-MM-DD), UTC, LAT, LON once,
+  computes the sky (matrix ALMC; the charts' equator in ALMQ) and shows a graphic menu (KEY?):
+  1-9 a view, + back to the menu, up / down arrow one hour later / earlier, 0 end.
+  Views only draw from the cache; a new hour computes again. Faster drawing in the NAV files
+  (tools/navopt.py): font columns read from stack register D (8-level stack, set by NAV and
+  restored at the end), full-width lines with PIXEL, dates with J→ⅅℸ DAY MONTH YEAR, number
+  text with αIP / x→α. The Hc of a body below the horizon is white on black.
+  On the real C47 the screen is shown at a PAUSE or a key: NAV makes a PAUSE 1 after drawing.
+  Details: DEVELOPMENT_NOTES.md; every view and the N-label map: docs/C47_Nav_User_Manual.pdf.
+

@@ -6,18 +6,18 @@ INIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then d
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
 N03     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
-N04     HORZ    view 4 SKY: horizon chart, info line per body (any key: next body, + back to the menu)
+N04     HORZ    view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
 N05     ALMS    view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)
 N06     HALMH   view 6 SPLIT: horizon chart on top, short almanac below
 N07     BODY    view 7 BODY: list above the horizon, pick one body, its pages and chart
-N08     SDM     text for ALMT: degrees and minutes "ddd°mm.m'" as a string
-N09     SNS     text for ALMT: latitude with N / S
-N10     SEW     text for ALMT: longitude with E / W
-N11     SZN     text for ALMT: azimuth "ddd.d°"
-N12     SHM     text for ALMT: time "hh:mm" (--:-- when no event)
-N13     SF1     text for ALMT: number with one decimal
-N14     SINT    text for ALMT: whole number
-N15     SDAT    text for ALMT: date "dd-mm-yyyy" from a Julian Date
+N08     SDM     text: degrees and minutes "ddd°mm.m'" as a string
+N09     SNS     text: latitude with N / S
+N10     SEW     text: longitude with E / W
+N11     SZN     text: azimuth "ddd.d°"
+N12     SHM     text: time "hh:mm" (--:-- when no event)
+N13     SF1     text: number with one decimal
+N14     SINT    text: whole number
+N15     SDAT    text: date "dd-mm-yyyy" from a Julian Date
 N16     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N17     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
 N18     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
@@ -52,7 +52,7 @@ N46     PHAS    Moon phase: SUNA, then PHA2
 N47     PHA2    Moon phase after SUNA: illumination % and age in days
 N48     SBRT    star number by brightness rank (1st brightest ... 58th)
 N49     SNMU    star name from its number
-N50     CWID    pixel width of a character in the PROMPT font (to align ALMT)
+N50     CWID    pixel width of a character in the PROMPT font (to align the BODY pages)
 N51     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
 N52     PINS    FONT big: whole number
 N53     PF1S    FONT big: number with one decimal
@@ -66,19 +66,19 @@ N60     PTNS    FONT small: whole number
 N61     PT1     FONT small: number with one decimal
 N62     HANIM   view 8 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
 N63     ALLSKY  view 9 ALLSKY: whole sky, over the horizon above, under the horizon below
-N64     WPLS    waits for the + key (KEY?): every view holds its screen until +, then back to the menu
+N64     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N65     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 N66     CMOO    Moon from the cache
 N67     CPLN    planet from the cache
 N68     CSTR    star R82 from the cache
-N69     CSQK    
-N70     CHCZ    
+N69     CSQK    star from the cache: over the horizon test (computes the star the first time: SQK, STR2, HCZ)
+N70     CHCZ    Hc Zn from the cache for the body just read (else the real HCZ)
 N71     CPHA    Moon phase from the cache
 N72     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
 N73     CRIS    sunrise from the cache
 N74     CTRN    meridian passage from the cache
 N75     CSET    sunset from the cache
 N76     CNTP    nautical twilight pm from the cache
-N77     CALC    computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC
-N78     CEQQ    
-N79     CEQR    
+N77     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
+N78     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
+N79     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os, re, sys
-sys.path.insert(0,'/home/claude')
+sys.path.insert(0,'/home/claude/C47_nav/python')
 from navdata import SN
 SRC='/home/claude/C47_nav/programs'
 H={}   # headers
@@ -154,37 +154,40 @@ A['SNAM']=[('LBL "SNAM"',1,'jump to label = star number (alphabetical list)'),('
 common_screen=[('LBL 26',1,'push Z = JD 0h of the UT date, Y = lat, X = lon for SUNRISE'),('LBL 28',1,'text WANING'),('LBL 22',1,'text S'),('LBL 27',1,'text W')]
 H['HALMV']=["HALMV - chart left, almanac data right: Sun, Moon and planets above the horizon, then the brightest stars","IN : Z = JD (UT1), Y = lat (N+), X = lon (E+)",
  "  higher than 10 deg until the table has 10 rows","NEEDS: SUNA STAR CHZ SUNRISE PHAS MOON PLAN SBRT SNMU PTXB + matrices","REGS: R10 JD R11 lat R12 lon R13-R17 times R18-R19 Moon phase R21 Moon HP R22 Moon SD R29 Sun SD R37 R40-R48"]
-A['HALMV']=[('LBL "HALMV"',1,'store JD R10, lat R11, lon R12'),('XEQ 26',1,'sun times: NTWA R13 RISE R14 TRAN R15 SET R16 NTWP R17'),
- ('XEQ "PHA2"',1,'Moon: % R18, age R19 (PHA2 reuses this SUNA)'),('RCL 10\nSTO 90',1,'restore JD/lat/lon in R90-R92 for HCZ, clear screen'),
- ('0\n-201\nPIXEL',1,'vertical divider at x = 201 (one PIXEL, negative x)'),('14\n18\n179',1,'horizon line y = 14 (PHL)'),('14.214',1,'Hc axis x = 17'),('80\n15\nPIXEL',1,'ticks and labels 30 60 90'),
+A['HALMV']=[('LBL "HALMV"',1,'store JD R10, lat R11, lon R12'),('XEQ "PHA2"',1,'Moon: % R18, age R19 (PHA2 reuses this SUNA)'),('RCL 10\nSTO 90',1,'restore JD/lat/lon in R90-R92 for HCZ, clear screen'),
+ ('0\n-172\nPIXEL',1,'vertical divider at x = 172 (one PIXEL, negative x)'),('14\n18\n151',1,'horizon line y = 14 (PHLS)'),('14.214',1,'Hc axis x = 17, ticks and labels 30 60 90'),
  ('0\nSTO 44',1,'compass letters; north: N E S W N'),('LBL 23',1,'south latitude: S W N E S, offset R44 = 180'),
  ('LBL 24',1,'SUNA: GHA R45, Dec R46, Aries R48; SD R29'),('0\nSTO 47\nLBL 14',1,'dotted celestial equator every 3 deg'),
- ('230\n206\n"DR"',1,'right side: DR line'),('220\n206',1,'date and UT'),('210\n206',1,'Aries and Sun SD'),('200\n206',1,'Sun GHA and Dec'),
- ('188\n236',1,'table header'),('178\nSTO 40',1,'Sun row (R40 = row y)'),('1\nSTO 41',1,'rows in the table R41 (Sun = 1)'),('XEQ "MOO2"',1,'Moon: GHA R45, Dec R46, HP R21, SD R22; row if above the horizon (LBL 61)'),
- ('1.004',1,'planets 1-4 (PLN2); row if above the horizon (LBL 63)'),('LBL 17',1,'stars by brightness (SBRT), Hc > 10 deg, until 10 rows'),('LBL 18',1,'next star'),('LBL 19',1,'bottom block: separator line (PHL)'),
- ('76\n206',1,'sun times table'),('39\n204',1,'separator, Moon line'),('3\nSTO 37',1,'hold screen 3 x PAUSE 99'),
+ ('226\n176',1,'right side: date and UT'),('"N"\nSTO 43\nRCL 11',1,'DR line'),('198\n176',1,'GHA Aries'),
+ ('184\n210',1,'table header'),('170\nSTO 40',1,'Sun row (R40 = row y)'),('1\nSTO 41',1,'rows in the table R41 (Sun = 1)'),('XEQ "MOO2"',1,'Moon: GHA R45, Dec R46; row if above the horizon (LBL 61)'),
+ ('1.004',1,'planets 1-4 (PLN2); row if above the horizon (LBL 63)'),('LBL 17',1,'stars by brightness (SBRT), Hc > 10 deg, until 10 rows'),('LBL 18',1,'next star'),('LBL 19',1,'bottom block'),('XEQ "WPLS"',1,'hold the screen: + back to the menu, up / down arrow one hour'),
  ('LBL 15',1,'plot equator dot'),('LBL 16',1,'sun symbol on chart'),('LBL 52',1,'HCZ; column R98 = 18 + Zn*178/360, row R99 = 14 + Hc*200/90'),
- ('LBL 57',1,'star symbol + number on chart'),('LBL 21',1,'label near right edge: 22 px left'),('8\n230',1,'warning line (PTXT small font)'),('LBL 60',1,'table row: Hc (PDM), Zn (PZN); next row -10'),('LBL 61',1,'Moon: symbol on chart and table row'),('LBL 63',1,'planet: symbol on chart (LBL 71-74) and table row with name (LBL 82-85)'),('LBL 71',1,'planet symbols < > = ?'),('LBL 82',1,'planet names'),('LBL 64',1,'Hc < 0 (body below the horizon): 54 px underline under the Hc value (PHL)')]+common_screen
+ ('LBL 57',1,'star symbol + number on chart'),('LBL 21',1,'label near right edge: 22 px left'),('LBL 60',1,'table row: Hc (PDM), Zn (PZN); next row -10'),('LBL 61',1,'Moon: symbol on chart and table row'),('LBL 63',1,'planet: symbol on chart (LBL 71-74) and table row with name (LBL 82-85)'),('LBL 71',1,'planet symbols < > = ?'),('LBL 82',1,'planet names'),('LBL 64',1,'Hc < 0 (body below the horizon): the Hc value inverted, white on black (XOR box, GRMOD 3)')]+common_screen
 H['ALMF']=["ALMF - full-page almanac screen, same table rule as HALMV (10 rows): Sun, then Moon and planets above the horizon,",
  "  then the brightest stars higher than 10 deg; GHA Dec Hc Zn; bottom line: DOES NOT REPLACE THE NAUTICAL ALMANAC","IN : Z = JD (UT1), Y = lat (N+), X = lon (E+)","Moon HP and SD in the bottom block","NEEDS: as HALMV   REGS: as HALMV"]
 A['ALMF']=[('LBL "ALMF"',1,'store JD R10, lat R11, lon R12'),('XEQ 26',1,'sun times R13-R17'),('XEQ "PHA2"',1,'Moon R18 R19 (PHA2 reuses this SUNA)'),
  ('RCL 10\nSTO 90',1,'restore R90-R92, clear screen'),('RCL 10\nXEQ "SUNA"',1,'Sun GHA R45 Dec R46 Aries R48, SD R29'),
- ('229\n4',1,'top line: date, UT, DR, Aries'),('-219\n0\nPIXEL',1,'separator (one PIXEL, negative y = full line)'),('207\n34',1,'table header'),('194\nSTO 40',1,'Sun row'),
- ('1\nSTO 41',1,'rows in the table R41 (Sun = 1)'),('XEQ "MOO2"',1,'Moon: HP R21, SD R22; row if above the horizon (LBL 61)'),('1.004',1,'planet rows if above the horizon (PLN2, LBL 63)'),('LBL 17',1,'stars by brightness (SBRT), Hc > 10 deg, until 10 rows'),('-22\n0\nPIXEL',1,'separator and the warning line'),('LBL 18',1,'next star'),
- ('LBL 19',1,'separator (one PIXEL)'),('69\n4',1,'sun times, Moon, SD, notes'),('3\nSTO 37',1,'hold screen'),
- ('LBL 60',1,'table row: GHA, N/S + Dec, Hc, Zn; next row -11'),('LBL 16',1,'planet loop'),('LBL 61',1,'Moon row'),('LBL 63',1,'planet row: symbol (LBL 71-74), name (LBL 82-85)'),('LBL 71',1,'planet symbols < > = ?'),('LBL 82',1,'planet names'),('LBL 64',1,'Hc < 0 (body below the horizon): 54 px underline under the Hc value (PHL)')]+common_screen
+ ('226\n2',1,'top line: date, UT, DR'),('-221\n0\nPIXEL',1,'separator (one PIXEL, negative y = full line)'),('207\n36',1,'table header, GHA Aries row'),('179\nSTO 40',1,'Sun row'),
+ ('2\nSTO 41',1,'rows in the table R41'),('XEQ "MOO2"',1,'Moon: HP R21, SD R22; row if above the horizon (LBL 61)'),('1.004',1,'planet rows if above the horizon (PLN3, LBL 63)'),('LBL 17',1,'stars by brightness (SBRT), Hc > 10 deg, until 10 rows'),('LBL 18',1,'next star'),
+ ('LBL 19',1,'separator (one PIXEL)'),('-61\n0\nPIXEL',1,'separator'),('47\n2',1,'sun times, Moon, SD, notes, warning line'),('XEQ "WPLS"',1,'hold the screen: + back to the menu, up / down arrow one hour'),
+ ('LBL 60',1,'table row: GHA, N/S + Dec, Hc, Zn; next row -11'),('LBL 16',1,'planet loop'),('LBL 61',1,'Moon row'),('LBL 63',1,'planet row: symbol (LBL 71-74), name (LBL 82-85)'),('LBL 71',1,'planet symbols < > = ?'),('LBL 82',1,'planet names'),('LBL 64',1,'Hc < 0 (body below the horizon): the Hc value inverted, white on black (XOR box, GRMOD 3)')]+common_screen
 H['HALM']=["HALM - chart top half, table bottom half","IN : Z = JD, Y = lat, X = lon","NEEDS: SUNA STAR CHZ SNMU PTXB   REGS: R20-R28 R37 R40-R47 R90-R99"]
 A['HALM']=[('LBL "HALM"',1,'store inputs, clear screen'),('0.399',1,'separator y = 118'),('20.395',1,'horizon y = 130'),('130.226',1,'Hc axis'),
  ('162\n17',1,'ticks and labels'),('0\nSTO 44',1,'compass letters (north)'),('LBL 23',1,'south'),('LBL 24',1,'SUNA; equator dots'),
  ('RCL 46\nRCL 45\nXEQ 52',1,'Sun position; table header'),('0\nSTO 41',1,'star selection'),('LBL 17',1,'star loop'),('LBL 18',1,'next star'),
  ('LBL 19',1,'hold screen'),('LBL 15',1,'equator dot'),('LBL 16',1,'sun symbol'),('LBL 52',1,'HCZ + screen mapping (top half)'),
  ('LBL 57',1,'star + number'),('LBL 21',1,'label near edge'),('LBL 60',1,'table row GHA Dec Hc Zn'),('LBL 22',1,'text S')]
-H['NAV']=["NAV - start menu with prompts","1 = ALMF, 2 = HALMV, 3 = MATA + MATST + MATM + MATP, 4 = ALMT (text), 0 = end",
- "Asks DATE (YYYY.MMDD), UTC (HH.MMSS), LAT, LON (DD.MM, S/W negative)","REGS: R01-R08 R38 R39, variables DATE UTC LAT LON"]
-A['NAV']=[('LBL 01',1,'menu prompt; choice -> R38'),('LBL 10',1,'1: almanac page'),('LBL 11',1,'2: horizon + data'),('LBL 12',1,'3: build all matrices (MATA, MATST, MATM, MATP)'),
- ('LBL 13',1,'4: text almanac ALMT'),('LBL 20',1,'inputs; date -> Y R01 M R02 D R03'),('RCL "UTC"',1,'time HH.MMSS -> hours R04'),('RCL 02\n3',1,'Jan/Feb -> previous year'),
- ('RCL 01\n100\n÷\nIP\nSTO 05',1,'Gregorian B -> R05; JD -> R06'),('RCL "LAT"',1,'lat, lon to degrees R07 R08; stack Z JD Y lat X lon'),
- ('LBL 30',1,'DD.MM -> degrees'),('LBL 31',1,'M = M + 12, Y = Y - 1')]
+H['NAV']=["NAV - graphic menu (KEY?): asks DATE UTC LAT LON once, computes the sky (CACHE), then shows the menu",
+ "1-9 opens a view, 0 ends; up / down arrow one hour later / earlier; in a view + returns to the menu",
+ "REGS: R01-R08 R36-R39 R49 (+ the views), variables DATE UTC LAT LON DH VW SSZ, matrices ALMC ALMQ"]
+A['NAV']=[('LBL "NAV"',1,'stack size kept in SSZ, 8-level stack (the fonts read stack register D); cache matrices ALMC ALMQ'),
+ ('XEQ 20',1,'DATE UTC LAT LON once; LBL 28 computes the sky before the menu'),('LBL 01',1,'the menu (LBL 40); PAUSE 1 shows it'),
+ ('LBL 02',1,'wait for a key (KEY? 39): 0 end, arrows one hour, 1-9 a view, other keys ignored'),('LBL 03',1,'draw the view in VW'),
+ ('LBL 05',1,'after a view: + menu, up / down arrow the same view one hour later / earlier'),
+ ('LBL 48',1,'ants over the screen shown: the number after LBL 48 is how many (0 = none)'),('LBL 47',1,'one ant at a random place (XOR, GRMOD 3)'),
+ ('LBL 28',1,'the sky for the time and place in use: CSUN, CNTA, CSQK for every star'),('LBL 40',1,'menu screen: title, validity, date, UT, DR, items, hint, warning'),
+ ('LBL 41',1,'XOR box over the chosen menu item'),('LBL 20',1,'INPUT DATE UTC LAT LON'),
+ ('LBL 21',1,'JD from DATE (x→ⅅ ⅅ→J), UTC and the arrow hours DH; lat, lon in degrees'),('LBL 30',1,'DD.MM -> degrees')]
 for d in ('PTDEMO','PTBDEM','PTFULL'):
     H[d]=["%s - demo screen for the pixel font"%d]; A[d]=[('LBL 21',1,'hold screen 3 x PAUSE 99')]
 
@@ -272,7 +275,7 @@ H['HALMH']=["HALMH - horizon chart on top (full width, Zn 0-360 over 375 px, Hc 
 A['HALMH']=[('LBL 12',1,'Hc axis x = 18, dotted every 3 px'),('LBL 13',1,'celestial equator, a dot every 3 deg of GHA'),
  ('LBL 17',1,'first planet above the horizon: Venus, Jupiter, Mars, Saturn (LBL 91-94 give the planet number)'),
  ('LBL 30',1,'the 3 brightest stars higher than 10 deg (count R24)'),('LBL 52',1,'HCZ, then chart column R98 and row R99'),
- ('LBL 60',1,'table row: GHA, N/S + Dec, Hc (underlined when < 0), Zn; next row -11')]
+ ('LBL 60',1,'table row: GHA, N/S + Dec, Hc (inverted when < 0), Zn; next row -11')]
 
 H['BODY']=["BODY - one body at a time. IN: Z = JD (UT1), Y = lat (N+), X = lon (E+). Generated by genbody.py",
  "1 List of the bodies above the horizon (text pages, R/S = next page): 60 SUN, 61 MOON, 62 VENUS, 63 MARS,",
@@ -370,7 +373,7 @@ A['PLAN'] = [a for a in A['PLAN'] if a[0] != 'INDEX "EEL"'] + [
  ('LBL 48',1,'Earth from mean elements, kept for the page in PQX PQY PQZ (key PQK = T)'),
  ('LBL 50',1,'heliocentric x R31, y R33, z R30 of body X from mean elements (13 trig functions)')]
 
-for f in sorted(os.listdir(SRC)):
+for f in sorted(x for x in os.listdir(SRC) if not x.startswith(("COPYING", "LICENSE"))):
     if not f.endswith('.txt'): continue
     key,lines,notes,head=process(f)
     # annotated listing

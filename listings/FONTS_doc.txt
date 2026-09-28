@@ -1,0 +1,88 @@
+; ======================================================================
+; FONTS
+; ======================================================================
+0001  C47 TEXT DRAWING PROGRAMS - PTXT, PTXB, PTXS
+0002  ============================================
+0003  
+0004  Three fonts for the C47 graphics screen (400 x 240), one call style. Each glyph column is
+0005  drawn with one AGRAPH (a binary integer = the column's pixels), so text is fast: in the
+0006  almanac screens 2,376 AGRAPH calls replaced 7,280 PIXEL calls (6 min -> 30-35 s).
+0007  
+0008    program  font                                     characters
+0009    PTXT     small 3 x 5                              A-Z 0-9 space * + - . / : @
+0010    PTXB     5 x 7                                    A-Z 0-9 space % + - . / : and the
+0011                                                      symbols @ Sun ( Moon * star
+0012                                                      < Venus > Mars = Jupiter ? Saturn
+0013    PTXS     the C47 status-bar font (standardFont),  A-Z 0-9 space % - . / : and the same
+0014             bold, capitals 12 px, narrow spacing     symbols (scaled to 12 rows, bold)
+0015  
+0016  CALL (all three)
+0017    Z = row of the base line (0 = bottom of the screen), Y = column (0 = left), X = "TEXT"
+0018    XEQ "PTXS"  (or "PTXB", "PTXT")
+0019    Returns Y = row, X = column after the last character: the next call can follow directly,
+0020      227  2  "DATE "  XEQ "PTXS"   "27-09"  XEQ "PTXS"
+0021  
+0022  NUMBER PRINTERS (same stack: Z = row, Y = column, X = number)
+0023    PTXS      PTXB      PTXT
+0024    PINS      PINB      PTNS    whole number (rounded, no sign), 1-3 digits
+0025    PF1S      PF1       PT1     one decimal (absolute value)
+0026    PHMS      PHM               hh:mm from hours; 99 or more prints --:--
+0027    PDMS      PDM               degrees and minutes "ddd mm.m", right-aligned in 3 digits,
+0028                                with a sign cell (- for negative)
+0029    PZNS      PZN               ddd.d (azimuth, 3 digits)
+0030    PDTS      PDAT              dd-mm-yyyy from a Julian Date
+0031    PHLS      PHL               horizontal line: Z = row, Y = column, X = length in pixels
+0032  
+0033  WIDTHS
+0034    PTXT  4 px per character (* and @ 6).        PTXB  6 px (symbols 12).
+0035    PTXS  digits and space 7 px, . and : 4 px, letters 8-11 px, symbols 12-15 px.
+0036  
+0037  REGISTERS AND MODES
+0038    R30-R36 are used. The programs switch WSIZE for the binary literals (8 for PTXT/PTXB,
+0039    14 for PTXS) and set WSIZE 64 again at the end. Nothing else is changed.
+0040  
+0041  SIZE (lines = program steps)
+0042    PTXT 915, PTXB 1,745, PTXS 2,244 with every character. A program that prints only a
+0043    few characters needs only those glyph labels: tools/build_navfull.py (trim_font) keeps
+0044    the glyphs a set of programs really uses (in NAVFULL: PTXS 2,201, PTXT 769).
+0045  
+0046  DEMOS
+0047    PTDEMO (PTXT) and PTBDEMO (PTXB) draw the whole character set.
+0048  
+0049  HOW THE GLYPHS ARE BUILT
+0050    PTXT, PTXB and the symbols: drawn for this project.
+0051    PTXS: tools/generators/mkstd.py reads the C47 standardFont bitmaps from the C43/C47
+0052    source (src/generated/rasterFontsData.c) and writes one label per character:
+0053      LBL 65                        (character code, "A")
+0054      RCL 31  RCL 30                (row, column)
+0055      111111111111#2  STO 32  R↓  AGRAPH 32      (one line per column, bit 0 = base line)
+0056      ...
+0057      2  +  STO 30  RTN             (advance to the next character)
+0058  
+0059  IN NAVFULL
+0060    The build for the navigation suite renames every label except NAV (PTXS becomes N..., see
+0061    build/NAVFULL_LABELS.txt). To use the fonts in your own programs, load programs/PTXS.txt,
+0062    PTXT.txt or PTXB.txt, which keep their names.
+0063  
+0064  INVERTED TEXT (white on black) - GRMOD XOR
+0065    AGRAPH draws in the graphics mode set with GRMOD (0 OR, 1 SET, 2 OFF, 3 XOR); GRMOD# recalls
+0066    it. The fonts use OR (0). For white text on a black box (e.g. a highlighted value):
+0067      0 STO 00 GRMOD 00      draw a solid box one or two pixels bigger than the text
+0068                             (PHLS lines, or AGRAPH columns of 1s)
+0069      3 STO 03 GRMOD 03      draw the text over it with the normal font call: XOR clears its pixels
+0070      0 STO 00 GRMOD 00      back to OR before anything else is drawn
+0071    The box needs a margin: a glyph that fills its own cell (the 'A' legs are its first and
+0072    last columns) inverted without a margin loses its outline (the "ant", extras/GMOD2.txt).
+0073    Tested on the C47 with extras/GMOD2.txt: box XOR A = inverted A, A XOR A = blank.
+0074    Big example of the missing margin: extras/BIGA.txt writes a big 'A', then inverts it (a bug).
+0075  
+0076  AGRAPH COLUMN HEIGHT
+0077    One AGRAPH draws one column of the bits of a short integer, bit 0 at the given row. The
+0078    literal must be positive in the current WSIZE, so a column can be up to 63 pixels (WSIZE 64);
+0079    BIGA uses 56 (WSIZE 63). PTXS uses 12 (WSIZE 14), PTXT/PTXB 5-7 (WSIZE 8).
+0080  
+0081  LICENCE
+0082    PTXT and PTXB: MIT (see LICENSE in this folder).
+0083    PTXS: GPL-3.0 - its glyph bitmaps come from the C43/C47 standardFont, part of the
+0084    C43/C47 project (GPL-3.0). See LICENSE-PTXS.txt. build/NAVFULL*.txt contain PTXS and
+0085    are therefore distributed under GPL-3.0 as a whole.

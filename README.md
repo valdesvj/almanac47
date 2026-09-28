@@ -4,14 +4,16 @@ Celestial navigation for the SwissMicros C47 / R47 calculator (RPN), with a PC
 version and the base for a phone app (**Almanac 47**).
 
 - **Install and run:** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
-  INIT programs, XEQ "NAV").
+  INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
+  graphic menu of 9 views (keys 1-9, + back, arrows one hour).
 - **Text on the graphics screen:** `programs/FONTS.txt` - PTXT (3x5), PTXB (5x7) and
   PTXS (the C47 status-bar font), with number printers; usable on their own.
 - **Calculator programs:** `programs/` (start with `NAV`), commented versions in
   `programs_rem/` and `listings/`. See `README.txt` and `PROGRAM_MAP.txt`.
 - **PC, native Python:** `python/native/c47pc.py` (GTK window, PNG, text).
 - **PC, reference viewer:** `python/c47view.py` runs the real calculator programs.
-- **Manual:** `docs/C47_Nav_User_Manual.pdf`.
+- **Manual:** `docs/C47_Nav_User_Manual.pdf` (part 1: NAV and the views, the map of the
+  N01, N02 ... labels; part 2: each program with worked results).
 - **C47 command reference:** `docs/reference/C47_Full_index.txt` (C47 team, GFDL).
 - **Test:** `python3 tests/test_parity.py` (native Python = calculator, pixel for pixel).
 - **Notes for further work:** `DEVELOPMENT_NOTES.md`.

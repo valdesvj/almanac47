@@ -14,8 +14,8 @@ REM "horizon line y = 16 (PHL)"
 16
 20
 376
-XEQ "PHL"
-18.21603
+XEQ "PHLS"
+18.21203
 STO 86
 LBL 50
 REM "Hc axis x = 18, dotted every 3 px"
@@ -143,6 +143,19 @@ PIXEL
 13
 395
 PIXEL
+50
+15
+PIXEL
+50
+16
+PIXEL
+50
+17
+PIXEL
+48
+2
+10
+XEQ "PTNS"
 REM "Hc ticks and labels 30 60 90 (PTNS)"
 83
 15
@@ -153,33 +166,59 @@ PIXEL
 83
 17
 PIXEL
-150
-15
-PIXEL
-150
-16
-PIXEL
-150
-17
-PIXEL
-216
-15
-PIXEL
-216
-16
-PIXEL
-216
-17
-PIXEL
 81
+2
+20
+XEQ "PTNS"
+113
+15
+PIXEL
+113
+16
+PIXEL
+113
+17
+PIXEL
+111
 2
 30
 XEQ "PTNS"
-148
+154
+15
+PIXEL
+154
+16
+PIXEL
+154
+17
+PIXEL
+152
+2
+45
+XEQ "PTNS"
+185
+15
+PIXEL
+185
+16
+PIXEL
+185
+17
+PIXEL
+183
 2
 60
 XEQ "PTNS"
-214
+212
+15
+PIXEL
+212
+16
+PIXEL
+212
+17
+PIXEL
+210
 2
 90
 XEQ "PTNS"
@@ -344,6 +383,33 @@ LBL 65
 "X"
 STO 15
 RTN
+LBL 59
+"S"
+STO 43
+RTN
+LBL 60
+"W"
+STO 39
+RTN
+LBL 54
+ABS
+60
+×
+0.5
++
+IP
+STO 37
+60
+÷
+IP
+XEQ "PTNS"
+" "
+XEQ "PTXT"
+RCL 37
+60
+MOD
+XEQ "PTNS"
+RTN
 LBL 40
 REM "record object X = id with Zn R97, Hc R96 in HZT (count R10)"
 STO 13
@@ -366,13 +432,13 @@ LBL 47
 REM "draw Moon symbol, record"
 241
 RCL- 99
-3
+6
 -
 RCL 98
-3
+6
 -
 "("
-XEQ "PTXB"
+XEQ "PTXS"
 -1
 XEQ 40
 RTN
@@ -385,13 +451,13 @@ IP
 STO 14
 241
 RCL- 99
-3
+6
 -
 RCL 98
-3
+6
 -
 XEQ IND 14
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 11
 IP
 1
@@ -437,7 +503,25 @@ LBL 55
 REM "plot one pixel at row R99, column R98"
 241
 RCL- 99
+STO 36
 RCL 98
+PIXEL
+RCL 36
+RCL 98
+1
++
+PIXEL
+RCL 36
+1
++
+RCL 98
+PIXEL
+RCL 36
+1
++
+RCL 98
+1
++
 PIXEL
 RTN
 LBL 51
@@ -460,53 +544,55 @@ MOD
 IP
 STO 98
 225
-RCL 96
-200
+RCL "SHC"
+196
 ×
-90
-÷
 -
 IP
 STO 99
 RTN
 LBL 56
 REM "sun symbol centred on the point (PTXB @)"
-238
+241
 RCL- 99
+6
+-
 RCL 98
-5
+6
 -
 "@"
-XEQ "PTXB"
+XEQ "PTXS"
 RTN
 LBL 57
 REM "star centred on the point (PTXB *), number to the right (PTNS)"
 241
 RCL- 99
-3
+6
 -
 RCL 98
-3
+6
 -
 "*"
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 98
-5
+8
 +
 STO 36
-385
+380
 RCL 36
 X>Y?
 XEQ 39
-239
+241
 RCL- 99
+6
+-
 RCL 36
 RCL 82
-XEQ "PTNS"
+XEQ "PINS"
 RTN
 LBL 39
 REM "near the right edge: number 17 px to the left"
-17
+32
 STO- 36
 RTN
 END

@@ -10,22 +10,6 @@ R↓
 STO 11
 R↓
 STO 10
-REM "sun times: NTWA R13 RISE R14 TRAN R15 SET R16 NTWP R17"
-XEQ 26
-XEQ "NTWA"
-STO 13
-XEQ 26
-XEQ "RISE"
-STO 14
-XEQ 26
-XEQ "TRAN"
-STO 15
-XEQ 26
-XEQ "SET"
-STO 16
-XEQ 26
-XEQ "NTWP"
-STO 17
 REM "restore JD/lat/lon in R90-R92 for HCZ, clear screen"
 RCL 10
 STO 90
@@ -35,16 +19,16 @@ RCL 12
 STO 92
 XEQ "HCZI"
 CLLCD
-REM "vertical divider at x = 201 (one PIXEL, negative x)"
+REM "vertical divider at x = 172 (one PIXEL, negative x)"
 0
--201
+-172
 PIXEL
-REM "horizon line y = 14 (PHL)"
+REM "horizon line y = 14 (PHLS)"
 14
 18
-179
-XEQ "PHL"
-REM "Hc axis x = 17"
+151
+XEQ "PHLS"
+REM "Hc axis x = 17, ticks and labels 30 60 90"
 14.214
 STO 47
 LBL 12
@@ -54,89 +38,118 @@ IP
 PIXEL
 ISG 47
 GTO 12
-REM "ticks and labels 30 60 90"
+48
+15
+PIXEL
+48
+16
+PIXEL
+46
+2
+10
+XEQ "PTNS"
+82
+15
+PIXEL
+82
+16
+PIXEL
 80
+2
+20
+XEQ "PTNS"
+113
 15
 PIXEL
-80
+113
 16
 PIXEL
-147
-15
-PIXEL
-147
-16
-PIXEL
-214
-15
-PIXEL
-214
-16
-PIXEL
-77
+111
 2
 30
-XEQ "PINB"
-144
+XEQ "PTNS"
+155
+15
+PIXEL
+155
+16
+PIXEL
+153
+2
+45
+XEQ "PTNS"
+187
+15
+PIXEL
+187
+16
+PIXEL
+185
 2
 60
-XEQ "PINB"
-211
+XEQ "PTNS"
+214
+15
+PIXEL
+214
+16
+PIXEL
+212
 2
 90
-XEQ "PINB"
+XEQ "PTNS"
 REM "compass letters, north: N E S W N"
 0
 STO 44
 RCL 11
 X<0?
 GTO 23
-3
+5
 16
 "N"
-XEQ "PTXB"
-3
-60
+XEQ "PTXT"
+5
+53
 "E"
-XEQ "PTXB"
-3
-105
+XEQ "PTXT"
+5
+91
 REM "T = Moon and planets from the tables (flag 11), S = series: bottom right"
 "S"
-XEQ "PTXB"
-3
-149
+XEQ "PTXT"
+5
+128
 "W"
-XEQ "PTXB"
-3
-192
+XEQ "PTXT"
+5
+166
 "N"
-XEQ "PTXB"
+XEQ "PTXT"
 GTO 24
 LBL 23
 REM "south latitude: S W N E S, offset R44 = 180"
 180
 STO 44
-3
+5
 16
 "S"
-XEQ "PTXB"
-3
-60
+XEQ "PTXT"
+5
+53
 "W"
-XEQ "PTXB"
-3
-105
+XEQ "PTXT"
+5
+91
 "N"
-XEQ "PTXB"
-3
-149
+XEQ "PTXT"
+5
+128
 "E"
-XEQ "PTXB"
-3
-192
+XEQ "PTXT"
+5
+166
 "S"
-XEQ "PTXB"
+XEQ "PTXT"
 LBL 24
 REM "SUNA: GHA R45, Dec R46, Aries R48, SD R29"
 RCL 10
@@ -146,11 +159,6 @@ R↓
 STO 46
 R↓
 STO 48
-RCL 73
-15.99383
-X<>Y
-÷
-STO 29
 REM "Moon: % R18, age R19 (PHA2 reuses this SUNA)"
 XEQ "PHA2"
 STO 18
@@ -174,46 +182,13 @@ STO+ 47
 RCL 47
 X≤Y?
 GTO 14
-REM "right side: DR line"
-230
-206
-"DR"
-XEQ "PTXB"
-"N"
-STO 43
-RCL 11
-X<0?
-XEQ 22
-230
-224
-RCL 43
-XEQ "PTXB"
-230
-224
-RCL 11
-ABS
-XEQ "PDM"
-"E"
-STO 43
-RCL 12
-X<0?
-XEQ 27
-230
-284
-RCL 43
-XEQ "PTXB"
-230
-290
-RCL 12
-ABS
-XEQ "PDM"
-REM "date and UT"
-220
-206
+REM "right side: date and UT"
+226
+176
 RCL 10
-XEQ "PDAT"
-220
-272
+XEQ "PDTS"
+226
+254
 RCL 10
 0.5
 +
@@ -221,66 +196,64 @@ RCL 10
 MOD
 24
 ×
-XEQ "PHM"
-220
-308
+XEQ "PHMS"
+226
+290
 "UT"
-XEQ "PTXB"
-REM "Aries and Sun SD"
-210
-206
-"ARIES"
-XEQ "PTXB"
-210
-242
-RCL 48
-XEQ "PDM"
-210
-308
-"SUN SD"
-XEQ "PTXB"
-210
-350
-RCL 29
-XEQ "PF1"
-REM "Sun GHA and Dec"
-200
-206
-"SUN GHA"
-XEQ "PTXB"
-200
-254
-RCL 45
-XEQ "PDM"
+XEQ "PTXS"
+REM "DR line"
 "N"
 STO 43
-RCL 46
+RCL 11
 X<0?
 XEQ 22
-200
-314
+212
+176
 RCL 43
-XEQ "PTXB"
-200
-314
-RCL 46
-ABS
-XEQ "PDM"
-REM "table header"
-188
-236
-"BODY"
-XEQ "PTXB"
-188
-338
-"HC"
-XEQ "PTXB"
-188
-374
-"ZN"
-XEQ "PTXB"
-REM "Sun row (R40 = row y)"
+XEQ "PTXS"
+212
 178
+RCL 11
+ABS
+XEQ "PDMS"
+"E"
+STO 43
+RCL 12
+X<0?
+XEQ 27
+212
+246
+RCL 43
+XEQ "PTXS"
+212
+248
+RCL 12
+ABS
+XEQ "PDMS"
+REM "GHA Aries"
+198
+176
+"ARIES"
+XEQ "PTXS"
+198
+226
+RCL 48
+XEQ "PDMS"
+REM "table header"
+184
+210
+"BODY"
+XEQ "PTXS"
+184
+324
+"HC"
+XEQ "PTXS"
+184
+370
+"ZN"
+XEQ "PTXS"
+REM "Sun row (R40 = row y)"
+170
 STO 40
 RCL 46
 RCL 45
@@ -289,26 +262,22 @@ RCL 96
 X>0?
 XEQ 16
 RCL 40
-206
+176
 "@"
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 40
-236
+210
 "SUN"
-XEQ "PTXB"
+XEQ "PTXS"
 XEQ 60
 REM "rows in the table R41 (Sun = 1)"
 1
 STO 41
-REM "Moon: GHA R45, Dec R46, HP R21, SD R22, row if above the horizon (LBL 61)"
+REM "Moon: GHA R45, Dec R46, row if above the horizon (LBL 61)"
 XEQ "MOO2"
 STO 45
 R↓
 STO 46
-R↓
-STO 21
-R↓
-STO 22
 RCL 46
 RCL 45
 XEQ 52
@@ -362,20 +331,20 @@ X≤Y?
 GTO 18
 XEQ 57
 RCL 40
-206
+176
 "*"
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 40
-218
+192
 RCL 82
-XEQ "PINB"
+XEQ "PINS"
 RCL 82
 XEQ "SNMU"
 STO 43
 RCL 40
-236
+210
 RCL 43
-XEQ "PTXB"
+XEQ "PTXS"
 XEQ 60
 1
 STO+ 41
@@ -384,61 +353,7 @@ REM "next star"
 ISG 42
 GTO 17
 LBL 19
-REM "bottom block: separator line (PHL)"
-86
-204
-196
-XEQ "PHL"
-REM "sun times table"
-76
-206
-"SUN UT"
-XEQ "PTXB"
-76
-299
-"AM"
-XEQ "PTXB"
-76
-341
-"PM"
-XEQ "PTXB"
-66
-206
-"NAUT TWI"
-XEQ "PTXB"
-66
-290
-RCL 13
-XEQ "PHM"
-66
-332
-RCL 17
-XEQ "PHM"
-56
-206
-"RISE/SET"
-XEQ "PTXB"
-56
-290
-RCL 14
-XEQ "PHM"
-56
-332
-RCL 16
-XEQ "PHM"
-46
-206
-"MER PASS"
-XEQ "PTXB"
-46
-311
-RCL 15
-XEQ "PHM"
-REM "separator, Moon line"
-39
-204
-196
-XEQ "PHL"
+REM "bottom block"
 "WAXING"
 STO 43
 RCL 19
@@ -453,63 +368,32 @@ RCL 18
 0.5
 X>Y?
 XEQ 30
-29
-206
+24
+176
 "MOON "
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 18
-XEQ "PINB"
+XEQ "PINS"
 "% "
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 43
-XEQ "PTXB"
-" AGE "
-XEQ "PTXB"
-RCL 19
-XEQ "PF1"
-19
-206
-"MOON HP "
-XEQ "PTXB"
-RCL 21
-XEQ "PF1"
-" SD "
-XEQ "PTXB"
-RCL 22
-XEQ "PF1"
-REM "warning line (PTXT small font)"
-8
-230
-"DOES NOT REPLACE THE NAUTICAL ALMANAC"
-XEQ "PTXT"
+XEQ "PTXS"
 "S"
 STO 43
 FS? 11
 XEQ 29
 FS? 12
 XEQ 65
-8
-392
+226
+388
 RCL 43
+XEQ "PTXS"
+8
+214
+"DOES NOT REPLACE THE NAUTICAL ALMANAC"
 XEQ "PTXT"
-REM "hold screen 3 x PAUSE 99"
-3
-STO 37
-LBL 20
-PAUSE 99
-DSE 37
-GTO 20
-RTN
-LBL 26
-REM "push Z = JD 0h of the UT date, Y = lat, X = lon for SUNRISE"
-RCL 10
-0.5
--
-IP
-0.5
-+
-RCL 11
-RCL 12
+REM "hold the screen: + back to the menu, up / down arrow one hour"
+XEQ "WPLS"
 RTN
 LBL 29
 REM "letter T"
@@ -548,17 +432,34 @@ REM "plot equator dot"
 RCL 99
 RCL 98
 PIXEL
+RCL 99
+RCL 98
+1
++
+PIXEL
+RCL 99
+1
++
+RCL 98
+PIXEL
+RCL 99
+1
++
+RCL 98
+1
++
+PIXEL
 RTN
 LBL 16
 REM "sun symbol on chart"
 RCL 99
-3
+6
 -
 RCL 98
-5
+6
 -
 "@"
-XEQ "PTXB"
+XEQ "PTXS"
 RTN
 LBL 51
 XEQ "HCZR"
@@ -571,7 +472,7 @@ RCL 97
 RCL+ 44
 360
 MOD
-178
+150
 ×
 360
 ÷
@@ -579,11 +480,9 @@ MOD
 +
 IP
 STO 98
-RCL 96
+RCL "SHC"
 200
 ×
-90
-÷
 14
 +
 IP
@@ -592,31 +491,31 @@ RTN
 LBL 57
 REM "star symbol + number on chart"
 RCL 99
-3
+6
 -
-RCL 98
-3
--
-"*"
-XEQ "PTXB"
 RCL 98
 6
+-
+"*"
+XEQ "PTXS"
+RCL 98
+8
 +
 STO 43
-187
+152
 RCL 43
 X>Y?
 XEQ 21
 RCL 99
-3
+6
 -
 RCL 43
 RCL 82
-XEQ "PINB"
+XEQ "PINS"
 RTN
 LBL 21
 REM "label near right edge: 22 px left"
-22
+32
 STO- 43
 RTN
 LBL 60
@@ -624,44 +523,59 @@ REM "table row: Hc (PDM), Zn (PZN), next row -10"
 RCL 40
 296
 RCL 96
-XEQ "PDM"
+XEQ "PDMS"
 RCL 40
-356
+364
 RCL 97
-XEQ "PZN"
+XEQ "PZNS"
 RCL 96
 X<0?
 XEQ 64
-10
+14
 STO- 40
 RTN
 LBL 64
-REM "Hc < 0 (body below the horizon): 54 px underline under the Hc value (PHL)"
+REM "Hc < 0 (body below the horizon): the Hc value inverted, white on black (XOR box, GRMOD 3)"
+WSIZE 16
+3
+STO 32
+GRMOD 32
+11111111111111#2
+STO 32
 RCL 40
 1
 -
-296
-54
-XEQ "PHL"
+302
+55
+STO 33
+R↓
+LBL 66
+AGRAPH 32
+DSE 33
+GTO 66
+0
+STO 32
+GRMOD 32
+WSIZE 64
 RTN
 LBL 61
 REM "Moon: symbol on chart and table row"
 RCL 99
-3
+6
 -
 RCL 98
-3
+6
 -
 "("
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 40
-206
+176
 "("
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 40
-236
+210
 "MOON"
-XEQ "PTXB"
+XEQ "PTXS"
 XEQ 60
 1
 STO+ 41
@@ -674,26 +588,26 @@ IP
 +
 STO 43
 RCL 99
-3
+6
 -
 RCL 98
-3
+6
 -
 XEQ IND 43
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 40
-206
+176
 XEQ IND 43
-XEQ "PTXB"
+XEQ "PTXS"
 RCL 42
 IP
 81
 +
 STO 43
 RCL 40
-236
+210
 XEQ IND 43
-XEQ "PTXB"
+XEQ "PTXS"
 XEQ 60
 1
 STO+ 41

@@ -1,119 +1,655 @@
 LBL "NAV"
-REM "NAV - start menu with prompts"
-REM "1 = ALMF, 2 = HALMV, 3 = MATA + MATST + MATM + MATP, 4 = ALMT (text), 0 = end"
-REM "Asks DATE (YYYY.MMDD), UTC (HH.MMSS), LAT, LON (DD.MM, S/W negative)"
-REM "REGS: R01-R08 R38 R39, variables DATE UTC LAT LON"
+REM "NAV - graphic menu (KEY?): asks DATE UTC LAT LON once, computes the sky (CACHE), then shows the menu"
+REM "1-9 opens a view, 0 ends, up / down arrow one hour later / earlier, in a view + returns to the menu"
+REM "REGS: R01-R08 R36-R39 R49 (+ the views), variables DATE UTC LAT LON DH VW SSZ, matrices ALMC ALMQ"
+REM "stack size kept in SSZ, 8-level stack (the fonts read stack register D), cache matrices ALMC ALMQ"
+SSIZE#
+STO "SSZ"
+SSIZE8
+73
+ENTER
+4
+NEWMAT
+STO "ALMC"
+1
+STO "KR"
+300
+ENTER
+3
+NEWMAT
+STO "ALMQ"
+999
+STO "KQA3"
+STO "KQA2"
+0
+STO "DH"
+REM "DATE UTC LAT LON once, LBL 28 computes the sky before the menu"
+XEQ 20
+XEQ 28
 LBL 01
-REM "menu prompt, choice -> R38"
-"1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 6 SMALL 7 SPLIT 8 BODY 0 END"
-STO 39
-PROMPT 39
+REM "the menu (LBL 40), PAUSE 1 shows it"
+XEQ 40
+PAUSE 1
+LBL 02
+REM "wait for a key (KEY? 39): 0 end, arrows one hour, 1-9 a view, other keys ignored"
+KEY? 39
+GTO 02
+RCL 39
+82
+X=Y?
+GTO 09
+RCL 39
+51
+X=Y?
+GTO 22
+RCL 39
+61
+X=Y?
+GTO 23
+RCL 39
+10
+÷
+IP
 STO 38
-X=0?
-RTN
+5
+X>Y?
+GTO 26
+RCL 38
+7
+X<Y?
+GTO 26
+RCL 39
+10
+MOD
+STO 37
+2
+X>Y?
+GTO 26
+RCL 37
+4
+X<Y?
+GTO 26
+7
+RCL- 38
+3
+×
+RCL+ 37
+1
+-
+STO 38
 1
 RCL 38
 X=Y?
-GTO 10
+GTO 61
 2
 RCL 38
 X=Y?
-GTO 11
+GTO 62
 3
 RCL 38
 X=Y?
-GTO 12
+GTO 63
 4
 RCL 38
 X=Y?
-GTO 13
+GTO 64
 5
 RCL 38
 X=Y?
-GTO 14
+GTO 65
 6
 RCL 38
 X=Y?
-GTO 15
+GTO 66
 7
 RCL 38
 X=Y?
-GTO 16
+GTO 67
 8
 RCL 38
 X=Y?
+GTO 68
+9
+RCL 38
+X=Y?
+GTO 69
+LBL 26
+GTO 02
+LBL 03
+REM "draw the view in VW"
+0
+STO 39
+1
+RCL "VW"
+X=Y?
+GTO 10
+2
+RCL "VW"
+X=Y?
+GTO 11
+3
+RCL "VW"
+X=Y?
+GTO 12
+4
+RCL "VW"
+X=Y?
+GTO 13
+5
+RCL "VW"
+X=Y?
+GTO 14
+6
+RCL "VW"
+X=Y?
+GTO 15
+7
+RCL "VW"
+X=Y?
+GTO 16
+8
+RCL "VW"
+X=Y?
 GTO 17
+9
+RCL "VW"
+X=Y?
+GTO 18
+GTO 01
+LBL 09
+CLLCD
+LBL 08
+RCL "SSZ"
+4
+X=Y?
+SSIZE4
+RTN
+LBL 22
+1
+STO+ "DH"
+XEQ 48
+XEQ 28
+GTO 01
+LBL 23
+1
+STO- "DH"
+XEQ 48
+XEQ 28
 GTO 01
 LBL 10
-REM "1: almanac page"
-XEQ 20
+XEQ 21
 XEQ "ALMF"
-GTO 01
+GTO 05
 LBL 11
-REM "2: horizon + data"
-XEQ 20
+XEQ 21
 XEQ "HALMV"
-GTO 01
+GTO 05
 LBL 12
-REM "3: build all matrices (MATA, MATST, MATM, MATP)"
-XEQ "MATA"
-XEQ "MATST"
-XEQ "MATM"
-XEQ "MATP"
-"MATRICES READY - R/S"
-STO 39
-PROMPT 39
-GTO 01
+50.078
+STO 49
+LBL 24
+" "
+STO IND 49
+ISG 49
+GTO 24
+XEQ 21
+XEQ "ALMR"
+" "
+RCL 58
++
+RCL 59
+STO I
+RCL 60
+STO J
+RCL 61
+STO K
+RCL 62
+STO M
+RCL 63
+STO N
+RCL 64
+STO P
+RCL 65
+STO Q
+RCL 66
+STO R
+RCL 67
+STO S
+RCL 68
+STO E
+RCL 69
+STO F
+RCL 70
+STO G
+RCL 71
+STO H
+RCL 72
+STO O
+RCL 73
+STO U
+RCL 74
+STO V
+RCL 75
+STO W
+RCL 57
+RCL 56
+RCL 55
+RCL 54
+RCL 53
+RCL 52
+RCL 51
+RCL 50
+XEQ 08
+REGS
+RTN
 LBL 13
-REM "4: text almanac ALMT"
-XEQ 20
-XEQ "ALMT"
-GTO 01
-LBL 14
-XEQ 20
+XEQ 21
 XEQ "HORZ"
-GTO 01
-LBL 15
-XEQ 20
+GTO 05
+LBL 14
+XEQ 21
 XEQ "ALMS"
-GTO 01
-LBL 16
-XEQ 20
+GTO 05
+LBL 15
+XEQ 21
 XEQ "HALMH"
-GTO 01
-LBL 17
-XEQ 20
+GTO 05
+LBL 16
+XEQ 21
 XEQ "BODY"
+GTO 05
+LBL 17
+XEQ 21
+XEQ "HANIM"
+GTO 05
+LBL 18
+XEQ 21
+XEQ "ALLSKY"
+GTO 05
+LBL 61
+174
+STO 37
+12
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+1
+STO "VW"
+GTO 03
+LBL 62
+146
+STO 37
+12
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+2
+STO "VW"
+GTO 03
+LBL 63
+118
+STO 37
+12
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+3
+STO "VW"
+GTO 03
+LBL 64
+90
+STO 37
+12
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+4
+STO "VW"
+GTO 03
+LBL 65
+62
+STO 37
+12
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+5
+STO "VW"
+GTO 03
+LBL 66
+174
+STO 37
+202
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+6
+STO "VW"
+GTO 03
+LBL 67
+146
+STO 37
+202
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+7
+STO "VW"
+GTO 03
+LBL 68
+118
+STO 37
+202
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+8
+STO "VW"
+GTO 03
+LBL 69
+90
+STO 37
+202
+STO 36
+XEQ 41
+PAUSE 1
+XEQ 48
+9
+STO "VW"
+GTO 03
+LBL 05
+REM "after a view: + menu, up / down arrow the same view one hour later / earlier"
+RCL 39
+51
+X=Y?
+GTO 06
+RCL 39
+61
+X=Y?
+GTO 07
+XEQ 48
 GTO 01
+LBL 06
+1
+STO+ "DH"
+XEQ 48
+GTO 03
+LBL 07
+1
+STO- "DH"
+XEQ 48
+GTO 03
+LBL 48
+REM "ants over the screen shown: the number after LBL 48 is how many (0 = none)"
+0
+X=0?
+RTN
+STO 49
+LBL 46
+XEQ 47
+PAUSE 1
+DSE 49
+GTO 46
+RTN
+LBL 47
+REM "one ant at a random place (XOR, GRMOD 3)"
+XEQ 50
+RAN#
+390
+×
+IP
+STO 36
+RAN#
+180
+×
+IP
+20
++
+STO 37
+RCL 37
+RCL 36
+XEQ 42
+XEQ 51
+RTN
+LBL 42
+11000000000000#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+00111100111111#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+11000000000000#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+RTN
+LBL 50
+WSIZE 16
+3
+STO 32
+GRMOD 32
+RTN
+LBL 51
+0
+STO 32
+GRMOD 32
+WSIZE 64
+RTN
+LBL 28
+REM "the sky for the time and place in use: CSUN, CNTA, CSQK for every star"
+XEQ 21
+STO 92
+R↓
+STO 91
+R↓
+STO 90
+XEQ "HCZI"
+RCL 90
+XEQ "CSUN"
+RCL 90
+0.5
+-
+IP
+0.5
++
+RCL 91
+RCL 92
+XEQ "CNTA"
+1
+STO 82
+LBL 29
+RCL 82
+XEQ "CSQK"
+1
+STO+ 82
+58
+RCL 82
+X≤Y?
+GTO 29
+RTN
+LBL 40
+REM "menu screen: title, validity, date, UT, DR, items, hint, warning"
+XEQ 21
+CLLCD
+224
+2
+"ALMANAC 47"
+XEQ "PTXS"
+224
+230
+"VALID "
+XEQ "PTXS"
+RCL "VAL"
+XEQ "PTXS"
+206
+2
+RCL 06
+XEQ "PDTS"
+206
+80
+RCL 06
+0.5
++
+1
+MOD
+24
+×
+XEQ "PHMS"
+206
+116
+"UT"
+XEQ "PTXS"
+206
+150
+"DR"
+XEQ "PTXS"
+"N"
+STO 37
+RCL 07
+X<0?
+XEQ 44
+206
+174
+RCL 37
+XEQ "PTXS"
+206
+176
+RCL 07
+ABS
+XEQ "PDMS"
+"E"
+STO 37
+RCL 08
+X<0?
+XEQ 45
+206
+244
+RCL 37
+XEQ "PTXS"
+206
+246
+RCL 08
+ABS
+XEQ "PDMS"
+200
+0
+400
+XEQ "PHLS"
+176
+16
+"1 ALMANAC"
+XEQ "PTXS"
+148
+16
+"2 CHART"
+XEQ "PTXS"
+120
+16
+"3 TEXT"
+XEQ "PTXS"
+92
+16
+"4 SKY"
+XEQ "PTXS"
+64
+16
+"5 SMALL"
+XEQ "PTXS"
+176
+206
+"6 SPLIT"
+XEQ "PTXS"
+148
+206
+"7 BODY"
+XEQ "PTXS"
+120
+206
+"8 ANIM"
+XEQ "PTXS"
+92
+206
+"9 ALLSKY"
+XEQ "PTXS"
+64
+206
+"0 END"
+XEQ "PTXS"
+36
+2
+"KEY A NUMBER    + MENU    UP DOWN 1 HOUR"
+XEQ "PTXS"
+22
+0
+400
+XEQ "PHLS"
+5
+2
+"DOES NOT REPLACE THE NAUTICAL ALMANAC"
+XEQ "PTXS"
+RTN
+LBL 44
+"S"
+STO 37
+RTN
+LBL 45
+"W"
+STO 37
+RTN
+LBL 41
+REM "XOR box over the chosen menu item"
+WSIZE 18
+3
+STO 32
+GRMOD 32
+1111111111111111#2
+STO 32
+RCL 37
+RCL 36
+170
+STO 33
+R↓
+LBL 43
+AGRAPH 32
+DSE 33
+GTO 43
+0
+STO 32
+GRMOD 32
+WSIZE 64
+RTN
 LBL 20
-REM "inputs, date -> Y R01 M R02 D R03"
+REM "INPUT DATE UTC LAT LON"
 INPUT "DATE"
 INPUT "UTC"
 INPUT "LAT"
 INPUT "LON"
+RTN
+LBL 21
+REM "JD from DATE (x→ⅅ ⅅ→J), UTC and the arrow hours DH, lat, lon in degrees"
 RCL "DATE"
-10000
-×
+x→ⅅ
+ⅅ→J
 0.5
-+
-IP
-STO 03
-10000
-÷
-IP
-STO 01
-RCL 03
-100
-÷
-IP
-100
-MOD
-STO 02
-RCL 03
-100
-MOD
-STO 03
-REM "time HH.MMSS -> hours R04"
+-
+STO 06
 RCL "UTC"
 10000
 ×
@@ -140,48 +676,13 @@ RCL 04
 IP
 +
 STO 04
-REM "Jan/Feb -> previous year"
-RCL 02
-3
-X>Y?
-XEQ 31
-REM "Gregorian B -> R05, JD -> R06"
-RCL 01
-100
-÷
-IP
-STO 05
-2
-RCL- 05
-RCL 05
-4
-÷
-IP
-+
-STO 05
-RCL 01
-4716
-+
-365.25
-×
-IP
-RCL 02
-1
-+
-30.6001
-×
-IP
-+
-RCL+ 03
-RCL+ 05
-1524.5
--
-RCL 04
 24
 ÷
-+
-STO 06
-REM "lat, lon to degrees R07 R08, stack Z JD Y lat X lon"
+STO+ 06
+RCL "DH"
+24
+÷
+STO+ 06
 RCL "LAT"
 XEQ 30
 STO 07
@@ -203,12 +704,5 @@ FP
 60
 ÷
 +
-RTN
-LBL 31
-REM "M = M + 12, Y = Y - 1"
-1
-STO- 01
-12
-STO+ 02
 RTN
 END

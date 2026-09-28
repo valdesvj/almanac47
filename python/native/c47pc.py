@@ -33,14 +33,14 @@ sys.path.insert(0, HERE)
 import c47screen
 import c47tables
 
-VERSION = '1.2'
-VERSION_DATE = '2026-09-27'
+VERSION = '1.3'
+VERSION_DATE = '2026-09-29'
 PROGRAM = 'C47 Nav PC'
 ABOUT = ("This program began as a set of RPN programs for the SwissMicros C47 calculator: "
          "Sun, Moon, planets and the 57 navigational stars, sight reduction, and the almanac "
          "and horizon screens drawn pixel by pixel on its display.\n\n"
-         "On the calculator each screen takes about 35 seconds to draw. Here it takes a blink. "
-         "For the authentic experience, count to 35 before looking.\n\n"
+         "On the calculator the sky is computed once and each screen is drawn column by column. "
+         "Here it takes a blink. For the authentic experience, count to ten before looking.\n\n"
          "Same methods and coefficients as the calculator programs: VSOP87D (Sun, planets), "
          "Meeus 47 + corrections fitted to JPL DE421 (Moon), IAU2006 precession (stars), "
          "IAU1980 nutation. The screens are the same as on the calculator, checked pixel for pixel.\n\n"
@@ -64,7 +64,8 @@ VIEWS (same as on the C47)
          above the horizon, and the brightest stars above 10 deg (10 rows);
          twilight, sunrise/sunset, meridian passage, Sun SD, Moon phase, HP, SD
   HALMV  horizon chart on the left, Hc/Zn table and times on the right
-  HORZ   full-screen horizon chart; R/S steps through the objects (name, Zn, Hc)
+  HORZ   full-screen horizon chart; R/S steps through the objects (name, Zn, Hc);
+         on the C47 (4 SKY) the line changes by itself every 3 s
   HORZS  horizon chart only
   ALMT   text almanac, one page of two lines per R/S (as PROMPT on the C47)
   ALMS   short almanac;  HALMH  chart on top, short almanac below
@@ -76,7 +77,7 @@ VIEWS (same as on the C47)
          below; Sun, Moon, planets and all 58 stars; DAY / TWILIGHT / NIGHT.
 
 MARKS
-  Hc underlined (ALMF, HALMV) or line starting with "* " (ALMT):
+  Hc white on black (ALMF, HALMV, ALMS, HALMH) or line starting with "* " (ALMT):
   the body is below the horizon (only the Sun can be).
   Stars carry their Nautical Almanac number (1-57, 58 = Polaris).
 

@@ -1,8 +1,12 @@
-exec(open('manual_head.py').read())
+import os
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+DOCS = os.path.join(ROOT, 'docs')
+exec(open(os.path.join(HERE, 'manual_head.py')).read())
 import json
 from reportlab.platypus import Image as RLImage
-R = json.load(open('manual_results.json'))
-OUT = '/home/claude/C47_Nav_User_Manual.pdf'
+R = json.load(open(os.path.join(HERE, 'manual_results.json')))
+OUT = os.path.join(DOCS, 'C47_Nav_User_Manual.pdf')
 def dm(x, ns=False):
     s = ''
     if ns: s = 'S ' if x < 0 else 'N '; x = abs(x)
@@ -29,8 +33,9 @@ def section(title, purpose, how, io, example, notes=None):
     if notes: S.append(P('Notes', h3)); S.extend(B(notes))
 
 # ---- cover & overview
-S += [P('C47 celestial navigation programs', title),
-      P('User manual — how each program works, with worked results', sub), Spacer(1, 6),
+exec(open(os.path.join(HERE, 'manual_nav.py')).read())          # part 1: using NAV, the views, the program map
+S += [PageBreak(), P('Part 2 — the programs one by one', h1),
+      P('How each program works, with worked results', sub), Spacer(1, 6),
       P('These programs give the data needed for sight reduction (GHA, SHA, declination, Hc, Zn) and for planning '
         '(sunrise, sunset, twilight, Moon phase, sky picture). They support, and do not replace, the Nautical Almanac. '
         'All results are apparent geocentric positions, as in the almanac. The time argument is UT (UT1): for a sight timed in UTC, add DUT1 (under 0.9 s).'),
@@ -52,13 +57,13 @@ S += [P('C47 celestial navigation programs', title),
           ['SUNSD', 'Sun semi-diameter', 'X = JD', 'X = SD (′)', 'SUNA'],
           ['HALMV', 'sight-planning screen: chart + data', 'Z = JD, Y = lat, X = lon', 'screen', 'see HALMV section'],
           ['ALMF', 'full-page almanac screen', 'Z = JD, Y = lat, X = lon', 'screen', 'see ALMF section'],
-          ['PTXB / PTXT', 'pixel text (big / small font)', 'Z = y, Y = x, X = text', 'drawing', '—'],
+          ['PTXS / PTXT', 'pixel text (big / small font)', 'Z = y, Y = x, X = text', 'drawing', '—'],
       ], [20 * mm, 50 * mm, 36 * mm, 44 * mm, 30 * mm]),
       P('Conventions', h3)] + B([
       '<b>Julian Date (JD):</b> use the C47 date function (Date→J) and add UT/24. It must be a plain number: for example 23 Sep 2026 12:00 UT = <b>2461307</b>, and 0h UT that day = 2461306.5.',
       '<b>Signs:</b> latitude N +, S −; longitude E +, W −; declination negative = South.',
       '<b>Angles</b> come out in decimal degrees. Use →HMS or the d.mmm display to read degrees and minutes.',
-      '<b>Setup order:</b> load SUNA, MATA, STAR, MATST, CHZ, SUNRISE, PHAS, SNMU, PTXB (and PTXT), then the screens HALMV, ALMF, HALM, HORZ. XEQ MATA; XEQ MATST. MATA and MATST can then be deleted; never delete the matrices. Then save the whole state (I/O menu, SAVEST) so one LOADST restores everything.'])
+      '<b>Setup order:</b> the NAV files do it all: load NAVFULL (or NAVFULL_NOTBL) and NAVINIT_FULL (or NAVINIT_FAST), XEQ INIT once, delete INIT. The single programs of part 2 can still be loaded one by one (programs/ folder) for other uses.'])
 
 # ---- SUNA
 r = R['SUNA']
@@ -156,17 +161,17 @@ section('PHAS — Moon phase',
 
 # ---- HORZ
 section('HORZ — sky picture on the horizon',
-    'Draws a chart of the whole sky: azimuth Zn across (N–E–S–W–N, ticks every 30°), altitude Hc up (ticks and labels at 30°, 60°, 90°), the celestial equator dotted, and the same bodies as ALMF, HALMV and ALMT: the Sun (☉), the Moon and planets above the horizon, and the brightest navigation stars higher than 10° until 10 bodies (★ with its number). Then an info line for each body (name, ZN, HC), 3 s each, without end: after the last the first again; R/S or EXIT stops. The Sun below the horizon is not drawn; its info line shows HC with a minus sign.',
+    'Draws a chart of the whole sky: azimuth Zn across (N–E–S–W–N, ticks every 30°), altitude Hc up (ticks and labels at 30°, 60°, 90°), the celestial equator dotted, and the same bodies as ALMF, HALMV and ALMT: the Sun (☉), the Moon and planets above the horizon, and the brightest navigation stars higher than 10° until 10 bodies (★ with its number). Then an info line for each body (name, ZN, HC), 3 s each, without end: after the last the first again. UT is at the top right, the DR under it; + returns to the NAV menu, the arrows move one hour. The Sun below the horizon is not drawn; its info line shows HC with a minus sign.',
     ['Runs SUNA once, then STAR through entry STR2 for stars 1–58 (fast: no repeated SUNA). The celestial equator is drawn as dots every 2° of hour angle.',
      'For each object: LHA = GHA + λ; Hc = asin(sin φ sin δ + cos φ cos δ cos LHA); Zn from →POL of (−cos δ sin LHA, cos φ sin δ − sin φ cos δ cos LHA).',
      'Screen: column = 20 + Zn × 375/360; row = 225 − Hc × 200/90 (from the top; converted for the C47, which counts rows from the bottom). Only objects with Hc > 0 are drawn.',
-     'Text (N E S W, 30 60 90, star numbers, the info line) is drawn with PTXT, the small AGRAPH font (PTNS for integers, PT1 for one decimal); the star and sun symbols with PTXB (* and @). Lines and dots use PHL and PIXEL.'],
+     'Text (N E S W, 30 60 90, star numbers, the info line) is drawn with PTXT, the small AGRAPH font (PTNS for integers, PT1 for one decimal); the symbols with PTXS (* and @). Lines and dots use PHLS and PIXEL.'],
     [['Input', 'Z = JD (UT1), Y = latitude (N+), X = longitude (E+)'], ['Output', 'drawing on the 400×240 screen; R96 = Hc and R97 = Zn of the last object'],
-     ['Needs', 'SUNA, STAR (STR2), CHZ, PTXT, PTXB'], ['Registers', 'R90–R99, R36, R37, R42, R44, R86, R93']],
+     ['Needs', 'SUNA, STAR (STR2), CHZ, PTXT, PTXS'], ['Registers', 'R90–R99, R36, R37, R42, R44, R86, R93']],
     [P('23 Sep 2026, 30° N 0° E. Night 03:00 UT: key <b>2461306.625 ENTER 30 ENTER 0 XEQ HORZ</b>; day 09:00 UT: 2461306.875. Simulated screens:'),
-     RLImage('/home/claude/HORZ_axes_night.png', width=W * 0.85, height=W * 0.85 * 0.6),
+     RLImage(os.path.join(DOCS, 'HORZ_axes_night.png'), width=W * 0.85, height=W * 0.85 * 0.6),
      Spacer(1, 4),
-     RLImage('/home/claude/HORZ_axes_day.png', width=W * 0.85, height=W * 0.85 * 0.6)],
+     RLImage(os.path.join(DOCS, 'HORZ_axes_day.png'), width=W * 0.85, height=W * 0.85 * 0.6)],
     ['Hc and Zn agree with the reference within 0.0013′; Sun Hc/Zn match USNO (88.0833° / 264.215° vs 88.0834° / 264.214°).',
      'Stars are drawn even in daylight; they are only observable in twilight.'])
 
@@ -178,17 +183,16 @@ section('HALMV — sight-planning screen (chart + almanac data)',
      'Runs SUNA once (Sun GHA, Dec, GHA Aries; SD = 15.994′ / R from R73), then STAR through entry STR2 for stars 1–58.',
      'Moon (MOO2) and planets (PLN3) are computed without repeating SUNA. PLN3 first places each planet from its mean orbit (within 0.2°); if it is more than 1° below the horizon the full series is skipped, otherwise the series run once with the light time from that first distance (same result as PLAN within 0.0002′). Symbols: ☾ Moon, ♀ Venus, ♂ Mars, ♃ Jupiter, ♄ Saturn. Stars: in order of brightness (SBRT), only those higher than 10°, until the table has 10 rows.',
      'Hc and Zn: CHZ subroutine HCZ. Chart: column = 18 + Zn × 178/360, row = 14 + Hc × 200/90; the celestial equator is dotted every 3° of hour angle. South latitude: chart centred on N (S W N E S).',
-     'All text and numbers are drawn with PIXEL through PTXB (5×7 font): strings with the native C47 string commands, numbers with PINB, PDM (deg + min), PZN (bearing), PHM (hh:mm), PF1 and PDAT (date from JD). Star names from SNMU. The screen is held with PAUSE.'],
+     'All text and numbers are drawn with AGRAPH through PTXS (the C47 status-bar font, 12 px) and PTXT (small 3×5): strings, PINS, PDMS (deg + min), PZNS (bearing), PHMS (hh:mm), PF1S and PDTS (date from JD). Star names from SNMU. The screen is held by WPLS (+ back to the menu, arrows one hour).'],
     [['Input', 'Z = JD (UT1), Y = latitude (N+), X = longitude (E+)'],
      ['Screen', 'left: chart; right: DR, date + UT, Aries, Sun SD, Sun GHA/Dec, table BODY / HC / ZN, naut. twilight AM/PM, rise/set, mer pass (UT), Moon % + WAXING/WANING/FULL/NEW + age'],
-     ['Needs', 'SUNA, STAR, CHZ, SUNRISE, PHAS, MOON, PLAN, SBRT, SNMU, PTXB + all matrices (MATA, MATST, MATM, MATP)'],
-     ['Registers', 'R10–R29, R37, R40–R48 (+ those of the programs it calls)'],
-     ['Time', 'about 110 000 steps']],
+     ['Needs', 'SUNA, STAR, CHZ, SUNRISE, PHAS, MOON, PLAN, SBRT, SNMU, PTXS + all matrices (MATA, MATST, MATM, MATP)'],
+     ['Registers', 'R10–R29, R37, R40–R48 (+ those of the programs it calls)']],
     [P('23 Sep 2026, 23:30 UT, DR 10° 00′ N 075° 30′ W: key <b>2461307.4792 ENTER 10 ENTER −75.5 XEQ HALMV</b>. Simulated screen:'),
-     RLImage('/home/claude/HALMV_preview.png', width=W * 0.9, height=W * 0.9 * 0.6),
+     RLImage(os.path.join(DOCS, 'HALMV_preview.png'), width=W * 0.9, height=W * 0.9 * 0.6),
      Spacer(1, 4),
      P('Southern example, 33° 54′ S 018° 24′ E, 19:00 UT (chart centred on N):'),
-     RLImage('/home/claude/HALMV_south_preview.png', width=W * 0.9, height=W * 0.9 * 0.6)],
+     RLImage(os.path.join(DOCS, 'HALMV_south_preview.png'), width=W * 0.9, height=W * 0.9 * 0.6)],
     ['Sun times checked against the JPL-based reference for this position: naut. twilight 10:05:46 / 23:42:41, rise 10:51:08, set 22:57:20, mer pass 16:54:18 UT — the screen rounds to the minute as the almanac does.',
      'All times are UT for the UT date of the JD, at the DR entered; sea level, standard refraction (as the almanac). West of Greenwich an evening event after 24h UT shows as 00:xx (next UT day).',
      'Hc and Zn are computed from the DR: use them to identify stars and pre-set the sextant. Near the chart edges two star numbers may overlap; the table is always exact.',
@@ -200,17 +204,17 @@ section('ALMF — full-page almanac screen',
     ['Same calculations and table rule as HALMV.',
      'Top line: date, UT, DR and GHA Aries. Table: symbol, number, name, GHA, Dec, Hc, Zn. Bottom left: nautical twilight and rise/set in AM/PM columns and meridian passage; bottom right: Moon % with WAXING, WANING, FULL (shown 100 %) or NEW (0 %), age, Sun SD.'],
     [['Input', 'Z = JD (UT1), Y = latitude (N+), X = longitude (E+)'],
-     ['Needs', 'same programs as HALMV'], ['Registers', 'same as HALMV'], ['Time', 'about 100 000 steps']],
+     ['Needs', 'same programs as HALMV'], ['Registers', 'same as HALMV']],
     [P('Same instant and DR as the HALMV example: key <b>2461307.4792 ENTER 10 ENTER −75.5 XEQ ALMF</b>. Simulated screen:'),
-     RLImage('/home/claude/ALMF_preview.png', width=W * 0.9, height=W * 0.9 * 0.6)],
+     RLImage(os.path.join(DOCS, 'ALMF_preview.png'), width=W * 0.9, height=W * 0.9 * 0.6)],
     ['GHA and Dec are the almanac values for that instant (Sun ≤ 0.02′, stars ≤ 0.003′ against JPL); read them directly for sight reduction.',
      'HALM is a third layout of the same data: chart on the top half, table (GHA, Dec, Hc, Zn) on the bottom half.'])
 
 # ---- helpers
 S += [P('Supporting programs for the screens', h2), prose_tbl([
     ['Program', 'Use', 'Stack'],
-    ['PTXB', 'big 5×7 pixel font; * = star, @ = sun, also % ; entries PINB, PDM, PZN, PHM, PF1, PDAT', 'Z = y, Y = x, X = text or number → Y = y, X = next x'],
-    ['PTXT', 'small 3×5 pixel font, same characters and stack', 'as PTXB'],
+    ['PTXS', 'the C47 status-bar font (12 px); * = star, @ = sun, also % ; entries PINS, PDMS, PZNS, PHMS, PF1S, PDTS', 'Z = y, Y = x, X = text or number → Y = y, X = next x'],
+    ['PTXT', 'small 3×5 pixel font, same characters and stack', 'as PTXS'],
     ['SNMU', 'star name in capitals, returned in X (no display)', 'X = star no. → X = name'],
     ['SUNSD', 'Sun semi-diameter 15.994′ / R', 'X = JD → X = SD (′)'],
     ['CHZ / HCZ / DHA', 'Hc and Zn; inverse gives Dec, LHA, GHA', 'CHZ: T lat, Z lon, Y Dec, X GHA → X Hc, Y Zn']],
@@ -271,7 +275,7 @@ section('TBL and TGET — almanac tables, and the T / S switch',
      tbl([['Screen', 'Series', 'Tables', 'Saving']] + [[k, '{:,}'.format(v[0]), '{:,}'.format(v[1]), '%d %%' % round(100 - 100 * v[1] / v[0])] for k, v in t['steps'].items()],
          [30 * mm, 40 * mm, 40 * mm, 30 * mm], font=7.6),
      P('ALMF with the tables — note the T in the bottom right corner:'),
-     RLImage('/home/claude/ALMF_tables.png', width=W * 0.9, height=W * 0.9 * 0.6)],
+     RLImage(os.path.join(DOCS, 'ALMF_tables.png'), width=W * 0.9, height=W * 0.9 * 0.6)],
     ['Differences between tables and series are the series\' own error: at most about 0.005′ for the Sun, 0.02′ for the planets and 0.07′ for the Moon. On the screens this changes at most the last digit (0.1′).',
      'One TGET call takes about 265 steps (Moon 400) against 2 000–12 000 for the series; that is where the time saving comes from.',
      'The tables expire: load the next period in time (a quarter or a year per file, depending on memory). TBL for 26 Sep 2026 – 31 Jan 2027 holds 3 054 numbers, about the size of MATP.',
@@ -291,11 +295,11 @@ S += [P('Python and NumWorks version', h2),
         'Results are identical to the C47 programs (for example Sun 23 Sep 2026 12h: GHA 1° 54.4′, Dec S 0° 11.6′).')]
 S += [P('Register map', h2),
       prose_tbl([['Program', 'Registers'], ['SUNA', '50–55, 60–67, 70–81'], ['STAR', '56–59, 68–69, 82–89'], ['SUNRISE, HORZ', '90–99'],
-                 ['PHAS', '41–48'], ['SNAM', '49'], ['ALM', '01–09, 10–33, 40–41'], ['CHZ', '91–92, 94–97'], ['PTXB / PTXT', '30–36'],
+                 ['PHAS', '41–48'], ['SNAM', '49'], ['ALM', '01–09, 10–33, 40–41'], ['CHZ', '91–92, 94–97'], ['PTXS / PTXT', '30–36'],
                  ['HALMV, ALMF, HALM', '10–29, 37, 40–48 (work registers, results of SUNRISE/PHAS kept in 13–19)']], [40 * mm, 140 * mm]),
       P('C47 notes', h2)] + B([
     'The C47 does not treat →DEG and flag 77 like the HP-42S; the programs avoid both (verified on the C47 with SUNA).',
-    'Memory kept on the calculator: about 12 KB (programs + matrices) of about 246 KB free.',
+    'Memory: NAVFULL about 13 000 steps; the FULL matrices about 6 000 numbers (FAST about 3 400), plus the cache matrices ALMC (73 × 4) and ALMQ (300 × 3).',
     'Keep the printed Nautical Almanac as the primary reference; use the calculator as support and cross-check.'])
 doc.build(S)
 print('ok')
