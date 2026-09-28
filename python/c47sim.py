@@ -150,8 +150,9 @@ class Calc:
             if ln.startswith('├'): self.alpha+=ln[1:].strip('"'); continue
             if op == 'STOP': self.stops.append(self.msgs[-1] if self.msgs else ''); continue
             if op == 'AVIEW' and arg: self.msgs.append(self.rget(arg)); continue
-            if op == 'KEY?':
-                if not self.keys: raise RuntimeError('EXIT')
+            if op == 'KEY?':                                  # waiting for a key: this is a shown frame
+                self.frames=getattr(self,'frames',[]); self.frames.append(list(self.pix))
+                if not getattr(self,'keys',None) or len(self.frames) >= (getattr(self,'maxpauses',None) or 10**9): raise StopIteration
                 self.rset(arg, D(self.keys.pop(0))); pc += 1; continue
             if op == 'PROMPT':
                 self.msgs=getattr(self,'msgs',[]); self.msgs.append(self.rget(arg))

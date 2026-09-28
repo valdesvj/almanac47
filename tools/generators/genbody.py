@@ -111,7 +111,7 @@ a('LBL 27'); txt(19, 2, 'SD'); a(19, 40, 'RCL 17', 'XEQ "PF1S"'); txt(19, 184, '
 a('LBL 28'); txt(19, 2, 'HP'); a(19, 40, 'RCL 16', 'XEQ "PF1S"'); txt(19, 184, 'SD'); a(19, 230, 'RCL 17', 'XEQ "PF1S"')
 a('LBL 29')
 a(2, 126, '"DOES NOT REPLACE THE NAUTICAL ALMANAC"', 'XEQ "PTXT"')
-a('3', 'STO 37', 'LBL 09', 'PAUSE 99', 'DSE 37', 'GTO 09', 'GTO 04')
+a('XEQ "WPLS"', 'GTO 04')                                      # hold until +, then the list again
 # ---------------- subroutines: list
 a('LBL 11', '60', 'XEQ 36', 'XEQ 40', 'RTN')
 a('LBL 12', '61', 'XEQ 36', 'XEQ 40', 'RTN')

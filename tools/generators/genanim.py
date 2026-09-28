@@ -41,7 +41,7 @@ a(227, 300, 'RCL 43', 'XEQ "PTXS"')
 a('RCL 20', '6', '-', 'RCL 21', '6', '-', '"@"', 'XEQ "PTXS"', 'RCL 22', '6', '-', 'RCL 23', '6', '-', '"("', 'XEQ "PTXS"')
 a('PAUSE 10')                                                       # frame time: 10 = 1 s
 a('1', 'STO+ 13', 'RCL 14', 'RCL 13', 'X<Y?', 'GTO 01')
-a('PAUSE 99', 'RTN')                                                # hold the last frame
+a('XEQ "WPLS"', 'RTN')                                            # hold the last frame until +
 # ---------------- subroutines
 a('LBL 44', '180', 'STO 44', 'RTN')
 a('LBL 02', '"TWILIGHT"', 'STO 43', 'RTN', 'LBL 03', '"DAY"', 'STO 43', 'RTN')

@@ -214,3 +214,13 @@ INIT with the builders as LBL 01-04.
   R32 (PTXS scratch) holds the mode for GRMOD, R33 the column counter.
 - c47sim.py: GRMOD and AGRAPH in XOR mode; c47screen.py: Screen.xor_box. Parity tests pass.
 - Previews: docs/ALMF_sun_below.png, docs/HALMV_sun_below.png. Not yet tested on the calculator.
+
+## Graphic menu with KEY? (Sep 2026)
+- NAV (tools/generators/gennav.py): the menu is drawn with PTXS, KEY? 39 waits for a key; digit =
+  (7 - row) x 3 + column - 1 for keycodes 52-54 / 62-64 / 72-74, 0 = 82 ends; the item is inverted
+  (GRMOD 3) for 0.3 s, then DATE UTC LAT LON (INPUT) and the view. The PROMPT menu is gone.
+- WPLS: waits for + (keycode 85). ALMF ALMS HALMV HALMH ALLSKY HANIM BODY hold with WPLS instead
+  of 3 x PAUSE 99; HORZ: any key = next body, + = back. ALMT (TEXT) still uses PROMPT pages.
+- PTXS has '+' now (mkstd.py). Bottom of the menu in PTXS: the key hint and the warning.
+- c47sim: KEY? records a frame; no key left ends the run (StopIteration). Engine feeds HORZ keys.
+- Keycodes assumed (soft keys = row 1); check on the calculator (extras/MENUG shows unknown codes).

@@ -34,7 +34,7 @@ VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
              'ALMT': 'text almanac, one line per R/S'}
 FILES = ['MATA', 'MATST', 'MATM', 'MATP', 'SUNA', 'STAR', 'CHZ', 'SNMU', 'SBRT', 'MOON',
          'PLAN', 'PTXB', 'PTXS', 'PTXT', 'SUNRISE', 'PHAS', 'STXT',
-         'ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'TGET', 'CWID', 'ALMS', 'HALMH', 'BODY', 'HANIM', 'ALLSKY', 'MATF']
+         'ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'TGET', 'CWID', 'ALMS', 'HALMH', 'BODY', 'HANIM', 'ALLSKY', 'MATF', 'WPLS']
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)
@@ -114,6 +114,7 @@ class Engine:
         A frame is a set of lit pixels (x, row) with row 0 at the top."""
         self._start(j, lat, lon)
         self.c.maxpauses = 11 if view == 'HORZ' else None    # HORZ repeats its info frames forever
+        self.c.keys = [11] * 20 if view == 'HORZ' else []     # HORZ: any key (not +) shows the next body
         try:
             self.c.run(view, maxsteps=10 ** 7)
         except StopIteration:

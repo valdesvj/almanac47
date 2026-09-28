@@ -50,7 +50,7 @@ a('XEQ "MOO2"', 'XEQ "HCZ"', 'XEQ 48', '62', 'STO 43', 'XEQ 16')
 a('RCL 46', 'RCL 45', 'XEQ "HCZ"', 'STO 27', 'XEQ 48', '61', 'STO 43', 'XEQ 16')
 # DAY (Sun above the horizon), TWILIGHT (above -12 deg), NIGHT
 a('"NIGHT"', 'STO 43', '-12', 'RCL 27', 'X>Y?', 'XEQ 22', 'RCL 27', 'X>0?', 'XEQ 23', 227, 300, 'RCL 43', 'XEQ "PTXS"')
-a('3', 'STO 37', 'LBL 24', 'PAUSE 99', 'DSE 37', 'GTO 24', 'RTN')
+a('XEQ "WPLS"', 'RTN')                                         # hold until + (back to the menu)
 # ---------------- subroutines
 a('LBL 44', '180', 'STO 44', 'RTN')
 a('LBL 22', '"TWILIGHT"', 'STO 43', 'RTN', 'LBL 23', '"DAY"', 'STO 43', 'RTN')

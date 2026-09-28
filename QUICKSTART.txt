@@ -29,14 +29,16 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
 4. RUN
    Only NAV has a name; the other programs show as N01, N02 ... (build/NAVFULL_LABELS.txt
    says which is which). Start everything from NAV:
-   XEQ "NAV"  -> menu:
+   XEQ "NAV"  -> the menu on the graphics screen:
      1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 BODY  8 ANIM  9 ALLSKY  0 END
-   Key the number, R/S. NAV asks:
+   Press the number key (no R/S): the item is highlighted and NAV asks:
      DATE  YYYY.MMDD      e.g. 2026.0927
      UTC   HH.MMSS        e.g. 18.30
      LAT   DD.MMmm        e.g. 25.12   (25 deg 12 min N; minus = S)
      LON   DDD.MMmm       e.g. 55.18   (55 deg 18 min E; minus = W)
-   Screens stay for about 30 s (PAUSE); R/S or EXIT to go on.
+   (R/S keeps the value shown.) Each screen stays until you press + : back to the menu.
+   4 SKY: any other key shows the next body. 3 TEXT: R/S for the next lines, EXIT ends
+   (XEQ "NAV" again). 0 on the menu ends NAV.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
                 meridian passage, Moon
      2 CHART    horizon chart left, the bodies' HC ZN right

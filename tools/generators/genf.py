@@ -70,7 +70,7 @@ a(y3, 196, '"HP "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PF1S"', '" SD "', 'XEQ "PTXS"'
 # T tables / S series / X outside the FAST period (flag 11 is set by MOO2: draw last)
 a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
 a(1, 126, '"DOES NOT REPLACE THE NAUTICAL ALMANAC"', 'XEQ "PTXT"')
-a('3', 'STO 37', 'LBL 20', 'PAUSE 99', 'DSE 37', 'GTO 20', 'RTN')
+a('XEQ "WPLS"', 'RTN')                                         # hold until + (back to the menu)
 a('LBL 26', 'RCL 10', '0.5', '-', 'IP', '0.5', '+', 'RCL 11', 'RCL 12', 'RTN')
 a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
 a('LBL 23', '"FULL"', 'STO 43', 'RTN', 'LBL 24', '"NEW"', 'STO 43', 'RTN')

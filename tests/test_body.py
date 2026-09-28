@@ -30,7 +30,7 @@ def main():
         codes, pages = S.body_list(al)
         code = random.choice([60, 61, 62, 63, 64, 65, random.randint(1, 58)])
         E._start(j, la, lo); c.answers = [None] * len(pages) + [code, None, None]
-        c.maxprompts = len(c.answers) + 1; c.frames = []
+        c.maxprompts = len(c.answers) + 1; c.frames = []; c.keys = [85]      # + after the chart: back to the list
         try:
             c.run('BODY', maxsteps=10 ** 8)
         except StopIteration:

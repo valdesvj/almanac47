@@ -149,7 +149,7 @@ extras/  DM42/Free42 graphics tests (AGDEMO_DM42, AGTEST_DM42 - do NOT use the
          C47 converter on these) and AGTEST_C47 (PIXEL test).
 
 NAV   start program with prompts (does not change any other program)
-      XEQ "NAV" -> "1 ALMANAC 2 HORIZON 3 INIT 4 TEXT 5 SKY 0 END": key the number, R/S.
+      XEQ "NAV" -> graphic menu (1 ALMANAC ... 9 ALLSKY, 0 END): press the number key; + goes back to the menu.
       1 = ALMF page, 2 = HALMV chart + data, 3 = build the matrices (first time),
       4 = ALMT text almanac, 5 = HORZ sky chart with the info line (endless, R/S stops),
       6 = ALMS short almanac, 7 = HALMH chart on top + short table, 8 = BODY one body.

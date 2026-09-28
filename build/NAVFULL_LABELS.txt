@@ -6,11 +6,11 @@ AGRAPH, one call per glyph column): Z = row of the base line (0 = bottom), Y = c
 X = text or number; returns Y = row, X = next column. PTXS is the C47 status-bar font
 (bold capitals 12 px, glyphs from the firmware, GPL-3.0), PTXT a small 3x5 font.
 
-NAV     NAV     menu: asks DATE UTC LAT LON and runs the view chosen (the only named program)
+NAV     NAV     graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the view; 0 ends (the only named program)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
 N03     ALMT    view 3 TEXT: the almanac as PROMPT text, two lines per R/S
-N04     HORZ    view 4 SKY: horizon chart, info line per body (endless, EXIT to stop)
+N04     HORZ    view 4 SKY: horizon chart, info line per body (any key: next body, + back to the menu)
 N05     ALMS    view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)
 N06     HALMH   view 6 SPLIT: horizon chart on top, short almanac below
 N07     BODY    view 7 BODY: list above the horizon, pick one body, its pages and chart
@@ -71,5 +71,6 @@ N61     PTNS    FONT small: whole number
 N62     PT1     FONT small: number with one decimal
 N63     HANIM   view 8 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
 N64     ALLSKY  view 9 ALLSKY: whole sky, over the horizon above, under the horizon below
+N65     WPLS    waits for the + key (KEY?): every view holds its screen until +, then back to the menu
 
 NAVFULL_NOTBL has no TGET; its labels are the same (N50 is simply missing there).
