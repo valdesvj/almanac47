@@ -26,6 +26,7 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
+ANTS = 6                               # ants shown after an arrow, 0.1 s apart
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -88,11 +89,20 @@ def program(inp, items=ALL, autoinit=False):
         y, x = place(d, items)
         a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 3', d, 'STO "VW"', 'GTO 03')
     # after a view: up arrow one hour later, down arrow one hour earlier, + the menu
-    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
-      'LBL 06', 1, 'STO+ "DH"', '"COMPUTING +1 HOUR"', 'GTO 08', 'LBL 07', 1, 'STO- "DH"', '"COMPUTING -1 HOUR"',
-      # a message screen (AVIEW) instead of the stack while the key is released, then the view
-      # is drawn again (its release would otherwise bring the stack back over the new drawing)
-      'LBL 08', 'STO 49', 'AVIEW 49', 'PAUSE 3', 'GTO 03')
+    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'XEQ 48', 'GTO 01',
+      'LBL 06', 1, 'STO+ "DH"', 'GTO 08', 'LBL 07', 1, 'STO- "DH"',
+      # while the key is released (its release would bring the stack back over a new drawing):
+      # a clear screen with ants appearing at random places, then the view is drawn again
+      'LBL 08', 'XEQ 48', 'GTO 03',
+      # LBL 48 (after + or an arrow): clear screen, ants appear 0.1 s apart while the key is released
+      'LBL 48', 'CLLCD', ANTS, 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
+      # LBL 47: one ant (10 x 14 pixels) at a random place, drawn column by column
+      'LBL 47', 'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37',
+      'WSIZE 16', 'RCL 37', 'RCL 36',
+      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32',                    # feelers
+      '00111100111111#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',        # head and body
+      'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',
+      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'WSIZE 64', 'RTN')   # feelers
     # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
     # date, time and DR position in use (the arrows change the time: shown here too)
     a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',

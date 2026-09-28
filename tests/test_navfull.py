@@ -49,14 +49,15 @@ c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[1],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12'); c.pix=[]
 c.run('NAV',maxsteps=10**7)
-print('NAV menu: 1, +, 0 -> frames', len(c.frames), '(menu, item inverted, ALMF, menu), ended', c.pix==[])
+print('NAV menu: 1, +, 0 -> frames', len(c.frames), '(menu, item inverted, ALMF, 6 ants, menu), ended', c.pix==[])
 # arrows: 1 (ALMF), up (one hour later), down twice (one hour earlier), +, 0
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[1],51,61,61,85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.run('NAV',maxsteps=10**8)
 ref=Engine('programs'); ok=[]
-for f,dh in zip(c.frames[2::2][:4],(0,1,0,-1)):          # menu, highlight, view, (PAUSE after an arrow), view ...
+views=c.frames[2::7][:4]            # menu, highlight, ALMF, 6 ant frames (PAUSE 1), ALMF ...
+for f,dh in zip(views,(0,1,0,-1)):
     b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60+dh),25+20/60,55+12/60)
     ok.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
 print('NAV arrows: ALMF at +0 +1 0 -1 h:', ok)

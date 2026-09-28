@@ -257,3 +257,6 @@ INIT with the builders as LBL 01-04.
   drawing again (LBL 08), so the release happens before the new drawing.
 - Arrow: "COMPUTING +1 HOUR" / "-1 HOUR" shown with AVIEW 49 before PAUSE 3, so the key release
   shows that message instead of the bare stack; the view then clears and draws again.
+- AVIEW message replaced by ants: after + or an arrow NAV clears the screen and draws 6 ants
+  (10 x 14, random places, RAN#) 0.1 s apart (LBL 48/47) while the key is released, then the
+  view or the menu. c47sim: RAN#.
