@@ -338,7 +338,7 @@ INIT with the builders as LBL 01-04.
   (LBL 08). c47sim (4 levels) reads AGRAPH D from T, the same value after R↓.
   ALMF from the cache 22,200 -> 20,000 steps.
 - Ants off by default (easter egg): ANTS = 0 in gennav.py, the step after LBL 48 in NAV
-  (line 382 NAVFULL / NAVFULL_NOTBL, 389 NAVALL, 220 NAVCOMP). LBL 48 returns at once for 0
+  (line 385 NAVFULL / NAVFULL_NOTBL, 392 NAVALL, 223 NAVCOMP). LBL 48 returns at once for 0
   (X=0? RTN); any other number = that many ants, 0.1 s each, after a number, + or an arrow.
   The menu highlight gets its own PAUSE 1 so it shows while the view computes.
 - Docs (Sep 29): manual rebuilt (tools/generators/build_manual.py + manual_nav.py -> docs/):
