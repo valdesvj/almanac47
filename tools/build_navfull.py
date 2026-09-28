@@ -399,11 +399,21 @@ def build():
             fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
         extra[name] = (L, sorted(need) if 'COMP' in name else None)
     # ---- text only (no drawing): NAV asks the position, ALMR writes the page into R50 ... ;
-    #      X = "LINES R50-Rnn". NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
+    #      then lines 1-26 also go to the stack and the lettered registers (REGS shows them in
+    #      order from X). NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
     ntt = dict(nt)
     ntt['ALMR'] = almr(nt['ALMT'])
     navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', 'XEQ "INIT"', 'DELP "INIT"', 'SF 81', 'LBL 04',
-              '0', 'STO "DH"', 'XEQ 20', 'XEQ 21', 'XEQ "ALMR"', 'RCL 79', '1', '-', 'XEQ "SINT"', 'STO 49', '"LINES R50-R"', 'RCL 49', '+', 'RTN'] + inp + ['END']
+              '0', 'STO "DH"', 'XEQ 20',
+              '50.078', 'STO 49', 'LBL 05', '""', 'STO IND 49', 'ISG 49', 'GTO 05',          # R50-R78 empty
+              'XEQ 21', 'XEQ "ALMR"']
+    # the lines also in the lettered registers, in the order of the register browser (REGS):
+    # X Y Z T A B C D (stack) L (LASTx) I J K M N P Q R S E F G H O U V W
+    navtxt += ['""', 'RCL 58', '+']                                    # line 9 -> LASTx (L)
+    for k, r in enumerate('IJKMNPQRSEFGHOUVW'):
+        navtxt += ['RCL %d' % (59 + k), 'STO %s' % r]                   # lines 10-26
+    navtxt += ['RCL %d' % r for r in range(57, 49, -1)]                 # lines 8 ... 1: X = line 1
+    navtxt += ['RTN'] + inp + ['END']
     needt = closure(ntt, ['ALMR'])
     order = [n if n != 'ALMT' else 'ALMR' for n in KEEP]
     txt = navtxt + [l for n in order if n in needt for l in ntt[n]]

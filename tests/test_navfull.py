@@ -158,5 +158,7 @@ for pg in pages:
         ok &= lines[i]==pg; i+=1; continue
     l1,l2=lines[i],lines[i+1]; i+=2
     ok &= pg.startswith(l1) and pg.endswith(l2) and pg[len(l1):len(pg)-len(l2)].strip()==''
-print('NAVTXT: X =', c.s[0], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| pixels drawn', len(c.pix))
+order=[str(c.s[k]) for k in range(4)]+[str(c.rget(r)) for r in 'IJKMNPQRSEFGHOUVW']
+lett = order[:4]==lines[:4] and order[4:]==lines[9:26]
+print('NAVTXT: X =', c.s[0][:30], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| stack + lettered in REGS order:', lett, '| pixels', len(c.pix))
 for l in lines[:4]: print('   ', l)

@@ -18,8 +18,10 @@ ONE-FILE INSTALL (NAV and INIT together, FAST matrices 2026-2030, no almanac tab
   rejig build/NAVCOMP_FAST.txt -o NAVCOMP_FAST.p47, load it, XEQ "NAV".
   NAVTXT_FAST   text only, no drawing        10,582 lines to load,  4,051 stay after INIT
                 NAV asks DATE UTC LAT LON and writes the almanac page into registers
-                R50 ... R76 (one line each); X = "LINES R50-R76". Read them in the
-                register browser (or RCL 50, RCL 51 ...). XEQ "NAV" again for another time.
+                R50 ... R76 (one line each), and lines 1-26 also in the stack and the lettered
+                registers in the order REGS shows them: X Y Z T A B C D, L, I J K M N P Q R S
+                E F G H O U V W. Open REGS and scroll (keys 5 0 jump to R50: all the lines).
+                (A-D need the 8-level stack.) XEQ "NAV" again for another time.
   The first NAV builds the matrices (INIT, takes a while), deletes INIT (DELP "INIT") and
   sets flag 81; later runs go straight to the menu. To load the file again (new period):
   CF 81 first, so the new INIT is run and deleted too.
