@@ -66,3 +66,5 @@ N60     CTRN    meridian passage from the cache
 N61     CSET    sunset from the cache
 N62     CNTP    nautical twilight pm from the cache
 N63     CALC    computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC
+N64     CEQQ    
+N65     CEQR    

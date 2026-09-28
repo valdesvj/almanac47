@@ -1,0 +1,31 @@
+LBL "NATTEST"
+REM "Checks the C47 commands the NAV builds now use. Run it, then REGS shows:"
+REM "R01 2461310 (x→ⅅ ⅅ→J of 2026.0926: date format YYYY-MM-DD)  R02 26  R03 9  R04 2026 (J→ⅅℸ DAY MONTH YEAR)"
+REM "R06 A57°5 (αIP and x→α append to the string in R06)"
+2026.0926
+x→ⅅ
+ⅅ→J
+STO 01
+2461310.1
+J→ⅅℸ
+R↓
+STO 05
+DAY
+STO 02
+RCL 05
+MONTH
+STO 03
+RCL 05
+YEAR
+STO 04
+"A"
+STO 06
+57
+αIP 06
+"°"
+x→α 06
+5
+αIP 06
+REGS
+RTN
+END

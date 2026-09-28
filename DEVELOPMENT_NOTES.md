@@ -313,3 +313,19 @@ INIT with the builders as LBL 01-04.
   R77 R80 R81, SCTH SPI SSTH SZE SZZ). Trig + series matrix ops per screen (simulator):
   ALMF 787 before -> 798 at a new time, 13 from the cache; HALMV 858 -> 258 (the chart's
   equator dots); ALMS 549 -> 8; HORZ 961 -> 378. AGRAPH (the fonts) unchanged.
+- Walking ants on the menu removed (user); the ants after a key stay (ANTS, 0.1 s each).
+- NAV computes the sky before the menu (LBL 28: HCZI, CSUN, CNTA, CSQK for every star) after
+  the inputs and after a menu arrow; the views then only read the cache.
+- tools/navopt.py (NAV builds only; programs/ stay the reference): fonts - a column equal to
+  the one just drawn is only AGRAPH 32 (99 of 376 PTXS columns); PHLS of 400 px = one PIXEL
+  with a negative row; PDTS and SDAT with J→ⅅℸ DAY MONTH YEAR; STXT appends numbers with αIP
+  and separators with x→α into R38 once the string exists (the first piece still via the digit
+  labels: no "" string). NAV's date: x→ⅅ ⅅ→J (JD 0 h = JDN - 0.5), date format YYYY-MM-DD.
+- ALMR (TEXT view): no CWID pixel widths and no padding to PROMPT pixel columns (REGS shows one
+  register per line): CWID is no longer in NAVTXT.
+- CEQQ / CEQR: the charts' celestial equator dots (HCZQ/HCZR) cached in ALMQ 300 x 3 (Hc, sin Hc,
+  Zn): rows 1-120 step 3 (CHART SPLIT ALLSKY), 121-300 step 2 (SKY); key lat, lon, start per step.
+- Simulator steps from the cache (before -> now): ALMF 24,200 -> 22,200; ALMR 19,400 -> 11,700;
+  HALMV 29,000 -> 25,400; HORZ 40,600 -> 37,000 (incl. its timed wait); menu -2,400 (lines).
+- extras/NATTEST.txt checks x→ⅅ ⅅ→J J→ⅅℸ DAY MONTH YEAR αIP x→α on the calculator (REGS).
+  c47sim implements them (x→ⅅ reads YYYY.MMDD).

@@ -135,6 +135,28 @@ class Calc:
                 if y<0: self.pix.extend((-y,xx) for xx in range(400))
                 continue
             if op == 'CLA': self.alpha=''; continue
+            # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ reads YYYY.MMDD (date format Y.MD)
+            if op == 'x→ⅅ':
+                v = int((self.s[0] * 10000).to_integral_value()); self.lastx = self.s[0]
+                self.s[0] = ('D', v // 10000, v // 100 % 100, v % 100); continue
+            if op == 'ⅅ→J':
+                _, y, m, d = self.s[0]; a = (14 - m) // 12; yy = y + 4800 - a; mm = m + 12 * a - 3
+                self.s[0] = D(d + (153 * mm + 2) // 5 + 365 * yy + yy // 4 - yy // 100 + yy // 400 - 32045); continue
+            if op == 'J→ⅅℸ':                         # JDN (.0 = noon) -> Y date, X time (hours)
+                j = self.s[0] + D('0.5'); n = int(j // 1); fr = j - n
+                a = n + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
+                dd = (4 * c + 3) // 1461; e = c - 1461 * dd // 4; mm = (5 * e + 2) // 153
+                day = e - (153 * mm + 2) // 5 + 1; mon = mm + 3 - 12 * (mm // 10); yr = 100 * b + dd - 4800 + mm // 10
+                self.lastx = self.s[0]; self.s[0] = ('D', yr, mon, day); self.lift = True; self.push(fr * 24); continue
+            if op in ('DAY', 'MONTH', 'YEAR'):
+                _, y, m, d = self.s[0]; self.s[0] = D({'DAY': d, 'MONTH': m, 'YEAR': y}[op]); continue
+            # text: append to the string in a register (αIP: integer part of X; x→α: string X or character code X)
+            if op in ('αIP', 'x→α'):
+                k = self.regkey(arg); v = self.rget(k); x = self.s[0]
+                if not isinstance(v, str): v = format(D(int(v)).normalize(), 'f') if op == 'αIP' else v
+                if op == 'αIP': add = str(int(x))
+                else: add = x if isinstance(x, str) else chr(int(x))
+                self.rset(k, v + add); continue
             if op == 'AIP': self.alpha+=str(int(self.s[0])); continue
             if ln.startswith('"'): self.alpha=ln.strip('"'); self.push(ln.strip('"')); continue
             if op == 'IP': self.unary(lambda x: D(int(x))); continue
@@ -224,7 +246,7 @@ class Calc:
                 self.s[0] = D(math.hypot(x, y)); self.s[1] = self.ang_out(math.atan2(y, x)); self.lift = True; continue
             if op == 'STO' and isinstance(self.s[0], Mat):
                 self.mats[arg] = [list(r) for r in self.s[0].rows]; continue
-            if op == 'STO' and isinstance(self.s[0], tuple):
+            if op == 'STO' and isinstance(self.s[0], tuple) and self.s[0][0] == 'MAT':
                 _, r, c = self.s[0]; self.mats[arg] = [[0.0]*c for _ in range(r)]; continue
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]

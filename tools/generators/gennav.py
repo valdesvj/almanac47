@@ -30,8 +30,6 @@ BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
 ANTS = 20                              # ants over the old screen after + or an arrow, 0.1 s apart
-WALKERS = 3                            # ants walking up the menu while it waits for a key (R21-R26)
-STEP, YMIN, YMAX = 3, 24, 186          # pixels per step; the ants walk between the two lines
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -55,12 +53,17 @@ OLD_INPUT = 'LBL 20|INPUT "DATE"|INPUT "UTC"|INPUT "LAT"|INPUT "LON"|RCL "DATE"|
 
 def inputs():
     """LBL 20: INPUT DATE UTC LAT LON (once, at the start).
-    LBL 21: Z JD (+ R"DH" hours from the arrow keys), Y lat, X lon from those variables; JD also in R06."""
+    LBL 21: Z JD (+ R"DH" hours from the arrow keys), Y lat, X lon from those variables; JD also in R06.
+    The date with the calculator's own functions: x→ⅅ (the DATE number in the calculator's date
+    format, e.g. YYYY.MMDD) and ⅅ→J (Julian day number, .0 = noon): JD of 0 h UT = JDN - 0.5."""
     L = OLD_INPUT.split('|')
     k = L.index('RCL "DATE"')
-    body = L[k:]
-    m = body.index('STO 06')
-    body = body[:m + 1] + ['RCL "DH"', '24', '÷', 'STO+ 06'] + body[m + 1:]
+    u = L.index('RCL "UTC"'); v = L.index('STO 04', L.index('RCL 04', u + 8))       # UTC hh.mmss -> hours in R04
+    hours = L[u:v + 1]
+    tail = L[L.index('RCL "LAT"'):]                                                   # lat, lon, return, LBL 30
+    body = (['RCL "DATE"', 'x→ⅅ', 'ⅅ→J', '0.5', '-', 'STO 06'] + hours + ['24', '÷', 'STO+ 06',
+            'RCL "DH"', '24', '÷', 'STO+ 06'] + tail)
+    body = body[:body.index('LBL 31')]                                                # month shift: not needed
     return L[:k] + ['RTN', 'LBL 21'] + body
 
 
@@ -78,27 +81,6 @@ def text_steps(lab):
     return t + ['RCL %d' % r for r in range(57, 49, -1)]               # lines 8 ... 1: X = line 1
 
 
-def walk_steps():
-    """LBL 28: the menu's ants start at random places; LBL 27: one step up (erase with XOR, move,
-    draw), then PAUSE 1 (the display) and back to the key wait; LBL 52-54: an ant that reached
-    the top starts again at the bottom, at a new column."""
-    w = ['LBL 28', 'XEQ 50']
-    for k in range(WALKERS):
-        x, y = 21 + 2 * k, 22 + 2 * k
-        w += ['RAN#', 390, '×', 'IP', 'STO %d' % x, 'RAN#', YMAX, '×', 'IP', 'STO %d' % y,
-              'RCL %d' % y, YMIN, 'X>Y?', 'STO %d' % y, 'RCL %d' % y, 'RCL %d' % x, 'XEQ 42']
-    w += ['XEQ 51', 'RTN', 'LBL 27', 'XEQ 50']
-    for k in range(WALKERS):
-        x, y = 21 + 2 * k, 22 + 2 * k
-        w += ['RCL %d' % y, 'RCL %d' % x, 'XEQ 42', STEP, 'STO+ %d' % y, 'RCL %d' % y, YMAX, 'X<Y?', 'XEQ %d' % (52 + k),
-              'RCL %d' % y, 'RCL %d' % x, 'XEQ 42']
-    w += ['XEQ 51', 'PAUSE 1', 'GTO 02']
-    for k in range(WALKERS):
-        x, y = 21 + 2 * k, 22 + 2 * k
-        w += ['LBL %d' % (52 + k), YMIN, 'STO %d' % y, 'RAN#', 390, '×', 'IP', 'STO %d' % x, 'RTN']
-    return w
-
-
 def program(inp, items=ALL, autoinit=False):
     """autoinit: the first NAV runs INIT (builds the matrices); flag 81 remembers that it is done
     (CF 81 before loading a new INIT). INIT is deleted by hand (DELP in a program made the file
@@ -109,11 +91,11 @@ def program(inp, items=ALL, autoinit=False):
     if autoinit:
         a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
     a(*gencache.NEWMAT)                                                    # the sky cache (CACHE, gencache.py): empty = computed at the first view
-    a(0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
+    a(0, 'STO "DH"', 'XEQ 20', 'XEQ 28', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
     # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
     # while the program waits in a KEY? loop - without it the menu stays invisible until a key
-    a('XEQ 28', 'PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 27',                  # no key yet: the ants take a step (LBL 27)
+    a('PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 26', 'RCL 38', 7, 'X<Y?', 'GTO 26',     # row 5-7
@@ -126,7 +108,7 @@ def program(inp, items=ALL, autoinit=False):
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
-      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01')
+      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01')
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
             a('LBL 12', *text_steps(24)); a('REGS', 'RTN')
@@ -155,8 +137,11 @@ def program(inp, items=ALL, autoinit=False):
       # LBL 50: XOR drawing on (WSIZE 16 for the column literals); LBL 51: back to normal
       'LBL 50', 'WSIZE 16', 3, 'STO 32', 'GRMOD 32', 'RTN',
       'LBL 51', 0, 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN',
-      # the menu's walking ants (R21-R26: column, row of each)
-      *walk_steps())
+      # LBL 28: the sky for the time and place in use, before the menu (CACHE): Sun, Moon,
+      # planets (CSUN), the sun times (CNTA) and every star (CSQK); a view then only draws
+      'LBL 28', 'XEQ 21', 'STO 92', 'R↓', 'STO 91', 'R↓', 'STO 90', 'XEQ "HCZI"', 'RCL 90', 'XEQ "CSUN"',
+      'RCL 90', 0.5, '-', 'IP', 0.5, '+', 'RCL 91', 'RCL 92', 'XEQ "CNTA"',
+      1, 'STO 82', 'LBL 29', 'RCL 82', 'XEQ "CSQK"', 1, 'STO+ 82', 58, 'RCL 82', 'X≤Y?', 'GTO 29', 'RTN')
     # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
     # date, time and DR position in use (the arrows change the time: shown here too)
     a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',

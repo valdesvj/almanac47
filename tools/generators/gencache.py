@@ -5,7 +5,7 @@ In the NAV builds the views (ALMF ALMS HALMV HALMH HORZ ALLSKY ALMR) call these 
 instead of the ephemeris programs (build_navfull.py swaps the names):
 
   SUNA -> CSUN   MOO2 -> CMOO   PLN3 -> CPLN   STR2 -> CSTR   PHA2 -> CPHA
-  SQK  -> CSQK   HCZ  -> CHCZ
+  SQK  -> CSQK   HCZ  -> CHCZ   HCZQ -> CEQQ   HCZR -> CEQR (the charts' equator dots, matrix ALMQ)
   NTWA RISE TRAN SET NTWP -> CNTA CRIS CTRN CSET CNTP
 
 CSUN (X = JD) looks at the key of matrix ALMC (JD, lat R91, lon R92). Same time and
@@ -52,7 +52,7 @@ SQK_MIN = '0.15643'                   # the views' own test: a star is drawn onl
 EVENTS = [('CNTA', 'NTWA', 69, 1), ('CRIS', 'RISE', 69, 2), ('CTRN', 'TRAN', 69, 3),
           ('CSET', 'SET', 69, 4), ('CNTP', 'NTWP', 70, 1)]
 SWAP = {'SUNA': 'CSUN', 'MOO2': 'CMOO', 'PLN3': 'CPLN', 'STR2': 'CSTR', 'PHA2': 'CPHA',
-        'SQK': 'CSQK', 'HCZ': 'CHCZ', **{orig: new for new, orig, _, _ in EVENTS}}
+        'SQK': 'CSQK', 'HCZ': 'CHCZ', 'HCZQ': 'CEQQ', 'HCZR': 'CEQR', **{orig: new for new, orig, _, _ in EVENTS}}
 VIEWS = ('ALMF', 'ALMS', 'HALMV', 'HALMH', 'HORZ', 'ALLSKY', 'ALMT')
 
 
@@ -140,6 +140,27 @@ def program(tables=True):
           'LBL 81', 'RCL "KF"', '2', '+', 'STO "KF"', 'RTN']
     if tables:
         P += ['LBL 82', 'RCL "KF"', '1', '+', 'STO "KF"', 'RTN']
+    # CEQQ / CEQR: the celestial equator dots of the charts (HCZQ start, HCZR next point) do not
+    # depend on the time: kept in matrix ALMQ (Hc, sin Hc, Zn per point) for the latitude,
+    # longitude and start in use - rows 1-120 for the 3 deg step (CHART, SPLIT, ALLSKY), rows
+    # 121-300 for the 2 deg step (SKY). Replayed with RCLSEQ, else computed (HCZR) and recorded.
+    P += ['LBL "CEQQ"', 'STO "QS"', 'X<>Y', 'STO "QG"', 'X<>Y',
+          'RCL "QS"', '3', 'X=Y?', 'GTO 43', 'RCL "QS"', '2', 'X=Y?', 'GTO 42',
+          'RCL "QG"', 'RCL "QS"', 'XEQ "HCZQ"', '2', 'STO "KQM"', 'RTN']           # another step: not kept
+    for lab, step, base in ((43, 3, 1), (42, 2, 121)):
+        k = lambda n: '"KQ%s%d"' % (n, step)
+        P += ['LBL %d' % lab, str(base), 'STO "KQB"',
+              'RCL 91', 'RCL ' + k('A'), 'X≠Y?', 'GTO %d' % (lab + 5), 'RCL 92', 'RCL ' + k('O'), 'X≠Y?', 'GTO %d' % (lab + 5),
+              'RCL "QG"', 'RCL ' + k('G'), 'X≠Y?', 'GTO %d' % (lab + 5), 'GTO 45',
+              'LBL %d' % (lab + 5), 'RCL 91', 'STO ' + k('A'), 'RCL 92', 'STO ' + k('O'), 'RCL "QG"', 'STO ' + k('G'), 'GTO 46']
+    P += ['LBL 45', 'RCL "KQB"', 'STO "KQR"', '1', 'STO "KQM"', 'RTN',
+          'LBL 46', 'RCL "QG"', 'RCL "QS"', 'XEQ "HCZQ"', 'RCL "KQB"', 'STO "KQR"', '0', 'STO "KQM"', 'RTN',
+          'LBL "CEQR"', 'RCL "KQM"', '2', 'X=Y?', 'GTO "HCZR"',
+          'INDEX "ALMQ"', 'RCL "KQR"', '1', 'STOIJ', '+', 'STO "KQR"',
+          'RCL "KQM"', 'X=0?', 'GTO 41',
+          'RCLSEQ', 'STO 96', 'RCLSEQ', 'STO "SHC"', 'RCLEL', 'STO 97', 'RCL 97', 'RCL 96', 'RTN',
+          'LBL 41', 'XEQ "HCZR"', 'INDEX "ALMQ"', 'RCL "KQR"', '1', '-', '1', 'STOIJ',
+          'RCL 96', 'STOSEQ', 'RCL "SHC"', 'STOSEQ', 'RCL 97', 'STOEL', 'RCL 97', 'RCL 96', 'RTN']
     return P + ['END']
 
 
@@ -155,7 +176,8 @@ def swap(lines):
 
 
 # NAV (and INIT) make the matrix; KR = 1 so CHCZ always has a row to look at
-NEWMAT = [str(ROWS), 'ENTER', '4', 'NEWMAT', 'STO ' + M, '1', 'STO "KR"']
+NEWMAT = [str(ROWS), 'ENTER', '4', 'NEWMAT', 'STO ' + M, '1', 'STO "KR"',
+          '300', 'ENTER', '3', 'NEWMAT', 'STO "ALMQ"', '999', 'STO "KQA3"', 'STO "KQA2"']   # equator dots: none yet
 
 
 if __name__ == '__main__':

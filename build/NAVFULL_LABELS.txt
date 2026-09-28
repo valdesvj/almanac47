@@ -85,5 +85,7 @@ N75     CTRN    meridian passage from the cache
 N76     CSET    sunset from the cache
 N77     CNTP    nautical twilight pm from the cache
 N78     CALC    computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC
+N79     CEQQ    
+N80     CEQR    
 
 NAVFULL_NOTBL has no TGET; its labels are the same (N50 is simply missing there).

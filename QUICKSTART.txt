@@ -14,7 +14,7 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
 NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these + NAVINIT_FAST
   NAVALL    all nine views                          12,588 lines
   NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY  8,467 lines
-  NAVTXT    text only, no drawing                    4,095 lines: XEQ "NAV" asks DATE UTC LAT
+  NAVTXT    text only, no drawing                    4,367 lines: XEQ "NAV" asks DATE UTC LAT
             LON and writes the almanac page into R50 ... R76, and lines 1-26 also into the
             stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
             L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
@@ -44,7 +44,8 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    Only NAV has a name; the other programs show as N01, N02 ... (build/NAVFULL_LABELS.txt
    says which is which). Start everything from NAV:
    XEQ "NAV"  -> first NAV asks (once):
-     DATE  YYYY.MMDD      e.g. 2026.0927
+     DATE  YYYY.MMDD      e.g. 2026.0927  (read with the calculator's date functions x→ⅅ ⅅ→J:
+                          the date format in CLK must be YYYY-MM-DD, or type DATE in your format)
      UTC   HH.MMSS        e.g. 18.30
      LAT   DD.MMmm        e.g. 25.12   (25 deg 12 min N; minus = S)
      LON   DDD.MMmm       e.g. 55.18   (55 deg 18 min E; minus = W)
@@ -59,11 +60,11 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
                      DOWN arrow  the same view one hour earlier
    (the hours added stay for the other views; the menu title shows the time in use)
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
-   While the menu waits, three ants walk up the screen; after a number (the item highlighted),
-   + or an arrow, 20 ants run over the screen shown until the new one is drawn.
-   The sky is computed once for a time and place (matrix ALMC, 73 x 4: GHA Dec Hc Zn of Sun,
-   Moon, planets 1-4, stars 1-58; a star when a view first needs it): going to another view
-   with + and a number only draws. An arrow (new hour) computes again.
+   After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
+   the views then only draw. After a number (the item highlighted), + or an arrow, 20 ants run
+   over the screen shown until the new one is drawn (each ant takes 0.1 s).
+   The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
+   and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
    (7 BODY and 8 ANIM compute their own times, as before.)
    4 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
    (do not use R/S: it stops the program). 3 TEXT: the almanac page as text, the same as

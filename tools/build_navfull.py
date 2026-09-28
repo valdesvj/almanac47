@@ -310,6 +310,14 @@ def almr(lines):
     s = s.replace('400\nXEQ 89\n0\nSTO 43\n', 'XEQ 91\n" "\nSTO 20\n8\nSTO 43\n')    # line 1 of a page: its own register (no "" string)
     assert s.count('LBL 91\nPROMPT 20\nRTN\n') == 1 and s.count('STO 20\nXEQ 91\nRTN\n') == 1
     s = s.replace('LBL 91\nPROMPT 20\nRTN\n', 'LBL 91\nRCL 20\nSTO IND 79\n1\nSTO+ 79\nRTN\n')
+    # the register browser has no 400 px PROMPT line: no pixel widths (CWID) and no padding to
+    # pixel columns - one space between the columns
+    for a, b in (('LBL 87\nαLENG 44\nX=0?\nGTO 88\nα→𝑥 44\nXEQ "CWID"\nSTO+ 43\nGTO 87\n', 'LBL 87\n'),
+                 ('LBL 67\nαLENG 44\nX=0?\nRTN\nα→𝑥 44\nXEQ "CWID"\nSTO+ 43\nGTO 67\n', 'LBL 67\nRTN\n'),
+                 ('LBL 73\nRCL 43\n8\n+\nRCL 28\nX<Y?\nRTN\n" "\nXEQ 90\n8\nSTO+ 43\nGTO 73\n', 'LBL 73\n" "\nXEQ 90\nRTN\n')):
+        assert s.count(a) == 1, a[:20]
+        s = s.replace(a, b)
+    assert 'CWID' not in s
     return s.rstrip('\n').split('\n')
 
 
@@ -320,6 +328,10 @@ def build():
     sys.path.insert(0, os.path.join(ROOT, 'tools', 'generators'))
     import gencache
     progs['CACHE'] = gencache.program(True)
+    import navopt                                  # faster fonts, lines, dates and number text (tools/navopt.py)
+    progs['PTXS'] = navopt.pdts(navopt.phls(navopt.fonts(progs['PTXS'])))
+    progs['PTXT'] = navopt.fonts(progs['PTXT'])
+    progs['STXT'] = navopt.stxt(progs['STXT'])
     for n in gencache.VIEWS:
         progs[n] = gencache.swap(progs[n])
     # characters the big font must draw: every string in the screens and the star names,
@@ -399,8 +411,8 @@ def build():
     bigc = set(strings(nav_comp) + ''.join(strings(raw[n]) for n in need if n not in ('PTXS', 'PTXT')) + '0123456789-.: %')
     smallc = set(WARNING + 'TSX NEWZHC-.0123456789' + (strings(raw['ALLSKY']) if 'ALLSKY' in raw else ''))
     ntc = dict(nt)
-    ntc['PTXS'] = trim_font(read('PTXS'), bigc)
-    ntc['PTXT'] = trim_font(read('PTXT'), smallc)
+    ntc['PTXS'] = trim_font(navopt.pdts(navopt.phls(navopt.fonts(read('PTXS')))), bigc)
+    ntc['PTXT'] = trim_font(navopt.fonts(read('PTXT')), smallc)
     comp = nav_comp + [l for n in KEEP if n in need and n != 'TGET' for l in ntc[n]]
     allf = nav_all + [l for n in KEEP if n != 'TGET' for l in nt[n]]
     extra = {}
