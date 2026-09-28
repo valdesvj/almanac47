@@ -252,3 +252,6 @@ INIT with the builders as LBL 01-04.
 - NAVALL/NAVCOMP/NAVTXT still "invalid corrupted data" when loading. Common new steps in all
   three: DELP "INIT", XEQ "INIT" (a program not in the file), FS?/SF 81, and "" (NAVTXT).
   Now: no DELP (INIT deleted by hand), INIT called by name through R49 (XEQ IND 49), no "".
+- On the C47 the arrows redrew the view but the stack came back over it when the key was
+  released (holding the arrow kept the drawing). NAV now waits PAUSE 3 after an arrow before
+  drawing again (LBL 08), so the release happens before the new drawing.

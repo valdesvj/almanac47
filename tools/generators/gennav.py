@@ -89,7 +89,8 @@ def program(inp, items=ALL, autoinit=False):
         a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 3', d, 'STO "VW"', 'GTO 03')
     # after a view: up arrow one hour later, down arrow one hour earlier, + the menu
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
-      'LBL 06', 1, 'STO+ "DH"', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'GTO 03')
+      'LBL 06', 1, 'STO+ "DH"', 'GTO 08', 'LBL 07', 1, 'STO- "DH"',
+      'LBL 08', 'PAUSE 3', 'GTO 03')          # wait for the key to be released: its release would bring the stack back over the new drawing
     # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
     # date, time and DR position in use (the arrows change the time: shown here too)
     a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',
