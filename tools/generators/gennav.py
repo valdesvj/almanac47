@@ -59,6 +59,20 @@ def inputs():
     return L[:k] + ['RTN', 'LBL 21'] + body
 
 
+LETTERED = 'IJKMNPQRSEFGHOUVW'
+
+
+def text_steps(lab):
+    """TEXT: the almanac page as text (ALMR) in R50 ... R76, and lines 1-26 also in the stack and
+    the lettered registers in the order of the register browser: X Y Z T A B C D, L, I J K M N P Q
+    R S E F G H O U V W. lab = a free local label for the loop that blanks R50-R78."""
+    t = ['50.078', 'STO 49', 'LBL %d' % lab, '" "', 'STO IND 49', 'ISG 49', 'GTO %d' % lab,
+         'XEQ 21', 'XEQ "ALMR"', '" "', 'RCL 58', '+']                  # line 9 -> LASTx (L)
+    for k, r in enumerate(LETTERED):
+        t += ['RCL %d' % (59 + k), 'STO %s' % r]                        # lines 10-26
+    return t + ['RCL %d' % r for r in range(57, 49, -1)]               # lines 8 ... 1: X = line 1
+
+
 def program(inp, items=ALL, autoinit=False):
     """autoinit: the first NAV runs INIT (builds the matrices); flag 81 remembers that it is done
     (CF 81 before loading a new INIT). INIT is deleted by hand (DELP in a program made the file
@@ -85,7 +99,10 @@ def program(inp, items=ALL, autoinit=False):
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
       'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01')
     for d in items:
-        a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
+        if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
+            a('LBL 12', *text_steps(24)); a('REGS', 'RTN')
+        else:
+            a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
     # LBL 6d: item d chosen: invert it for a moment, then its view
     for d in items:
         y, x = place(d, items)

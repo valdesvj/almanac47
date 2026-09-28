@@ -132,7 +132,7 @@ LABEL_TEXT = {
  'WPLS':  'waits for the + key (KEY?): every view holds its screen until +, then back to the menu',
  'ALMF':  'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMV': 'view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right',
- 'ALMT':  'view 3 TEXT: the almanac as PROMPT text, two lines per R/S; after the last page R/S = back to the menu',
+ 'ALMR':  'view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS',
  'HORZ':  'view 4 SKY: horizon chart, info line per body (any key: next body, + back to the menu)',
  'ALMS':  'view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)',
  'HALMH': 'view 6 SPLIT: horizon chart on top, short almanac below',
@@ -302,6 +302,7 @@ def almr(lines):
 
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
+    progs['ALMT'] = almr(progs['ALMT'])          # TEXT view: ALMR, the page into registers (no PROMPT)
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
     big = set(strings(progs['NAV']) + strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU']) + strings(progs['ALLSKY'])
@@ -408,21 +409,11 @@ def build():
     #      then lines 1-26 also go to the stack and the lettered registers (REGS shows them in
     #      order from X). NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
     ntt = dict(nt)
-    ntt['ALMR'] = almr(nt['ALMT'])
     navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
-              '0', 'STO "DH"', 'XEQ 20',
-              '50.078', 'STO 49', 'LBL 05', '" "', 'STO IND 49', 'ISG 49', 'GTO 05',         # R50-R78 blank
-              'XEQ 21', 'XEQ "ALMR"']
-    # the lines also in the lettered registers, in the order of the register browser (REGS):
-    # X Y Z T A B C D (stack) L (LASTx) I J K M N P Q R S E F G H O U V W
-    navtxt += ['" "', 'RCL 58', '+']                                   # line 9 -> LASTx (L)
-    for k, r in enumerate('IJKMNPQRSEFGHOUVW'):
-        navtxt += ['RCL %d' % (59 + k), 'STO %s' % r]                   # lines 10-26
-    navtxt += ['RCL %d' % r for r in range(57, 49, -1)]                 # lines 8 ... 1: X = line 1
+              '0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5)
     navtxt += ['REGS', 'RTN'] + inp + ['END']                         # open the register browser
     needt = closure(ntt, ['ALMR'])
-    order = [n if n != 'ALMT' else 'ALMR' for n in KEEP]
-    txt = navtxt + [l for n in order if n in needt for l in ntt[n]]
+    txt = navtxt + [l for n in KEEP if n in needt for l in ntt[n]]
     L = txt
     with open(os.path.join(dev, 'NAVTXT.txt'), 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(L) + '\n')

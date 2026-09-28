@@ -61,25 +61,23 @@ for f,dh in zip(views,(0,1,0,-1)):
     b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60+dh),25+20/60,55+12/60)
     ok.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
 print('NAV arrows: ALMF at +0 +1 0 -1 h:', ok)
-# ALMT through the minimum set
+# TEXT (ALMR) through the minimum set: its lines = the reference ALMT pages (same words)
 for tables in (False, True):
     mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(6):
         j=jd(2026,10+k%3,3+5*k,7.5+k); la=-40+15*k; lo=-150+50*k
-        mini.s=[D(0)]*4; mini.lift=True; mini.msgs=[]; mini.maxprompts=120
+        mini.s=[D(0)]*4; mini.lift=True
         for v in (j,la,lo): mini.push(D(repr(v)))
-        try: mini.run('ALMT',maxsteps=10**7)
-        except StopIteration: pass
-        m=[str(x) for x in mini.msgs]; m=m[:m.index(m[0],1)] if m[0] in m[1:] else m
-        if m!=ref.text(j,la,lo)[0]: bad+=1
-    print('ALMT', 'tables' if tables else 'series', 'differences', bad, '| first line:', m[0])
+        mini.run('ALMR',maxsteps=10**7)
+        lines=[str(mini.rget(str(r))) for r in range(50,int(mini.rget('79')))]
+        if ' '.join(lines).split()!=' '.join(ref.text(j,la,lo)[0]).split(): bad+=1
+    print('ALMR', 'tables' if tables else 'series', 'differences', bad, '| first line:', lines[0])
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-c.s=[D(0)]*4; c.keys=[KEYCODE[3]]; c.answers=[]; c.msgs=[]; c.maxprompts=6
+c.s=[D(0)]*4; c.keys=[KEYCODE[3]]; c.msgs=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
-try: c.run('NAV',maxsteps=10**7)
-except StopIteration: pass
-print('NAV option 3:', [str(m) for m in c.msgs][:5])
+c.run('NAV',maxsteps=10**8)
+print('NAV option 3 (TEXT): X =', str(c.s[0])[:40], '| I =', str(c.rget('I'))[:30], '| REGS:', getattr(c,'regs_opened',False))
 # HORZ through the minimum set: every info frame of one cycle
 def horz(c,j,la,lo):
     c.steps=0; c.pix=[]; c.frames=[]; c.msgs=[]; c.s=[D(0)]*4; c.lift=True; c.maxpauses=11; c.keys=[11]*20
@@ -163,12 +161,6 @@ order=[str(c.s[k]) for k in range(4)]+[str(c.rget(r)) for r in 'IJKMNPQRSEFGHOUV
 lett = order[:4]==lines[:4] and order[4:]==lines[9:26]
 print('NAVTXT: X =', c.s[0][:30], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| stack + lettered in REGS order:', lett, '| pixels', len(c.pix))
 for l in lines[:4]: print('   ', l)
-# TEXT (3): R/S through every page, after the last one back to the menu, then 0 ends NAV
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
-c.s=[D(0)]*4; c.keys=[KEYCODE[3],KEYCODE[0]]; c.answers=[None]*40; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxprompts=40
-c.run('NAV',maxsteps=10**8)
-print('NAV TEXT: pages', len(c.msgs), '| last:', str(c.msgs[-1]).strip(), '| back to the menu and ended:', c.keys==[] and c.pix==[])
 # arrows on the menu: up, up, down -> the menu shows one hour later (DH = 1)
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')

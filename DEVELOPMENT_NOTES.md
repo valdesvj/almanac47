@@ -260,3 +260,7 @@ INIT with the builders as LBL 01-04.
 - AVIEW message replaced by ants: after + or an arrow NAV clears the screen and draws 6 ants
   (10 x 14, random places, RAN#) 0.1 s apart (LBL 48/47) while the key is released, then the
   view or the menu. c47sim: RAN#.
+- TEXT (3) in the graphic NAV = NAVTXT: ALMR replaces ALMT in every build (gennav.text_steps:
+  R50-R78 blanked, ALMR, lines to the stack and lettered registers), then REGS and NAV ends.
+  Menu: UP / DOWN change the hour (LBL 22/23, ants, menu drawn again). programs/ALMT.txt (PROMPT
+  pages) stays for the PC tools; after its last page it returns (RTN).
