@@ -67,14 +67,3 @@ N61     PT1     FONT small: number with one decimal
 N62     HANIM   view 8 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
 N63     ALLSKY  view 9 ALLSKY: whole sky, over the horizon above, under the horizon below
 N64     WPLS    waits for the + key (KEY?): every view holds its screen until +, then back to the menu
-N65     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
-N66     CMOO    Moon from the cache
-N67     CPLN    planet from the cache
-N68     CSTR    star R82 from the cache
-N69     CPHA    Moon phase from the cache
-N70     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
-N71     CRIS    sunrise from the cache
-N72     CTRN    meridian passage from the cache
-N73     CSET    sunset from the cache
-N74     CNTP    nautical twilight pm from the cache
-N75     CALC    computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC

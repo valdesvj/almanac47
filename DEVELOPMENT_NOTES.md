@@ -287,15 +287,3 @@ INIT with the builders as LBL 01-04.
   release (that was the PC simulator). Removed: the ants, the pause after the inputs and after
   the arrows, the redraw on other keys. Views wait for + / arrows (WPLS, SKY), other keys are
   ignored and the screen stays; the menu ignores other keys too.
-- Sky cache (tools/generators/gencache.py -> programs/CACHE.txt, in every NAV build): the views
-  ALMF ALMS HALMV HALMH HORZ ALLSKY ALMR call CSUN CMOO CPLN CSTR CPHA and CNTA CRIS CTRN CSET
-  CNTP instead of SUNA MOO2 PLN3 STR2 PHA2 NTWA RISE TRAN SET NTWP (build_navfull swaps the
-  XEQs; the programs/ views are unchanged). CSUN compares JD, R91, R92 with the key in matrix
-  ALMC (row 67); a new key runs CALC: SUNA, PHA2, MOO2, PLN3 1-4, STR2 for every star SQK
-  passes (0.15643, the views' own test; the others get Hc -99), HCZ for each, all into ALMC
-  (71 x 4, NAV and INIT make it). CSUN then restores R73 R77 R80 R81 and flag 12 (flag 11 in
-  CMOO), what the views, SQK and HORZ read after SUNA. Sun times: own key (noon JD, lat, lon).
-  Simulator: ALMF 38,500 steps with a new time (29,500 before), 24,700 from the cache. Steps
-  are mostly the fonts (AGRAPH); the series steps (matrix COS / DOT) are few but slow on the
-  C47, so the real gain is larger than the step count says - to be timed on the calculator.
-  c47sim: STOEL keeps the Decimal (the C47 real matrix keeps 34 digits; the key compare is exact).

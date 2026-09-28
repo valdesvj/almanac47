@@ -42,7 +42,7 @@ PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
 KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
-        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY', 'WPLS', 'CACHE']
+        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY', 'WPLS']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -99,8 +99,6 @@ def no_tables(progs):
     and the "T" letter of the screens. The "X" letter (flag 12, date outside the FAST
     period) stays. The Python version keeps the tables option."""
     p = {n: '\n'.join(L) + '\n' for n, L in progs.items() if n != 'TGET'}
-    import gencache
-    p['CACHE'] = '\n'.join(gencache.program(False)) + '\n'          # no flag 11 (table Moon)
     # SUNA: table override after the series, and SUNG goes straight to SUNF
     p['SUNA'] = cut(p['SUNA'], 'FS? 10\nXEQ 45\n')
     p['SUNA'] = cut(p['SUNA'], 'LBL 45\nRCL 70\n0\nXEQ "TGET"\nX<0?\nRTN\nSTO 81\nR↓\nSTO 77\nRCL 70\n6\nXEQ "TGET"\nX<0?\nRTN\nSTO 80\nRTN\n')
@@ -131,17 +129,6 @@ LABEL_OPS = ('LBL', 'XEQ', 'GTO')
 # what every program label does (NAVFULL_LABELS.txt); FONT = text-drawing routine
 LABEL_TEXT = {
  'NAV':   'graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the view; 0 ends (the only named program)',
- 'CSUN':  'Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place',
- 'CMOO':  'Moon from the cache',
- 'CPLN':  'planet from the cache',
- 'CSTR':  'star R82 from the cache',
- 'CPHA':  'Moon phase from the cache',
- 'CNTA':  'nautical twilight am from the cache (the five sun times: computed once per date and place)',
- 'CRIS':  'sunrise from the cache',
- 'CTRN':  'meridian passage from the cache',
- 'CSET':  'sunset from the cache',
- 'CNTP':  'nautical twilight pm from the cache',
- 'CALC':  'computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC',
  'WPLS':  'waits for the + key (KEY?): every view holds its screen until +, then back to the menu',
  'ALMF':  'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMV': 'view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right',
@@ -316,12 +303,6 @@ def almr(lines):
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     progs['ALMT'] = almr(progs['ALMT'])          # TEXT view: ALMR, the page into registers (no PROMPT)
-    # the views read the sky from matrix ALMC (CACHE): computed once per time and place
-    sys.path.insert(0, os.path.join(ROOT, 'tools', 'generators'))
-    import gencache
-    progs['CACHE'] = gencache.program(True)
-    for n in gencache.VIEWS:
-        progs[n] = gencache.swap(progs[n])
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
     big = set(strings(progs['NAV']) + strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU']) + strings(progs['ALLSKY'])
@@ -341,7 +322,7 @@ def build():
     def init_prog(title, names, bodies, valid):
         """ONE program with one name, INIT: the matrix builders become LBL 01-04 inside it,
         so after XEQ "INIT" only INIT has to be deleted (CLP)."""
-        out = (['LBL "INIT"'] + ['XEQ %02d' % (k + 1) for k in range(len(names))] + gencache.NEWMAT
+        out = (['LBL "INIT"'] + ['XEQ %02d' % (k + 1) for k in range(len(names))]
                + ['"%s"' % valid, 'STO "VAL"', '"MATRICES READY: %s"' % title, 'RTN'])      # VAL: shown by the NAV menu
         for k, (n, b) in enumerate(zip(names, bodies)):
             assert b[0] == 'LBL "%s"' % n and b[-1] == 'END', n
@@ -429,7 +410,7 @@ def build():
     #      order from X). NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
     ntt = dict(nt)
     navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
-              ] + gencache.NEWMAT + ['0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5)
+              '0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5)
     navtxt += ['REGS', 'RTN'] + inp + ['END']                         # open the register browser
     needt = closure(ntt, ['ALMR'])
     txt = navtxt + [l for n in KEEP if n in needt for l in ntt[n]]

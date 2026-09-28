@@ -179,10 +179,3 @@ c.run('NAV',maxsteps=10**8)
 ref=Engine('programs'); b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60),25+20/60,55+12/60)
 n=sum(1 for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
 print('NAV other key on ALMF: ignored, the view stays (seen', n, 'times, 2 expected)')
-# sky cache (CACHE, matrix ALMC): the second view at the same time and place computes nothing
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-j=jd(2026,9,26,14.9); res=[]
-for v in ('ALMF','HALMV','ALMF'):
-    res.append(screen(c,v,j,25.3,55.2))
-print('CACHE: ALMF again same screen:', res[0][0]==res[2][0], '| steps first %d, from the cache %d' % (res[0][1], res[2][1]),
-      '| key JD in ALMC:', c.mats['ALMC'][66][0]==D(repr(j)))
