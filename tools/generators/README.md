@@ -12,6 +12,7 @@ before running them again.
 | `genv.py` | HALMV |
 | `genh2.py` | HORZ and HORZS |
 | `genalmt.py` | ALMT |
+| `gencache.py` | CACHE (sky cache for the NAV builds: views read matrix ALMC) |
 | `genstxt.py` | STXT (number to text) |
 | `genmp2.py` | MOON and PLAN (uses `mconst.json`, `pcounts.json`) |
 | `annot.py` | `listings/*_doc.txt` and `programs_rem/` (REM comments) |

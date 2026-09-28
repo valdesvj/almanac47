@@ -7,6 +7,8 @@ The menu is drawn with PTXS; KEY? waits for a key (no PROMPT):
        drawn view waits (WPLS): + back to the menu, up arrow = one hour later, down
        arrow = one hour earlier (the view is drawn again; the offset stays, R"DH")
   0    end
+The sky is computed once per time and place into matrix ALMC (CACHE, gencache.py); the views
+only draw from it.
 Compact version (build_navfull.py): items 1 2 4 9 only. With autoinit NAV and INIT share one
 file: the first NAV runs INIT (flag 81 set); INIT is then deleted by hand.
 Keycodes (row x 10 + column, soft keys = row 1): 7 8 9 = 52-54, 4 5 6 = 62-64,
@@ -18,7 +20,8 @@ variables DATE UTC LAT LON, DH (hours added by the arrows), VW (the view shown).
 """
 import os, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path[:0] = [os.path.join(ROOT, 'python', 'native')]
+sys.path[:0] = [os.path.join(ROOT, 'python', 'native'), os.path.dirname(os.path.abspath(__file__))]
+import gencache
 
 ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SMALL', 'SPLIT', 'BODY', 'ANIM', 'ALLSKY']
 VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'HANIM', 'ALLSKY']
@@ -105,6 +108,7 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL "NAV"')
     if autoinit:
         a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
+    a(*gencache.NEWMAT)                                                    # the sky cache (CACHE, gencache.py): empty = computed at the first view
     a(0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
     # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not

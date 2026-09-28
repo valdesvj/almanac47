@@ -61,6 +61,10 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
    While the menu waits, three ants walk up the screen; after a number (the item highlighted),
    + or an arrow, 20 ants run over the screen shown until the new one is drawn.
+   The sky is computed once for a time and place (matrix ALMC, 73 x 4: GHA Dec Hc Zn of Sun,
+   Moon, planets 1-4, stars 1-58; a star when a view first needs it): going to another view
+   with + and a number only draws. An arrow (new hour) computes again.
+   (7 BODY and 8 ANIM compute their own times, as before.)
    4 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
    (do not use R/S: it stops the program). 3 TEXT: the almanac page as text, the same as
    NAVTXT: lines in R50-R76, lines 1-26 also in the stack and lettered registers (REGS order);

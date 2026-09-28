@@ -287,9 +287,29 @@ INIT with the builders as LBL 01-04.
   release (that was the PC simulator). Removed: the ants, the pause after the inputs and after
   the arrows, the redraw on other keys. Views wait for + / arrows (WPLS, SKY), other keys are
   ignored and the screen stays; the menu ignores other keys too.
-- Sky cache (9eae8a8) reverted at the user's request.
+- Sky cache (9eae8a8) reverted, then put back (the user times it on the calculator).
 - Ants: 20 after + / arrows (ANTS). Menu: 3 ants walk up (R21-R26, 3 px per step, rows 24-186,
   a new column at the bottom) while KEY? waits: LBL 27 erases each (XOR again), moves, draws,
   PAUSE 1, back to KEY?. LBL 42 draws one ant, LBL 50/51 XOR on/off. docs/NAV_menu_ants.gif.
 - Menu key 1-9: the highlight, then the 20 ants (XEQ 48) instead of PAUSE 3; they stay on the
   display while the view computes (no frame of their own in c47sim: PAUSE 1).
+- Sky cache (tools/generators/gencache.py -> programs/CACHE.txt, in every NAV build): the views
+  ALMF ALMS HALMV HALMH HORZ ALLSKY ALMR call CSUN CMOO CPLN CSTR CPHA and CNTA CRIS CTRN CSET
+  CNTP instead of SUNA MOO2 PLN3 STR2 PHA2 NTWA RISE TRAN SET NTWP (build_navfull swaps the
+  XEQs; the programs/ views are unchanged). CSUN compares JD, R91, R92 with the key in matrix
+  ALMC (row 67); a new key runs CALC: SUNA, PHA2, MOO2, PLN3 1-4, STR2 for every star SQK
+  passes (0.15643, the views' own test; the others get Hc -99), HCZ for each, all into ALMC
+  (71 x 4, NAV and INIT make it). CSUN then restores R73 R77 R80 R81 and flag 12 (flag 11 in
+  CMOO), what the views, SQK and HORZ read after SUNA. Sun times: own key (noon JD, lat, lon).
+  Simulator: ALMF 38,500 steps with a new time (29,500 before), 24,700 from the cache. Steps
+  are mostly the fonts (AGRAPH); the series steps (matrix COS / DOT) are few but slow on the
+  C47, so the real gain is larger than the step count says - to be timed on the calculator.
+  c47sim: STOEL keeps the Decimal (the C47 real matrix keeps 34 digits; the key compare is exact).
+- Sky cache, native matrix version: STOSEQ / RCLSEQ / J- / I+ (c47sim has them), rows read Dec
+  then J- GHA so the stack is right without variables. Also cached: SQK -> CSQK (1/0) and HCZ ->
+  CHCZ (Hc Zn R96 R97, SHC = SIN Hc from the row last read, KR; other inputs go to the real HCZ).
+  Stars are lazy: CALC marks them -98; CSQK computes a star (SQK, STR2, HCZ) the first time a
+  view asks; -99 = below. Rows 71-73 restore what SQK and STR2 read after SUNA (R54 R66 R73 R74
+  R77 R80 R81, SCTH SPI SSTH SZE SZZ). Trig + series matrix ops per screen (simulator):
+  ALMF 787 before -> 798 at a new time, 13 from the cache; HALMV 858 -> 258 (the chart's
+  equator dots); ALMS 549 -> 8; HORZ 961 -> 378. AGRAPH (the fonts) unchanged.
