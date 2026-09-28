@@ -1,11 +1,13 @@
 LBL "ANT"
-REM "ANT - draw a small bug at a random place, over whatever is on the screen (no CLLCD)."
-REM "The bug is the inverted 5x7 A (see BIGA) made 2 times bigger: 10 pixels wide, 14 high,"
+REM "ANT - write a small A at a random place, then invert it ... and you find the bug (an ant)."
+REM "The same trick as BIGA, drawn over whatever is on the screen (no CLLCD)."
+REM "The A is the 5x7 letter made 2 times bigger: 10 pixels wide, 14 high,"
 REM "about the size of the big almanac font (capitals 12 pixels)."
+REM "GRMOD sets how AGRAPH draws: 0 = OR (draw), 3 = XOR (invert)."
 REM "Registers: R30 = column (x), R31 = row (y), R32 = column pattern."
 REM "Screen: 400 x 240 pixels, (0,0) = bottom left."
 REM "--- 1. Random place ---"
-REM "Column 0-389 (the bug is 10 wide), row 0-205 (keeps it below the status bar)"
+REM "Column 0-389 (the A is 10 wide), row 0-205 (keeps it below the status bar)"
 RAN#
 390
 ×
@@ -17,24 +19,24 @@ RAN#
 IP
 STO 31
 REM "--- 2. Prepare ---"
-REM "WSIZE 16: binary numbers up to 15 bits (the bug is 14 pixels high)"
+REM "WSIZE 16: binary numbers up to 15 bits (the A is 14 pixels high)"
 WSIZE 16
-REM "Mode 0 = OR: only the bug's pixels are switched on, the screen behind stays"
+REM "Mode 0 = OR: AGRAPH only switches pixels on"
 0
 STO 00
 GRMOD 00
-REM "--- 3. Draw the bug, column by column (bit 0 = bottom pixel) ---"
+REM "--- 3. Write the A, column by column (bit 0 = bottom pixel) ---"
 REM "Y = row, X = column; each AGRAPH draws one column and leaves X = next column"
 RCL 31
 RCL 30
-REM "Left feeler: 2 columns, only the top 2 pixels"
-11000000000000#2
+REM "Left leg: 2 columns, 12 pixels on, the top 2 off"
+111111111111#2
 STO 32
 R↓
 AGRAPH 32
 AGRAPH 32
-REM "Head and body: 6 columns; head (4 px), gap (neck, 2 px), body (6 px), gap at the top"
-00111100111111#2
+REM "Middle: 6 columns, top bar (top 2 pixels) and crossbar (2 pixels in the middle)"
+11000011000000#2
 STO 32
 R↓
 AGRAPH 32
@@ -43,13 +45,40 @@ AGRAPH 32
 AGRAPH 32
 AGRAPH 32
 AGRAPH 32
-REM "Right feeler: the same as the left one"
-11000000000000#2
+REM "Right leg: the same as the left leg"
+111111111111#2
 STO 32
 R↓
 AGRAPH 32
 AGRAPH 32
-REM "--- 4. Tidy up and show ---"
+REM "Show the A for 1 second"
+PAUSE 10
+REM "--- 4. Invert the A: the bug ---"
+REM "Mode 3 = XOR: AGRAPH switches every pixel it touches (on -> off, off -> on)"
+3
+STO 03
+GRMOD 03
+REM "A solid block exactly over the A: 10 columns of 14 pixels, all on"
+RCL 31
+RCL 30
+11111111111111#2
+STO 32
+R↓
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+REM "--- 5. Tidy up and show ---"
+REM "Back to mode 0 (OR) and the normal word size"
+0
+STO 00
+GRMOD 00
 WSIZE 64
 REM "Keep the screen with the bug for 10 seconds"
 PAUSE 99
