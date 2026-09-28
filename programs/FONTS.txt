@@ -71,12 +71,12 @@ INVERTED TEXT (white on black) - GRMOD XOR
   The box needs a margin: a glyph that fills its own cell (the 'A' legs are its first and
   last columns) inverted without a margin loses its outline (the "ant", extras/GMOD2.txt).
   Tested on the C47 with extras/GMOD2.txt: box XOR A = inverted A, A XOR A = blank.
-  Big example: extras/BIGA.txt (tools/generators/genbiga.py).
+  Big example of the missing margin: extras/BIGA.txt writes a big 'A', then inverts it (a bug).
 
 AGRAPH COLUMN HEIGHT
   One AGRAPH draws one column of the bits of a short integer, bit 0 at the given row. The
   literal must be positive in the current WSIZE, so a column can be up to 63 pixels (WSIZE 64);
-  BIGA uses 62 (WSIZE 63). PTXS uses 12 (WSIZE 14), PTXT/PTXB 5-7 (WSIZE 8).
+  BIGA uses 56 (WSIZE 63). PTXS uses 12 (WSIZE 14), PTXT/PTXB 5-7 (WSIZE 8).
 
 LICENCE
   PTXT and PTXB: MIT (see LICENSE in this folder).
