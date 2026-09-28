@@ -12,6 +12,7 @@ version and the base for a phone app (**Almanac 47**).
 - **PC, native Python:** `python/native/c47pc.py` (GTK window, PNG, text).
 - **PC, reference viewer:** `python/c47view.py` runs the real calculator programs.
 - **Manual:** `docs/C47_Nav_User_Manual.pdf`.
+- **C47 command reference:** `docs/reference/C47_Full_index.txt` (C47 team, GFDL).
 - **Test:** `python3 tests/test_parity.py` (native Python = calculator, pixel for pixel).
 - **Notes for further work:** `DEVELOPMENT_NOTES.md`.
 

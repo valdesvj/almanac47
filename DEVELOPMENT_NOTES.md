@@ -187,3 +187,11 @@ N01... (`label_map`, `rename`: only LBL/XEQ/GTO, never variable names in STO/RCL
 Named copies go to `build/dev/` for the tests; `build/NAVFULL_LABELS.txt` is the table.
 `tests/test_labels.py` runs every NAV option on both and compares. NAVINIT is one program
 INIT with the builders as LBL 01-04.
+
+## AGRAPH and GRAMOD (Sep 2026)
+- Command reference: `docs/reference/C47_Full_index.txt` (C47 team, GFDL).
+- AGRAPH draws according to the reserved variable GRAMOD: 0 OR, 1 SET, 2 OFF, 3 XOR. It is a
+  LongInteger variable (there is no GRMOD command). A plain `3 STO "GRAMOD"` had no visible
+  effect in GMOD; GMOD2 converts with LINT first (`3 LINT STO "GRAMOD"`).
+- The reference says AGRAPH "will be redesigned and should not be used in programming".
+- The fonts use the default OR mode (GRAMOD 0) only.
