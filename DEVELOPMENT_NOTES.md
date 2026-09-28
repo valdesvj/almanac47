@@ -287,3 +287,7 @@ INIT with the builders as LBL 01-04.
   release (that was the PC simulator). Removed: the ants, the pause after the inputs and after
   the arrows, the redraw on other keys. Views wait for + / arrows (WPLS, SKY), other keys are
   ignored and the screen stays; the menu ignores other keys too.
+- Sky cache (9eae8a8) reverted at the user's request.
+- Ants: 20 after + / arrows (ANTS). Menu: 3 ants walk up (R21-R26, 3 px per step, rows 24-186,
+  a new column at the bottom) while KEY? waits: LBL 27 erases each (XOR again), moves, draws,
+  PAUSE 1, back to KEY?. LBL 42 draws one ant, LBL 50/51 XOR on/off. docs/NAV_menu_ants.gif.

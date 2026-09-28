@@ -26,7 +26,9 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
-ANTS = 8                               # ants over the old screen after + or an arrow, 0.1 s apart
+ANTS = 20                              # ants over the old screen after + or an arrow, 0.1 s apart
+WALKERS = 3                            # ants walking up the menu while it waits for a key (R21-R26)
+STEP, YMIN, YMAX = 3, 24, 186          # pixels per step; the ants walk between the two lines
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -73,6 +75,27 @@ def text_steps(lab):
     return t + ['RCL %d' % r for r in range(57, 49, -1)]               # lines 8 ... 1: X = line 1
 
 
+def walk_steps():
+    """LBL 28: the menu's ants start at random places; LBL 27: one step up (erase with XOR, move,
+    draw), then PAUSE 1 (the display) and back to the key wait; LBL 52-54: an ant that reached
+    the top starts again at the bottom, at a new column."""
+    w = ['LBL 28', 'XEQ 50']
+    for k in range(WALKERS):
+        x, y = 21 + 2 * k, 22 + 2 * k
+        w += ['RAN#', 390, '×', 'IP', 'STO %d' % x, 'RAN#', YMAX, '×', 'IP', 'STO %d' % y,
+              'RCL %d' % y, YMIN, 'X>Y?', 'STO %d' % y, 'RCL %d' % y, 'RCL %d' % x, 'XEQ 42']
+    w += ['XEQ 51', 'RTN', 'LBL 27', 'XEQ 50']
+    for k in range(WALKERS):
+        x, y = 21 + 2 * k, 22 + 2 * k
+        w += ['RCL %d' % y, 'RCL %d' % x, 'XEQ 42', STEP, 'STO+ %d' % y, 'RCL %d' % y, YMAX, 'X<Y?', 'XEQ %d' % (52 + k),
+              'RCL %d' % y, 'RCL %d' % x, 'XEQ 42']
+    w += ['XEQ 51', 'PAUSE 1', 'GTO 02']
+    for k in range(WALKERS):
+        x, y = 21 + 2 * k, 22 + 2 * k
+        w += ['LBL %d' % (52 + k), YMIN, 'STO %d' % y, 'RAN#', 390, '×', 'IP', 'STO %d' % x, 'RTN']
+    return w
+
+
 def program(inp, items=ALL, autoinit=False):
     """autoinit: the first NAV runs INIT (builds the matrices); flag 81 remembers that it is done
     (CF 81 before loading a new INIT). INIT is deleted by hand (DELP in a program made the file
@@ -86,7 +109,7 @@ def program(inp, items=ALL, autoinit=False):
     # wait for a key; 0 ends; a digit key opens its view
     # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
     # while the program waits in a KEY? loop - without it the menu stays invisible until a key
-    a('PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 02',
+    a('XEQ 28', 'PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 27',                  # no key yet: the ants take a step (LBL 27)
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 26', 'RCL 38', 7, 'X<Y?', 'GTO 26',     # row 5-7
@@ -117,13 +140,19 @@ def program(inp, items=ALL, autoinit=False):
       # display keeps this one, ants included, until the new screen's PAUSE 1.
       'LBL 48', ANTS, 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
       # LBL 47: one ant (10 x 14 pixels) at a random place, column by column, GRMOD 3 (XOR)
-      'LBL 47', 'WSIZE 16', 3, 'STO 32', 'GRMOD 32',
-      'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37', 'RCL 37', 'RCL 36',
+      'LBL 47', 'XEQ 50',
+      'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37', 'RCL 37', 'RCL 36', 'XEQ 42', 'XEQ 51', 'RTN',
+      # LBL 42: one ant (10 x 14 pixels) at Y = row, X = column, column by column (GRMOD 3 set by LBL 50)
+      'LBL 42',
       '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32',                    # feelers
       '00111100111111#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',        # head and body
       'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',
-      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32',                    # feelers
-      0, 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN')
+      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'RTN',             # feelers
+      # LBL 50: XOR drawing on (WSIZE 16 for the column literals); LBL 51: back to normal
+      'LBL 50', 'WSIZE 16', 3, 'STO 32', 'GRMOD 32', 'RTN',
+      'LBL 51', 0, 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN',
+      # the menu's walking ants (R21-R26: column, row of each)
+      *walk_steps())
     # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
     # date, time and DR position in use (the arrows change the time: shown here too)
     a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',
