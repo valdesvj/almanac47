@@ -181,10 +181,17 @@ class Calc:
             if op == 'αSL': self.rset(arg, self.rget(arg)[int(self.s[0]):]); continue
             if op == 'REM': continue
             if op == 'WSIZE': self.ws=int(arg); continue
+            if op == 'GRMOD': self.grmod=int(self.rget(arg)); continue
             if op == 'AGRAPH' and arg:
                 v=int(self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])
-                for i in range(self.ws):
-                    if v>>i & 1: self.pix.append((y+i,x))
+                if getattr(self,'grmod',0) == 3:                  # XOR: switch every pixel of the pattern
+                    ps=set(self.pix)
+                    for i in range(self.ws):
+                        if v>>i & 1: ps ^= {(y+i,x)}
+                    self.pix=list(ps)
+                else:
+                    for i in range(self.ws):
+                        if v>>i & 1: self.pix.append((y+i,x))
                 self.s[0]=self.s[0]+1; continue
             if op == 'FP': self.unary(lambda x: x-D(int(x))); continue
             if op == 'INPUT': self.push(self.rget(arg)); continue

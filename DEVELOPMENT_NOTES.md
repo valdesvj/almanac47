@@ -206,3 +206,11 @@ INIT with the builders as LBL 01-04.
 - BIGANT (extras/BIGANT.txt): the biggest, full screen height: 'A' scaled x34 (170 x 238), each
   column drawn in 4 bands of 60 rows (one AGRAPH per band). genbiga.py simulates it for the preview.
 - The fonts use the default OR mode only.
+
+## Hc below the horizon: inverted (Sep 2026)
+- ALMF, ALMS, HALMH, HALMV: a negative Hc is shown white on black instead of struck through.
+  LBL 64 in each: WSIZE 16, `3 STO 32 GRMOD 32` (XOR), then 55 AGRAPH columns of 14 pixels
+  (11111111111111#2) from row y-1, column HX+6 (HALMV X0+126), `0 STO 32 GRMOD 32`, WSIZE 64.
+  R32 (PTXS scratch) holds the mode for GRMOD, R33 the column counter.
+- c47sim.py: GRMOD and AGRAPH in XOR mode; c47screen.py: Screen.xor_box. Parity tests pass.
+- Previews: docs/ALMF_sun_below.png, docs/HALMV_sun_below.png. Not yet tested on the calculator.

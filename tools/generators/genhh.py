@@ -83,7 +83,8 @@ a('LBL 57', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"*"', 'XEQ "PTXS"', 'RCL 98
 a('LBL 60', 'RCL 40', GX, 'RCL 45', 'XEQ "PDMS"',
   '"N"', 'STO 43', 'RCL 46', 'X<0?', 'XEQ 22', 'RCL 40', DX, 'RCL 43', 'XEQ "PTXS"', 'RCL 40', DX + 2, 'RCL 46', 'ABS', 'XEQ "PDMS"',
   'RCL 40', HX, 'RCL 96', 'XEQ "PDMS"', 'RCL 40', ZX, 'RCL 97', 'XEQ "PZNS"', 'RCL 96', 'X<0?', 'XEQ 64', '14', 'STO- 40', 'RTN')
-a('LBL 64', 'RCL 40', '5', '+', HX + 7, '56', 'XEQ "PHLS"', 'RTN')
+a('LBL 64', 'WSIZE 16', '3', 'STO 32', 'GRMOD 32', '11111111111111#2', 'STO 32', 'RCL 40', '1', '-', HX + 6, '55', 'STO 33', 'R↓',
+  'LBL 66', 'AGRAPH 32', 'DSE 33', 'GTO 66', '0', 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN')   # below the horizon: Hc inverted (XOR box)
 a('LBL 61', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"("', 'XEQ "PTXS"',
   'RCL 40', '1', '"("', 'XEQ "PTXS"', 'RCL 40', NX, '"MOON"', 'XEQ "PTXS"', 'XEQ 60', 'RTN')
 a('LBL 63', 'RCL 42', 'IP', '70', '+', 'STO 43', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 43', 'XEQ "PTXS"',

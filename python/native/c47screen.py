@@ -83,6 +83,10 @@ class Screen:
             self.pix.add((ip(x) + i, ip(y)))
         return x + n
 
+    def xor_box(self, y, x, w, h):
+        """GRMOD 3 (XOR) + AGRAPH: invert a w x h box, bottom left (y, x)."""
+        self.pix ^= {(x + i, y + j) for i in range(w) for j in range(h)}
+
     def glyph(self, font, ch, y, x):
         adv, yoff, cols = font[ord(ch)]
         for cx, mask in cols:
@@ -370,7 +374,7 @@ def _row(sc, y, ident, g, d, hc, zn, NX, GX, DX, HX, ZX):
     sc.text(y, DX, 'S' if d < 0 else 'N'); sc.pdm(y, DX + 2, abs(d))
     sc.pdm(y, HX, hc); sc.pzn(y, ZX, zn)
     if hc < 0:
-        sc.hline(y + 5, HX + 7, 56)
+        sc.xor_box(y - 1, HX + 6, 55, 14)          # below the horizon: Hc inverted (white on black)
 
 
 # ---------------------------------------------------------------- HALMV
@@ -426,7 +430,7 @@ def halmv(al):
         sc.text(y, X0 + 34, body_name(ident))
         sc.pdm(y, X0 + 120, hc); sc.pzn(y, X0 + 188, zn)
         if hc < 0:
-            sc.hline(y + 5, X0 + 127, 56)
+            sc.xor_box(y - 1, X0 + 126, 55, 14)
         y -= 14
     x = sc.text(24, X0, 'MOON '); x = sc.pinb(24, x, al.illum); x = sc.text(24, x, '% '); sc.text(24, x, moon_word(al))
     sc.small(8, X0 + 38, WARNING)
