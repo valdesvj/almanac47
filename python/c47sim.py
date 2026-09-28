@@ -135,6 +135,8 @@ class Calc:
                 if y<0: self.pix.extend((-y,xx) for xx in range(400))
                 continue
             if op == 'CLA': self.alpha=''; continue
+            if op == 'SSIZE#': self.push(D(8)); continue          # stack size (C47 default 8; modelled as 4 levels)
+            if op in ('SSIZE4', 'SSIZE8'): continue
             # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ reads YYYY.MMDD (date format Y.MD)
             if op == 'x→ⅅ':
                 v = int((self.s[0] * 10000).to_integral_value()); self.lastx = self.s[0]
@@ -219,7 +221,8 @@ class Calc:
             if op == 'DELP': self.deleted=getattr(self,'deleted',[])+[arg]; continue
             if op == 'GRMOD': self.grmod=int(self.rget(arg)); continue
             if op == 'AGRAPH' and arg:
-                v=int(self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])
+                # AGRAPH D: the pattern pushed and rotated down by R↓ (D on the C47's 8-level stack = T here)
+                v=int(self.s[3] if arg == 'D' else self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])
                 if getattr(self,'grmod',0) == 3:                  # XOR: switch every pixel of the pattern
                     ps=set(self.pix)
                     for i in range(self.ws):

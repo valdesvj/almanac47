@@ -90,6 +90,7 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL "NAV"')
     if autoinit:
         a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
+    a('SSIZE#', 'STO "SSZ"', 'SSIZE8')                                     # fonts read stack register D: 8-level stack (put back at the end)
     a(*gencache.NEWMAT)                                                    # the sky cache (CACHE, gencache.py): empty = computed at the first view
     a(0, 'STO "DH"', 'XEQ 20', 'XEQ 28', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
@@ -107,11 +108,11 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL 03', 0, 'STO 39')                                                # LBL 03: (re)draw view VW
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
-    a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
+    a('GTO 01', 'LBL 09', 'CLLCD', 'LBL 08', 'RCL "SSZ"', 4, 'X=Y?', 'SSIZE4', 'RTN',   # LBL 08: the user's stack size back
       'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01')
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
-            a('LBL 12', *text_steps(24)); a('REGS', 'RTN')
+            a('LBL 12', *text_steps(24)); a('XEQ 08', 'REGS', 'RTN')
         else:
             a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
     # LBL 6d: item d chosen: invert it for a moment, then its view

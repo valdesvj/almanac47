@@ -329,3 +329,11 @@ INIT with the builders as LBL 01-04.
   HALMV 29,000 -> 25,400; HORZ 40,600 -> 37,000 (incl. its timed wait); menu -2,400 (lines).
 - extras/NATTEST.txt checks x→ⅅ ⅅ→J J→ⅅℸ DAY MONTH YEAR αIP x→α on the calculator (REGS).
   c47sim implements them (x→ⅅ reads YYYY.MMDD).
+- Checked on the calculator (Sep 2026): NATTEST OK (x→ⅅ ⅅ→J J→ⅅℸ DAY MONTH YEAR αIP x→α).
+  AGRAPH with a stack register works: after pattern R↓ the pattern is in D on the default
+  8-level stack (T was 0: "Invalid input data"). rejig writes stack registers by name only
+  ("AGRAPH D"; ST.T / ST T do not load, 103 became the variable "g").
+- Fonts in the NAV builds: pattern R↓ AGRAPH D (3 steps) and AGRAPH D for a repeated column.
+  NAV saves the stack size (SSIZE# -> "SSZ"), sets SSIZE8, and puts SSIZE4 back on 0 / TEXT
+  (LBL 08). c47sim (4 levels) reads AGRAPH D from T, the same value after R↓.
+  ALMF from the cache 22,200 -> 20,000 steps.

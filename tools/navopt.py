@@ -4,8 +4,9 @@
 The programs in programs/ stay as they are (they are the reference the tests compare with);
 the NAV files get these rewrites:
 
-  fonts(L)   PTXS / PTXT glyphs: a column equal to the one just drawn is only AGRAPH 32
-             (the pattern is still in R32 and AGRAPH moves one column on): 1 step instead of 4
+  fonts(L)   PTXS / PTXT glyphs: pattern R↓ AGRAPH D (3 steps, the pattern read from stack
+             register D - needs the 8-level stack, NAV sets SSIZE8) instead of pattern STO 32 R↓
+             AGRAPH 32; a column equal to the one just drawn is only AGRAPH D (1 step)
   phls(L)    PHLS (horizontal line): 400 px or more is one PIXEL with a negative row
              (the C47's full-width line) instead of 400 AGRAPH
   pdts(L)    PDTS (date on the screen): J→ⅅℸ, DAY, MONTH, YEAR (the calculator's own calendar)
@@ -23,13 +24,13 @@ def fonts(L):
             last, drawn = None, False
         if l.endswith('#2') and L[i + 1:i + 4] == ['STO 32', 'R↓', 'AGRAPH 32']:
             if drawn and l == last:
-                out.append('AGRAPH 32')              # same column again: R32 still holds it
+                out.append('AGRAPH D')               # same column again: still in stack register D
             else:
-                out += L[i:i + 4]
+                out += [l, 'R↓', 'AGRAPH D']         # R↓: X column, Y row, the pattern in D (8-level stack)
             last, drawn = l, True
             i += 4
             continue
-        if l != 'AGRAPH 32':
+        if l not in ('AGRAPH 32', 'AGRAPH D'):
             drawn = False                            # a gap (n +) or anything else: next column is not adjacent
         out.append(l)
         i += 1
