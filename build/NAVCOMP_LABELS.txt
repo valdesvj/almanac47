@@ -53,3 +53,14 @@ N47     PTNS    FONT small: whole number
 N48     PT1     FONT small: number with one decimal
 N49     ALLSKY  view 9 ALLSKY: whole sky, over the horizon above, under the horizon below
 N50     WPLS    waits for the + key (KEY?): every view holds its screen until +, then back to the menu
+N51     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
+N52     CMOO    Moon from the cache
+N53     CPLN    planet from the cache
+N54     CSTR    star R82 from the cache
+N55     CPHA    Moon phase from the cache
+N56     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
+N57     CRIS    sunrise from the cache
+N58     CTRN    meridian passage from the cache
+N59     CSET    sunset from the cache
+N60     CNTP    nautical twilight pm from the cache
+N61     CALC    computes Sun, Moon, planets, stars (GHA Dec Hc Zn) into matrix ALMC
