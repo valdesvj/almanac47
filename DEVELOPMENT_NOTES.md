@@ -255,3 +255,5 @@ INIT with the builders as LBL 01-04.
 - On the C47 the arrows redrew the view but the stack came back over it when the key was
   released (holding the arrow kept the drawing). NAV now waits PAUSE 3 after an arrow before
   drawing again (LBL 08), so the release happens before the new drawing.
+- Arrow: "COMPUTING +1 HOUR" / "-1 HOUR" shown with AVIEW 49 before PAUSE 3, so the key release
+  shows that message instead of the bare stack; the view then clears and draws again.
