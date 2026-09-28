@@ -64,4 +64,28 @@ ISG 09
 GTO 21
 REGS
 RTN
+LBL "KT4"
+REM "TEST 4 = KT1 with PAUSE 1 after the drawing: the band should show at once (display update)"
+REM "and stay while the keys are pressed (5 presses, then the end)."
+CLLCD
+100.140
+STO 01
+LBL 31
+RCL 01
+IP
+CHS
+0
+PIXEL
+ISG 01
+GTO 31
+PAUSE 1
+5
+STO 02
+LBL 32
+KEY? 03
+GTO 32
+PAUSE 1
+DSE 02
+GTO 32
+RTN
 END

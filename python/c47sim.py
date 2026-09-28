@@ -170,6 +170,7 @@ class Calc:
                     if v is not None: self.push(D(v))     # None: R/S without keying a number
                 elif len(self.msgs)>getattr(self,'maxprompts',10**9): raise StopIteration
                 continue
+            if op == 'PAUSE' and arg == '1': continue          # PAUSE 1: display update only (no frame of its own)
             if op == 'PAUSE':
                 self.pauses=getattr(self,'pauses',0)+1; self.frames=getattr(self,'frames',[]); self.frames.append(list(self.pix))
                 if len(self.frames) >= (getattr(self,'maxpauses',None) or 10**9): raise StopIteration

@@ -278,3 +278,8 @@ INIT with the builders as LBL 01-04.
 - Real C47: after the last INPUT (LON) a key had to be pressed before the menu showed. NAV now
   waits PAUSE 3 after the inputs (the R/S release), then draws the menu. KEYTEST KT3 logs the
   key codes KEY? returns (R01-R08) and TICKS (R11-R18), to compare hardware and simulator.
+- Real C47 (KEYTEST again, Sep 28 evening): KT1 shows the stack until a key is pressed, then the
+  band; KT2 shows the band, a key during PAUSE ends it (stack). So on the hardware the screen is
+  sent to the display at a PAUSE or a key, not while a KEY? loop runs (the PC simulator of the C47
+  showed it at once). Fix: PAUSE 1 after drawing, before every KEY? wait (menu, WPLS, SKY loop).
+  KT4 = KT1 with PAUSE 1. c47sim: PAUSE 1 makes no frame.

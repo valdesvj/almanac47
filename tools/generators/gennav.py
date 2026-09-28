@@ -85,7 +85,9 @@ def program(inp, items=ALL, autoinit=False):
     a(0, 'STO "DH"', 'XEQ 20', 'PAUSE 3', 'LBL 01', 'XEQ 40')               # DATE UTC LAT LON once; the pause lets the
                                                                             # R/S of the last INPUT be released before the menu is drawn
     # wait for a key; 0 ends; a digit key opens its view
-    a('LBL 02', 'KEY? 39', 'GTO 02',
+    # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
+    # while the program waits in a KEY? loop - without it the menu stays invisible until a key
+    a('PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 26', 'RCL 38', 7, 'X<Y?', 'GTO 26',     # row 5-7
