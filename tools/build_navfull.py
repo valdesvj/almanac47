@@ -132,7 +132,7 @@ LABEL_TEXT = {
  'WPLS':  'waits for the + key (KEY?): every view holds its screen until +, then back to the menu',
  'ALMF':  'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMV': 'view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right',
- 'ALMT':  'view 3 TEXT: the almanac as PROMPT text, two lines per R/S',
+ 'ALMT':  'view 3 TEXT: the almanac as PROMPT text, two lines per R/S; after the last page R/S = back to the menu',
  'HORZ':  'view 4 SKY: horizon chart, info line per body (any key: next body, + back to the menu)',
  'ALMS':  'view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)',
  'HALMH': 'view 6 SPLIT: horizon chart on top, short almanac below',
@@ -295,9 +295,8 @@ def almr(lines):
     s = s.replace('LBL 01\n', 'LBL 01\n50\nSTO 79\n', 1)
     assert s.count('400\nXEQ 89\n0\nSTO 43\n') == 4
     s = s.replace('400\nXEQ 89\n0\nSTO 43\n', 'XEQ 91\n" "\nSTO 20\n8\nSTO 43\n')    # line 1 of a page: its own register (no "" string)
-    assert s.count('LBL 91\nPROMPT 20\nRTN\n') == 1 and s.count('STO 20\nXEQ 91\nGTO 01\n') == 1
+    assert s.count('LBL 91\nPROMPT 20\nRTN\n') == 1 and s.count('STO 20\nXEQ 91\nRTN\n') == 1
     s = s.replace('LBL 91\nPROMPT 20\nRTN\n', 'LBL 91\nRCL 20\nSTO IND 79\n1\nSTO+ 79\nRTN\n')
-    s = s.replace('STO 20\nXEQ 91\nGTO 01\n', 'STO 20\nXEQ 91\nRTN\n')
     return s.rstrip('\n').split('\n')
 
 

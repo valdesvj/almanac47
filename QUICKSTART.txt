@@ -56,8 +56,8 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
                      UP arrow    the same view one hour later
                      DOWN arrow  the same view one hour earlier
    (the hours added stay for the other views; the menu title shows the time in use)
-   4 SKY: any other key shows the next body. 3 TEXT: R/S for the next lines, EXIT ends
-   (XEQ "NAV" again). 0 on the menu ends NAV. New date or position: XEQ "NAV" again.
+   4 SKY: any other key shows the next body. 3 TEXT: R/S for the next lines; after the last
+   page (DOES NOT REPLACE THE NAUTICAL ALMANAC) R/S goes back to the menu. 0 on the menu ends NAV. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
                 meridian passage, Moon
      2 CHART    horizon chart left, the bodies' HC ZN right

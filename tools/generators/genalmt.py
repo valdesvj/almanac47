@@ -63,7 +63,7 @@ pad(180); lit('AGE '); num(fmt(19,'SF1')); lit(' DAYS'); pad(BRK)
 newline(); lit('MOON HP '); num(fmt(21,'SF1')); lit("'"); pad(180); lit('MOON SD '); num(fmt(22,'SF1')); lit("'"); a('XEQ 91')
 # warning: 3 spaces + text + 4 spaces = 44 characters (small font)
 s('   DOES NOT REPLACE THE NAUTICAL ALMANAC    '); a('STO 20','XEQ 91')
-a('GTO 01')
+a('RTN')                     # after the last page: R/S goes back (to the NAV menu)
 # ---------------- subroutines
 a('LBL 26','RCL 10','0.5','-','IP','0.5','+','RCL 11','RCL 12','RTN')
 a('LBL 27','"WANING"','STO 26','RTN')

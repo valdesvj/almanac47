@@ -9,7 +9,7 @@ X = text or number; returns Y = row, X = next column. PTXS is the C47 status-bar
 NAV     NAV     graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the view; 0 ends (the only named program)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
-N03     ALMT    view 3 TEXT: the almanac as PROMPT text, two lines per R/S
+N03     ALMT    view 3 TEXT: the almanac as PROMPT text, two lines per R/S; after the last page R/S = back to the menu
 N04     HORZ    view 4 SKY: horizon chart, info line per body (any key: next body, + back to the menu)
 N05     ALMS    view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)
 N06     HALMH   view 6 SPLIT: horizon chart on top, short almanac below

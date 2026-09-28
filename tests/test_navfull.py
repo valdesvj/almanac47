@@ -163,3 +163,9 @@ order=[str(c.s[k]) for k in range(4)]+[str(c.rget(r)) for r in 'IJKMNPQRSEFGHOUV
 lett = order[:4]==lines[:4] and order[4:]==lines[9:26]
 print('NAVTXT: X =', c.s[0][:30], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| stack + lettered in REGS order:', lett, '| pixels', len(c.pix))
 for l in lines[:4]: print('   ', l)
+# TEXT (3): R/S through every page, after the last one back to the menu, then 0 ends NAV
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+c.s=[D(0)]*4; c.keys=[KEYCODE[3],KEYCODE[0]]; c.answers=[None]*40; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxprompts=40
+c.run('NAV',maxsteps=10**8)
+print('NAV TEXT: pages', len(c.msgs), '| last:', str(c.msgs[-1]).strip(), '| back to the menu and ended:', c.keys==[] and c.pix==[])
