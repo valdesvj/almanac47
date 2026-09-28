@@ -1,0 +1,45 @@
+LBL "KT1"
+REM "TEST 1: a black band, then a KEY? loop that ignores the keys (5 presses, then the end)."
+REM "If the stack comes back when you RELEASE a key, the release redraws the screen, not KEY?."
+REM "Do not use R/S or EXIT (they stop the program). Use e.g. 1, 2, 3, +, arrows."
+CLLCD
+100.140
+STO 01
+LBL 01
+RCL 01
+IP
+CHS
+0
+PIXEL
+ISG 01
+GTO 01
+5
+STO 02
+LBL 02
+KEY? 03
+GTO 02
+DSE 02
+GTO 02
+RTN
+LBL "KT2"
+REM "TEST 2: the same band, then only PAUSE (about 30 s), no KEY? at all."
+REM "Press a key during the pause (not R/S or EXIT): does the stack come back?"
+CLLCD
+100.140
+STO 01
+LBL 11
+RCL 01
+IP
+CHS
+0
+PIXEL
+ISG 01
+GTO 11
+3
+STO 02
+LBL 12
+PAUSE 99
+DSE 02
+GTO 12
+RTN
+END
