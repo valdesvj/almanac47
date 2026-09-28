@@ -385,7 +385,14 @@ def build():
     comp = nav_comp + [l for n in KEEP if n in need and n != 'TGET' for l in ntc[n]]
     allf = nav_all + [l for n in KEEP if n != 'TGET' for l in nt[n]]
     extra = {}
-    for name, L in (('NAVALL_FAST', allf + init_fast), ('NAVCOMP_FAST', comp + init_fast)):
+    # NAV + programs in one file, INIT in its own (NAVINIT_FAST or NAVINIT_FULL): one file of
+    # 15-19 thousand lines gave "invalid data" in rejig. NAV runs INIT once and deletes it.
+    for f in ('NAVALL_FAST', 'NAVCOMP_FAST', 'NAVTXT_FAST'):
+        for suf in ('.txt', '_LABELS.txt'):
+            for d in (OUT, dev):
+                if os.path.exists(os.path.join(d, f + suf)):
+                    os.remove(os.path.join(d, f + suf))
+    for name, L in (('NAVALL', allf), ('NAVCOMP', comp)):
         with open(os.path.join(dev, name + '.txt'), 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(L) + '\n')
         m = label_map(L, keep=('NAV', 'INIT'))
@@ -393,9 +400,9 @@ def build():
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(out) + '\n')
         with open(os.path.join(OUT, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
-            fh.write('%s - program labels (NAV and INIT keep their names; the first NAV runs INIT\n'
-                     'and deletes it, flag 81 remembers it; CF 81 before loading the file again)\n\n' % name)
-            fh.write('NAV     NAV     %s\nINIT    INIT    builds the matrices (FAST %s); deleted by NAV after the first run\n' % (LABEL_TEXT['NAV'], period))
+            fh.write('%s - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:\n'
+                     'the first NAV runs INIT and deletes it, flag 81 remembers it; CF 81 before loading INIT again)\n\n' % name)
+            fh.write('NAV     NAV     %s\nINIT    INIT    (NAVINIT file) builds the matrices; deleted by NAV after the first run\n' % LABEL_TEXT['NAV'])
             fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
         extra[name] = (L, sorted(need) if 'COMP' in name else None)
     # ---- text only (no drawing): NAV asks the position, ALMR writes the page into R50 ... ;
@@ -417,13 +424,13 @@ def build():
     needt = closure(ntt, ['ALMR'])
     order = [n if n != 'ALMT' else 'ALMR' for n in KEEP]
     txt = navtxt + [l for n in order if n in needt for l in ntt[n]]
-    L = txt + init_fast
-    with open(os.path.join(dev, 'NAVTXT_FAST.txt'), 'w', encoding='utf-8') as fh:
+    L = txt
+    with open(os.path.join(dev, 'NAVTXT.txt'), 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(L) + '\n')
     m = label_map(L, keep=('NAV', 'INIT'))
-    with open(os.path.join(OUT, 'NAVTXT_FAST.txt'), 'w', encoding='utf-8') as fh:
+    with open(os.path.join(OUT, 'NAVTXT.txt'), 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(rename_keep(L, m, ('NAV', 'INIT'))) + '\n')
-    extra['NAVTXT_FAST'] = (L, sorted(needt))
+    extra['NAVTXT'] = (L, sorted(needt))
     return full, init_full, init_fast, progs, nav, notbl, extra
 
 
@@ -441,5 +448,5 @@ if __name__ == '__main__':
     print('%-12s %7d %8d   <- FULL: load, XEQ INIT, delete' % (('NAVINIT_FULL',) + size(init)))
     print('%-12s %7d %8d   <- FAST: load, XEQ INIT, delete' % (('NAVINIT_FAST',) + size(init_fast)))
     for n, (L, need) in extra.items():
-        print('%-13s %7d %8d   <- NAV + INIT in one file%s' % ((n,) + size(L) + (': ' + ' '.join(need) if need else '',)))
+        print('%-13s %7d %8d   <- + NAVINIT_FAST (NAV runs INIT once and deletes it)%s' % ((n,) + size(L) + (': ' + ' '.join(need) if need else '',)))
     print('written to', OUT)

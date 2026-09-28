@@ -1,8 +1,8 @@
-NAVALL_FAST - program labels (NAV and INIT keep their names; the first NAV runs INIT
-and deletes it, flag 81 remembers it; CF 81 before loading the file again)
+NAVALL - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:
+the first NAV runs INIT and deletes it, flag 81 remembers it; CF 81 before loading INIT again)
 
 NAV     NAV     graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the view; 0 ends (the only named program)
-INIT    INIT    builds the matrices (FAST 2026-2030); deleted by NAV after the first run
+INIT    INIT    (NAVINIT file) builds the matrices; deleted by NAV after the first run
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
 N03     ALMT    view 3 TEXT: the almanac as PROMPT text, two lines per R/S

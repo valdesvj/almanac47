@@ -11,20 +11,17 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
-ONE-FILE INSTALL (NAV and INIT together, FAST matrices 2026-2030, no almanac tables)
-  NAVALL_FAST   all nine views               19,067 lines to load, 12,538 stay after INIT
-  NAVCOMP_FAST  compact: 1 ALMANAC 2 CHART   14,946 lines to load,  8,417 stay after INIT
-                4 SKY 9 ALLSKY
-  rejig build/NAVCOMP_FAST.txt -o NAVCOMP_FAST.p47, load it, XEQ "NAV".
-  NAVTXT_FAST   text only, no drawing        10,582 lines to load,  4,051 stay after INIT
-                NAV asks DATE UTC LAT LON and writes the almanac page into registers
-                R50 ... R76 (one line each), and lines 1-26 also in the stack and the lettered
-                registers in the order REGS shows them: X Y Z T A B C D, L, I J K M N P Q R S
-                E F G H O U V W. Open REGS and scroll (keys 5 0 jump to R50: all the lines).
-                (A-D need the 8-level stack.) XEQ "NAV" again for another time.
-  The first NAV builds the matrices (INIT, takes a while), deletes INIT (DELP "INIT") and
-  sets flag 81; later runs go straight to the menu. To load the file again (new period):
-  CF 81 first, so the new INIT is run and deleted too.
+NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these + NAVINIT_FAST
+  NAVALL    all nine views                          12,588 lines
+  NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY  8,467 lines
+  NAVTXT    text only, no drawing                    4,095 lines: XEQ "NAV" asks DATE UTC LAT
+            LON and writes the almanac page into R50 ... R76, and lines 1-26 also into the
+            stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
+            L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). Open REGS.
+  NAVINIT_FAST  (6,531 lines) builds the matrices.
+  rejig both files, load both, XEQ "NAV". The first NAV runs INIT (takes a while), deletes it
+  (DELP "INIT") and sets flag 81; later runs go straight on. New INIT later: CF 81 first.
+  (One file with NAV and INIT together gave "invalid data" in rejig, so they are two files.)
 
 1. LOAD THE PROGRAMS (two files: NAVFULL_NOTBL + NAVINIT_FAST)
    Copy both .p47 files to the calculator (USB disk) and load them as you load any

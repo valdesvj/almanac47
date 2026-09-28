@@ -245,3 +245,7 @@ INIT with the builders as LBL 01-04.
 - NAVTXT_FAST: NAV + ALMR + INIT. ALMR = ALMT with LBL 91 storing R20 in R50+ (STO IND 79)
   and the line break of each page stored separately; no PROMPT, no drawing. test_navfull
   checks the lines against the ALMT pages.
+- Split again (Sep 28): NAV+INIT in one file (15-19 k lines) gave "invalid data" in rejig. Now
+  NAVALL / NAVCOMP / NAVTXT hold NAV and the programs (NAV still runs INIT and deletes it);
+  INIT is loaded from NAVINIT_FAST (or _FULL). If NAVALL still fails, the only new steps against
+  NAVFULL_NOTBL are FS? 81 / XEQ "INIT" / DELP "INIT" / SF 81 at the start of NAV.
