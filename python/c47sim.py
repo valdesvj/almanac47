@@ -190,6 +190,7 @@ class Calc:
             if op == 'αSL': self.rset(arg, self.rget(arg)[int(self.s[0]):]); continue
             if op == 'REM': continue
             if op == 'WSIZE': self.ws=int(arg); continue
+            if op == 'SNAP': self.snaps=getattr(self,'snaps',0)+1; continue
             if op == 'REGS': self.regs_opened=True; continue
             if op == 'RAN#':
                 import random as _r; self.push(D(repr(_r.Random(getattr(self,'seed',0)).random()))); self.seed=getattr(self,'seed',0)+1; continue

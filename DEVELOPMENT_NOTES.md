@@ -275,3 +275,6 @@ INIT with the builders as LBL 01-04.
   key is released; KT2 (PAUSE only, key pressed during the pause) - the band stays. So the redraw
   comes with a key caught by KEY? (on its release), not with every key. Hence NAV: after KEY?
   a pause (with the ants) for the release, then draw again.
+- g + EXIT (screenshot) does not work while NAV runs: KEY? takes the keys, EXIT stops the program.
+  Now the . key (83) runs SNAP (SCREENS/<date>.bmp) on the menu and on every drawn view, then
+  the screen is drawn again (the release after KEY?).
