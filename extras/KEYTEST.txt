@@ -42,4 +42,26 @@ PAUSE 99
 DSE 02
 GTO 12
 RTN
+LBL "KT3"
+REM "TEST 3: which key codes does KEY? give on the real C47? Press 8 keys, slowly,"
+REM "one at a time (not R/S or EXIT). The codes go to R01-R08, the time (TICKS) to R11-R18."
+REM "Then look with REGS: one code per press = normal; extra codes = release events too."
+CLLCD
+1.008
+STO 09
+11
+STO 19
+LBL 21
+KEY? 10
+GTO 21
+RCL 10
+STO IND 09
+TICKS
+STO IND 19
+1
+STO+ 19
+ISG 09
+GTO 21
+REGS
+RTN
 END

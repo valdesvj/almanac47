@@ -275,3 +275,6 @@ INIT with the builders as LBL 01-04.
   key is released; KT2 (PAUSE only, key pressed during the pause) - the band stays. So the redraw
   comes with a key caught by KEY? (on its release), not with every key. Hence NAV: after KEY?
   a pause (with the ants) for the release, then draw again.
+- Real C47: after the last INPUT (LON) a key had to be pressed before the menu showed. NAV now
+  waits PAUSE 3 after the inputs (the R/S release), then draws the menu. KEYTEST KT3 logs the
+  key codes KEY? returns (R01-R08) and TICKS (R11-R18), to compare hardware and simulator.

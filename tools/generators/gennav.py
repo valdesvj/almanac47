@@ -82,7 +82,8 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL "NAV"')
     if autoinit:
         a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
-    a(0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
+    a(0, 'STO "DH"', 'XEQ 20', 'PAUSE 3', 'LBL 01', 'XEQ 40')               # DATE UTC LAT LON once; the pause lets the
+                                                                            # R/S of the last INPUT be released before the menu is drawn
     # wait for a key; 0 ends; a digit key opens its view
     a('LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
