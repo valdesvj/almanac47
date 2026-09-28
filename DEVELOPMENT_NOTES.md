@@ -264,3 +264,6 @@ INIT with the builders as LBL 01-04.
   R50-R78 blanked, ALMR, lines to the stack and lettered registers), then REGS and NAV ends.
   Menu: UP / DOWN change the hour (LBL 22/23, ants, menu drawn again). programs/ALMT.txt (PROMPT
   pages) stays for the PC tools; after its last page it returns (RTN).
+- SKY (HORZ): the info line cycles by itself (TICKS, 3 s per body; KEY? polled: other key = next,
+  + / arrows = back to NAV); R/S stopped the program. UT top right (PHMS, row 227, col 336),
+  DR position in the small font under it (row 215, minutes rounded). Python horz() the same.

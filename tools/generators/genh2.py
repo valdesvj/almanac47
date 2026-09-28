@@ -34,6 +34,9 @@ def gen(name, info, rows=10):
       '10','RCL 96','X>Y?','XEQ 43','LBL 36','ISG 11','GTO 44','LBL 42')
     a('"S"','STO 15','FS? 11','XEQ 29','FS? 12','XEQ 65','7','2','RCL 15','XEQ "PTXT"')   # T = tables, S = series (bottom left)
     if info:
+        # DR position under the top line, small font: N 25 12  E 55 18
+        a('"N"','STO 43','RCL 91','X<0?','XEQ 59','"E"','STO 39','RCL 92','X<0?','XEQ 60',
+          '215','326','RCL 43','XEQ "PTXT"','RCL 91','XEQ 54','"  "','XEQ "PTXT"','RCL 39','XEQ "PTXT"','RCL 92','XEQ 54')
         a('RCL 10','X=0?','RTN','1','STO 42',
           'LBL 35','INDEX "HZT"','RCL 42','1','STOIJ','RCLEL','J+','STO 13','RCLEL','J+','STO 97','RCLEL','STO 96',
           '224','0','CLLCDxy',
@@ -42,13 +45,21 @@ def gen(name, info, rows=10):
           'LBL 32','RCL 13','CHS','80','+','STO 14','227','2','XEQ IND 14','XEQ "PTXS"','GTO 30',
           'LBL 31','227','2','"SUN"','XEQ "PTXS"',
           'LBL 30','"  ZN "','XEQ "PTXS"','RCL 97','XEQ "PF1S"','"  HC "','XEQ "PTXS"','RCL 96','X<0?','XEQ 33','XEQ "PF1S"',
-          'LBL 41','KEY? 39','GTO 41','RCL 39','85','X=Y?','RTN','RCL 39','51','X=Y?','RTN','RCL 39','61','X=Y?','RTN','1','STO+ 42','RCL 10','RCL 42','X>Y?','XEQ 34','GTO 35',     # a key: next body (endless); + or an arrow: back to NAV
+          '227','336','RCL 90','0.5','+','1','MOD','24','×','XEQ "PHMS"','" UT"','XEQ "PTXS"',          # UT, top right
+          # 3 s per body (TICKS: 1/10 s), then the next one, endless; a key: next body now;
+          # + or an arrow: back to NAV (menu / one hour later / earlier)
+          'TICKS','30','+','STO 38',
+          'LBL 41','KEY? 39','GTO 46','RCL 39','85','X=Y?','RTN','RCL 39','51','X=Y?','RTN','RCL 39','61','X=Y?','RTN',
+          'LBL 62','1','STO+ 42','RCL 10','RCL 42','X>Y?','XEQ 34','GTO 35',
+          'LBL 46','TICKS','RCL 38','X>Y?','GTO 41','GTO 62',
           'LBL 34','1','STO 42','RTN',
           'LBL 33','R↓','"-"','XEQ "PTXS"','RCL 96','RTN')                         # minus sign (Sun below the horizon)
     else:
         a('3','STO 37','LBL 21','PAUSE 99','DSE 37','GTO 21','RTN')
     # record object: X = id (0 Sun, -1 Moon, -2..-5 planets, n star) with Zn R97 and Hc R96
     a('LBL 29','"T"','STO 15','RTN','LBL 65','"X"','STO 15','RTN')
+    a('LBL 59','"S"','STO 43','RTN','LBL 60','"W"','STO 39','RTN')
+    a('LBL 54','ABS','60','×','0.5','+','IP','STO 37','60','÷','IP','XEQ "PTNS"','" "','XEQ "PTXT"','RCL 37','60','MOD','XEQ "PTNS"','RTN')   # small "dd mm" (rounded to the minute)
     a('LBL 40','STO 13','1','STO+ 10','INDEX "HZT"','RCL 10','1','STOIJ','RCL 13','STOEL','J+','RCL 97','STOEL','J+','RCL 96','STOEL','RTN')
     a('LBL 47','241','RCL- 99','6','-','RCL 98','6','-','"("','XEQ "PTXS"','-1','XEQ 40','RTN')
     a('LBL 48','RCL 11','IP','70','+','STO 14','241','RCL- 99','6','-','RCL 98','6','-','XEQ IND 14','XEQ "PTXS"',

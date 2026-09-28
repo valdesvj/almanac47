@@ -488,6 +488,13 @@ def horz(al, info=True):
     sc.small(7, 2, al.source)                                # T tables / S series
     if not info or not objs:
         return [sc.rows()]
+    # DR position under the top line (small font), UT top right on every info frame
+    def dm(x, v):
+        t = ip(abs(v) * 60 + 0.5)                             # minutes, rounded
+        x = sc.ptns(215, x, ip(t / 60)); x = sc.small(215, x, ' ')
+        return sc.ptns(215, x, t % 60)
+    x = sc.small(215, 326, 'S' if al.lat < 0 else 'N'); x = dm(x, al.lat); x = sc.small(215, x, '  ')
+    x = sc.small(215, x, 'W' if al.lon < 0 else 'E'); dm(x, al.lon)
     frames = []
     for ident, zn, hc in objs:
         sc.pix = {p for p in sc.pix if p[1] < 224}
@@ -499,6 +506,7 @@ def horz(al, info=True):
         if hc < 0:
             x = sc.text(227, x, '-')
         sc.pf1(227, x, hc)
+        x = sc.phm(227, 336, ((al.j + 0.5) % 1) * 24); sc.text(227, x, ' UT')
         frames.append(sc.rows())
     return frames
 

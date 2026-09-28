@@ -58,7 +58,8 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
                      DOWN arrow  the same view one hour earlier
    (the hours added stay for the other views; the menu title shows the time in use)
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
-   4 SKY: any other key shows the next body. 3 TEXT: the almanac page as text, the same as
+   4 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
+   any other key shows the next body at once (do not use R/S: it stops the program). 3 TEXT: the almanac page as text, the same as
    NAVTXT: lines in R50-R76, lines 1-26 also in the stack and lettered registers (REGS order);
    NAV ends and opens the register browser (REGS). XEQ "NAV" again for the menu. 0 on the menu ends NAV. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
