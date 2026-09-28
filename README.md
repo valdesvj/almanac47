@@ -22,6 +22,11 @@ Sun, Moon, planets and the 57 navigational stars (+ Polaris): GHA, Dec, Hc, Zn,
 twilight, sunrise/sunset, meridian passage, Moon phase; almanac pages and horizon
 charts drawn on the calculator screen.
 
+## Author
+
+Victorio Valdes. Written with the help of AI (Claude, by Anthropic); results checked
+against JPL Horizons and USNO, screens tested on the calculator.
+
 ## Licence
 
 The calculator programs (`programs/`, `programs_rem/`, `listings/`, `rtf/`) are
