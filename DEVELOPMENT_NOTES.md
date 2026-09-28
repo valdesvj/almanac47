@@ -267,3 +267,7 @@ INIT with the builders as LBL 01-04.
 - SKY (HORZ): the info line cycles by itself (TICKS, 3 s per body; KEY? polled: other key = next,
   + / arrows = back to NAV); R/S stopped the program. UT top right (PHMS, row 227, col 336),
   DR position in the small font under it (row 215, minutes rounded). Python horz() the same.
+- Any key now leaves a view (WPLS returns on every key, SKY too): NAV LBL 05 draws the same
+  view again for keys other than + and the arrows (the release would leave the stack there);
+  other keys on the menu draw the menu again (LBL 26). c47sim: keyskip = KEY? without a key goes
+  on (SKY's timed loop), a frame each time the screen changed.

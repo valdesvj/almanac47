@@ -114,7 +114,7 @@ class Engine:
         A frame is a set of lit pixels (x, row) with row 0 at the top."""
         self._start(j, lat, lon)
         self.c.maxpauses = 11 if view == 'HORZ' else None    # HORZ repeats its info frames forever
-        self.c.keys = [11] * 20 if view == 'HORZ' else []     # HORZ: any key (not +) shows the next body
+        self.c.keys = []; self.c.keyskip = (view == 'HORZ')   # HORZ: no key, the info line goes on by itself
         try:
             self.c.run(view, maxsteps=10 ** 7)
         except StopIteration:

@@ -35,7 +35,7 @@ def load(paths):
 def run(c, view, j, la, lo, answers=None, pauses=None, prompts=None):
     c.steps = 0; c.pix = []; c.frames = []; c.msgs = []; c.s = [D(0)] * 4; c.lift = True
     c.answers = list(answers or []); c.maxpauses = pauses; c.maxprompts = prompts if prompts else 10 ** 9
-    c.keys = [11] * 20 if view == 'HORZ' else [85] if view == 'BODY' else []
+    c.keys = [85] if view == 'BODY' else []; c.keyskip = (view == 'HORZ')
     for v in (j, la, lo):
         c.push(D(repr(v)))
     try:

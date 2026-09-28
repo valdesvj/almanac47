@@ -80,7 +80,7 @@ c.run('NAV',maxsteps=10**8)
 print('NAV option 3 (TEXT): X =', str(c.s[0])[:40], '| I =', str(c.rget('I'))[:30], '| REGS:', getattr(c,'regs_opened',False))
 # HORZ through the minimum set: every info frame of one cycle
 def horz(c,j,la,lo):
-    c.steps=0; c.pix=[]; c.frames=[]; c.msgs=[]; c.s=[D(0)]*4; c.lift=True; c.maxpauses=11; c.keys=[11]*20
+    c.steps=0; c.pix=[]; c.frames=[]; c.msgs=[]; c.s=[D(0)]*4; c.lift=True; c.maxpauses=11; c.keys=[]; c.keyskip=True
     for v in (j,la,lo): c.push(D(repr(v)))
     try: c.run('HORZ',maxsteps=10**7)
     except StopIteration: pass
@@ -95,7 +95,7 @@ for tables in (False, True):
         if a!=b: bad+=1; print('HORZ DIFF',k,len(a),len(b))
     print('HORZ', 'tables' if tables else 'series', 'differences', bad, 'frames last case', len(a))
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-c.s=[D(0)]*4; c.keys=[KEYCODE[4],11,11,11]; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxpauses=4
+c.s=[D(0)]*4; c.keys=[KEYCODE[4]]; c.keyskip=True; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxpauses=4
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 try: c.run('NAV',maxsteps=10**7)
 except StopIteration: pass
@@ -142,7 +142,7 @@ for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,9)),('build/NAVCOMP.txt',(1,2,4
         c.run('NAV',maxsteps=10**8)
         v={1:'ALMF',2:'HALMV',4:'HORZ',5:'ALMS',6:'HALMH',9:'ALLSKY'}[opt]
         b,_=ref.screen(v,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
-        f=c.frames[2+len(keys)]
+        f=c.frames[2+7*len(keys)]                                    # an ignored key: 6 ant frames + the menu again
         res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
     print(os.path.basename(name), 'INIT run once, flag 81:', 81 in c.flags, 'views same as FAST:', res)
 # text only: NAVTXT_FAST writes the page into R50 ... (no drawing); compare with ALMT's PROMPT pages
@@ -171,3 +171,11 @@ alm=[f for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b
 print('NAV menu arrows: DH =', c.rget('DH'), '| ALMF drawn at 15:57 UT:', len(alm)==1)
 c=load_one('build/NAVTXT.txt'); c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.s=[D(0)]*4; c.run('NAV',maxsteps=10**8); print('NAVTXT ends with REGS:', getattr(c,'regs_opened',False))
+# any other key on a view: drawn again (ants first); + menu; 0 end
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+c.s=[D(0)]*4; c.keys=[KEYCODE[1],11,85,KEYCODE[0]]; c.frames=[]; c.pix=[]
+c.run('NAV',maxsteps=10**8)
+ref=Engine('programs'); b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60),25+20/60,55+12/60)
+n=sum(1 for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
+print('NAV other key on ALMF: drawn', n, 'times (2 expected)')
