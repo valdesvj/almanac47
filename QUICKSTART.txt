@@ -61,8 +61,9 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    (the hours added stay for the other views; the menu title shows the time in use)
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
-   the views then only draw. After a number (the item highlighted), + or an arrow, 20 ants run
-   over the screen shown until the new one is drawn (each ant takes 0.1 s).
+   the views then only draw. After a number the item is highlighted while the view is drawn.
+   (Something lives in NAV at the step after LBL 48 - line 382 of NAVFULL / NAVFULL_NOTBL,
+   389 of NAVALL, 220 of NAVCOMP. It is 0. Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
    (7 BODY and 8 ANIM compute their own times, as before.)

@@ -29,7 +29,7 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
-ANTS = 20                              # ants over the old screen after + or an arrow, 0.1 s apart
+ANTS = 0                               # easter egg: the step after LBL 48 in NAV; 20 gives 20 ants (0.1 s each)
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -118,14 +118,14 @@ def program(inp, items=ALL, autoinit=False):
     # LBL 6d: item d chosen: invert it for a moment, then its view
     for d in items:
         y, x = place(d, items)
-        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'XEQ 48', d, 'STO "VW"', 'GTO 03')
+        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 1', 'XEQ 48', d, 'STO "VW"', 'GTO 03')
     # after a view (it returns on +, up or down, R39): up one hour later, down one hour earlier, + the menu
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'XEQ 48', 'GTO 01',
       'LBL 06', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'XEQ 48', 'GTO 03',
       # LBL 48: ants over the screen that is shown (XOR, so they show on black too), 0.1 s apart.
       # The C47 shows the screen only at a PAUSE: while the next screen is computed and drawn the
       # display keeps this one, ants included, until the new screen's PAUSE 1.
-      'LBL 48', ANTS, 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
+      'LBL 48', ANTS, 'X=0?', 'RTN', 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
       # LBL 47: one ant (10 x 14 pixels) at a random place, column by column, GRMOD 3 (XOR)
       'LBL 47', 'XEQ 50',
       'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37', 'RCL 37', 'RCL 36', 'XEQ 42', 'XEQ 51', 'RTN',
