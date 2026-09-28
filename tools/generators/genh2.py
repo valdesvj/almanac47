@@ -42,7 +42,7 @@ def gen(name, info, rows=10):
           'LBL 32','RCL 13','CHS','80','+','STO 14','227','2','XEQ IND 14','XEQ "PTXS"','GTO 30',
           'LBL 31','227','2','"SUN"','XEQ "PTXS"',
           'LBL 30','"  ZN "','XEQ "PTXS"','RCL 97','XEQ "PF1S"','"  HC "','XEQ "PTXS"','RCL 96','X<0?','XEQ 33','XEQ "PF1S"',
-          'LBL 41','KEY? 39','GTO 41','RCL 39','85','X=Y?','RTN','1','STO+ 42','RCL 10','RCL 42','X>Y?','XEQ 34','GTO 35',     # a key: next body (endless); + back to the menu
+          'LBL 41','KEY? 39','GTO 41','RCL 39','85','X=Y?','RTN','RCL 39','51','X=Y?','RTN','RCL 39','61','X=Y?','RTN','1','STO+ 42','RCL 10','RCL 42','X>Y?','XEQ 34','GTO 35',     # a key: next body (endless); + or an arrow: back to NAV
           'LBL 34','1','STO 42','RTN',
           'LBL 33','R↓','"-"','XEQ "PTXS"','RCL 96','RTN')                         # minus sign (Sun below the horizon)
     else:

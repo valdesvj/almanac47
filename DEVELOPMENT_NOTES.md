@@ -224,3 +224,7 @@ INIT with the builders as LBL 01-04.
 - PTXS has '+' now (mkstd.py). Bottom of the menu in PTXS: the key hint and the warning.
 - c47sim: KEY? records a frame; no key left ends the run (StopIteration). Engine feeds HORZ keys.
 - Keycodes assumed (soft keys = row 1); check on the calculator (extras/MENUG shows unknown codes).
+- DATE UTC LAT LON are asked once at the start (LBL 20); LBL 21 computes JD + R"DH"/24, lat, lon
+  for each view. WPLS returns on + (85), up arrow (51), down arrow (61); NAV (LBL 05) adds or
+  subtracts one hour in "DH" and draws the view "VW" again. HORZ returns on + or an arrow too.
+  Arrow keycodes assumed (51/61, left of 7 and 4); test_navfull checks ALMF at +0 +1 0 -1 h.

@@ -2,12 +2,15 @@
 """gennav.py - NAV: the menu of the navigation suite, drawn on the graphics screen.
 
 The menu is drawn with PTXS; KEY? waits for a key (no PROMPT):
-  1-9  the item is inverted for a moment (GRMOD 3, XOR box), NAV asks DATE UTC LAT LON
-       (INPUT) and runs the view; every view waits for + (WPLS) and comes back here
+  NAV asks DATE UTC LAT LON once (INPUT), at the start; the menu title shows date and time.
+  1-9  the item is inverted for a moment (GRMOD 3, XOR box) and the view runs; every
+       drawn view waits (WPLS): + back to the menu, up arrow = one hour later, down
+       arrow = one hour earlier (the view is drawn again; the offset stays, R"DH")
   0    end
 Keycodes (row x 10 + column, soft keys = row 1): 7 8 9 = 52-54, 4 5 6 = 62-64,
 1 2 3 = 72-74, 0 = 82, + = 85; digit = (7 - row) x 3 + column - 1.
-Registers: R39 keycode, R38 digit, R36/R37 while inverting (and R30-R36 in the fonts).
+Registers: R39 keycode, R38 digit, R36/R37 while inverting (and R30-R36 in the fonts);
+variables DATE UTC LAT LON, DH (hours added by the arrows), VW (the view shown).
 
   python3 gennav.py      -> programs/NAV.txt, docs/NAV_menu_preview.png
 """
@@ -20,7 +23,8 @@ VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'HANIM', 'ALL
 TOP, PITCH, XL, XR = 190, 30, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'C47 NAV'
-HINT = 'KEY A NUMBER      + BACK TO THE MENU'
+UP, DOWN = 51, 61                      # arrow keycodes
+HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 
@@ -32,32 +36,43 @@ def place(d):
     return (TOP - i * PITCH, XL) if i < 5 else (TOP - (i - 5) * PITCH, XR)
 
 
+OLD_INPUT = 'LBL 20|INPUT "DATE"|INPUT "UTC"|INPUT "LAT"|INPUT "LON"|RCL "DATE"|10000|×|0.5|+|IP|STO 03|10000|÷|IP|STO 01|RCL 03|100|÷|IP|100|MOD|STO 02|RCL 03|100|MOD|STO 03|RCL "UTC"|10000|×|0.5|+|IP|STO 04|100|MOD|3600|÷|RCL 04|100|÷|IP|100|MOD|60|÷|+|RCL 04|10000|÷|IP|+|STO 04|RCL 02|3|X>Y?|XEQ 31|RCL 01|100|÷|IP|STO 05|2|RCL- 05|RCL 05|4|÷|IP|+|STO 05|RCL 01|4716|+|365.25|×|IP|RCL 02|1|+|30.6001|×|IP|+|RCL+ 03|RCL+ 05|1524.5|-|RCL 04|24|÷|+|STO 06|RCL "LAT"|XEQ 30|STO 07|RCL "LON"|XEQ 30|STO 08|RCL 06|RCL 07|RCL 08|RTN|LBL 30|STO 38|IP|RCL 38|FP|100|×|60|÷|+|RTN|LBL 31|1|STO- 01|12|STO+ 02|RTN'
+
+
 def inputs():
-    """LBL 20 (DATE UTC LAT LON -> Z JD, Y lat, X lon), LBL 30, LBL 31: from the old NAV."""
-    old = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'programs', 'NAV.txt'), encoding='utf-8')]
-    i = old.index('LBL 20')
-    assert old[-1] == 'END' and 'INPUT "DATE"' in old[i:]
-    return old[i:-1]
+    """LBL 20: INPUT DATE UTC LAT LON (once, at the start).
+    LBL 21: Z JD (+ R"DH" hours from the arrow keys), Y lat, X lon from those variables; JD also in R06."""
+    L = OLD_INPUT.split('|')
+    k = L.index('RCL "DATE"')
+    body = L[k:]
+    m = body.index('STO 06')
+    body = body[:m + 1] + ['RCL "DH"', '24', '÷', 'STO+ 06'] + body[m + 1:]
+    return L[:k] + ['RTN', 'LBL 21'] + body
 
 
 def program(inp):
     P = []
     a = lambda *s: P.extend(str(x) for x in s)
-    a('LBL "NAV"', 'LBL 01', 'XEQ 40')
+    a('LBL "NAV"', 0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')      # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key 1-9 opens its view
     a('LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 02', 'RCL 38', 7, 'X<Y?', 'GTO 02',     # row 5-7
       'RCL 39', 10, 'MOD', 'STO 37', 2, 'X>Y?', 'GTO 02', 'RCL 37', 4, 'X<Y?', 'GTO 02',        # column 2-4
       7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38',                                   # the digit
-      'XEQ 41', 'PAUSE 3')
+      'XEQ 41', 'PAUSE 3', 'RCL 38', 'STO "VW"',
+      'LBL 03', 0, 'STO 39')                                                   # LBL 03: (re)draw view VW
     for d in range(1, 10):
-        a(d, 'RCL 38', 'X=Y?', 'GTO %d' % (9 + d))
+        a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN')
     for d, v in enumerate(VIEWS, 1):
-        a('LBL %d' % (9 + d), 'XEQ 20', 'XEQ "%s"' % v, 'GTO 01')
+        a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % v, 'GTO 05')
+    # after a view: up arrow (51) one hour later, down arrow (61) one hour earlier, + the menu
+    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
+      'LBL 06', 1, 'STO+ "DH"', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'GTO 03')
     # LBL 40: the menu
-    a('LBL 40', 'CLLCD', 222, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 216, 0, 400, 'XEQ "PHLS"')
+    a('LBL 40', 'XEQ 21', 'CLLCD', 222, 2, '"%s   "' % TITLE, 'XEQ "PTXS"', 'RCL 06', 'XEQ "PDTS"', '" "', 'XEQ "PTXS"',
+      'RCL 06', 0.5, '+', 1, 'MOD', 24, '×', 'XEQ "PHMS"', '" UT"', 'XEQ "PTXS"', 216, 0, 400, 'XEQ "PHLS"')
     for d in list(range(1, 10)) + [0]:
         y, x = place(d)
         a(y, x, '"%d %s"' % (d, ITEMS[d - 1] if d else 'END'), 'XEQ "PTXS"')
@@ -78,7 +93,7 @@ def preview(path):
     shots = []
     for hi in (None, 2):
         sc = S.Screen(S.STD)
-        sc.text(222, 2, TITLE); sc.hline(216, 0, 400)
+        x = sc.text(222, 2, TITLE + '   '); x = sc.text(222, x, '28-09-2026 18:00 UT'); sc.hline(216, 0, 400)
         for d in list(range(1, 10)) + [0]:
             y, x = place(d)
             sc.text(y, x, '%d %s' % (d, ITEMS[d - 1] if d else 'END'))
