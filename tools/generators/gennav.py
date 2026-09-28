@@ -26,7 +26,6 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
-ANTS = 6                               # ants shown after an arrow, 0.1 s apart
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -82,8 +81,7 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL "NAV"')
     if autoinit:
         a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
-    a(0, 'STO "DH"', 'XEQ 20', 'PAUSE 3', 'LBL 01', 'XEQ 40')               # DATE UTC LAT LON once; the pause lets the
-                                                                            # R/S of the last INPUT be released before the menu is drawn
+    a(0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
     # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
     # while the program waits in a KEY? loop - without it the menu stays invisible until a key
@@ -95,12 +93,12 @@ def program(inp, items=ALL, autoinit=False):
       7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38')                                   # the digit
     for d in items:
         a(d, 'RCL 38', 'X=Y?', 'GTO %d' % (60 + d))
-    a('LBL 26', 'XEQ 48', 'GTO 01')                                        # another key: ants, the menu again
+    a('LBL 26', 'GTO 02')                                                   # another key: ignored, the menu stays
     a('LBL 03', 0, 'STO 39')                                                # LBL 03: (re)draw view VW
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
-      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01')
+      'LBL 22', 1, 'STO+ "DH"', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'GTO 01')
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
             a('LBL 12', *text_steps(24)); a('REGS', 'RTN')
@@ -110,24 +108,9 @@ def program(inp, items=ALL, autoinit=False):
     for d in items:
         y, x = place(d, items)
         a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 3', d, 'STO "VW"', 'GTO 03')
-    # after a view: up arrow one hour later, down arrow one hour earlier, + the menu
-    # after a view (it returns on any key, R39): + the menu, up arrow one hour later, down arrow one
-    # hour earlier, any other key the same view again (its release would leave the stack on the screen)
-    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07',
-      'RCL 39', 'X=0?', 'GTO 25', 85, 'X≠Y?', 'GTO 08', 'LBL 25', 'XEQ 48', 'GTO 01',
-      'LBL 06', 1, 'STO+ "DH"', 'GTO 08', 'LBL 07', 1, 'STO- "DH"',
-      # while the key is released (its release would bring the stack back over a new drawing):
-      # a clear screen with ants appearing at random places, then the view is drawn again
-      'LBL 08', 'XEQ 48', 'GTO 03',
-      # LBL 48 (after + or an arrow): clear screen, ants appear 0.1 s apart while the key is released
-      'LBL 48', 'CLLCD', ANTS, 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
-      # LBL 47: one ant (10 x 14 pixels) at a random place, drawn column by column
-      'LBL 47', 'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37',
-      'WSIZE 16', 'RCL 37', 'RCL 36',
-      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32',                    # feelers
-      '00111100111111#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',        # head and body
-      'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',
-      '11000000000000#2', 'STO 32', 'R↓', 'AGRAPH 32', 'AGRAPH 32', 'WSIZE 64', 'RTN')   # feelers
+    # after a view (it returns on +, up or down, R39): up one hour later, down one hour earlier, + the menu
+    a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
+      'LBL 06', 1, 'STO+ "DH"', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'GTO 03')
     # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
     # date, time and DR position in use (the arrows change the time: shown here too)
     a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',

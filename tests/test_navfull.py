@@ -56,7 +56,7 @@ c.s=[D(0)]*4; c.keys=[KEYCODE[1],51,61,61,85,KEYCODE[0]]; c.msgs=[]; c.frames=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.run('NAV',maxsteps=10**8)
 ref=Engine('programs'); ok=[]
-views=c.frames[3:7]                  # pause after inputs, menu, highlight, ALMF, ALMF+1, ALMF, ALMF-1 (ants: PAUSE 1, no frames)            # menu, highlight, ALMF, 6 ant frames (PAUSE 1), ALMF ...
+views=c.frames[2:6]                  # menu, highlight, ALMF, ALMF+1, ALMF, ALMF-1            # menu, highlight, ALMF, 6 ant frames (PAUSE 1), ALMF ...
 for f,dh in zip(views,(0,1,0,-1)):
     b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60+dh),25+20/60,55+12/60)
     ok.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
@@ -106,7 +106,7 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
     ref=Engine('programs'); b,_=ref.screen(name,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
     c.run('NAV',maxsteps=10**7)
-    a={(x,239-y) for y,x in c.frames[3] if 0<=x<400 and 0<=y<240}     # frames: pause after the inputs, menu, item inverted (PAUSE 3), the view, menu
+    a={(x,239-y) for y,x in c.frames[2] if 0<=x<400 and 0<=y<240}     # frames: menu, item inverted (PAUSE 3), the view, menu
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
 # option 7 BODY: first list page and a chosen star
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
@@ -142,7 +142,7 @@ for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,9)),('build/NAVCOMP.txt',(1,2,4
         c.run('NAV',maxsteps=10**8)
         v={1:'ALMF',2:'HALMV',4:'HORZ',5:'ALMS',6:'HALMH',9:'ALLSKY'}[opt]
         b,_=ref.screen(v,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
-        f=c.frames[3+len(keys)]                                    # an ignored key: 6 ant frames + the menu again
+        f=c.frames[2+len(keys)]                                      # an ignored key: the menu waits again                                    # an ignored key: 6 ant frames + the menu again
         res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
     print(os.path.basename(name), 'INIT run once, flag 81:', 81 in c.flags, 'views same as FAST:', res)
 # text only: NAVTXT_FAST writes the page into R50 ... (no drawing); compare with ALMT's PROMPT pages
@@ -178,4 +178,4 @@ c.s=[D(0)]*4; c.keys=[KEYCODE[1],11,85,KEYCODE[0]]; c.frames=[]; c.pix=[]
 c.run('NAV',maxsteps=10**8)
 ref=Engine('programs'); b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60),25+20/60,55+12/60)
 n=sum(1 for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
-print('NAV other key on ALMF: drawn', n, 'times (2 expected)')
+print('NAV other key on ALMF: ignored, the view stays (seen', n, 'times, 2 expected)')

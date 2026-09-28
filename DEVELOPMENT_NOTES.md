@@ -283,3 +283,7 @@ INIT with the builders as LBL 01-04.
   sent to the display at a PAUSE or a key, not while a KEY? loop runs (the PC simulator of the C47
   showed it at once). Fix: PAUSE 1 after drawing, before every KEY? wait (menu, WPLS, SKY loop).
   KT4 = KT1 with PAUSE 1. c47sim: PAUSE 1 makes no frame.
+- With PAUSE 1 the real C47 shows every screen and the stack does not come back on a key
+  release (that was the PC simulator). Removed: the ants, the pause after the inputs and after
+  the arrows, the redraw on other keys. Views wait for + / arrows (WPLS, SKY), other keys are
+  ignored and the screen stays; the menu ignores other keys too.
