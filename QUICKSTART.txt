@@ -11,7 +11,16 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
-1. LOAD THE PROGRAMS
+ONE-FILE INSTALL (NAV and INIT together, FAST matrices 2026-2030, no almanac tables)
+  NAVALL_FAST   all nine views               19,067 lines to load, 12,538 stay after INIT
+  NAVCOMP_FAST  compact: 1 ALMANAC 2 CHART   14,946 lines to load,  8,417 stay after INIT
+                4 SKY 9 ALLSKY
+  rejig build/NAVCOMP_FAST.txt -o NAVCOMP_FAST.p47, load it, XEQ "NAV".
+  The first NAV builds the matrices (INIT, takes a while), deletes INIT (DELP "INIT") and
+  sets flag 81; later runs go straight to the menu. To load the file again (new period):
+  CF 81 first, so the new INIT is run and deleted too.
+
+1. LOAD THE PROGRAMS (two files: NAVFULL_NOTBL + NAVINIT_FAST)
    Copy both .p47 files to the calculator (USB disk) and load them as you load any
    program file (I/O menu, READP).
 

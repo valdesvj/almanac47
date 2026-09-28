@@ -182,6 +182,7 @@ class Calc:
             if op == 'αSL': self.rset(arg, self.rget(arg)[int(self.s[0]):]); continue
             if op == 'REM': continue
             if op == 'WSIZE': self.ws=int(arg); continue
+            if op == 'DELP': self.deleted=getattr(self,'deleted',[])+[arg]; continue
             if op == 'GRMOD': self.grmod=int(self.rget(arg)); continue
             if op == 'AGRAPH' and arg:
                 v=int(self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])

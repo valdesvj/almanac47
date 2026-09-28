@@ -126,3 +126,23 @@ for k in range(8):
         a,_=screen(mini,v,j,la,lo); b,_=ref.screen(v,j,la,lo); n+=1
         if a!=b[0]: bad+=1; print('FAST DIFF',v,k)
 print('FAST via INIT: %d screens, %d differences'%(n,bad), [str(m) for m in mini.msgs][-1:] if mini.msgs else '')
+# NAV + INIT in one file: the first NAV builds the matrices and deletes INIT (DELP), flag 81
+def load_one(path):
+    tmp=tempfile.mkdtemp(); files=[]
+    for i,pr in enumerate(split(path)):
+        f=os.path.join(tmp,'p_%d.txt'%i); open(f,'w').write('\n'.join(pr)+'\n'); files.append(f)
+    return c47sim.load(files)
+ref=Engine('programs',fast=True)
+for name,opts in (('build/NAVALL_FAST.txt',(1,2,4,5,6,9)),('build/NAVCOMP_FAST.txt',(1,2,4,9))):
+    c=load_one(name)
+    c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+    res=[]
+    for k,opt in enumerate(opts):
+        keys=[KEYCODE[3]] if 'COMP' in name and k==0 else []          # 3 is not in the compact menu: ignored
+        c.s=[D(0)]*4; c.keys=keys+[KEYCODE[opt]]+([11,85] if opt==4 else [85])+[KEYCODE[0]]; c.frames=[]; c.pix=[]
+        c.run('NAV',maxsteps=10**8)
+        v={1:'ALMF',2:'HALMV',4:'HORZ',5:'ALMS',6:'HALMH',9:'ALLSKY'}[opt]
+        b,_=ref.screen(v,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
+        f=c.frames[2+len(keys)]
+        res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
+    print(os.path.basename(name), 'INIT deleted:', getattr(c,'deleted',[]), 'flag 81:', 81 in c.flags, 'views same as FAST:', res)

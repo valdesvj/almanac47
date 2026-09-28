@@ -7,6 +7,8 @@ The menu is drawn with PTXS; KEY? waits for a key (no PROMPT):
        drawn view waits (WPLS): + back to the menu, up arrow = one hour later, down
        arrow = one hour earlier (the view is drawn again; the offset stays, R"DH")
   0    end
+Compact version (build_navfull.py): items 1 2 4 9 only. With autoinit NAV and INIT share one
+file: the first NAV runs INIT and deletes it (DELP), flag 81 set.
 Keycodes (row x 10 + column, soft keys = row 1): 7 8 9 = 52-54, 4 5 6 = 62-64,
 1 2 3 = 72-74, 0 = 82, + = 85; digit = (7 - row) x 3 + column - 1.
 Registers: R39 keycode, R38 digit, R36/R37 while inverting (and R30-R36 in the fonts);
@@ -28,11 +30,17 @@ HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 
-def place(d):
-    """Base line row and column of menu item d (1-9, 0 = END)."""
-    if d == 0:
-        return TOP - 4 * PITCH, XR
-    i = d - 1
+ALL = list(range(1, 10))
+COMPACT = [1, 2, 4, 9]                 # compact version: ALMANAC CHART SKY ALLSKY
+
+
+def place(d, items=ALL):
+    """Base line row and column of menu item d (1-9, 0 = END): two columns of 5 for the
+    full menu, one column for a short one."""
+    order = list(items) + [0]
+    i = order.index(d)
+    if len(order) <= 5:
+        return TOP - i * PITCH, XL
     return (TOP - i * PITCH, XL) if i < 5 else (TOP - (i - 5) * PITCH, XR)
 
 
@@ -50,56 +58,65 @@ def inputs():
     return L[:k] + ['RTN', 'LBL 21'] + body
 
 
-def program(inp):
+def program(inp, items=ALL, autoinit=False):
+    """autoinit: NAV and INIT in one file - the first NAV runs INIT (builds the matrices) and
+    deletes it with DELP; flag 81 remembers that it is done (CF 81 before loading a new INIT)."""
     P = []
     a = lambda *s: P.extend(str(x) for x in s)
-    a('LBL "NAV"', 0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')      # DATE UTC LAT LON once
-    # wait for a key; 0 ends; a digit key 1-9 opens its view
+    a('LBL "NAV"')
+    if autoinit:
+        a('FS? 81', 'GTO 04', 'XEQ "INIT"', 'DELP "INIT"', 'SF 81', 'LBL 04')
+    a(0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
+    # wait for a key; 0 ends; a digit key opens its view
     a('LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 02', 'RCL 38', 7, 'X<Y?', 'GTO 02',     # row 5-7
       'RCL 39', 10, 'MOD', 'STO 37', 2, 'X>Y?', 'GTO 02', 'RCL 37', 4, 'X<Y?', 'GTO 02',        # column 2-4
-      7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38',                                   # the digit
-      'XEQ 41', 'PAUSE 3', 'RCL 38', 'STO "VW"',
-      'LBL 03', 0, 'STO 39')                                                   # LBL 03: (re)draw view VW
-    for d in range(1, 10):
+      7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38')                                   # the digit
+    for d in items:
+        a(d, 'RCL 38', 'X=Y?', 'GTO %d' % (60 + d))
+    a('GTO 02')                                                             # not in the menu
+    a('LBL 03', 0, 'STO 39')                                                # LBL 03: (re)draw view VW
+    for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
     a('GTO 01', 'LBL 09', 'CLLCD', 'RTN')
-    for d, v in enumerate(VIEWS, 1):
-        a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % v, 'GTO 05')
-    # after a view: up arrow (51) one hour later, down arrow (61) one hour earlier, + the menu
+    for d in items:
+        a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
+    # LBL 6d: item d chosen: invert it for a moment, then its view
+    for d in items:
+        y, x = place(d, items)
+        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 3', d, 'STO "VW"', 'GTO 03')
+    # after a view: up arrow one hour later, down arrow one hour earlier, + the menu
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
       'LBL 06', 1, 'STO+ "DH"', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'GTO 03')
     # LBL 40: the menu
     a('LBL 40', 'XEQ 21', 'CLLCD', 222, 2, '"%s   "' % TITLE, 'XEQ "PTXS"', 'RCL 06', 'XEQ "PDTS"', '" "', 'XEQ "PTXS"',
       'RCL 06', 0.5, '+', 1, 'MOD', 24, '×', 'XEQ "PHMS"', '" UT"', 'XEQ "PTXS"', 216, 0, 400, 'XEQ "PHLS"')
-    for d in list(range(1, 10)) + [0]:
-        y, x = place(d)
+    for d in list(items) + [0]:
+        y, x = place(d, items)
         a(y, x, '"%d %s"' % (d, ITEMS[d - 1] if d else 'END'), 'XEQ "PTXS"')
     a(36, 2, '"%s"' % HINT, 'XEQ "PTXS"', 22, 0, 400, 'XEQ "PHLS"', 5, 2, '"%s"' % WARNING, 'XEQ "PTXS"', 'RTN')
-    # LBL 41: invert item R38 (XOR box, GRMOD 3)
+    # LBL 41: XOR box (GRMOD 3) from row R37, column R36
     a('LBL 41', 'WSIZE 18', 3, 'STO 32', 'GRMOD 32', '1' * BOX_H + '#2', 'STO 32',
-      'RCL 38', 1, '-', 'STO 37', XL - 4, 'STO 36', 4, 'RCL 37', 'X>Y?', 'XEQ 42',
-      TOP - 2, 'RCL 37', PITCH, '×', '-', 'RCL 36', BOX_W, 'STO 33', 'R↓',
+      'RCL 37', 'RCL 36', BOX_W, 'STO 33', 'R↓',
       'LBL 43', 'AGRAPH 32', 'DSE 33', 'GTO 43',
-      0, 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN',
-      'LBL 42', 5, 'STO- 37', XR - 4, 'STO 36', 'RTN')
+      0, 'STO 32', 'GRMOD 32', 'WSIZE 64', 'RTN')
     return P + inp + ['END']
 
 
-def preview(path):
+def preview(path, items=ALL):
     import c47screen as S
     from PIL import Image
     shots = []
-    for hi in (None, 2):
+    for hi in (None, items[1]):
         sc = S.Screen(S.STD)
         x = sc.text(222, 2, TITLE + '   '); x = sc.text(222, x, '28-09-2026 18:00 UT'); sc.hline(216, 0, 400)
-        for d in list(range(1, 10)) + [0]:
-            y, x = place(d)
+        for d in list(items) + [0]:
+            y, x = place(d, items)
             sc.text(y, x, '%d %s' % (d, ITEMS[d - 1] if d else 'END'))
         sc.text(36, 2, HINT); sc.hline(22, 0, 400); sc.text(5, 2, WARNING)
         if hi:
-            y, x = place(hi)
+            y, x = place(hi, items)
             sc.xor_box(y - 2, x - 4, BOX_W, BOX_H)
         shots.append(sc)
     im = Image.new('L', (808, 240), 120)
@@ -115,4 +132,5 @@ if __name__ == '__main__':
     P = program(inputs())
     open(os.path.join(ROOT, 'programs', 'NAV.txt'), 'w', encoding='utf-8').write('\n'.join(P) + '\n')
     preview(os.path.join(ROOT, 'docs', 'NAV_menu_preview.png'))
+    preview(os.path.join(ROOT, 'docs', 'NAV_compact_preview.png'), COMPACT)
     print('programs/NAV.txt', len(P), 'lines')

@@ -228,3 +228,12 @@ INIT with the builders as LBL 01-04.
   for each view. WPLS returns on + (85), up arrow (51), down arrow (61); NAV (LBL 05) adds or
   subtracts one hour in "DH" and draws the view "VW" again. HORZ returns on + or an arrow too.
   Arrow keycodes assumed (51/61, left of 7 and 4); test_navfull checks ALMF at +0 +1 0 -1 h.
+
+## NAV + INIT in one file, compact build (Sep 2026)
+- DELP "label" deletes a program (C47 command index, DELETE menu). NAVALL_FAST / NAVCOMP_FAST:
+  NAV starts with FS? 81 / XEQ "INIT" / DELP "INIT" / SF 81; NAV and INIT keep their names.
+- Compact: menu 1 2 4 9 (gennav.COMPACT, one column); programs found by closure() over XEQ/GTO;
+  fonts trimmed to the characters of those programs. The menu highlight is now one LBL 6d per
+  item (row and column set there, LBL 41 draws the XOR box).
+- c47sim: DELP recorded (c.deleted). test_navfull runs both files: INIT deleted, flag 81, views
+  equal to the FAST engine. DELP on the real C47 (from a running program) still to be checked.

@@ -248,16 +248,43 @@ def rename(lines, m):
 
 
 def rename_keep(lines, m, keep):
-    """rename() for another program set: keep = the one label that keeps its name."""
+    """rename() for another program set: keep = the label(s) that keep their name."""
+    keep = (keep,) if isinstance(keep, str) else tuple(keep)
     out = []
     for l in lines:
         g = re.fullmatch(r'(LBL|XEQ|GTO) "(.+)"', l)
         if g and g.group(2) in m:
             l = '%s "%s"' % (g.group(1), m[g.group(2)])
-        elif g and g.group(2) != keep:
+        elif g and g.group(2) not in keep:
             raise ValueError('call to a label that is not in the file: %s' % l)
         out.append(l)
     return out
+
+
+def closure(progs, roots):
+    """Programs needed for the labels in roots (following XEQ / GTO "name")."""
+    owner = {}
+    for n, L in progs.items():
+        for l in L:
+            g = re.fullmatch(r'LBL "(.+)"', l)
+            if g:
+                owner[g.group(1)] = n
+    need, todo = set(), list(roots)
+    while todo:
+        lab = todo.pop()
+        n = owner.get(lab)
+        if n is None or n in need:
+            continue
+        need.add(n)
+        for l in progs[n]:
+            g = re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l)
+            if g:
+                todo.append(g.group(1))
+    return need
+
+
+def calls(lines):
+    return [g.group(1) for l in lines for g in [re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l)] if g]
 
 
 def build():
@@ -326,7 +353,37 @@ def build():
         with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
             fh.write('\n'.join(L) + '\n')
     shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(OUT, 'TBL.txt'))
-    return full, init_full, init_fast, progs, nav, notbl
+    # ---- NAV + INIT in one file (the first NAV builds the matrices and deletes INIT), no tables:
+    #      NAVALL_FAST (all views) and NAVCOMP_FAST (compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY)
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'generators'))
+    import gennav
+    inp = gennav.inputs()
+    nav_all = gennav.program(inp, autoinit=True)
+    nav_comp = gennav.program(inp, gennav.COMPACT, autoinit=True)
+    need = closure(nt, [c for c in calls(nav_comp) if c != 'INIT'])
+    raw = {n: read(n) for n in need}
+    bigc = set(strings(nav_comp) + ''.join(strings(raw[n]) for n in need if n not in ('PTXS', 'PTXT')) + '0123456789-.: %')
+    smallc = set(WARNING + 'TSX NEWZHC-.0123456789' + (strings(raw['ALLSKY']) if 'ALLSKY' in raw else ''))
+    ntc = dict(nt)
+    ntc['PTXS'] = trim_font(read('PTXS'), bigc)
+    ntc['PTXT'] = trim_font(read('PTXT'), smallc)
+    comp = nav_comp + [l for n in KEEP if n in need and n != 'TGET' for l in ntc[n]]
+    allf = nav_all + [l for n in KEEP if n != 'TGET' for l in nt[n]]
+    extra = {}
+    for name, L in (('NAVALL_FAST', allf + init_fast), ('NAVCOMP_FAST', comp + init_fast)):
+        with open(os.path.join(dev, name + '.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('\n'.join(L) + '\n')
+        m = label_map(L, keep=('NAV', 'INIT'))
+        out = rename_keep(L, m, ('NAV', 'INIT'))
+        with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('\n'.join(out) + '\n')
+        with open(os.path.join(OUT, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('%s - program labels (NAV and INIT keep their names; the first NAV runs INIT\n'
+                     'and deletes it, flag 81 remembers it; CF 81 before loading the file again)\n\n' % name)
+            fh.write('NAV     NAV     %s\nINIT    INIT    builds the matrices (FAST %s); deleted by NAV after the first run\n' % (LABEL_TEXT['NAV'], period))
+            fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
+        extra[name] = (L, sorted(need) if 'COMP' in name else None)
+    return full, init_full, init_fast, progs, nav, notbl, extra
 
 
 def size(lines):
@@ -334,7 +391,7 @@ def size(lines):
 
 
 if __name__ == '__main__':
-    full, init, init_fast, progs, nav, notbl = build()
+    full, init, init_fast, progs, nav, notbl, extra = build()
     print('%-9s %7s %8s' % ('program', 'lines', 'bytes'))
     for n in ['NAV'] + KEEP:
         print('%-9s %7d %8d' % ((n,) + size(nav if n == 'NAV' else progs[n])))
@@ -342,4 +399,6 @@ if __name__ == '__main__':
     print('%-13s %7d %8d   <- or this one: the same without the tables (TBL/TGET)' % (('NAVFULL_NOTBL',) + size(notbl)))
     print('%-12s %7d %8d   <- FULL: load, XEQ INIT, delete' % (('NAVINIT_FULL',) + size(init)))
     print('%-12s %7d %8d   <- FAST: load, XEQ INIT, delete' % (('NAVINIT_FAST',) + size(init_fast)))
+    for n, (L, need) in extra.items():
+        print('%-13s %7d %8d   <- NAV + INIT in one file%s' % ((n,) + size(L) + (': ' + ' '.join(need) if need else '',)))
     print('written to', OUT)
