@@ -8,7 +8,7 @@ The menu is drawn with PTXS; KEY? waits for a key (no PROMPT):
        arrow = one hour earlier (the view is drawn again; the offset stays, R"DH")
   0    end
 Compact version (build_navfull.py): items 1 2 4 9 only. With autoinit NAV and INIT share one
-file: the first NAV runs INIT and deletes it (DELP), flag 81 set.
+file: the first NAV runs INIT (flag 81 set); INIT is then deleted by hand.
 Keycodes (row x 10 + column, soft keys = row 1): 7 8 9 = 52-54, 4 5 6 = 62-64,
 1 2 3 = 72-74, 0 = 82, + = 85; digit = (7 - row) x 3 + column - 1.
 Registers: R39 keycode, R38 digit, R36/R37 while inverting (and R30-R36 in the fonts);
@@ -59,13 +59,14 @@ def inputs():
 
 
 def program(inp, items=ALL, autoinit=False):
-    """autoinit: NAV and INIT in one file - the first NAV runs INIT (builds the matrices) and
-    deletes it with DELP; flag 81 remembers that it is done (CF 81 before loading a new INIT)."""
+    """autoinit: the first NAV runs INIT (builds the matrices); flag 81 remembers that it is done
+    (CF 81 before loading a new INIT). INIT is deleted by hand (DELP in a program made the file
+    fail to load: "invalid data")."""
     P = []
     a = lambda *s: P.extend(str(x) for x in s)
     a('LBL "NAV"')
     if autoinit:
-        a('FS? 81', 'GTO 04', 'XEQ "INIT"', 'DELP "INIT"', 'SF 81', 'LBL 04')
+        a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
     a(0, 'STO "DH"', 'XEQ 20', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
     a('LBL 02', 'KEY? 39', 'GTO 02',

@@ -19,8 +19,9 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
             stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
             L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). Open REGS.
   NAVINIT_FAST  (6,531 lines) builds the matrices.
-  rejig both files, load both, XEQ "NAV". The first NAV runs INIT (takes a while), deletes it
-  (DELP "INIT") and sets flag 81; later runs go straight on. New INIT later: CF 81 first.
+  rejig both files, load both, XEQ "NAV". The first NAV runs INIT (takes a while) and sets
+  flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (it frees the memory;
+  the matrices stay). New INIT later: CF 81 first.
   (One file with NAV and INIT together gave "invalid data" in rejig, so they are two files.)
 
 1. LOAD THE PROGRAMS (two files: NAVFULL_NOTBL + NAVINIT_FAST)

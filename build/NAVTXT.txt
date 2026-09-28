@@ -1,8 +1,9 @@
 LBL "NAV"
 FS? 81
 GTO 04
-XEQ "INIT"
-DELP "INIT"
+"INIT"
+STO 49
+XEQ IND 49
 SF 81
 LBL 04
 0
@@ -11,13 +12,13 @@ XEQ 20
 50.078
 STO 49
 LBL 05
-""
+" "
 STO IND 49
 ISG 49
 GTO 05
 XEQ 21
 XEQ "N01"
-""
+" "
 RCL 58
 +
 RCL 59
@@ -351,9 +352,9 @@ XEQ "N04"
 RCL 47
 XEQ 76
 XEQ 91
-""
+" "
 STO 20
-0
+8
 STO 43
 "ARIES "
 XEQ 90
@@ -418,9 +419,9 @@ XEQ "N05"
 -3
 XEQ 76
 XEQ 91
-""
+" "
 STO 20
-0
+8
 STO 43
 125
 XEQ 89
@@ -494,9 +495,9 @@ XEQ "N06"
 -3
 XEQ 76
 XEQ 91
-""
+" "
 STO 20
-0
+8
 STO 43
 "MER PASS "
 XEQ 90
@@ -564,9 +565,9 @@ XEQ 90
 49
 STO+ 43
 XEQ 91
-""
+" "
 STO 20
-0
+8
 STO 43
 "MOON HP "
 XEQ 90

@@ -145,7 +145,7 @@ for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,9)),('build/NAVCOMP.txt',(1,2,4
         b,_=ref.screen(v,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
         f=c.frames[2+len(keys)]
         res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
-    print(os.path.basename(name), 'INIT deleted:', getattr(c,'deleted',[]), 'flag 81:', 81 in c.flags, 'views same as FAST:', res)
+    print(os.path.basename(name), 'INIT run once, flag 81:', 81 in c.flags, 'views same as FAST:', res)
 # text only: NAVTXT_FAST writes the page into R50 ... (no drawing); compare with ALMT's PROMPT pages
 c=load_one('build/NAVTXT.txt')
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
@@ -157,7 +157,7 @@ for pg in pages:
     if pg.strip().startswith('DOES NOT'):
         ok &= lines[i]==pg; i+=1; continue
     l1,l2=lines[i],lines[i+1]; i+=2
-    ok &= pg.startswith(l1) and pg.endswith(l2) and pg[len(l1):len(pg)-len(l2)].strip()==''
+    ok &= pg.split()==(l1+' '+l2).split()                    # same words (the line break is a register)
 order=[str(c.s[k]) for k in range(4)]+[str(c.rget(r)) for r in 'IJKMNPQRSEFGHOUVW']
 lett = order[:4]==lines[:4] and order[4:]==lines[9:26]
 print('NAVTXT: X =', c.s[0][:30], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| stack + lettered in REGS order:', lett, '| pixels', len(c.pix))

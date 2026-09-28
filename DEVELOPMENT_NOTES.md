@@ -249,3 +249,6 @@ INIT with the builders as LBL 01-04.
   NAVALL / NAVCOMP / NAVTXT hold NAV and the programs (NAV still runs INIT and deletes it);
   INIT is loaded from NAVINIT_FAST (or _FULL). If NAVALL still fails, the only new steps against
   NAVFULL_NOTBL are FS? 81 / XEQ "INIT" / DELP "INIT" / SF 81 at the start of NAV.
+- NAVALL/NAVCOMP/NAVTXT still "invalid corrupted data" when loading. Common new steps in all
+  three: DELP "INIT", XEQ "INIT" (a program not in the file), FS?/SF 81, and "" (NAVTXT).
+  Now: no DELP (INIT deleted by hand), INIT called by name through R49 (XEQ IND 49), no "".

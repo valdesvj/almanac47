@@ -65,6 +65,7 @@ class Calc:
         k = str(int(k)) if isinstance(k, int) else k
         self.reg[k.lstrip('0') or '0'] = v
     def indlab(self, n, pc):
+        if isinstance(n, str): return n                     # XEQ IND r with a label name in r
         if hasattr(self,'pid'): return '%d_%d'%(self.pid[pc], n)
         return '%02d'%n
     def run(self, label, maxsteps=10**6):
@@ -86,10 +87,10 @@ class Calc:
                 if rs: pc = rs.pop(); continue
                 return
             if op == 'GTO':
-                if arg.startswith('IND '): arg=self.indlab(int(self.rget(arg[4:].strip())),pc-1)
+                if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
                 pc = self.labels[arg] + 1; continue
             if op == 'XEQ':
-                if arg.startswith('IND '): arg=self.indlab(int(self.rget(arg[4:].strip())),pc-1)
+                if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
                 rs.append(pc); pc = self.labels[arg] + 1; continue
             if isinstance(self.s[0], Mat) or (op in ('×', '+', 'DOT') and isinstance(self.s[1], Mat)):
                 x, y = self.s[0], self.s[1]

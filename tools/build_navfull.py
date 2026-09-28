@@ -294,7 +294,7 @@ def almr(lines):
     s = s.replace('LBL "ALMT"\n', 'LBL "ALMR"\n', 1)
     s = s.replace('LBL 01\n', 'LBL 01\n50\nSTO 79\n', 1)
     assert s.count('400\nXEQ 89\n0\nSTO 43\n') == 4
-    s = s.replace('400\nXEQ 89\n0\nSTO 43\n', 'XEQ 91\n""\nSTO 20\n0\nSTO 43\n')      # line 1 of a page: its own register
+    s = s.replace('400\nXEQ 89\n0\nSTO 43\n', 'XEQ 91\n" "\nSTO 20\n8\nSTO 43\n')    # line 1 of a page: its own register (no "" string)
     assert s.count('LBL 91\nPROMPT 20\nRTN\n') == 1 and s.count('STO 20\nXEQ 91\nGTO 01\n') == 1
     s = s.replace('LBL 91\nPROMPT 20\nRTN\n', 'LBL 91\nRCL 20\nSTO IND 79\n1\nSTO+ 79\nRTN\n')
     s = s.replace('STO 20\nXEQ 91\nGTO 01\n', 'STO 20\nXEQ 91\nRTN\n')
@@ -401,8 +401,8 @@ def build():
             fh.write('\n'.join(out) + '\n')
         with open(os.path.join(OUT, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
             fh.write('%s - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:\n'
-                     'the first NAV runs INIT and deletes it, flag 81 remembers it; CF 81 before loading INIT again)\n\n' % name)
-            fh.write('NAV     NAV     %s\nINIT    INIT    (NAVINIT file) builds the matrices; deleted by NAV after the first run\n' % LABEL_TEXT['NAV'])
+                     'the first NAV runs INIT, flag 81 remembers it; then delete INIT by hand; CF 81 before loading INIT again)\n\n' % name)
+            fh.write('NAV     NAV     %s\nINIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it\n' % LABEL_TEXT['NAV'])
             fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
         extra[name] = (L, sorted(need) if 'COMP' in name else None)
     # ---- text only (no drawing): NAV asks the position, ALMR writes the page into R50 ... ;
@@ -410,13 +410,13 @@ def build():
     #      order from X). NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
     ntt = dict(nt)
     ntt['ALMR'] = almr(nt['ALMT'])
-    navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', 'XEQ "INIT"', 'DELP "INIT"', 'SF 81', 'LBL 04',
+    navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
               '0', 'STO "DH"', 'XEQ 20',
-              '50.078', 'STO 49', 'LBL 05', '""', 'STO IND 49', 'ISG 49', 'GTO 05',          # R50-R78 empty
+              '50.078', 'STO 49', 'LBL 05', '" "', 'STO IND 49', 'ISG 49', 'GTO 05',         # R50-R78 blank
               'XEQ 21', 'XEQ "ALMR"']
     # the lines also in the lettered registers, in the order of the register browser (REGS):
     # X Y Z T A B C D (stack) L (LASTx) I J K M N P Q R S E F G H O U V W
-    navtxt += ['""', 'RCL 58', '+']                                    # line 9 -> LASTx (L)
+    navtxt += ['" "', 'RCL 58', '+']                                   # line 9 -> LASTx (L)
     for k, r in enumerate('IJKMNPQRSEFGHOUVW'):
         navtxt += ['RCL %d' % (59 + k), 'STO %s' % r]                   # lines 10-26
     navtxt += ['RCL %d' % r for r in range(57, 49, -1)]                 # lines 8 ... 1: X = line 1
@@ -448,5 +448,5 @@ if __name__ == '__main__':
     print('%-12s %7d %8d   <- FULL: load, XEQ INIT, delete' % (('NAVINIT_FULL',) + size(init)))
     print('%-12s %7d %8d   <- FAST: load, XEQ INIT, delete' % (('NAVINIT_FAST',) + size(init_fast)))
     for n, (L, need) in extra.items():
-        print('%-13s %7d %8d   <- + NAVINIT_FAST (NAV runs INIT once and deletes it)%s' % ((n,) + size(L) + (': ' + ' '.join(need) if need else '',)))
+        print('%-13s %7d %8d   <- + NAVINIT_FAST (NAV runs INIT once)%s' % ((n,) + size(L) + (': ' + ' '.join(need) if need else '',)))
     print('written to', OUT)
