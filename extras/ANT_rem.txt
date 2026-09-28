@@ -1,22 +1,25 @@
 LBL "ANT"
-REM "ANT - write a small A at a random place, then invert it ... and you find the bug (an ant)."
-REM "The same trick as BIGA, drawn over whatever is on the screen (no CLLCD)."
+REM "ANT - a small bug (an ant) at a random place: an A is written and inverted at once,"
+REM "so only the bug is seen. Same trick as BIGA, over whatever is on the screen (no CLLCD)."
 REM "The A is the 5x7 letter made 2 times bigger: 10 pixels wide, 14 high,"
 REM "about the size of the big almanac font (capitals 12 pixels)."
 REM "GRMOD sets how AGRAPH draws: 0 = OR (draw), 3 = XOR (invert)."
 REM "Registers: R30 = column (x), R31 = row (y), R32 = column pattern."
 REM "Screen: 400 x 240 pixels, (0,0) = bottom left."
 REM "--- 1. Random place ---"
-REM "Column 0-389 (the A is 10 wide), row 0-205 (keeps it below the status bar)"
+REM "Column 0-389 (the bug is 10 wide)"
 RAN#
 390
 ×
 IP
 STO 30
+REM "Row 72-205: above the menu area (bottom ~70 rows), below the status bar (top 20 rows)"
 RAN#
-206
+134
 ×
 IP
+72
++
 STO 31
 REM "--- 2. Prepare ---"
 REM "WSIZE 16: binary numbers up to 15 bits (the A is 14 pixels high)"
@@ -51,8 +54,7 @@ STO 32
 R↓
 AGRAPH 32
 AGRAPH 32
-REM "Show the A for 1 second"
-PAUSE 10
+REM "No pause: the A is inverted at once, it is never seen"
 REM "--- 4. Invert the A: the bug ---"
 REM "Mode 3 = XOR: AGRAPH switches every pixel it touches (on -> off, off -> on)"
 3
