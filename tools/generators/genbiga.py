@@ -72,3 +72,96 @@ if __name__ == '__main__':
     open(out, 'w', encoding='utf-8').write('\n'.join(P) + '\n')
     preview(os.path.join(ROOT, 'docs', 'BIGA_preview.png'))
     print(out, len(P), 'lines; A at', AX, AY)
+
+
+# ---------------------------------------------------------------- BIGANT: the biggest one
+# Full screen height: scale 34 -> 170 x 238 pixels. A column that tall needs several AGRAPH
+# calls, one per band of 60 rows (60 60 60 58); WSIZE 63 keeps every literal positive.
+BS = 34
+BW, BH = 5 * BS, 7 * BS
+BX, BY = (400 - BW) // 2, (240 - BH) // 2
+BANDS = [(0, 60), (60, 60), (120, 60), (180, BH - 180)]
+GROUPS = [(A[0], BS), (A[1], 3 * BS), (A[4], BS)]      # leg, top bar + crossbar, leg
+
+
+def band_bits(col, lo, n, invert=False):
+    """Bits lo .. lo+n-1 of the scaled column (bit 0 = bottom) as a binary literal, or None."""
+    bits = ''.join(b * BS for b in col)[::-1][lo:lo + n]          # bit 0 first
+    if invert:
+        bits = '1' * n
+    v = bits[::-1].lstrip('0')
+    return v + '#2' if v else None
+
+
+def bigant():
+    P = ['LBL "BIGANT"', 'WSIZE 63', 'CLLCD', '0', 'STO 00', 'GRMOD 00']
+
+    def layer(invert):
+        for lo, n in BANDS:
+            P.extend([str(BY + lo), 'STO 31', str(BX), 'STO 30'])
+            groups = [(None, BW)] if invert else GROUPS
+            for col, w in groups:
+                lit = band_bits(col or '1' * 7, lo, n, invert)
+                if lit is None:
+                    P.extend([str(w), 'STO+ 30'])                    # empty: just move right
+                else:
+                    P.extend([lit, 'STO 32', str(w), 'XEQ 20'])
+    layer(False)                                                     # write the A
+    P.append('PAUSE 30')
+    P.extend(['3', 'STO 03', 'GRMOD 03'])                            # XOR
+    layer(True)                                                      # invert its cell: the ant
+    P.extend(['0', 'STO 00', 'GRMOD 00', 'WSIZE 64',
+              '3', 'STO 34', 'LBL 01', 'PAUSE 99', 'DSE 34', 'GTO 01', 'RTN',
+              'LBL 20', 'STO 33', 'LBL 21', 'XEQ 10', 'DSE 33', 'GTO 21', 'RTN',
+              'LBL 10', 'RCL 31', 'RCL 30', 'AGRAPH 32', '1', 'STO+ 30', 'RTN', 'END'])
+    return P
+
+
+def simulate(P):
+    """Run BIGANT's drawing steps on a 400 x 240 bitmap (OR / XOR), to check the program."""
+    scr = [[0] * 400 for _ in range(240)]
+    R, mode, x = {}, 0, []
+    i = 0
+    while P[i] != 'RTN':
+        l = P[i]
+        if l.startswith('STO '):
+            R[l[4:]] = x[-1]
+        elif l == 'STO+ 30':
+            R['30'] += x[-1]
+        elif l.startswith('GRMOD'):
+            mode = R[l[6:]]
+        elif l == 'XEQ 20':
+            for _ in range(x[-1]):
+                c, y = R['30'], R['31']
+                v = R['32']
+                for b in range(63):
+                    if v >> b & 1 and 0 <= y + b < 240 and 0 <= c < 400:
+                        scr[y + b][c] = scr[y + b][c] ^ 1 if mode == 3 else 1
+                R['30'] += 1
+        elif l.endswith('#2'):
+            x.append(int(l[:-2], 2))
+        elif l.lstrip('-').isdigit():
+            x.append(int(l))
+        elif l == 'PAUSE 30':
+            snap = [r[:] for r in scr]
+        i += 1
+    return snap, scr
+
+
+def bigant_preview(path, P):
+    from PIL import Image
+    a, b = simulate(P)
+    im = Image.new('L', (808, 240), 120)
+    for off, s in ((0, a), (408, b)):
+        for y in range(240):
+            for x in range(400):
+                im.putpixel((off + x, 239 - y), 20 if s[y][x] else 220)
+    im.resize((1616, 480), Image.NEAREST).save(path)
+
+
+if __name__ == '__main__':
+    P = bigant()
+    out = os.path.join(ROOT, 'extras', 'BIGANT.txt')
+    open(out, 'w', encoding='utf-8').write('\n'.join(P) + '\n')
+    bigant_preview(os.path.join(ROOT, 'docs', 'BIGANT_preview.png'), P)
+    print(out, len(P), 'lines; A', BW, 'x', BH, 'at', BX, BY)

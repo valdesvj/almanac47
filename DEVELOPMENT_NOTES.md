@@ -203,4 +203,6 @@ INIT with the builders as LBL 01-04.
 - BIGA (extras/BIGA.txt, tools/generators/genbiga.py): writes an 'A' scaled x8 (40 x 56) in the
   centre, then XORs its own cell: the 'A' turns into a bug. One AGRAPH column can be up to 63
   pixels (literal must be positive in WSIZE 64).
+- BIGANT (extras/BIGANT.txt): the biggest, full screen height: 'A' scaled x34 (170 x 238), each
+  column drawn in 4 bands of 60 rows (one AGRAPH per band). genbiga.py simulates it for the preview.
 - The fonts use the default OR mode only.
