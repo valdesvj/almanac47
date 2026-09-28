@@ -1,0 +1,74 @@
+LBL "BIGA"
+REM "BIGA - write a big letter A, then invert it ... and you get a bug (an ant)."
+REM "Shows AGRAPH and the graphics mode GRMOD: 0 = OR (draw), 3 = XOR (invert)."
+REM "The A is the 5x7 letter made 8 times bigger: 40 pixels wide, 56 high."
+REM "Registers: R30 = column (x), R31 = row (y), R32 = column pattern, R33 = counter."
+REM "Screen: 400 x 240 pixels, (0,0) = bottom left."
+REM "--- 1. Prepare ---"
+REM "WSIZE 63: binary numbers up to 62 bits (one AGRAPH = one column, up to 62 pixels)"
+WSIZE 63
+CLLCD
+REM "Mode 0 = OR: AGRAPH only switches pixels on"
+0
+STO 00
+GRMOD 00
+REM "Bottom left corner of the A: column 180, row 92 (the middle of the screen)"
+92
+STO 31
+180
+STO 30
+REM "--- 2. Write the A (5 columns of the small A, each one 8 pixels wide) ---"
+REM "Left leg: 48 pixels on (rows 0-47), the top 8 rows off"
+111111111111111111111111111111111111111111111111#2
+STO 32
+8
+XEQ 10
+REM "Middle: top bar (rows 48-55) and crossbar (rows 24-31), 3 x 8 = 24 columns"
+11111111000000000000000011111111000000000000000000000000#2
+STO 32
+24
+XEQ 10
+REM "Right leg: the same as the left leg"
+111111111111111111111111111111111111111111111111#2
+STO 32
+8
+XEQ 10
+REM "Show the A for 1 second"
+PAUSE 10
+REM "--- 3. Invert the A: the bug ---"
+REM "Mode 3 = XOR: AGRAPH switches every pixel it touches (on -> off, off -> on)"
+3
+STO 03
+GRMOD 03
+REM "Draw a solid block exactly over the A (40 columns of 56 pixels, all on)"
+REM "The A disappears and its empty space turns black: head, body and feelers"
+180
+STO 30
+11111111111111111111111111111111111111111111111111111111#2
+STO 32
+40
+XEQ 10
+REM "--- 4. Tidy up and show the bug ---"
+REM "Back to mode 0 (OR) and the normal word size"
+0
+STO 00
+GRMOD 00
+WSIZE 64
+REM "Keep the bug on the screen for 10 seconds"
+PAUSE 99
+RTN
+REM "--- LBL 10: draw the pattern in R32 as X columns side by side ---"
+REM "One AGRAPH: Y = row (R31), X = column (R30), pattern in R32; bit 0 = bottom pixel"
+LBL 10
+STO 33
+LBL 11
+RCL 31
+RCL 30
+AGRAPH 32
+REM "Next column to the right"
+1
+STO+ 30
+DSE 33
+GTO 11
+RTN
+END
