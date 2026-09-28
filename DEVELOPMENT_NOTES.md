@@ -291,3 +291,5 @@ INIT with the builders as LBL 01-04.
 - Ants: 20 after + / arrows (ANTS). Menu: 3 ants walk up (R21-R26, 3 px per step, rows 24-186,
   a new column at the bottom) while KEY? waits: LBL 27 erases each (XOR again), moves, draws,
   PAUSE 1, back to KEY?. LBL 42 draws one ant, LBL 50/51 XOR on/off. docs/NAV_menu_ants.gif.
+- Menu key 1-9: the highlight, then the 20 ants (XEQ 48) instead of PAUSE 3; they stay on the
+  display while the view computes (no frame of their own in c47sim: PAUSE 1).

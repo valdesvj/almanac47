@@ -131,7 +131,7 @@ def program(inp, items=ALL, autoinit=False):
     # LBL 6d: item d chosen: invert it for a moment, then its view
     for d in items:
         y, x = place(d, items)
-        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 3', d, 'STO "VW"', 'GTO 03')
+        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'XEQ 48', d, 'STO "VW"', 'GTO 03')
     # after a view (it returns on +, up or down, R39): up one hour later, down one hour earlier, + the menu
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'XEQ 48', 'GTO 01',
       'LBL 06', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'XEQ 48', 'GTO 03',
