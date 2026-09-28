@@ -271,3 +271,7 @@ INIT with the builders as LBL 01-04.
   view again for keys other than + and the arrows (the release would leave the stack there);
   other keys on the menu draw the menu again (LBL 26). c47sim: keyskip = KEY? without a key goes
   on (SKY's timed loop), a frame each time the screen changed.
+- KEYTEST on the C47 (Sep 28): KT1 (KEY? loop, keys ignored) - the stack comes back when the
+  key is released; KT2 (PAUSE only, key pressed during the pause) - the band stays. So the redraw
+  comes with a key caught by KEY? (on its release), not with every key. Hence NAV: after KEY?
+  a pause (with the ants) for the release, then draw again.
