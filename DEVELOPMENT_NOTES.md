@@ -196,4 +196,10 @@ INIT with the builders as LBL 01-04.
 - GMOD2 sets the mode with `3 STO 03 GRMOD 03` (works whether GRMOD reads the number or the
   register) and shows GRMOD# after the drawing (VIEW would wipe the graphics).
 - The reference says AGRAPH "will be redesigned and should not be used in programming".
+- Tested on the C47 (GMOD2): GRMOD 3 works as XOR. Solid block XOR 'A' = inverted 'A'
+  (without a frame it looks like an ant); 'A' XOR 'A' = blank; XOR on blank = normal 'A'.
+- Use: white-on-black values (e.g. Sun Hc negative in the almanac) instead of an underline:
+  draw a box with margin in OR, the text in XOR, then GRMOD 0 again. Recipe in programs/FONTS.txt.
+- BIGA (extras/BIGA.txt, tools/generators/genbiga.py): 'A' scaled x8 inverted in a 48 x 62 tile,
+  centred; one AGRAPH column up to 62-63 pixels (literal must be positive in WSIZE).
 - The fonts use the default OR mode only.

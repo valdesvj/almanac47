@@ -61,6 +61,23 @@ IN NAVFULL
   build/NAVFULL_LABELS.txt). To use the fonts in your own programs, load programs/PTXS.txt,
   PTXT.txt or PTXB.txt, which keep their names.
 
+INVERTED TEXT (white on black) - GRMOD XOR
+  AGRAPH draws in the graphics mode set with GRMOD (0 OR, 1 SET, 2 OFF, 3 XOR); GRMOD# recalls
+  it. The fonts use OR (0). For white text on a black box (e.g. a highlighted value):
+    0 STO 00 GRMOD 00      draw a solid box one or two pixels bigger than the text
+                           (PHLS lines, or AGRAPH columns of 1s)
+    3 STO 03 GRMOD 03      draw the text over it with the normal font call: XOR clears its pixels
+    0 STO 00 GRMOD 00      back to OR before anything else is drawn
+  The box needs a margin: a glyph that fills its own cell (the 'A' legs are its first and
+  last columns) inverted without a margin loses its outline (the "ant", extras/GMOD2.txt).
+  Tested on the C47 with extras/GMOD2.txt: box XOR A = inverted A, A XOR A = blank.
+  Big example: extras/BIGA.txt (tools/generators/genbiga.py).
+
+AGRAPH COLUMN HEIGHT
+  One AGRAPH draws one column of the bits of a short integer, bit 0 at the given row. The
+  literal must be positive in the current WSIZE, so a column can be up to 63 pixels (WSIZE 64);
+  BIGA uses 62 (WSIZE 63). PTXS uses 12 (WSIZE 14), PTXT/PTXB 5-7 (WSIZE 8).
+
 LICENCE
   PTXT and PTXB: MIT (see LICENSE in this folder).
   PTXS: GPL-3.0 - its glyph bitmaps come from the C43/C47 standardFont, part of the
