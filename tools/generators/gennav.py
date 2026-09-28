@@ -22,9 +22,9 @@ sys.path[:0] = [os.path.join(ROOT, 'python', 'native')]
 
 ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SMALL', 'SPLIT', 'BODY', 'ANIM', 'ALLSKY']
 VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'HANIM', 'ALLSKY']
-TOP, PITCH, XL, XR = 190, 30, 16, 206
+TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
-TITLE = 'C47 NAV'
+TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -89,13 +89,19 @@ def program(inp, items=ALL, autoinit=False):
     # after a view: up arrow one hour later, down arrow one hour earlier, + the menu
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'GTO 01',
       'LBL 06', 1, 'STO+ "DH"', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'GTO 03')
-    # LBL 40: the menu
-    a('LBL 40', 'XEQ 21', 'CLLCD', 222, 2, '"%s   "' % TITLE, 'XEQ "PTXS"', 'RCL 06', 'XEQ "PDTS"', '" "', 'XEQ "PTXS"',
-      'RCL 06', 0.5, '+', 1, 'MOD', 24, '×', 'XEQ "PHMS"', '" UT"', 'XEQ "PTXS"', 216, 0, 400, 'XEQ "PHLS"')
+    # LBL 40: the menu. Title, validity of the matrices (variable VAL, set by INIT);
+    # date, time and DR position in use (the arrows change the time: shown here too)
+    a('LBL 40', 'XEQ 21', 'CLLCD', 224, 2, '"%s"' % TITLE, 'XEQ "PTXS"', 224, 230, '"VALID "', 'XEQ "PTXS"', 'RCL "VAL"', 'XEQ "PTXS"',
+      206, 2, 'RCL 06', 'XEQ "PDTS"', 206, 80, 'RCL 06', 0.5, '+', 1, 'MOD', 24, '×', 'XEQ "PHMS"', 206, 116, '"UT"', 'XEQ "PTXS"',
+      206, 150, '"DR"', 'XEQ "PTXS"',
+      '"N"', 'STO 37', 'RCL 07', 'X<0?', 'XEQ 44', 206, 174, 'RCL 37', 'XEQ "PTXS"', 206, 176, 'RCL 07', 'ABS', 'XEQ "PDMS"',
+      '"E"', 'STO 37', 'RCL 08', 'X<0?', 'XEQ 45', 206, 244, 'RCL 37', 'XEQ "PTXS"', 206, 246, 'RCL 08', 'ABS', 'XEQ "PDMS"',
+      200, 0, 400, 'XEQ "PHLS"')
     for d in list(items) + [0]:
         y, x = place(d, items)
         a(y, x, '"%d %s"' % (d, ITEMS[d - 1] if d else 'END'), 'XEQ "PTXS"')
-    a(36, 2, '"%s"' % HINT, 'XEQ "PTXS"', 22, 0, 400, 'XEQ "PHLS"', 5, 2, '"%s"' % WARNING, 'XEQ "PTXS"', 'RTN')
+    a(36, 2, '"%s"' % HINT, 'XEQ "PTXS"', 22, 0, 400, 'XEQ "PHLS"', 5, 2, '"%s"' % WARNING, 'XEQ "PTXS"', 'RTN',
+      'LBL 44', '"S"', 'STO 37', 'RTN', 'LBL 45', '"W"', 'STO 37', 'RTN')
     # LBL 41: XOR box (GRMOD 3) from row R37, column R36
     a('LBL 41', 'WSIZE 18', 3, 'STO 32', 'GRMOD 32', '1' * BOX_H + '#2', 'STO 32',
       'RCL 37', 'RCL 36', BOX_W, 'STO 33', 'R↓',
@@ -110,7 +116,10 @@ def preview(path, items=ALL):
     shots = []
     for hi in (None, items[1]):
         sc = S.Screen(S.STD)
-        x = sc.text(222, 2, TITLE + '   '); x = sc.text(222, x, '28-09-2026 18:00 UT'); sc.hline(216, 0, 400)
+        sc.text(224, 2, TITLE); x = sc.text(224, 230, 'VALID '); sc.text(224, x, '2026-2030')
+        sc.pdat(206, 2, 2461312.25); sc.phm(206, 80, 18.0); sc.text(206, 116, 'UT'); sc.text(206, 150, 'DR')
+        sc.text(206, 174, 'N'); sc.pdm(206, 176, 25.2); sc.text(206, 244, 'E'); sc.pdm(206, 246, 55.3)
+        sc.hline(200, 0, 400)
         for d in list(items) + [0]:
             y, x = place(d, items)
             sc.text(y, x, '%d %s' % (d, ITEMS[d - 1] if d else 'END'))

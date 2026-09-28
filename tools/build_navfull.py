@@ -287,6 +287,20 @@ def calls(lines):
     return [g.group(1) for l in lines for g in [re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l)] if g]
 
 
+def almr(lines):
+    """ALMR: ALMT with every text line stored in a register (R50, R51 ...; R79 = next) instead of
+    PROMPT pages: no drawing, the page is read in the register browser. Returns after one page."""
+    s = '\n'.join(lines) + '\n'
+    s = s.replace('LBL "ALMT"\n', 'LBL "ALMR"\n', 1)
+    s = s.replace('LBL 01\n', 'LBL 01\n50\nSTO 79\n', 1)
+    assert s.count('400\nXEQ 89\n0\nSTO 43\n') == 4
+    s = s.replace('400\nXEQ 89\n0\nSTO 43\n', 'XEQ 91\n""\nSTO 20\n0\nSTO 43\n')      # line 1 of a page: its own register
+    assert s.count('LBL 91\nPROMPT 20\nRTN\n') == 1 and s.count('STO 20\nXEQ 91\nGTO 01\n') == 1
+    s = s.replace('LBL 91\nPROMPT 20\nRTN\n', 'LBL 91\nRCL 20\nSTO IND 79\n1\nSTO+ 79\nRTN\n')
+    s = s.replace('STO 20\nXEQ 91\nGTO 01\n', 'STO 20\nXEQ 91\nRTN\n')
+    return s.rstrip('\n').split('\n')
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     # characters the big font must draw: every string in the screens and the star names,
@@ -305,10 +319,11 @@ def build():
     mata = compact(read('MATA'))
     k = mata.index('STO "NU"') - 4                    # NU (nutation) block: rows ENTER cols NEWMAT
     matn = ['LBL "MATN"'] + mata[k:]                  # NU only, for FAST (MATF builds VL VB VR)
-    def init_prog(title, names, bodies):
+    def init_prog(title, names, bodies, valid):
         """ONE program with one name, INIT: the matrix builders become LBL 01-04 inside it,
         so after XEQ "INIT" only INIT has to be deleted (CLP)."""
-        out = ['LBL "INIT"'] + ['XEQ %02d' % (k + 1) for k in range(len(names))] + ['"MATRICES READY: %s"' % title, 'RTN']
+        out = (['LBL "INIT"'] + ['XEQ %02d' % (k + 1) for k in range(len(names))]
+               + ['"%s"' % valid, 'STO "VAL"', '"MATRICES READY: %s"' % title, 'RTN'])      # VAL: shown by the NAV menu
         for k, (n, b) in enumerate(zip(names, bodies)):
             assert b[0] == 'LBL "%s"' % n and b[-1] == 'END', n
             assert not any(l.startswith(('XEQ', 'GTO', 'LBL')) for l in b[1:]), n     # no labels or calls inside
@@ -318,9 +333,9 @@ def build():
             out += ['LBL %02d' % (k + 1)] + [l for l in body if l != '"FAST SERIES %s"' % period] + ['RTN']
         return out + ['END']
     init_full = init_prog('FULL 2000-2050', ['MATA', 'MATST', 'MATM', 'MATP'],
-                          [mata, compact(read('MATST')), compact(read('MATM')), compact(read('MATP'))])
+                          [mata, compact(read('MATST')), compact(read('MATM')), compact(read('MATP'))], '2000-2050')
     init_fast = init_prog('FAST ' + period, ['MATN', 'MATST', 'MATM', 'MATF'],
-                          [matn, compact(read('MATST')), compact(read('MATM')), compact(read('MATF'))])
+                          [matn, compact(read('MATST')), compact(read('MATM')), compact(read('MATF'))], period)
     init = init_full
     os.makedirs(OUT, exist_ok=True)
     old = os.path.join(OUT, 'NAVINIT.txt')
@@ -383,6 +398,22 @@ def build():
             fh.write('NAV     NAV     %s\nINIT    INIT    builds the matrices (FAST %s); deleted by NAV after the first run\n' % (LABEL_TEXT['NAV'], period))
             fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
         extra[name] = (L, sorted(need) if 'COMP' in name else None)
+    # ---- text only (no drawing): NAV asks the position, ALMR writes the page into R50 ... ;
+    #      X = "LINES R50-Rnn". NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
+    ntt = dict(nt)
+    ntt['ALMR'] = almr(nt['ALMT'])
+    navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', 'XEQ "INIT"', 'DELP "INIT"', 'SF 81', 'LBL 04',
+              '0', 'STO "DH"', 'XEQ 20', 'XEQ 21', 'XEQ "ALMR"', 'RCL 79', '1', '-', 'XEQ "SINT"', 'STO 49', '"LINES R50-R"', 'RCL 49', '+', 'RTN'] + inp + ['END']
+    needt = closure(ntt, ['ALMR'])
+    order = [n if n != 'ALMT' else 'ALMR' for n in KEEP]
+    txt = navtxt + [l for n in order if n in needt for l in ntt[n]]
+    L = txt + init_fast
+    with open(os.path.join(dev, 'NAVTXT_FAST.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('\n'.join(L) + '\n')
+    m = label_map(L, keep=('NAV', 'INIT'))
+    with open(os.path.join(OUT, 'NAVTXT_FAST.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('\n'.join(rename_keep(L, m, ('NAV', 'INIT'))) + '\n')
+    extra['NAVTXT_FAST'] = (L, sorted(needt))
     return full, init_full, init_fast, progs, nav, notbl, extra
 
 

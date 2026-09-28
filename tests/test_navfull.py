@@ -146,3 +146,17 @@ for name,opts in (('build/NAVALL_FAST.txt',(1,2,4,5,6,9)),('build/NAVCOMP_FAST.t
         f=c.frames[2+len(keys)]
         res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
     print(os.path.basename(name), 'INIT deleted:', getattr(c,'deleted',[]), 'flag 81:', 81 in c.flags, 'views same as FAST:', res)
+# text only: NAVTXT_FAST writes the page into R50 ... (no drawing); compare with ALMT's PROMPT pages
+c=load_one('build/NAVTXT_FAST.txt')
+c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+c.s=[D(0)]*4; c.pix=[]; c.run('NAV',maxsteps=10**8)
+n=int(c.rget('79')); lines=[str(c.rget(str(r))) for r in range(50,n)]
+pages,_=ref.text(jd(2026,9,26,14+57/60),25+20/60,55+12/60)
+i=0; ok=True
+for pg in pages:
+    if pg.strip().startswith('DOES NOT'):
+        ok &= lines[i]==pg; i+=1; continue
+    l1,l2=lines[i],lines[i+1]; i+=2
+    ok &= pg.startswith(l1) and pg.endswith(l2) and pg[len(l1):len(pg)-len(l2)].strip()==''
+print('NAVTXT: X =', c.s[0], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| pixels drawn', len(c.pix))
+for l in lines[:4]: print('   ', l)

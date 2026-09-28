@@ -16,6 +16,10 @@ ONE-FILE INSTALL (NAV and INIT together, FAST matrices 2026-2030, no almanac tab
   NAVCOMP_FAST  compact: 1 ALMANAC 2 CHART   14,946 lines to load,  8,417 stay after INIT
                 4 SKY 9 ALLSKY
   rejig build/NAVCOMP_FAST.txt -o NAVCOMP_FAST.p47, load it, XEQ "NAV".
+  NAVTXT_FAST   text only, no drawing        10,582 lines to load,  4,051 stay after INIT
+                NAV asks DATE UTC LAT LON and writes the almanac page into registers
+                R50 ... R76 (one line each); X = "LINES R50-R76". Read them in the
+                register browser (or RCL 50, RCL 51 ...). XEQ "NAV" again for another time.
   The first NAV builds the matrices (INIT, takes a while), deletes INIT (DELP "INIT") and
   sets flag 81; later runs go straight to the menu. To load the file again (new period):
   CF 81 first, so the new INIT is run and deleted too.
@@ -45,6 +49,8 @@ ONE-FILE INSTALL (NAV and INIT together, FAST matrices 2026-2030, no almanac tab
      LON   DDD.MMmm       e.g. 55.18   (55 deg 18 min E; minus = W)
    (R/S keeps the value shown.) Then the menu on the graphics screen, with the date and time:
      1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 BODY  8 ANIM  9 ALLSKY  0 END
+   The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
+   the date, time and DR position in use.
    Press the number key (no R/S): the item is highlighted and the view is drawn.
    On a drawn view:  +  back to the menu
                      UP arrow    the same view one hour later

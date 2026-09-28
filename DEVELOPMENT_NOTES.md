@@ -237,3 +237,11 @@ INIT with the builders as LBL 01-04.
   item (row and column set there, LBL 41 draws the XOR box).
 - c47sim: DELP recorded (c.deleted). test_navfull runs both files: INIT deleted, flag 81, views
   equal to the FAST engine. DELP on the real C47 (from a running program) still to be checked.
+
+## Menu header and text-only build (Sep 2026)
+- Menu: ALMANAC 47, VALID + variable VAL (INIT stores "2000-2050" or the FAST period), date, UT
+  and DR position (from LBL 21, so the arrows' hours show). Items moved down (TOP 176, pitch 28).
+  An INIT run before this change has no VAL: run INIT again or "2026-2030" STO "VAL".
+- NAVTXT_FAST: NAV + ALMR + INIT. ALMR = ALMT with LBL 91 storing R20 in R50+ (STO IND 79)
+  and the line break of each page stored separately; no PROMPT, no drawing. test_navfull
+  checks the lines against the ALMT pages.
