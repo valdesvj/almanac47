@@ -419,7 +419,7 @@ def build():
     for k, r in enumerate('IJKMNPQRSEFGHOUVW'):
         navtxt += ['RCL %d' % (59 + k), 'STO %s' % r]                   # lines 10-26
     navtxt += ['RCL %d' % r for r in range(57, 49, -1)]                 # lines 8 ... 1: X = line 1
-    navtxt += ['RTN'] + inp + ['END']
+    navtxt += ['REGS', 'RTN'] + inp + ['END']                         # open the register browser
     needt = closure(ntt, ['ALMR'])
     order = [n if n != 'ALMT' else 'ALMR' for n in KEEP]
     txt = navtxt + [l for n in order if n in needt for l in ntt[n]]

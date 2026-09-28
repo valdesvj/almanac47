@@ -17,7 +17,8 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
   NAVTXT    text only, no drawing                    4,095 lines: XEQ "NAV" asks DATE UTC LAT
             LON and writes the almanac page into R50 ... R76, and lines 1-26 also into the
             stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
-            L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). Open REGS.
+            L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
+            ends by opening the register browser (REGS).
   NAVINIT_FAST  (6,531 lines) builds the matrices.
   rejig both files, load both, XEQ "NAV". The first NAV runs INIT (takes a while) and sets
   flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (it frees the memory;
@@ -56,6 +57,7 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
                      UP arrow    the same view one hour later
                      DOWN arrow  the same view one hour earlier
    (the hours added stay for the other views; the menu title shows the time in use)
+   On the menu itself UP / DOWN change the hour too: the title shows the new time.
    4 SKY: any other key shows the next body. 3 TEXT: R/S for the next lines; after the last
    page (DOES NOT REPLACE THE NAUTICAL ALMANAC) R/S goes back to the menu. 0 on the menu ends NAV. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,

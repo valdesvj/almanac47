@@ -72,6 +72,7 @@ def program(inp, items=ALL, autoinit=False):
     # wait for a key; 0 ends; a digit key opens its view
     a('LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
+      'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 02', 'RCL 38', 7, 'X<Y?', 'GTO 02',     # row 5-7
       'RCL 39', 10, 'MOD', 'STO 37', 2, 'X>Y?', 'GTO 02', 'RCL 37', 4, 'X<Y?', 'GTO 02',        # column 2-4
       7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38')                                   # the digit
@@ -81,7 +82,8 @@ def program(inp, items=ALL, autoinit=False):
     a('LBL 03', 0, 'STO 39')                                                # LBL 03: (re)draw view VW
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))
-    a('GTO 01', 'LBL 09', 'CLLCD', 'RTN')
+    a('GTO 01', 'LBL 09', 'CLLCD', 'RTN',
+      'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'GTO 01')
     for d in items:
         a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
     # LBL 6d: item d chosen: invert it for a moment, then its view

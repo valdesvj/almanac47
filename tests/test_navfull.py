@@ -169,3 +169,13 @@ c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); 
 c.s=[D(0)]*4; c.keys=[KEYCODE[3],KEYCODE[0]]; c.answers=[None]*40; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxprompts=40
 c.run('NAV',maxsteps=10**8)
 print('NAV TEXT: pages', len(c.msgs), '| last:', str(c.msgs[-1]).strip(), '| back to the menu and ended:', c.keys==[] and c.pix==[])
+# arrows on the menu: up, up, down -> the menu shows one hour later (DH = 1)
+c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+c.s=[D(0)]*4; c.keys=[51,51,61,KEYCODE[1],85,KEYCODE[0]]; c.frames=[]; c.pix=[]
+c.run('NAV',maxsteps=10**8)
+ref=Engine('programs'); b,_=ref.screen('ALMF',jd(2026,9,26,15+57/60),25+20/60,55+12/60)
+alm=[f for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0]]
+print('NAV menu arrows: DH =', c.rget('DH'), '| ALMF drawn at 15:57 UT:', len(alm)==1)
+c=load_one('build/NAVTXT.txt'); c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+c.s=[D(0)]*4; c.run('NAV',maxsteps=10**8); print('NAVTXT ends with REGS:', getattr(c,'regs_opened',False))
