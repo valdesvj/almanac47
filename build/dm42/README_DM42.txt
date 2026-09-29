@@ -6,6 +6,8 @@ R47 have 256 KiB). The full Almanac 47 does not fit there: the Moon and planet s
 are about 45 KB. These beta builds keep the Sun and the 58 navigation stars.
 
   NAVINIT_DM42.txt   INIT: Sun series (FULL, valid 2000-2050), nutation, stars
+  NAVINIT_DM42_5Y.txt  or this INIT: the same with the Sun's FAST series, valid 2026-2030 only
+                     (90 numbers less in memory, about 1.4 KB; the same values in its period)
   NAVTXT_DM42.txt    text only: the almanac page in the registers, NAV ends in REGS
   NAV12_DM42.txt     experimental: 1 ALMANAC, 2 CHART, 3 TEXT, 9 INFO (no ants)
 

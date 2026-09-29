@@ -90,6 +90,27 @@ def init_dm42():
     return out + ['END']
 
 
+def init_dm42_5y():
+    """INIT for the FAST period only (fast_series.json, e.g. 2026-2030): NU (from MATA), the
+    stars, and the Sun's FAST series VL VB VR (the start of MATF; the planets are left out)."""
+    import json
+    period = json.load(open(os.path.join(ROOT, 'python', 'native', 'fast_series.json')))['period']
+    mata = B.compact(B.read('MATA'))
+    nu = mata[mata.index('STO "NU"') - 4:-1]
+    matf = B.compact(B.read('MATF'))
+    sun = matf[1:matf.index('STO "EEL"') - 4]
+    sun = [l for l in sun if l != '"FAST SERIES %s"' % period]
+    st = B.compact(B.read('MATST'))[1:-1]
+    out = ['LBL "INIT"', 'XEQ 01', 'XEQ 02', 'XEQ 03', '"%s"' % period, 'STO "VAL"',
+           '"MATRICES READY: SUN STARS %s"' % period, 'RTN']
+    for k, body in enumerate((nu, st, sun)):
+        if body and body[-1] == 'RTN':
+            body = body[:-1]
+        assert not any(l.startswith(('XEQ', 'GTO', 'LBL', 'END')) for l in body)
+        out += ['LBL %02d' % (k + 1)] + body + ['RTN']
+    return out + ['END']
+
+
 def programs():
     with contextlib.redirect_stdout(io.StringIO()):
         progs = B.build()[3]                                # the processed programs (cache swaps, ALMR, navopt)
@@ -146,10 +167,13 @@ def main():
     init = init_dm42()
     open(os.path.join(OUT, 'NAVINIT_DM42.txt'), 'w', encoding='utf-8').write('\n'.join(init) + '\n')
     open(os.path.join(DEV, 'NAVINIT_DM42.txt'), 'w', encoding='utf-8').write('\n'.join(init) + '\n')
+    init5 = init_dm42_5y()
+    open(os.path.join(OUT, 'NAVINIT_DM42_5Y.txt'), 'w', encoding='utf-8').write('\n'.join(init5) + '\n')
     print('%-13s %7s %8s' % ('file', 'lines', 'bytes'))
     for name, (L, need) in res.items():
         print('%-13s %7d %8d   %s' % ((name,) + B.size(L) + (' '.join(need),)))
     print('%-13s %7d %8d' % (('NAVINIT_DM42',) + B.size(init)))
+    print('%-13s %7d %8d' % (('NAVINIT_DM42_5Y',) + B.size(init5)))
     return res, init
 
 
