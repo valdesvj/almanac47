@@ -183,10 +183,15 @@ def main():
              'CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN',
              'LBL 06', '1', 'STO+ "DH"', 'GTO 01', 'LBL 07', '1', 'STO- "DH"', 'GTO 01']
             + [str(x) for x in gennav.busy_box()] + inp + ['END'])
+    # NAV1T: NAV1, and + ends with the text page of the hour on the screen (ALMR into the
+    # registers, as NAVTXT) and the register browser
+    k = nav1.index('CLLCD', nav1.index('XEQ "ALMF"'))
+    assert nav1[k:k + 7] == ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN']
+    nav1t = nav1[:k] + ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4'] + gennav.text_steps(5) + ['REGS', 'RTN'] + nav1[k + 7:]
     os.makedirs(DEV, exist_ok=True)
     res = {}
     p1 = nav1_programs(p)
-    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV1_DM42', nav1)):   # NAV12 (menu 1 2 3 9): too big for the DM42
+    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV1_DM42', nav1), ('NAV1T_DM42', nav1t)):   # NAV12 (menu 1 2 3 9): too big for the DM42
         L, need = assemble(nav, p1 if name != 'NAV12_DM42' else p)
         open(os.path.join(DEV, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
         m = B.label_map(L, keep=('NAV', 'INIT'))
