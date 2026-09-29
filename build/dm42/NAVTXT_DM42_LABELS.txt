@@ -1,0 +1,52 @@
+NAVTXT_DM42 - program labels (NAV keeps its name; INIT is NAVINIT_DM42)
+
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
+N01     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
+N02     SDM     text: degrees and minutes "ddd°mm.m'" as a string
+N03     SNS     text: latitude with N / S
+N04     SEW     text: longitude with E / W
+N05     SZN     text: azimuth "ddd.d°"
+N06     SHM     text: time "hh:mm" (--:-- when no event)
+N07     SF1     text: number with one decimal
+N08     SINT    text: whole number
+N09     SDAT    text: date "dd-mm-yyyy" from a Julian Date
+N10     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+N11     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+N12     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
+N13     SER     sum of one series matrix with the matrix functions (COS, DOT)
+N14     SERT    the time vectors SV1 SV2 used by SER
+N15     NUT     nutation in longitude and obliquity (matrix NU)
+N16     STAR    star: SUNA, then STR2
+N17     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
+N18     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
+N19     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
+N20     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
+N21     HCZ0    sight reduction for Dec 0 (equator points)
+N22     HCZQ    celestial equator: start of the dot-by-dot rotation
+N23     HCZR    celestial equator: next point by rotation (no trig)
+N24     HCZI    keeps sin/cos of the latitude for HCZ
+N25     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
+N26     RISE    sunrise time UT (SUNRISE program)
+N27     SET     sunset time UT
+N28     NTWA    nautical twilight, morning, UT
+N29     NTWP    nautical twilight, evening, UT
+N30     CTWA    civil twilight, morning, UT
+N31     CTWP    civil twilight, evening, UT
+N32     TRAN    meridian passage of the Sun, UT
+N33     SBRT    star number by brightness rank (1st brightest ... 58th)
+N34     SNMU    star name from its number
+N35     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
+N36     CMOO    Moon from the cache
+N37     CPLN    planet from the cache
+N38     CSTR    star R82 from the cache
+N39     CSQK    star from the cache: over the horizon test (computes the star the first time: SQK, STR2, HCZ)
+N40     CHCZ    Hc Zn from the cache for the body just read (else the real HCZ)
+N41     CPHA    Moon phase from the cache
+N42     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
+N43     CRIS    sunrise from the cache
+N44     CTRN    meridian passage from the cache
+N45     CSET    sunset from the cache
+N46     CNTP    nautical twilight pm from the cache
+N47     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
+N48     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
+N49     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
