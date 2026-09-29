@@ -26,12 +26,13 @@ import gencache
 ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SMALL', 'SPLIT', 'ANIM', 'ALLSKY', 'INFO']
 VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'HANIM', 'ALLSKY', None]      # 9 INFO: a page in NAV
 INFO = ['ALMANAC 47 - INFO', '', 'GITHUB.COM/VALDESVJ/ALMANAC47', 'COPYRIGHT 2026 VICTOR VALDES', 'FREE SOFTWARE: GNU GPL V3 OR LATER', '',
-        'NO WARRANTY - IT MAY HAVE BUGS', 'ALWAYS CROSS-CHECK THE VALUES', 'WITH THE NAUTICAL ALMANAC', '', 'THE ANTS SLEEP AFTER LBL 48 IN NAV']
+        'NO WARRANTY - IT MAY HAVE BUGS AND', 'ALWAYS CROSS-CHECK THE VALUES', 'WITH THE NAUTICAL ALMANAC', '', 'THE ANTS ARE WAITING FOR A FLAG']
 TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
 BUSY = 'SINKING....ABOUT'              # the box in the middle while the calculator works
+ANTS_FLAG = 20                         # flag 47 set (SF 47): that many ants, no need to edit the program
 ANTS = 0                               # easter egg: the step after LBL 48 in NAV; 20 gives 20 ants (0.1 s each)
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -158,7 +159,7 @@ def program(inp, items=ALL, autoinit=False):
       # The C47 shows the screen only at a PAUSE: while the next screen is computed and drawn the
       # display keeps this one, ants included, until the new screen's PAUSE 1.
       # LBL 48: the SINKING box (LBL 52), then the ants if there are any (the number after LBL 48)
-      'LBL 48', ANTS, 'STO 49', 'XEQ 52', 'RCL 49', 'X=0?', 'RTN', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
+      'LBL 48', ANTS, 'FS? 47', ANTS_FLAG, 'STO 49', 'XEQ 52', 'RCL 49', 'X=0?', 'RTN', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
       *busy_box(),
       # LBL 47: one ant (10 x 14 pixels) at a random place, column by column, GRMOD 3 (XOR)
       'LBL 47', 'XEQ 50',

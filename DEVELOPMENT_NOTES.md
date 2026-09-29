@@ -362,3 +362,9 @@ INIT with the builders as LBL 01-04.
   7 ANIM, 8 ALLSKY, 9 INFO (LBL 18 in NAV: repository, copyright, GPL, no warranty, cross-check,
   the ants hint; held by WPLS). CWID no longer in the NAV builds. Compact: 1 2 4 8 9.
   NAVFULL 12,951 -> 11,825 lines.
+- Ants: flag 47 set (SF 47) gives ANTS_FLAG = 20 ants without editing NAV (LBL 48: 0, FS? 47, 20,
+  STO 49); the step after LBL 48 still works too. INFO says only THE ANTS ARE WAITING FOR A FLAG.
+- Estimate, if the firmware could print text on the graphics screen (only the symbols and the
+  ants kept as AGRAPH): the fonts are 2,284 of 11,828 NAVFULL lines (symbols about 290), so
+  about 1,950 lines less; font steps per screen from the cache: ALMF 89 %, ALMS 89 %, HALMH 59 %,
+  HALMV 42 %, ALLSKY 35 % -> ALMF about 5 times faster, the chart views 1.4-1.7 times.
