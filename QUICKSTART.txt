@@ -1,7 +1,8 @@
 C47_nav - QUICK START (install and run)
 =======================================
 
-You need two files from build/ (convert each .txt to .p47 with rejig first):
+You need two files. The release zip has them as .p47, ready to load (converted with rejig);
+from the repository, convert the .txt files in build/ with rejig first:
 
   rejig build/NAVFULL_NOTBL.txt -o NAVFULL_NOTBL.p47
   rejig build/NAVINIT_FAST.txt  -o NAVINIT_FAST.p47
@@ -20,7 +21,7 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
             L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
             ends by opening the register browser (REGS).
   NAVINIT_FAST  (6,546 lines) builds the matrices.
-  rejig both files, load both, XEQ "NAV". The first NAV runs INIT (takes a while) and sets
+  Load both .p47 files, XEQ "NAV". The first NAV runs INIT (takes a while) and sets
   flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (it frees the memory;
   the matrices stay). New INIT later: CF 81 first.
   (One file with NAV and INIT together gave "invalid data" in rejig, so they are two files.)
@@ -94,7 +95,9 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY (estimate): programs about 40 KB, FAST matrices about 55 KB (FULL about 95 KB),
-the cache matrices ALMC and ALMQ about 20 KB.
+MEMORY: programs (measured with rejig) NAVFULL 41.1 KB, NAVFULL_NOTBL 40.4 KB, NAVALL 40.5 KB,
+NAVCOMP 30.7 KB, NAVTXT 14.2 KB; INIT while loaded NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB;
+TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
+and ALMQ about 20 KB.
 
 DOES NOT REPLACE THE NAUTICAL ALMANAC.
