@@ -77,6 +77,21 @@ def no_ants(P):
     return P[:i] + P[j:]
 
 
+def no_box(P):
+    """No SINKING box (LBL 52-54): the previous screen stays until the new one is drawn."""
+    i = P.index('LBL 52')
+    j = P.index('RTN', P.index('PAUSE 1', i)) + 1
+    assert P[j - 2:j] == ['PAUSE 1', 'RTN'] and 'LBL 54' in P[i:j]
+    P = P[:i] + P[j:]
+    out = []
+    for l in P:
+        if l == 'XEQ 52':
+            continue
+        out.append('RTN' if l == 'GTO 52' else l)
+    assert not any(l.endswith(' 52') and l.startswith(('XEQ', 'GTO')) for l in out)
+    return out
+
+
 def init_dm42():
     """INIT: MATA (Sun VL VB VR, FULL 2000-2050, and NU) and MATST (stars), as LBL 01-02.
     No NEWMAT of the cache here: NAV makes ALMC (and ALMQ) itself."""
@@ -113,24 +128,42 @@ def init_dm42_5y():
     return out + ['END']
 
 
-def nav1_programs(p):
-    """NAV1 has one view: no sky cache (ALMC, CACHE). ALMF calls the ephemeris directly again,
-    without the Moon, the planets and the Moon phase; the chart routines of CHZ are left out."""
+def nav1_programs(p, chart=False):
+    """No sky cache (ALMC, CACHE): the views call the ephemeris directly again, without the
+    Moon, the planets and the Moon phase. Without the chart (HALMV) the chart routines of CHZ
+    (HCZQ, HCZR: the celestial equator) are left out too."""
     q = dict(p)
     back = {'XEQ "%s"' % n: 'XEQ "%s"' % o for o, n in gencache.SWAP.items()}
-    for v in ('ALMF', 'ALMT'):
+    for v in ('ALMF', 'ALMT') + (('HALMV',) if chart else ()):
         A = [back.get(l, l) for l in p[v]]
         A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
         i = A.index('XEQ "MOO2"')
-        j = A.index('GTO 16', i) + 1
-        assert 'XEQ "PLN3"' in A[i:j] and A[j] == '1.058', v
+        j = A.index('1.058', i)
+        assert 'XEQ "PLN3"' in A[i:j] and A[j - 1].startswith('GTO '), v
         q[v] = A[:i] + A[j:]
         assert not any(l in q[v] for l in back), v
-    C = p['CHZ']
-    i, j = C.index('LBL "HCZQ"'), C.index('LBL "HCZI"')
-    assert C[i - 1] == 'RTN' and C[j - 1] == 'RTN'
-    q['CHZ'] = C[:i] + C[j:]
+    if not chart:
+        C = p['CHZ']
+        i, j = C.index('LBL "HCZQ"'), C.index('LBL "HCZI"')
+        assert C[i - 1] == 'RTN' and C[j - 1] == 'RTN'
+        q['CHZ'] = C[:i] + C[j:]
     return q
+
+
+# the 5 x 7 font of the first versions (PTXB) under the names of the status-bar font (PTXS):
+# the two programs have the same routines in the same order, so the views need no change
+PTXB_NAMES = {'PTXB': 'PTXS', 'PINB': 'PINS', 'PF1': 'PF1S', 'PHM': 'PHMS', 'PDM': 'PDMS',
+              'PDAT': 'PDTS', 'PZN': 'PZNS', 'PHL': 'PHLS'}
+
+
+def ptxb_as_ptxs():
+    out = []
+    for l in B.read('PTXB'):
+        m = re.fullmatch(r'(LBL|XEQ|GTO) "(.+)"', l)
+        if m and m.group(2) in PTXB_NAMES:
+            l = '%s "%s"' % (m.group(1), PTXB_NAMES[m.group(2)])
+        out.append(l)
+    return out
 
 
 def programs():
@@ -146,7 +179,7 @@ def programs():
     return p
 
 
-def assemble(nav, p):
+def assemble(nav, p, font='PTXB'):
     need = B.closure(p, [c for c in B.calls(nav) if c != 'INIT'])
     assert not need & {'MOON', 'PLAN', 'PHAS', 'TGET'}, need
     q = dict(p)
@@ -154,7 +187,8 @@ def assemble(nav, p):
         big = set(''.join(B.strings(nav)) + ''.join(''.join(B.strings(q[n])) for n in need if n not in ('PTXS', 'PTXT'))
                   + '0123456789-.: %')
         small = set(B.WARNING + 'TSX NEWZHC-.0123456789')
-        q['PTXS'] = B.trim_font(navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS')))), big)
+        src = ptxb_as_ptxs() if font == 'PTXB' else B.read('PTXS')
+        q['PTXS'] = B.trim_font(navopt.pdts(navopt.phls(navopt.fonts(src))), big)
         q['PTXT'] = B.trim_font(navopt.fonts(B.read('PTXT')), small)
     return nav + [l for n in B.KEEP if n in need for l in q[n]], sorted(need)
 
@@ -165,15 +199,23 @@ def main():
     # text only
     navtxt = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04']
               + ['0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5) + ['REGS', 'RTN'] + inp + ['END'])
-    # 1 ALMANAC 2 CHART 3 TEXT 9 INFO, no ants
+    # the SINKING box centred for the 6 px characters of PTXB
+    import c47fonts2
+    std = dict(c47fonts2.STD)
+    for c in gennav.BUSY:
+        c47fonts2.STD[ord(c)] = (6,) + tuple(std[ord(c)][1:])
+    # NAV12: menu 1 ALMANAC 2 CHART 3 TEXT, no ants, no sky cache (LBL 28, the sky before the
+    # menu, only returns: each view computes what it shows)
     old = (gencache.NEWMAT, gennav.INFO, gennav.TITLE)
-    gencache.NEWMAT = ALMC + ALMQ
-    gennav.INFO = [t if 'ANTS' not in t else NOTE for t in gennav.INFO]
+    gencache.NEWMAT = []
     gennav.TITLE = 'ALMANAC 47 BETA'
     try:
-        nav12 = no_ants(gennav.program(inp, [1, 2, 3, 9], autoinit=True))
+        nav12 = no_ants(gennav.program(inp, [1, 2, 3], autoinit=True))
     finally:
         gencache.NEWMAT, gennav.INFO, gennav.TITLE = old
+    i = nav12.index('LBL 28')
+    j = nav12.index('RTN', nav12.index('GTO 29', i)) + 1
+    nav12 = nav12[:i] + ['LBL 28', 'RTN'] + nav12[j:]
     # NAV1: no menu - the inputs, then the ALMANAC view; up / down one hour (the box while it
     # computes), + ends (screen and stack cleared, the stack size put back)
     nav1 = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
@@ -191,8 +233,10 @@ def main():
     os.makedirs(DEV, exist_ok=True)
     res = {}
     p1 = nav1_programs(p)
-    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV1_DM42', nav1), ('NAV1T_DM42', nav1t)):   # NAV12 (menu 1 2 3 9): too big for the DM42
-        L, need = assemble(nav, p1 if name != 'NAV12_DM42' else p)
+    p12 = nav1_programs(p, chart=True)
+    nav1, nav1t, nav12 = no_box(nav1), no_box(nav1t), no_box(nav12)
+    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV1_DM42', nav1), ('NAV1T_DM42', nav1t), ('NAV12_DM42', nav12)):
+        L, need = assemble(nav, p12 if name == 'NAV12_DM42' else p1)
         open(os.path.join(DEV, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
         m = B.label_map(L, keep=('NAV', 'INIT'))
         open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(B.rename_keep(L, m, ('NAV', 'INIT'))) + '\n')
