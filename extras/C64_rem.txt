@@ -95,16 +95,16 @@ XEQ 94
 XEQ 91
 PAUSE 8
 REM "RUN/STOP: the break message and READY. again"
-156
+148
 40
 "BREAK IN 47"
 XEQ 90
-148
+140
 40
 "READY."
 XEQ 90
 REM "The cursor blinks until a key is pressed (not R/S or EXIT), then the screen clears"
-140
+132
 40
 STO 37
 R↓
@@ -158,14 +158,18 @@ RCL 30
 XEQ 93
 GTO 06
 REM "LBL 93: the cursor, an 8 x 8 block drawn with XOR (GRMOD 3): twice = gone. Y row, X column"
+REM "Row and column go to R35/R36 first: GRMOD may leave a number on the stack (it moved the cursor)"
 LBL 93
+STO 36
+R↓
+STO 35
 3
 STO 34
 GRMOD 34
-R↓
 11111111#2
 STO 32
-R↓
+RCL 35
+RCL 36
 AGRAPH 32
 AGRAPH 32
 AGRAPH 32

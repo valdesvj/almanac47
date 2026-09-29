@@ -8,7 +8,8 @@ border (full-width and full-height lines with PIXEL), a 40 x 25 text screen of 3
  64K RAM SYSTEM  38911 BASIC BYTES FREE
 READY.
 RUN                      <- typed letter by letter, the cursor blinking
-BREAK IN 47              <- RUN/STOP
+                         <- RUN/STOP: an empty line, as on the C64
+BREAK IN 47
 READY.
 _                        <- the cursor blinks until a key is pressed (then the screen clears)
 
@@ -105,9 +106,9 @@ def program(rem=False):
     P += ['PAUSE 10'] + R('The cursor blinks under READY., then RUN is typed letter by letter')
     P += at(6, 0) + ['XEQ 94', 'XEQ 94', 'XEQ 94']
     P += at(6, 0) + ['"RUN"', 'XEQ 91', 'PAUSE 8'] + R('RUN/STOP: the break message and READY. again')
-    P += at(7, 0) + ['"BREAK IN 47"', 'XEQ 90'] + at(8, 0) + ['"READY."', 'XEQ 90']
+    P += at(8, 0) + ['"BREAK IN 47"', 'XEQ 90'] + at(9, 0) + ['"READY."', 'XEQ 90']
     P += R('The cursor blinks until a key is pressed (not R/S or EXIT), then the screen clears')
-    P += at(9, 0) + ['STO 37', 'R↓', 'STO 38',
+    P += at(10, 0) + ['STO 37', 'R↓', 'STO 38',
                      'LBL 03', 'RCL 38', 'RCL 37', 'XEQ 93', 'PAUSE 3', 'KEY? 39', 'GTO 03',
                      'CLLCD', 'WSIZE 64', 'CLSTK', 'RTN']
     P += R('LBL 90: text - Z row, Y column, X text; each character is its glyph label (the character code)')
@@ -118,7 +119,8 @@ def program(rem=False):
           'LBL 06', 'αLENG 33', 'X=0?', 'RTN', 'α→𝑥 33', 'STO 32', 'XEQ IND 32',
           'RCL 31', 'RCL 30', 'XEQ 93', 'PAUSE 3', 'RCL 31', 'RCL 30', 'XEQ 93', 'GTO 06']
     P += R('LBL 93: the cursor, an 8 x 8 block drawn with XOR (GRMOD 3): twice = gone. Y row, X column')
-    P += ['LBL 93', '3', 'STO 34', 'GRMOD 34', 'R↓', '11111111#2', 'STO 32', 'R↓',
+    P += R('Row and column go to R35/R36 first: GRMOD may leave a number on the stack (it moved the cursor)')
+    P += ['LBL 93', 'STO 36', 'R↓', 'STO 35', '3', 'STO 34', 'GRMOD 34', '11111111#2', 'STO 32', 'RCL 35', 'RCL 36',
           'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32', 'AGRAPH 32',
           '0', 'STO 34', 'GRMOD 34', 'RTN']
     P += R('LBL 94: one blink of the cursor at Y row, X column (on 0.5 s, off 0.5 s)')
