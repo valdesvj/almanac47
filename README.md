@@ -15,6 +15,8 @@ version and the base for a phone app (**Almanac 47**).
 - **Other calculators:** `build/dm42/` (C47 on the old DM42, Sun and stars), `build/free42/`
   (the full NAV for the DM42 / DM42n stock Free42 firmware), `python/numworks/`,
   `python/hpprime/`. How the C47 and Free42 update the screen: `README.txt`, SCREEN UPDATE.
+- **Manuals of the other calculators:** `docs/Almanac47_Free42_Manual.pdf`,
+  `docs/Almanac47_NumWorks_Manual.pdf`, `docs/Almanac47_HPPrime_Manual.pdf`.
 - **Manual:** `docs/C47_Nav_User_Manual.pdf` (part 1: NAV and the views, the map of the
   N01, N02 ... labels; part 2: each program with worked results).
 - **C47 command reference:** `docs/reference/C47_Full_index.txt` (C47 team, GFDL).

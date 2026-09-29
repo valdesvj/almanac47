@@ -6,6 +6,8 @@ with the DM42 graphics extension (400 x 240). Same menu, same screens, same valu
 Free42 core the screens were compared pixel by pixel with the C47 build (menu, ALMANAC,
 CHART, SMALL, SPLIT, ALLSKY, INFO identical; the text page identical line by line).
 
+User manual: docs/Almanac47_Free42_Manual.pdf
+
 FILES
   NAVFULL_F42.raw        the program NAV and its routines (load on the calculator)
   NAVINIT_F42_FULL.raw   INIT: the series matrices, valid 2000-2050
