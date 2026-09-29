@@ -6,13 +6,15 @@ These builds keep the Sun (FULL series, valid 2000-2050) and the 58 navigation s
 
   NAVTXT_DM42     text only: NAV asks DATE UTC LAT LON, the almanac page goes into the
                   registers (R50 ..., stack and lettered registers) and NAV ends in REGS
-  NAV12_DM42      experimental: menu 1 ALMANAC, 2 CHART, 3 TEXT, 9 INFO; no ants
+  NAV1_DM42       no menu: the ALMANAC view straight after the inputs; up / down one hour
+                  (the SINKING box while it computes), + ends; no ants
   NAVINIT_DM42    INIT: the Sun series (VL VB VR), nutation (NU) and the stars (ST)
 
 What is left out: MOON, PLAN and PHAS (no Moon, no planets, no Moon phase), the Moon lines of
-the pages, the tables (TBL), the ants. The sky cache (CACHE) marks the Moon and the planets
-below the horizon (Hc -99), so the views skip them as they skip any body below the horizon.
-ALMQ (the chart's equator dots) has 120 rows (the 3 deg step of CHART only).
+the pages, the tables (TBL), the ants, and the sky cache (CACHE, ALMC): with one view the
+views call the Sun and star routines directly again (nav1_programs). NAV12 (menu 1 2 3 9,
+cache with the Moon and planets marked below the horizon) is still in the script but not
+written: about 72 KB as a .p47 file, too big for the DM42.
 
 Load INIT first on its own: XEQ "INIT", delete it (GTO "INIT", CLP), then load NAV.
 (If INIT is still there, the first NAV runs it: flag 81.)
@@ -111,6 +113,26 @@ def init_dm42_5y():
     return out + ['END']
 
 
+def nav1_programs(p):
+    """NAV1 has one view: no sky cache (ALMC, CACHE). ALMF calls the ephemeris directly again,
+    without the Moon, the planets and the Moon phase; the chart routines of CHZ are left out."""
+    q = dict(p)
+    back = {'XEQ "%s"' % n: 'XEQ "%s"' % o for o, n in gencache.SWAP.items()}
+    for v in ('ALMF', 'ALMT'):
+        A = [back.get(l, l) for l in p[v]]
+        A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
+        i = A.index('XEQ "MOO2"')
+        j = A.index('GTO 16', i) + 1
+        assert 'XEQ "PLN3"' in A[i:j] and A[j] == '1.058', v
+        q[v] = A[:i] + A[j:]
+        assert not any(l in q[v] for l in back), v
+    C = p['CHZ']
+    i, j = C.index('LBL "HCZQ"'), C.index('LBL "HCZI"')
+    assert C[i - 1] == 'RTN' and C[j - 1] == 'RTN'
+    q['CHZ'] = C[:i] + C[j:]
+    return q
+
+
 def programs():
     with contextlib.redirect_stdout(io.StringIO()):
         progs = B.build()[3]                                # the processed programs (cache swaps, ALMR, navopt)
@@ -141,7 +163,7 @@ def main():
     p = programs()
     inp = gennav.inputs()
     # text only
-    navtxt = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04'] + ALMC
+    navtxt = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04']
               + ['0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5) + ['REGS', 'RTN'] + inp + ['END'])
     # 1 ALMANAC 2 CHART 3 TEXT 9 INFO, no ants
     old = (gencache.NEWMAT, gennav.INFO, gennav.TITLE)
@@ -152,10 +174,20 @@ def main():
         nav12 = no_ants(gennav.program(inp, [1, 2, 3, 9], autoinit=True))
     finally:
         gencache.NEWMAT, gennav.INFO, gennav.TITLE = old
+    # NAV1: no menu - the inputs, then the ALMANAC view; up / down one hour (the box while it
+    # computes), + ends (screen and stack cleared, the stack size put back)
+    nav1 = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
+             'SSIZE#', 'STO "SSZ"', 'SSIZE8', '0', 'STO "DH"', 'XEQ 20', 'CLLCD',
+             'LBL 01', 'XEQ 52', 'XEQ 21', 'XEQ "ALMF"',
+             'RCL 39', str(gennav.UP), 'X=Y?', 'GTO 06', 'RCL 39', str(gennav.DOWN), 'X=Y?', 'GTO 07',
+             'CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN',
+             'LBL 06', '1', 'STO+ "DH"', 'GTO 01', 'LBL 07', '1', 'STO- "DH"', 'GTO 01']
+            + [str(x) for x in gennav.busy_box()] + inp + ['END'])
     os.makedirs(DEV, exist_ok=True)
     res = {}
-    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV12_DM42', nav12)):
-        L, need = assemble(nav, p)
+    p1 = nav1_programs(p)
+    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV1_DM42', nav1)):   # NAV12 (menu 1 2 3 9): too big for the DM42
+        L, need = assemble(nav, p1 if name != 'NAV12_DM42' else p)
         open(os.path.join(DEV, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
         m = B.label_map(L, keep=('NAV', 'INIT'))
         open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(B.rename_keep(L, m, ('NAV', 'INIT'))) + '\n')
