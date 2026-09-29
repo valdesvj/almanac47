@@ -24,8 +24,9 @@ charts drawn on the calculator screen.
 
 ## Author
 
-Victor Valdes (valdes.vj@gmail.com). Written with the help of AI (Claude, by Anthropic);
-results checked against JPL Horizons and USNO, screens tested on the calculator.
+By Victor Valdes (valdes.vj@gmail.com),
+
+Thank you To the C43/C47 firmware developers and SwissMicros, and to @tangent for rejig, which made converting the .txt programs to .p47 easy. With the C47, the sky is the limit - literally. Written with the help of AI - Claude (Anthropic), Gemini (Google) and Grok (xAI) - brainstorming with them used up most of my daily and weekly credits. I used AI responsibly, as a cooperation: the AI helps, but I checked the results, and the work - and any mistakes in it - are mine.
 
 ## Licence
 
