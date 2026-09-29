@@ -25,7 +25,9 @@ The Sun and star values are the same as in the full builds (same series): the Mo
 planet places in the list of ten bodies are taken by the next stars.
 
 LOADING (load INIT alone first: INIT and its matrices together need the most memory)
-  1. rejig NAVINIT_DM42.txt, load it, XEQ "INIT" -> MATRICES READY: SUN STARS 2000-2050
+  The .p47 files are ready to load (converted with rejig); the .txt files are the same
+  programs as text.
+  1. load NAVINIT_DM42.p47, XEQ "INIT" -> MATRICES READY: SUN STARS 2000-2050
   2. delete INIT: GTO "INIT", CLP (the matrices stay)
   3. load ONE of NAVTXT_DM42, NAV1_DM42, NAV1T_DM42, NAV12_DM42 (all are called NAV), XEQ "NAV"
   INIT sets flag 81 when it is done: NAV then does not look for INIT. If INIT is still
@@ -33,14 +35,18 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
   its start: SF 81 (the matrices are there) and XEQ "NAV" again.
   The CLK date format must be YYYY-MM-DD, as for the full version.
 
-MEMORY (estimate: .p47 about 1.55 x the text file, not measured on a DM42)
-  NAVINIT_DM42 about 28 KB while it runs, + its matrices about 11 KB; delete it after use.
-  After INIT: matrices about 11 KB (667 numbers: Sun, nutation, stars).
-              text     .p47     with the matrices
-  NAVTXT_DM42 13.7 KB  ~21 KB   ~32 KB
-  NAV1_DM42   23.3 KB  ~36 KB   ~47 KB
-  NAV1T_DM42  28.7 KB  ~44 KB   ~55 KB  (tight)
-  NAV12_DM42  34.1 KB  ~53 KB   ~64 KB  (probably too big for 64 KiB: try it last)
-  Please report the free memory you see (and any crash) on the forum or on GitHub.
+MEMORY (program sizes measured with rejig: the program bytes in the .p47 file; the .p47
+file on disk is about 3 times bigger because it stores each byte as a decimal number)
+  After INIT: matrices about 11 KB (667 numbers: Sun, nutation, stars; estimate).
+                     program   with the matrices
+  NAVINIT_DM42        8.5 KB   ~19 KB while it runs; delete it after use
+  NAVINIT_DM42_5Y     7.7 KB   ~18 KB while it runs
+  NAVTXT_DM42         6.6 KB   ~18 KB
+  NAV1_DM42          11.9 KB   ~23 KB
+  NAV1T_DM42         14.3 KB   ~26 KB
+  NAV12_DM42         17.5 KB   ~29 KB
+  (the full NAVALL for the C47 / R47: 40.5 KB of program)
+  How much of the 64 KiB is left for programs after the firmware's own use is not known
+  here: please report the free memory you see (and any crash) on the forum or on GitHub.
 
 Built with: python3 tools/build_dm42.py
