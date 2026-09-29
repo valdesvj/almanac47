@@ -12,8 +12,7 @@ from decimal import Decimal as D
 
 def run_nav(c, option, answers_after):
     c.s = [D(0)] * 4; c.lift = True; c.msgs = []; c.frames = []; c.pix = []; c.steps = 0
-    c.answers = [None] * 4 + [option] + answers_after + [0]      # DATE UTC LAT LON prompts: R/S keeps the values
-    c.flags.add(82)
+    c.answers = [option] + answers_after + [0]
     c.maxprompts = len(c.answers) + 1; c.maxpauses = 30
     c.reg['DATE'] = D('2026.1002'); c.reg['UTC'] = D('18.00'); c.reg['LAT'] = D('25.12'); c.reg['LON'] = D('55.18')
     try:

@@ -338,7 +338,7 @@ INIT with the builders as LBL 01-04.
   (LBL 08). c47sim (4 levels) reads AGRAPH D from T, the same value after R↓.
   ALMF from the cache 22,200 -> 20,000 steps.
 - Ants off by default (easter egg): ANTS = 0 in gennav.py, the step after LBL 48 in NAV
-  (line 385 NAVFULL / NAVFULL_NOTBL, 392 NAVALL, 223 NAVCOMP). LBL 48 returns at once for 0
+  (line 387 NAVFULL / NAVFULL_NOTBL, 394 NAVALL, 225 NAVCOMP). LBL 48 returns at once for 0
   (X=0? RTN); any other number = that many ants, 0.1 s each, after a number, + or an arrow.
   The menu highlight gets its own PAUSE 1 so it shows while the view computes.
 - Docs (Sep 29): manual rebuilt (tools/generators/build_manual.py + manual_nav.py -> docs/):
@@ -351,3 +351,10 @@ INIT with the builders as LBL 01-04.
   = the four variables exist (the first NAV stores 0 in them). 0 on the menu: CLLCD, stack size
   back, CLSTK. TEXT: stack size back before the lines go onto the stack (it pushed onto them).
   Tests set flag 82 and answer the four prompts with None.
+- Inputs back to INPUT (the PROMPT version is gone, no flag 82); before them AVIEW 38 shows the
+  formats in the message line: "DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -".
+- Busy box (LBL 52, BUSY = 'SINKING....ABOUT', the internet joke): 180 x 30 px in the middle,
+  cleared with GRMOD 2 (OFF, c47sim has it), double frame, PTXS text, PAUSE 1; it stays on the
+  display while the calculator works. LBL 48 = the box, then the ants (count = the step after
+  LBL 48, 0 by default). Shown after LON (CLLCD first), after a menu number, + and the arrows.
+  docs/NAV_busy_box.png.

@@ -50,16 +50,19 @@ S += [P('Almanac 47', title),
       'Optional: load TBL, XEQ "TBL" once, delete it. The screens then show T (tables) instead of S (series).',
       'The calculator\'s date format (CLK menu) must be <b>YYYY-MM-DD</b>: NAV reads DATE with the C47\'s own date functions.'])
 S += [P('3. Starting NAV', h2),
-      P('XEQ "NAV" asks four numbers, once. Each prompt shows the format; the value in use is in X: '
-        'R/S keeps it, or key a new number and R/S.'),
-      prose_tbl([['Prompt', 'Meaning', 'Example'],
-                 ['DATE YYYY.MMDD', 'UT date (the CLK date format must be YYYY-MM-DD)', '2026.0926'],
-                 ['UT HH.MMSS', 'UT (UT1; add DUT1 to UTC for full accuracy)', '14.57'],
-                 ['LAT DD.MMm  S -', 'latitude, degrees and minutes, south negative', '25.20 = 25° 20′ N'],
-                 ['LON DDD.MMm  W -', 'longitude, degrees and minutes, west negative', '55.12 = 55° 12′ E']],
-                [34 * mm, 98 * mm, 48 * mm]),
+      P('XEQ "NAV" asks four numbers, once, with INPUT (R/S keeps the value shown). The message line shows '
+        'the formats: DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -.'),
+      prose_tbl([['Input', 'Meaning', 'Example'],
+                 ['DATE', 'UT date, YYYY.MMDD (the CLK date format must be YYYY-MM-DD)', '2026.0926'],
+                 ['UTC', 'UT, HH.MMSS (UT1; add DUT1 to UTC for full accuracy)', '14.57'],
+                 ['LAT', 'latitude DD.MMm, south negative', '25.20 = 25° 20′ N'],
+                 ['LON', 'longitude DDD.MMm, west negative', '55.12 = 55° 12′ E']],
+                [22 * mm, 110 * mm, 48 * mm]),
       P('After LON the sky is computed (the Sun, the Moon, the planets, the stars that can be above the horizon, '
-        'the sun times) and kept in the matrix ALMC. Then the menu appears, and every view only draws.'),
+        'the sun times) and kept in the matrix ALMC. Then the menu appears, and every view only draws. '
+        'While the calculator works, a box in the middle of the screen says SINKING....ABOUT (after LON, '
+        'after a menu number, + and the arrows) until the new screen is drawn.'),
+      img('NAV_busy_box.png', 0.6),
       P('4. The menu', h2),
       img('NAV_menu.png', 0.8),
       P('Title ALMANAC 47, the period the matrices are valid for, the date, UT and DR in use.', small),

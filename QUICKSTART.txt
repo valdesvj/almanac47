@@ -43,13 +43,15 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
 4. RUN
    Only NAV has a name; the other programs show as N01, N02 ... (build/NAVFULL_LABELS.txt
    says which is which). Start everything from NAV:
-   XEQ "NAV"  -> NAV asks (once), showing the format; the value in use is in X:
-     DATE YYYY.MMDD       e.g. 2026.0927  (read with the calculator's date functions x→ⅅ ⅅ→J:
-                          the date format in CLK must be YYYY-MM-DD)
-     UT HH.MMSS           e.g. 18.30
-     LAT DD.MMm  S -      e.g. 25.12   (25 deg 12 min N; minus = S)
-     LON DDD.MMm  W -     e.g. 55.18   (55 deg 18 min E; minus = W)
-   (R/S keeps the value shown; key a number then R/S to change it.) Then the menu on the graphics screen, with the date and time:
+   XEQ "NAV"  -> NAV asks (once) DATE, UTC, LAT, LON with INPUT; the message line shows the
+   formats: DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -
+     DATE  e.g. 2026.0927  (read with the calculator's date functions x→ⅅ ⅅ→J:
+                            the date format in CLK must be YYYY-MM-DD)
+     UTC   e.g. 18.30
+     LAT   e.g. 25.12   (25 deg 12 min N; minus = S)
+     LON   e.g. 55.18   (55 deg 18 min E; minus = W)
+   (R/S keeps the value shown.) While the sky is computed a box in the middle of the screen
+   says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
      1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 BODY  8 ANIM  9 ALLSKY  0 END
    The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
    the date, time and DR position in use.
@@ -61,9 +63,10 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    (the hours added stay for the other views; the menu title shows the time in use)
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
-   the views then only draw. After a number the item is highlighted while the view is drawn.
-   (Something lives in NAV at the step after LBL 48 - line 385 of NAVFULL / NAVFULL_NOTBL,
-   392 of NAVALL, 223 of NAVCOMP. It is 0. Try 20 and press + or an arrow ... ;-)
+   the views then only draw. After a number the item is highlighted and the SINKING box shows
+   until the view is drawn (also after + and the arrows).
+   (Something lives in NAV at the step after LBL 48 - line 387 of NAVFULL / NAVFULL_NOTBL,
+   394 of NAVALL, 225 of NAVCOMP. It is 0. Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
    (7 BODY and 8 ANIM compute their own times, as before.)

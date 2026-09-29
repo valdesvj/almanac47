@@ -29,6 +29,7 @@ TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
 UP, DOWN = 51, 61                      # arrow keycodes
+BUSY = 'SINKING....ABOUT'              # the box in the middle while the calculator works
 ANTS = 0                               # easter egg: the step after LBL 48 in NAV; 20 gives 20 ants (0.1 s each)
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -51,12 +52,12 @@ def place(d, items=ALL):
 OLD_INPUT = 'LBL 20|INPUT "DATE"|INPUT "UTC"|INPUT "LAT"|INPUT "LON"|RCL "DATE"|10000|×|0.5|+|IP|STO 03|10000|÷|IP|STO 01|RCL 03|100|÷|IP|100|MOD|STO 02|RCL 03|100|MOD|STO 03|RCL "UTC"|10000|×|0.5|+|IP|STO 04|100|MOD|3600|÷|RCL 04|100|÷|IP|100|MOD|60|÷|+|RCL 04|10000|÷|IP|+|STO 04|RCL 02|3|X>Y?|XEQ 31|RCL 01|100|÷|IP|STO 05|2|RCL- 05|RCL 05|4|÷|IP|+|STO 05|RCL 01|4716|+|365.25|×|IP|RCL 02|1|+|30.6001|×|IP|+|RCL+ 03|RCL+ 05|1524.5|-|RCL 04|24|÷|+|STO 06|RCL "LAT"|XEQ 30|STO 07|RCL "LON"|XEQ 30|STO 08|RCL 06|RCL 07|RCL 08|RTN|LBL 30|STO 38|IP|RCL 38|FP|100|×|60|÷|+|RTN|LBL 31|1|STO- 01|12|STO+ 02|RTN'
 
 
-# the four inputs: the format on the screen, the value in use in X (R/S keeps it)
-PROMPTS = [('DATE', 'DATE YYYY.MMDD'), ('UTC', 'UT HH.MMSS'), ('LAT', 'LAT DD.MMm  S -'), ('LON', 'LON DDD.MMm  W -')]
+# the formats of the four inputs, in the message line while INPUT asks DATE UTC LAT LON
+FORMATS = 'DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -'
 
 
 def inputs():
-    """LBL 20: DATE UTC LAT LON (once, at the start): PROMPT with the format, the value in use in X.
+    """LBL 20: INPUT DATE UTC LAT LON (once, at the start), the formats shown in the message line (AVIEW).
     LBL 21: Z JD (+ R"DH" hours from the arrow keys), Y lat, X lon from those variables; JD also in R06.
     The date with the calculator's own functions: x→ⅅ (the DATE number in the calculator's date
     format, e.g. YYYY.MMDD) and ⅅ→J (Julian day number, .0 = noon): JD of 0 h UT = JDN - 0.5."""
@@ -68,10 +69,8 @@ def inputs():
     body = (['RCL "DATE"', 'x→ⅅ', 'ⅅ→J', '0.5', '-', 'STO 06'] + hours + ['24', '÷', 'STO+ 06',
             'RCL "DH"', '24', '÷', 'STO+ 06'] + tail)
     body = body[:body.index('LBL 31')]                                                # month shift: not needed
-    ask = ['FS? 82', 'GTO 19', 0, 'STO "DATE"', 'STO "UTC"', 'STO "LAT"', 'STO "LON"', 'SF 82', 'LBL 19']   # first run: the variables exist
-    for var, text in PROMPTS:
-        ask += ['"%s"' % text, 'STO 38', 'RCL "%s"' % var, 'PROMPT 38', 'STO "%s"' % var]
-    return ['LBL 20'] + [str(x) for x in ask] + ['RTN', 'LBL 21'] + body
+    ask = ['"%s"' % FORMATS, 'STO 38', 'AVIEW 38'] + ['INPUT "%s"' % v for v in ('DATE', 'UTC', 'LAT', 'LON')]
+    return ['LBL 20'] + ask + ['RTN', 'LBL 21'] + body
 
 
 LETTERED = 'IJKMNPQRSEFGHOUVW'
@@ -88,6 +87,23 @@ def text_steps(lab):
     return t + ['RCL %d' % r for r in range(57, 49, -1)]               # lines 8 ... 1: X = line 1
 
 
+def busy_box():
+    """LBL 52: a box in the middle of the screen with BUSY in it, over whatever is shown: the
+    area cleared with GRMOD 2 (OFF), a double frame, the text (PTXS), PAUSE 1 to show it. It stays
+    on the display while the calculator works, until the next screen's PAUSE."""
+    import c47fonts2
+    w, h, y0, x0 = 180, 30, 105, 110
+    full = '1' * h + '#2'
+    frame = '11' + '0' * (h - 4) + '11' + '#2'
+    tw = sum(c47fonts2.STD[ord(c)][0] for c in BUSY)
+    return ['LBL 52', 'WSIZE 32', 2, 'STO 33', 'GRMOD 33',
+            y0, x0, full, 'STO 33', 'R↓', w, 'STO 34', 'R↓', 'LBL 53', 'AGRAPH 33', 'DSE 34', 'GTO 53',
+            0, 'STO 33', 'GRMOD 33',
+            y0, x0, full, 'STO 33', 'R↓', 'AGRAPH 33', 'AGRAPH 33', frame, 'STO 33', 'R↓', w - 4, 'STO 34', 'R↓',
+            'LBL 54', 'AGRAPH 33', 'DSE 34', 'GTO 54', full, 'STO 33', 'R↓', 'AGRAPH 33', 'AGRAPH 33',
+            'WSIZE 64', y0 + 9, x0 + (w - tw) // 2, '"%s"' % BUSY, 'XEQ "PTXS"', 'PAUSE 1', 'RTN']
+
+
 def program(inp, items=ALL, autoinit=False):
     """autoinit: the first NAV runs INIT (builds the matrices); flag 81 remembers that it is done
     (CF 81 before loading a new INIT). INIT is deleted by hand (DELP in a program made the file
@@ -99,7 +115,7 @@ def program(inp, items=ALL, autoinit=False):
         a('FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04')   # INIT once (by name in R49: no call to a program that is not in the file)
     a('SSIZE#', 'STO "SSZ"', 'SSIZE8')                                     # fonts read stack register D: 8-level stack (put back at the end)
     a(*gencache.NEWMAT)                                                    # the sky cache (CACHE, gencache.py): empty = computed at the first view
-    a(0, 'STO "DH"', 'XEQ 20', 'XEQ 28', 'LBL 01', 'XEQ 40')                          # DATE UTC LAT LON once
+    a(0, 'STO "DH"', 'XEQ 20', 'CLLCD', 'XEQ 48', 'XEQ 28', 'LBL 01', 'XEQ 40')       # after LON: the box while the sky is computed                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
     # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
     # while the program waits in a KEY? loop - without it the menu stays invisible until a key
@@ -132,7 +148,9 @@ def program(inp, items=ALL, autoinit=False):
       # LBL 48: ants over the screen that is shown (XOR, so they show on black too), 0.1 s apart.
       # The C47 shows the screen only at a PAUSE: while the next screen is computed and drawn the
       # display keeps this one, ants included, until the new screen's PAUSE 1.
-      'LBL 48', ANTS, 'X=0?', 'RTN', 'STO 49', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
+      # LBL 48: the SINKING box (LBL 52), then the ants if there are any (the number after LBL 48)
+      'LBL 48', ANTS, 'STO 49', 'XEQ 52', 'RCL 49', 'X=0?', 'RTN', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
+      *busy_box(),
       # LBL 47: one ant (10 x 14 pixels) at a random place, column by column, GRMOD 3 (XOR)
       'LBL 47', 'XEQ 50',
       'RAN#', 390, '×', 'IP', 'STO 36', 'RAN#', 180, '×', 'IP', 20, '+', 'STO 37', 'RCL 37', 'RCL 36', 'XEQ 42', 'XEQ 51', 'RTN',

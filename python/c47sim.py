@@ -224,7 +224,10 @@ class Calc:
             if op == 'AGRAPH' and arg:
                 # AGRAPH D: the pattern pushed and rotated down by R↓ (D on the C47's 8-level stack = T here)
                 v=int(self.s[3] if arg == 'D' else self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])
-                if getattr(self,'grmod',0) == 3:                  # XOR: switch every pixel of the pattern
+                if getattr(self,'grmod',0) == 2:                  # OFF: switch the pattern's pixels off
+                    off={(y+i,x) for i in range(self.ws) if v>>i & 1}
+                    self.pix=[p for p in self.pix if p not in off]
+                elif getattr(self,'grmod',0) == 3:                # XOR: switch every pixel of the pattern
                     ps=set(self.pix)
                     for i in range(self.ws):
                         if v>>i & 1: ps ^= {(y+i,x)}
