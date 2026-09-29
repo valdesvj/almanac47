@@ -48,7 +48,7 @@ def gen(name, info, rows=10):
           '227','336','RCL 90','0.5','+','1','MOD','24','×','XEQ "PHMS"','" UT"','XEQ "PTXS"',          # UT, top right
           # 3 s per body (TICKS: 1/10 s), then the next one, endless")
           # + or an arrow: back to NAV (menu, one hour later / earlier); other keys are ignored
-          'PAUSE 1','TICKS','30','+','STO 38',                            # PAUSE 1: show the new top line (display update)
+          'PAUSE 0','TICKS','30','+','STO 38',                            # PAUSE 0: show the new top line (display update)
           'LBL 41','KEY? 39','GTO 46','RCL 39','85','X=Y?','RTN','RCL 39','51','X=Y?','RTN','RCL 39','61','X=Y?','RTN',   # + / arrows: back to NAV; other keys ignored
           'LBL 62','1','STO+ 42','RCL 10','RCL 42','X>Y?','XEQ 34','GTO 35',
           'LBL 46','TICKS','RCL 38','X>Y?','GTO 41','GTO 62',

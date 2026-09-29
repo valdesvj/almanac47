@@ -368,3 +368,22 @@ INIT with the builders as LBL 01-04.
   ants kept as AGRAPH): the fonts are 2,284 of 11,828 NAVFULL lines (symbols about 290), so
   about 1,950 lines less; font steps per screen from the cache: ALMF 89 %, ALMS 89 %, HALMH 59 %,
   HALMV 42 %, ALLSKY 35 % -> ALMF about 5 times faster, the chart views 1.4-1.7 times.
+- Screen update (Sep 29), C47 and Free42:
+  C47: the screen goes to the LCD only at a PAUSE, a key press or the end (not in a KEY? loop).
+  PAUSE 0 (the reference allows 0-98 ticks) does it with no wait: tested on the C47 by Victor
+  (build/test/NAVFULL_NOTBL_P0 on branch pause0-test), faster, the SINKING box stays. NAV now
+  uses PAUSE 0 everywhere a screen is shown (gennav SHOW, genh2/HORZ, WPLS); the ants keep
+  PAUSE 1 (walking speed). c47sim: PAUSE 0 is a display update like PAUSE 1 (no frame).
+  C47_Full_index.txt has no RefLCD-like command; it says AGRAPH "will be redesigned and should
+  not be used in programming" - NAV depends on AGRAPH: check it after firmware updates.
+  Free42 (DM42 / DM42n stock firmware): AGRAPH and PIXEL call flush_display(), the DM42 layer
+  puts every drawing on the LCD at once -> the screen builds up; the box is cleared by the
+  next view's CLLCD at once. RefLCD (DM42 virtual variable): 0 = no LCD refresh, -1 = one
+  refresh, 7 = normal. tools/build_free42.py rlcd -> NAVFULL_F42_RLCD: RefLCD 0 in NAV, RF
+  (-1 STO "RefLCD", FUNC 00) where the C47 has PAUSE 0 / 1, before key waits (menu, WPLS) and at
+  the start of the pauses (Wn), RefLCD 7 at the end. f42run models RefLCD: lcd FILE, film
+  PREFIX N (a capture every N x 1024 steps): the normal build shows 44 screens during a menu ->
+  CHART change, the RLCD build 3 (menu, highlight, box) and then the finished chart.
+  Free42 on a PC / phone: 131 x 16 only (graphics_mode() is 0 outside the ARM build), so only
+  the top left of the 400 x 240 screen is drawn; Plus42 has SETDS but no GrMod.
+

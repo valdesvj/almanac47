@@ -485,8 +485,30 @@ SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   (tools/navopt.py): font columns read from stack register D (8-level stack, set by NAV and
   restored at the end), full-width lines with PIXEL, dates with J→ⅅℸ DAY MONTH YEAR, number
   text with αIP / x→α. The Hc of a body below the horizon is white on black.
-  On the real C47 the screen is shown at a PAUSE or a key: NAV makes a PAUSE 1 after drawing.
+  On the real C47 the screen is shown at a PAUSE or a key: NAV makes a PAUSE 0 after drawing
+  (it shows the screen with no wait; PAUSE 1 did the same with 0.1 s). SCREEN UPDATE below.
   Details: DEVELOPMENT_NOTES.md; every view and the N-label map: docs/C47_Nav_User_Manual.pdf.
   Menu now: 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 ANIM 8 ALLSKY 9 INFO (BODY left out of
   the NAV files; programs/BODY.txt still works on its own). While the calculator works a box says
   SINKING....ABOUT.
+
+SCREEN UPDATE - C47 AND FREE42 (DM42 / DM42n)
+----------------------------------------------
+Both calculators draw with PIXEL and AGRAPH; they differ in WHEN the drawing reaches the LCD.
+  C47     draws in memory and sends the screen to the LCD only at a PAUSE, a key press or the
+          end of the program - not while a KEY? loop waits. NAV shows each screen with PAUSE 0
+          (0 ticks: the screen with no wait; tested on the C47, faster than the PAUSE 1 of
+          before). So a view appears complete, in one piece, and the SINKING box stays on the
+          LCD until the new screen is ready. Holding a key while a view draws makes the C47
+          update the LCD at every key event: then it draws step by step.
+          The C47 has no command to switch the LCD update on or off (C47_Full_index.txt): a
+          screen that should build up in steps needs a PAUSE 0 after each step.
+  Free42  (the stock firmware of the DM42 / DM42n) sends every AGRAPH and PIXEL to the LCD at
+          once, so the screen builds up in front of you (the stars of SKY appear one by one)
+          and the SINKING box is cleared as soon as the next view starts drawing.
+          The DM42 variable RefLCD switches the LCD update: 0 STO "RefLCD" = no update, -1 STO
+          "RefLCD" = update once, 7 = normal. build/free42/NAVFULL_F42_RLCD uses it to behave
+          like the C47 (the screen complete, at once); NAVFULL_F42 keeps the Free42 way.
+          Free42 on a PC or phone has only the 131 x 16 HP-42S screen (no GrMod 3): NAV runs,
+          but only the top left corner of each screen is shown.
+

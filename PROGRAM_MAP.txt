@@ -25,7 +25,7 @@ MATM      MATM                                   -                              
 MATP      MATP                                   -                                                10472
 MATST     MATST                                  -                                                704
 MOON      MOON, MOO2, MOOQ                       SUNA, TGET                                       557
-NAV       NAV                                    ALLSKY, ALMF, ALMR, ALMS, CNTA, CSQK, CSUN, HALMH, HALMV, HANIM, HCZI, HORZ, PDMS, PDTS, PHLS, PHMS, PTXS, WPLS 794
+NAV       NAV                                    ALLSKY, ALMF, ALMR, ALMS, CNTA, CSQK, CSUN, HALMH, HALMV, HANIM, HCZI, HORZ, PDMS, PDTS, PHLS, PHMS, PTXS, WPLS 796
 PHAS      PHAS, PHA2                             SUNA                                             185
 PLAN      PLAN, PLN2, PLN3, PLNQ                 HCZ, SER, SERT, SUNA, TGET                       730
 PTBDEMO   PTBDEM                                 PTXB, PTXT                                       33

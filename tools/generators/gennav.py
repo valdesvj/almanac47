@@ -35,6 +35,10 @@ BUSY = 'SINKING....ABOUT'              # the box in the middle while the calcula
 ANTS_FLAG = 20                         # flag 47 set (SF 47): that many ants, no need to edit the program
 ANTS = 0                               # easter egg: the step after LBL 48 in NAV; 20 gives 20 ants (0.1 s each)
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
+# The C47 sends its screen to the LCD only at a PAUSE, a key press or the end of the program.
+# SHOW after each drawing puts it on the LCD: PAUSE 0 (0 ticks) does it with no wait (tested on
+# the C47; PAUSE 1 did the same with 0.1 s). The ants keep PAUSE 1: their walking speed.
+SHOW = 'PAUSE 0'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 
@@ -92,7 +96,7 @@ def text_steps(lab):
 
 def busy_box():
     """LBL 52: a box in the middle of the screen with BUSY in it, over whatever is shown: the
-    area cleared with GRMOD 2 (OFF), a double frame, the text (PTXS), PAUSE 1 to show it. It stays
+    area cleared with GRMOD 2 (OFF), a double frame, the text (PTXS), PAUSE 0 to show it. It stays
     on the display while the calculator works, until the next screen's PAUSE."""
     import c47fonts2
     w, h, y0, x0 = 180, 30, 105, 110
@@ -104,7 +108,7 @@ def busy_box():
             0, 'STO 33', 'GRMOD 33',
             y0, x0, full, 'STO 33', 'R↓', 'AGRAPH 33', 'AGRAPH 33', frame, 'STO 33', 'R↓', w - 4, 'STO 34', 'R↓',
             'LBL 54', 'AGRAPH 33', 'DSE 34', 'GTO 54', full, 'STO 33', 'R↓', 'AGRAPH 33', 'AGRAPH 33',
-            'WSIZE 64', y0 + 9, x0 + (w - tw) // 2, '"%s"' % BUSY, 'XEQ "PTXS"', 'PAUSE 1', 'RTN']
+            'WSIZE 64', y0 + 9, x0 + (w - tw) // 2, '"%s"' % BUSY, 'XEQ "PTXS"', SHOW, 'RTN']
 
 
 def program(inp, items=ALL, autoinit=False):
@@ -120,9 +124,9 @@ def program(inp, items=ALL, autoinit=False):
     a(*gencache.NEWMAT)                                                    # the sky cache (CACHE, gencache.py): empty = computed at the first view
     a(0, 'STO "DH"', 'XEQ 20', 'CLLCD', 'XEQ 48', 'XEQ 28', 'LBL 01', 'XEQ 40')       # after LON: the box while the sky is computed                          # DATE UTC LAT LON once
     # wait for a key; 0 ends; a digit key opens its view
-    # PAUSE 1: on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
+    # SHOW (PAUSE 0): on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
     # while the program waits in a KEY? loop - without it the menu stays invisible until a key
-    a('PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 02',
+    a(SHOW, 'LBL 02', 'KEY? 39', 'GTO 02',
       'RCL 39', 82, 'X=Y?', 'GTO 09',
       'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 26', 'RCL 38', 7, 'X<Y?', 'GTO 26',     # row 5-7
@@ -151,13 +155,13 @@ def program(inp, items=ALL, autoinit=False):
     # LBL 6d: item d chosen: invert it for a moment, then its view
     for d in items:
         y, x = place(d, items)
-        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', 'PAUSE 1', 'XEQ 48', d, 'STO "VW"', 'GTO 03')
+        a('LBL %d' % (60 + d), y - 2, 'STO 37', x - 4, 'STO 36', 'XEQ 41', SHOW, 'XEQ 48', d, 'STO "VW"', 'GTO 03')
     # after a view (it returns on +, up or down, R39): up one hour later, down one hour earlier, + the menu
     a('LBL 05', 'RCL 39', UP, 'X=Y?', 'GTO 06', 'RCL 39', DOWN, 'X=Y?', 'GTO 07', 'XEQ 48', 'GTO 01',
       'LBL 06', 1, 'STO+ "DH"', 'XEQ 48', 'GTO 03', 'LBL 07', 1, 'STO- "DH"', 'XEQ 48', 'GTO 03',
       # LBL 48: ants over the screen that is shown (XOR, so they show on black too), 0.1 s apart.
       # The C47 shows the screen only at a PAUSE: while the next screen is computed and drawn the
-      # display keeps this one, ants included, until the new screen's PAUSE 1.
+      # display keeps this one, ants included, until the new screen's PAUSE 0.
       # LBL 48: the SINKING box (LBL 52), then the ants if there are any (the number after LBL 48)
       'LBL 48', ANTS, 'FS? 47', ANTS_FLAG, 'STO 49', 'XEQ 52', 'RCL 49', 'X=0?', 'RTN', 'LBL 46', 'XEQ 47', 'PAUSE 1', 'DSE 49', 'GTO 46', 'RTN',
       *busy_box(),

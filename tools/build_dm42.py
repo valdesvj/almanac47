@@ -80,8 +80,8 @@ def no_ants(P):
 def no_box(P):
     """No SINKING box (LBL 52-54): the previous screen stays until the new one is drawn."""
     i = P.index('LBL 52')
-    j = P.index('RTN', P.index('PAUSE 1', i)) + 1
-    assert P[j - 2:j] == ['PAUSE 1', 'RTN'] and 'LBL 54' in P[i:j]
+    j = P.index('RTN', P.index('PAUSE 0', i)) + 1
+    assert P[j - 2:j] == ['PAUSE 0', 'RTN'] and 'LBL 54' in P[i:j]
     P = P[:i] + P[j:]
     out = []
     for l in P:

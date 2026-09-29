@@ -109,8 +109,12 @@ S += [P('6. Speed and memory', h2)] + B([
       'The celestial equator of the charts depends only on the position: it is kept in ALMQ (300 × 3) and redrawn from there.',
       'The fonts read each column pattern from stack register D: NAV uses the 8-level stack while it runs and puts your '
       'stack size back when you leave with 0 or TEXT.',
-      'The C47 shows a new screen at a PAUSE or a key press: NAV makes a short PAUSE after each drawing, so the screen '
-      'appears at once while the program waits for a key.',
+      'The C47 sends a new screen to the display only at a PAUSE, a key press or the end of the program. NAV makes a '
+      'PAUSE 0 after each drawing (no wait), so every screen appears complete, at once, and the SINKING box stays until '
+      'the next screen is ready. (Holding a key while a view draws makes the C47 show the drawing step by step.)',
+      'Free42 on the DM42 / DM42n (build/free42) shows every drawing step at once, so the screens build up in front of '
+      'you. NAVFULL_F42_RLCD switches this off with the DM42 variable RefLCD (0 = no update, -1 = update once, '
+      '7 = normal) and then behaves like the C47.',
       'With the tables (TBL) the Sun, the Moon and the planets come from the tables inside their period and the '
       'computation is about twice as fast.',
       '<i>Something lives in NAV at the step after LBL 48. It is 0. Try 20 and press + or an arrow …</i>'])
