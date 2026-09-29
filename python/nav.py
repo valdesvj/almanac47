@@ -1,9 +1,9 @@
-# nav.py - Sun, Aries, stars, sunrise/sunset, Moon phase
-# Same method as the C47 programs (SUNA, STAR, SUNRISE, PHAS).
-# Runs on a computer (Python 3) and on NumWorks (MicroPython).
+# nav.py - Sun, Aries, stars, sunrise/sunset, Moon phase, Hc/Zn
+# Same method as the C47 programs (SUNA, STAR, SUNRISE, PHAS, HCZ).
+# Runs on a computer (Python 3), on NumWorks and on HP Prime (MicroPython).
 # Needs navdata.py in the same place. Time = UT1 (add DUT1 to UTC).
 from math import sin, cos, tan, asin, acos, atan2, radians, degrees
-from navdata import VL, VB, VR, NU, ST, SN
+from navdata import VL, VB, VR, NU, ST, SN, BR
 
 DT = 69.2   # TT-UT1 seconds
 
@@ -58,12 +58,15 @@ def sun(j):
     gmst = 280.46061837 + 360.98564736629 * d + 0.000387933 * (d / 36525.0) ** 2
     aries = (gmst + dp / 3600.0 * cos(e)) % 360.0
     return {'gha': (aries - ra) % 360.0, 'dec': dec, 'aries': aries, 'T': T,
-            'lam': lon, 'eps': eps, 'dpsi': dp, 'deps': de, 'args': args}
+            'lam': lon, 'eps': eps, 'dpsi': dp, 'deps': de, 'args': args,
+            'sd': 15.99383 / R}
 
 
-def star(j, n):
-    """n = almanac star number 1-57 (58 = Polaris). Returns gha, dec, sha."""
-    s = sun(j)
+def star(j, n, s=None):
+    """n = almanac star number 1-57 (58 = Polaris). Returns gha, dec, sha.
+    s = sun(j) if already computed."""
+    if s is None:
+        s = sun(j)
     T = s['T']
     a0, d0, pa, pd = ST[n - 1]
     t = T * 100.0
@@ -147,19 +150,132 @@ def phase(j):
     return k, age
 
 
-# ---------- formatting and menu ----------
+def hcz(lat, lon, dec, gha):
+    """HCZ: returns Hc, Zn (deg) and sin Hc (for the sine-scale charts)."""
+    la, de, t = radians(lat), radians(dec), radians(gha + lon)
+    sh = sin(la) * sin(de) + cos(la) * cos(de) * cos(t)
+    sh = max(-1.0, min(1.0, sh))
+    zn = degrees(atan2(-cos(de) * sin(t), cos(la) * sin(de) - sin(la) * cos(de) * cos(t)))
+    return degrees(asin(sh)), (zn + 360.0) % 360.0, sh
+
+
+def bodies(j, lat, lon, n=9, hmin=10.0):
+    """Table rule of ALMF / HORZ without Moon and planets: the Sun (always), then
+    the brightest stars higher than hmin, n rows in all.
+    Returns (rows, sun); row = (id, gha, dec, hc, zn, sin hc), id 0 = Sun."""
+    s = sun(j)
+    out = [(0, s['gha'], s['dec']) + hcz(lat, lon, s['dec'], s['gha'])]
+    for k in BR:
+        if len(out) >= n:
+            break
+        g, d, _ = star(j, k, s)
+        h = hcz(lat, lon, d, g)
+        if h[0] > hmin:
+            out.append((k, g, d) + h)
+    return out, s
+
+
+def cal(j):
+    """JD -> (year, month, day, UT hours)."""
+    z = int(j + 0.5)
+    f = j + 0.5 - z
+    a = int((z - 1867216.25) / 36524.25)
+    a = z + 1 + a - a // 4
+    b = a + 1524
+    c = int((b - 122.1) / 365.25)
+    d = int(365.25 * c)
+    e = int((b - d) / 30.6001)
+    day = b - d - int(30.6001 * e)
+    m = e - 1 if e < 14 else e - 13
+    return (c - 4716 if m > 2 else c - 4715), m, day, f * 24.0
+
+
+def moonword(k, age):
+    if k >= 99.5:
+        return 'FULL'
+    if k < 0.5:
+        return 'NEW'
+    return 'WANING' if age > 14.765 else 'WAXING'
+
+
+# ---------- formatting (rounding as the C47 printers PDM PZN PHM PF1) ----------
+def fdm(v):
+    """'174 26.9' (deg, min to 0.1'), '-' in front when negative."""
+    t = int(abs(v) * 600 + 0.5)
+    d = t // 600
+    t -= d * 600
+    return '%s%d %02d.%d' % ('-' if v < 0 else '', d, t // 10, t % 10)
+
+
+def fns(v, p='NS', w=8):
+    """'N 19 02.7', 'S  0 22.8' (degrees right-aligned in w - 5 digits)."""
+    s = ' ' + fdm(abs(v))
+    while len(s) < w:
+        s = ' ' + s
+    return (p[1] if v < 0 else p[0]) + s
+
+
+def fzn(v):
+    t = int(v * 10 + 0.5)
+    if t >= 3600:
+        t = 0
+    return '%03d.%d' % (t // 10, t % 10)
+
+
+def fhm(h):
+    if h is None or h > 98:
+        return '--:--'
+    m = int(h * 60 + 0.5) % 1440
+    return '%02d:%02d' % (m // 60, m % 60)
+
+
+def f1(v):
+    m = int(abs(v) * 10 + 0.5)
+    return '%d.%d' % (m // 10, m % 10)
+
+
+def fdate(j):
+    y, m, d, h = cal(j)
+    return '%02d-%02d-%04d' % (d, m, y)
+
+
+def almanac(j, lat, lon, n=9):
+    """The ALMANAC page (ALMF) as strings.
+    head: date, UT, lat, lon, GHA Aries
+    rows: (id, name, GHA, Dec, Hc, Zn, hc)
+    foot: naut twi am, pm, rise, set, mer pass, Sun SD, Moon %, word, age"""
+    rows, s = bodies(j, lat, lon, n)
+    head = (fdate(j), fhm(cal(j)[3]), fns(lat, 'NS', 0), fns(lon, 'EW', 0), fdm(s['aries']))
+    tab = []
+    for k, g, d, hc, zn, sh in rows:
+        tab.append((k, 'SUN' if k == 0 else SN[k - 1].upper(), fdm(g), fns(d),
+                    fdm(hc), fzn(zn), hc))
+    j0 = int(j - 0.5) + 0.5
+    foot = [fhm(event(j0, lat, lon, e)) for e in ('nauam', 'naupm', 'rise', 'set', 'tran')]
+    k, a = phase(j)
+    foot += [f1(s['sd']), '%d' % int(k + 0.5), moonword(k, a), f1(a)]
+    return head, tab, foot
+
+
+def page(j, lat, lon):
+    """Text lines of the ALMANAC page (menu 5; the graphic views draw the same strings)."""
+    h, tab, f = almanac(j, lat, lon)
+    out = ['%s %s UT  DR %s %s' % (h[0], h[1], h[2], h[3]),
+           '%-18s %9s %10s %9s %6s' % ('BODY', 'GHA', 'DEC', 'HC', 'ZN'),
+           '%-18s %9s' % ('ARIES', h[4])]
+    for k, nm, g, d, hc, zn, x in tab:
+        out.append('%-18s %9s %10s %9s %6s' % (('%2d ' % k if k else '   ') + nm, g, d, hc, zn))
+    out.append('NAUT TWI %s %s  MOON %s%% %s' % (f[0], f[1], f[6], f[7]))
+    out.append('RISE/SET %s %s  AGE %s DAYS' % (f[2], f[3], f[8]))
+    out.append('MER PASS %s  SD %s' % (f[4], f[5]))
+    return out
+
+
+# ---------- menu ----------
 def dm(x, ns=False):
-    s = ''
     if ns:
-        s = 'S ' if x < 0 else 'N '
-        x = abs(x)
-    x = x % 360.0 if not ns else x
-    d = int(x)
-    m = round((x - d) * 60, 1)
-    if m >= 60:
-        d += 1
-        m = 0.0
-    return '%s%d %04.1f\'' % (s, d, m)
+        return fns(x, 'NS', 0) + "'"
+    return fdm(x % 360.0) + "'"
 
 
 def hms(t):
@@ -183,10 +299,18 @@ def ask_ut():
     return int(s[0]) + int(s[1]) / 60.0 + float(s[2]) / 3600.0
 
 
+def ask_ang(p):
+    """'25.5' (degrees) or '25 30' (degrees minutes); '-' = S or W."""
+    s = input(p).split()
+    v = abs(float(s[0])) + (float(s[1]) / 60.0 if len(s) > 1 else 0.0)
+    return -v if s[0][0] == '-' else v
+
+
 def menu():
     while True:
         print('1 Sun  2 Star  3 Rise/Set')
-        print('4 Moon phase  0 Quit')
+        print('4 Moon phase  5 Almanac')
+        print('0 Quit')
         c = input('> ')
         if c == '0':
             break
@@ -203,14 +327,20 @@ def menu():
             print('GHA', dm(g), ' SHA', dm(sha))
             print('Dec', dm(de, True))
         elif c == '3':
-            la = float(input('Lat (N+): '))
-            lo = float(input('Lon (E+ W-): '))
+            la = ask_ang('Lat (N+): ')
+            lo = ask_ang('Lon (E+ W-): ')
             j0 = jd(y, m, d)
             for k in ('nauam', 'civam', 'rise', 'tran', 'set', 'civpm', 'naupm'):
                 print('%-6s %s UT' % (k, hms(event(j0, la, lo, k))))
         elif c == '4':
             k, a = phase(jd(y, m, d, ask_ut()))
             print('Illum %.1f%%  age %.2f d' % (k, a))
+        elif c == '5':
+            j = jd(y, m, d, ask_ut())
+            la = ask_ang('Lat (N+): ')
+            lo = ask_ang('Lon (E+ W-): ')
+            for t in page(j, la, lo):
+                print(t)
 
 
 if __name__ == '__main__':

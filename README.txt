@@ -110,7 +110,11 @@ Computer: put both files in one folder, run  python nav.py
 NumWorks: copy both scripts to the calculator (my.numworks.com workshop),
 open nav.py; if the menu does not start, type  menu()  in the shell.
 The menu asks year, month, day and UT (hh:mm:ss) and computes the JD itself.
+Option 5 prints the ALMANAC page (Sun + brightest stars: GHA Dec Hc Zn, twilight,
+rise/set, mer pass, SD, Moon phase). Lat/Lon: 25 20 = 25 deg 20', or decimal.
 Functions: jd(y,m,d,h)  sun(jd)  star(jd,n)  event(jd0,lat,lon,kind)  phase(jd)
+           hcz(lat,lon,dec,gha)  bodies(jd,lat,lon)  almanac(jd,lat,lon)  page(...)
+HP Prime graphic views (ALMANAC page, horizon chart): python/hpprime/README.md
 
 PIXEL TEXT AND HALF-SCREEN SIGHT PLANNER
 ---------------------------------------
