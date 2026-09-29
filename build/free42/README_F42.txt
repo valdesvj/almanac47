@@ -50,8 +50,9 @@ WHAT IS DIFFERENT FROM THE C47 VERSION (inside the programs, not on the screen)
     bytes; the drawing modes (OR, set, clear, XOR) are the HP-42S flags 34 and 35.
   - PIXEL, keys, pauses, TICKS, strings and the date input use Free42 functions (PX, KM,
     KQ, W1 / W10, TK, XSTR, APPEND, HEAD). No C47 date functions: the date is computed.
-  - Not tested yet on a real DM42 / DM42n: tested in the Free42 3.3.10 core (SwissMicros
-    source) with the DM42 graphics code, in binary (double) arithmetic.
+  - Tested by the author on a DM42n (SwissMicros firmware DM42-3.26, Free42 3.3.10), and in
+    the Free42 3.3.10 core (SwissMicros source) with the DM42 graphics code, in binary
+    (double) arithmetic.
 
 Built with: python3 tools/build_free42.py
 Copyright 2026 Victor Valdes. GNU GPL v3 or later. It supports, and does not replace,
