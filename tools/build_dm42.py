@@ -80,7 +80,7 @@ def no_ants(P):
 def init_dm42():
     """INIT: MATA (Sun VL VB VR, FULL 2000-2050, and NU) and MATST (stars), as LBL 01-02.
     No NEWMAT of the cache here: NAV makes ALMC (and ALMQ) itself."""
-    out = ['LBL "INIT"', 'XEQ 01', 'XEQ 02', '"%s"' % VALID, 'STO "VAL"', '"MATRICES READY: SUN STARS %s"' % VALID, 'RTN']
+    out = ['LBL "INIT"', 'XEQ 01', 'XEQ 02', '"%s"' % VALID, 'STO "VAL"', '"MATRICES READY: SUN STARS %s"' % VALID, 'SF 81', 'RTN']      # SF 81: NAV will not look for INIT
     for k, n in enumerate(('MATA', 'MATST')):
         b = B.compact(B.read(n))
         assert b[0] == 'LBL "%s"' % n and b[-1] == 'END'
@@ -104,7 +104,7 @@ def init_dm42_5y():
     sun = [l for l in sun if l != '"FAST SERIES %s"' % period]
     st = B.compact(B.read('MATST'))[1:-1]
     out = ['LBL "INIT"', 'XEQ 01', 'XEQ 02', 'XEQ 03', '"%s"' % period, 'STO "VAL"',
-           '"MATRICES READY: SUN STARS %s"' % period, 'RTN']
+           '"MATRICES READY: SUN STARS %s"' % period, 'SF 81', 'RTN']
     for k, body in enumerate((nu, st, sun)):
         if body and body[-1] == 'RTN':
             body = body[:-1]

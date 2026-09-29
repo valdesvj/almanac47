@@ -21,7 +21,9 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
   1. rejig NAVINIT_DM42.txt, load it, XEQ "INIT" -> MATRICES READY: SUN STARS 2000-2050
   2. delete INIT: GTO "INIT", CLP (the matrices stay)
   3. load NAVTXT_DM42 or NAV1_DM42 (one of them, both are called NAV), XEQ "NAV"
-  If INIT is still loaded, the first NAV runs it (flag 81); CF 81 before a new INIT.
+  INIT sets flag 81 when it is done: NAV then does not look for INIT. If INIT is still
+  loaded and has not run, the first NAV runs it. If NAV stops with an undefined label at
+  its start: SF 81 (the matrices are there) and XEQ "NAV" again.
   The CLK date format must be YYYY-MM-DD, as for the full version.
 
 MEMORY (estimate from the .p47 file sizes, not measured on a DM42)
