@@ -114,7 +114,7 @@ Option 5 prints the ALMANAC page (Sun + brightest stars: GHA Dec Hc Zn, twilight
 rise/set, mer pass, SD, Moon phase). Lat/Lon: 25 20 = 25 deg 20', or decimal.
 Functions: jd(y,m,d,h)  sun(jd)  star(jd,n)  event(jd0,lat,lon,kind)  phase(jd)
            hcz(lat,lon,dec,gha)  bodies(jd,lat,lon)  almanac(jd,lat,lon)  page(...)
-NumWorks graphic views (ALMANAC page, horizon chart): python/numworks/README.md
+HP Prime graphic views (ALMANAC page, horizon chart): python/hpprime/README.md
 
 PIXEL TEXT AND HALF-SCREEN SIGHT PLANNER
 ---------------------------------------
