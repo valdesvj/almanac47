@@ -14,7 +14,7 @@ Free42 3.3 with the DM42 extensions:
                SF CF = clear, SF SF = XOR - the same four modes as GRMOD 0 1 2 3.
   keys         GETKEY / GETKEYA, codes translated to the C47 codes (KM), so the views
                keep their key tests. KEY? r -> XEQ "KQ" (skips the next step on a key).
-  PAUSE n      XEQ "Wn" (waits n tenths with TIME); PAUSE 1 (C47 display refresh) dropped.
+  PAUSE n      XEQ "Wn" (waits n tenths with TIME); PAUSE 0 (C47 screen update) dropped.
   TICKS        XEQ "TK" (tenths of a second from TIME).
   strings      a C47 string goes on the stack, a Free42 "..." goes into ALPHA: every
                string is XSTR "..."; + on strings is APPEND (AD, in the text programs).
@@ -24,6 +24,13 @@ Free42 3.3 with the DM42 extensions:
                font in two columns; + back to the menu (Free42 has no register browser).
   ants         flag 97 instead of flag 47 (47 is a system flag on the HP-42S / Free42).
   size         NAV sets SIZE 100 (registers R00-R99).
+
+  NAVFULL_F42_RLCD (python3 tools/build_free42.py rlcd): the screen as on the C47. Free42
+  shows every AGRAPH and PIXEL at once (the drawing builds up on the screen); the C47 shows
+  its screen only at a PAUSE, when it waits for a key and at the end. With 0 STO "RefLCD" the
+  DM42 does not refresh the LCD; RF (-1 STO "RefLCD") shows it once: RF is called where the
+  C47 program has PAUSE 0, before every key wait and at the start of every pause (Wn). At
+  the end (0 on the menu) NAV sets RefLCD 7 again (the normal refresh).
 
   python3 tools/build_free42.py   -> build/free42/NAVFULL_F42.txt, NAVINIT_F42_FULL.txt,
                                      NAVINIT_F42_FAST.txt (+ .raw with tools/f42 if built)
@@ -40,6 +47,7 @@ OUT = os.path.join(ROOT, 'build', 'free42')
 TEXTPROGS = ('STXT', 'ALMT')                # programs where + may join strings
 ANTFLAG = 97
 WAITS = set()
+RLCD = [False]                         # the RLCD build: the LCD shows the screen only where the C47 does
 
 
 # ------------------------------------------------------------------ helpers (program F42)
@@ -62,6 +70,8 @@ def lib():
     # KQ: KEY? 39 - a key: its code in R39 and the next step skipped; no key: next step
     L += ['LBL "KQ"', 'FUNC 00', 'GETKEYA', 'X=0?', 'RTNYES', 'XEQ "KM"', 'STO 39', 'RTNNO']
     # TK: TICKS (tenths of a second)
+    if RLCD[0]:
+        L += ['LBL "RF"', 'FUNC 00', '-1', 'STO "RefLCD"', 'RTN']   # show the screen once (RLCD build)
     L += ['LBL "TK"', 'FUNC 01', 'TIME', '→HR', '36000', '×', 'IP', 'RTN']
     # AD: + that joins strings (APPEND) or adds numbers
     L += ['LBL "AD"', 'FUNC 21', 'STR?', 'GTO 21', '+', 'RTN', 'LBL 21', 'APPEND', 'RTN']
@@ -88,7 +98,7 @@ def lib():
           'RCL IND "TL"', 'XEQ "PTXT"', '1', 'STO+ "TL"', 'STO+ "TK"', 'GTO 40',
           'LBL 41', '2', '4', 'XSTR "+ MENU"', 'XEQ "PTXT"', 'RTN']
     for n in sorted(WAITS):
-        L += ['LBL "W%d"' % n, 'FUNC 00', 'XEQ "TK"', str(n), '+', 'STO "WTE"',
+        L += ['LBL "W%d"' % n, 'FUNC 00'] + (['XEQ "RF"'] if RLCD[0] else []) + ['XEQ "TK"', str(n), '+', 'STO "WTE"',
               'LBL 50', 'XEQ "TK"', 'RCL "WTE"', 'X>Y?', 'GTO 50', 'RTN']
     return L + ['END']
 
@@ -292,7 +302,9 @@ def conv(L, name):
             out.append('XEQ "PX"')
         elif l.startswith('PAUSE '):
             n = int(l[6:])
-            if n > 1:
+            if n <= 1 and RLCD[0]:
+                out.append('XEQ "RF"')
+            elif n > 1:
                 WAITS.add(n)
                 out.append('XEQ "W%d"' % n)
         elif l == 'KEY? 39':
@@ -350,7 +362,8 @@ def box_free42():
         return [str(y), 'STO "BY"', str(x), 'STO "BX"', str(bw), 'STO "BW"', str(bh), 'STO "BH"', 'XEQ "FBX"']
     return (['LBL 52', 'SF 34', 'CF 35'] + fbx(y0, x0, w, h) + ['CF 34']
             + fbx(y0, x0, 2, h) + fbx(y0, x0 + w - 2, 2, h) + fbx(y0, x0, w, 2) + fbx(y0 + h - 2, x0, w, 2)
-            + [str(y0 + 9), str(x0 + (w - tw) // 2), '"%s"' % gennav.BUSY, 'XEQ "PTXS"', 'RTN'])
+            + [str(y0 + 9), str(x0 + (w - tw) // 2), '"%s"' % gennav.BUSY, 'XEQ "PTXS"']
+            + (['XEQ "RF"'] if RLCD[0] else []) + ['RTN'])
 
 
 def nav():
@@ -358,10 +371,10 @@ def nav():
     i = P.index('LBL 20')
     P = P[:i] + inputs() + ['END']
     P = seq(P, ['SSIZE#', 'STO "SSZ"', 'SSIZE8'], ['SIZE 100'])
-    P = seq(P, ['XEQ 20', 'CLLCD'], ['XEQ 20', '3', 'STO "GrMod"', 'CLLCD'])
+    P = seq(P, ['XEQ 20', 'CLLCD'], ['XEQ 20', '3', 'STO "GrMod"'] + (['0', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLLCD'])
     P = seq(P, ['LBL 08', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'RTN'], ['LBL 08', 'RTN'])
-    P = seq(P, ['LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN'], ['LBL 09', 'CLLCD', '0', 'STO "GrMod"', 'CLST', 'RTN'])
-    P = seq(P, ['PAUSE 1', 'LBL 02', 'KEY? 39', 'GTO 02'], ['LBL 02', 'GETKEY', 'XEQ "KM"', 'STO 39'])
+    P = seq(P, ['LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN'], ['LBL 09', 'CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'RTN'])
+    P = seq(P, ['PAUSE 0', 'LBL 02', 'KEY? 39', 'GTO 02'], (['XEQ "RF"'] if RLCD[0] else []) + ['LBL 02', 'GETKEY', 'XEQ "KM"', 'STO 39'])
     # TEXT: the page into R50 ... (ALMR) and drawn with the small font; + back to the menu
     i = P.index('LBL 12')
     j = P.index('REGS', i)
@@ -392,7 +405,7 @@ def nav():
 
 
 def wpls():
-    return ['LBL "WPLS"', 'LBL 01', 'GETKEY', 'XEQ "KM"', 'STO 39', 'RCL 39', '85', 'X=Y?', 'RTN',
+    return ['LBL "WPLS"'] + (['XEQ "RF"'] if RLCD[0] else []) + ['LBL 01', 'GETKEY', 'XEQ "KM"', 'STO 39', 'RCL 39', '85', 'X=Y?', 'RTN',
             'RCL 39', '51', 'X=Y?', 'RTN', 'RCL 39', '61', 'X=Y?', 'RTN', 'GTO 01', 'END']
 
 
@@ -407,7 +420,8 @@ def programs():
     return p
 
 
-def build():
+def build(rlcd=False):
+    RLCD[0] = rlcd
     WAITS.clear()
     p = programs()
     N = nav()
@@ -427,6 +441,9 @@ def build():
     m = B.label_map(full, keep=('NAV',))
     full = B.rename_keep(full, m, ('NAV',))
     os.makedirs(OUT, exist_ok=True)
+    if rlcd:
+        open(os.path.join(OUT, 'NAVFULL_F42_RLCD.txt'), 'w', encoding='utf-8').write('\n'.join(full) + '\n')
+        return full
     open(os.path.join(OUT, 'NAVFULL_F42.txt'), 'w', encoding='utf-8').write('\n'.join(full) + '\n')
     with open(os.path.join(OUT, 'NAVFULL_F42_LABELS.txt'), 'w', encoding='utf-8') as fh:
         fh.write('NAVFULL_F42 - program labels (NAV keeps its name)\n\n')
@@ -443,5 +460,6 @@ def build():
 
 
 if __name__ == '__main__':
-    full = build()
-    print('NAVFULL_F42', len(full), 'lines,', sum(len(l) + 1 for l in full), 'bytes; waits', sorted(WAITS))
+    rl = sys.argv[1:] == ['rlcd']
+    full = build(rl)
+    print('NAVFULL_F42' + ('_RLCD' if rl else ''), len(full), 'lines,', sum(len(l) + 1 for l in full), 'bytes; waits', sorted(WAITS))

@@ -1,5 +1,7 @@
 # Almanac 47 on the NumWorks
 
+User manual: `docs/Almanac47_NumWorks_Manual.pdf`.
+
 Two graphic views of the C47 suite for the NumWorks calculator (Epsilon MicroPython),
 drawn with the calculator's own `kandinsky` module, keys read with `ion`:
 

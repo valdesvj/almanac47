@@ -1,5 +1,7 @@
 # Almanac 47 on the HP Prime
 
+User manual: `docs/Almanac47_HPPrime_Manual.pdf`.
+
 Two graphic views of the C47 suite for the HP Prime (G1/G2, firmware with the Python
 app, 2.1.14567 or later), drawn through the calculator's `hpprime` module:
 

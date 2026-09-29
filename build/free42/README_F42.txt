@@ -6,10 +6,14 @@ with the DM42 graphics extension (400 x 240). Same menu, same screens, same valu
 Free42 core the screens were compared pixel by pixel with the C47 build (menu, ALMANAC,
 CHART, SMALL, SPLIT, ALLSKY, INFO identical; the text page identical line by line).
 
+User manual: docs/Almanac47_Free42_Manual.pdf
+
 FILES
   NAVFULL_F42.raw        the program NAV and its routines (load on the calculator)
   NAVINIT_F42_FULL.raw   INIT: the series matrices, valid 2000-2050
   NAVINIT_F42_FAST.raw   INIT: fitted series 2026-2030 (smaller, faster)
+  NAVFULL_F42_RLCD.raw   the same NAV, but the screen appears as on the C47: complete, at
+                         once (see SCREEN UPDATE); load this one OR NAVFULL_F42.raw
   *.txt                  the same programs as text (Free42 on a PC or phone: Paste them
                          into a program in PRGM mode)
   NAVFULL_F42_LABELS.txt the label map (every routine except NAV is N01, N02 ...)
@@ -30,6 +34,16 @@ KEYS
   3 TEXT     the almanac page in R50 ... (as on the C47), drawn with the small font;
              + back to the menu (Free42 has no register browser)
   The ants: flag 97 (the HP-42S flag 47 is a system flag). SF 97 and try a view.
+
+SCREEN UPDATE (NAVFULL_F42 and NAVFULL_F42_RLCD)
+  Free42 shows every AGRAPH / PIXEL at once, so NAVFULL_F42 builds each screen up in front
+  of you (the SINKING box is cleared as soon as the next view starts drawing). The C47
+  shows its screen only at a PAUSE, when it waits for a key and at the end, so there the
+  box stays until the finished screen appears in one piece.
+  NAVFULL_F42_RLCD does the same on the DM42: 0 STO "RefLCD" (no LCD refresh while NAV
+  computes and draws), -1 STO "RefLCD" where the C47 program has PAUSE 0, before every key
+  wait and pause. 0 on the menu ends NAV with RefLCD 7 (normal) again.
+  If you stop it with R/S or EXIT, the screen may stay frozen: key 7 STO "RefLCD".
 
 WHAT IS DIFFERENT FROM THE C47 VERSION (inside the programs, not on the screen)
   - AGRAPH draws the ALPHA register (8-pixel columns): the fonts are strings of column

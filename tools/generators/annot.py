@@ -181,7 +181,7 @@ H['NAV']=["NAV - graphic menu (KEY?): asks DATE UTC LAT LON once, computes the s
  "1-9 opens a view, 0 ends; up / down arrow one hour later / earlier; in a view + returns to the menu",
  "REGS: R01-R08 R36-R39 R49 (+ the views), variables DATE UTC LAT LON DH VW SSZ, matrices ALMC ALMQ"]
 A['NAV']=[('LBL "NAV"',1,'stack size kept in SSZ, 8-level stack (the fonts read stack register D); cache matrices ALMC ALMQ'),
- ('XEQ 20',1,'DATE UTC LAT LON once; LBL 28 computes the sky before the menu'),('LBL 01',1,'the menu (LBL 40); PAUSE 1 shows it'),
+ ('XEQ 20',1,'DATE UTC LAT LON once; LBL 28 computes the sky before the menu'),('LBL 01',1,'the menu (LBL 40); PAUSE 0 shows it'),
  ('LBL 02',1,'wait for a key (KEY? 39): 0 end, arrows one hour, 1-9 a view, other keys ignored'),('LBL 03',1,'draw the view in VW'),
  ('LBL 05',1,'after a view: + menu, up / down arrow the same view one hour later / earlier'),
  ('LBL 48',1,'ants over the screen shown: the number after LBL 48 is how many (0 = none)'),('LBL 47',1,'one ant at a random place (XOR, GRMOD 3)'),

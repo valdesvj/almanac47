@@ -22,6 +22,8 @@
 #include "shell.h"
 
 static unsigned char fb[240][400];
+static unsigned char shown[240][400];        // what the LCD shows: fb when RefLCD bit 0 is set, else at RF
+extern "C" int get_reflcd_mask();
 static unsigned char lcd[16][131];
 static bool want_t3 = false;
 long long nsteps = 0;
@@ -60,7 +62,7 @@ void shell_log(const char *m) { fprintf(stderr, "LOG %s\n", m); }
 void shell_malloc_fail(size_t, const char *, int) {}
 double shell_vbat() { return 3.0; }
 int shell_dev_id() { return 42; }
-void shell_force_lcd_refresh(int) {}
+void shell_force_lcd_refresh(int what) { if (what & 1) memcpy(shown, fb, sizeof fb); }
 void thell_draw_menu_key(int, int, const char *, int) {}
 void thell_draw_char(int, int, char) {}
 void thell_draw_pattern(int x, int y, const char *p, int w, int mode) {
@@ -86,21 +88,23 @@ void thell_start_show() {}
 void thell_edit_number(const char *, int, const char *, int) {}
 
 static int qkey = 0; static uint4 qtime = 0; static char qshot[512] = "";
-static void shot(const char *a) {
+static void shotbuf(const char *a, unsigned char (*b)[400]) {
     FILE *f = fopen(a, "wb"); fprintf(f, "P1\n400 240\n");
-    for (int y = 0; y < 240; y++) { for (int x = 0; x < 400; x++) fputc(fb[y][x] ? '1' : '0', f); fputc('\n', f); }
+    for (int y = 0; y < 240; y++) { for (int x = 0; x < 400; x++) fputc(b[y][x] ? '1' : '0', f); fputc('\n', f); }
     fclose(f);
 }
-static uint4 stime = 0; static char sfile[512] = ""; static int sseq = 0;
+static void shot(const char *a) { shotbuf(a, fb); }
+static void lcdshot(const char *a) { if (get_reflcd_mask() & 1) memcpy(shown, fb, sizeof fb); shotbuf(a, shown); }
+static uint4 stime = 0; static char sfile[512] = ""; static int sseq = 0; static long severy = 0, scount = 0;
 static void run(bool going) {
     bool enq; int rep;
     long guard = 0;
     while (true) {
         while (going) {
-            if (sfile[0] && shell_milliseconds() >= stime) {        // captures while running: FILE_0.pbm, _1 ...
-                char f[600]; snprintf(f, sizeof f, "%s_%d.pbm", sfile, sseq++); shot(f);
+            if (sfile[0] && (severy ? ++scount % severy == 0 : shell_milliseconds() >= stime)) {        // captures while running: FILE_0.pbm, _1 ...
+                char f[600]; snprintf(f, sizeof f, "%s_%d.pbm", sfile, sseq++); lcdshot(f);
                 stime = shell_milliseconds() + 250;
-                if (sseq >= 200) sfile[0] = 0;
+                if (sseq >= 400) sfile[0] = 0;
             }
             if (qkey && shell_milliseconds() >= qtime) {       // a key pressed while the program runs
                 int k = qkey; qkey = 0;
@@ -171,13 +175,15 @@ int main() {
         } else if (!strcmp(line, "qkey")) {                  // qkey CODE MS: then a key while running
             int c, ms; qshot[0] = 0; sscanf(a, "%d %d %511s", &c, &ms, qshot); qkey = c; qtime = shell_milliseconds() + ms;
         } else if (!strcmp(line, "film")) {                  // film PREFIX: a capture every 0.25 s while running
-            sseq = 0; sscanf(a, "%511s", sfile); stime = shell_milliseconds();
+            sseq = 0; severy = 0; sscanf(a, "%511s %ld", sfile, &severy); stime = shell_milliseconds();
         } else if (!strcmp(line, "stopfilm")) {
             sfile[0] = 0;
         } else if (!strcmp(line, "key")) {
             press(atoi(a));
         } else if (!strcmp(line, "shot")) {
             shot(a);
+        } else if (!strcmp(line, "lcd")) {                   // lcd FILE: what the LCD shows (RefLCD)
+            lcdshot(a);
         } else if (!strcmp(line, "msg")) {
             for (int y = 0; y < 16; y++) { for (int x = 0; x < 131; x++) putchar(lcd[y][x] ? '#' : ' '); putchar('\n'); }
         } else if (!strcmp(line, "export")) {
