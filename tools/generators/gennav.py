@@ -23,8 +23,10 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path[:0] = [os.path.join(ROOT, 'python', 'native'), os.path.dirname(os.path.abspath(__file__))]
 import gencache
 
-ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SMALL', 'SPLIT', 'BODY', 'ANIM', 'ALLSKY']
-VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'HANIM', 'ALLSKY']
+ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SMALL', 'SPLIT', 'ANIM', 'ALLSKY', 'INFO']
+VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'HANIM', 'ALLSKY', None]      # 9 INFO: a page in NAV
+INFO = ['ALMANAC 47 - INFO', '', 'GITHUB.COM/VALDESVJ/ALMANAC47', 'COPYRIGHT 2026 VICTOR VALDES', 'FREE SOFTWARE: GNU GPL V3 OR LATER', '',
+        'NO WARRANTY - IT MAY HAVE BUGS', 'ALWAYS CROSS-CHECK THE VALUES', 'WITH THE NAUTICAL ALMANAC', '', 'THE ANTS SLEEP AFTER LBL 48 IN NAV']
 TOP, PITCH, XL, XR = 176, 28, 16, 206
 BOX_W, BOX_H = 170, 16
 TITLE = 'ALMANAC 47'
@@ -36,7 +38,7 @@ WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 
 ALL = list(range(1, 10))
-COMPACT = [1, 2, 4, 9]                 # compact version: ALMANAC CHART SKY ALLSKY
+COMPACT = [1, 2, 4, 8, 9]              # compact version: ALMANAC CHART SKY ALLSKY INFO
 
 
 def place(d, items=ALL):
@@ -136,6 +138,13 @@ def program(inp, items=ALL, autoinit=False):
     for d in items:
         if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
             a('LBL 12', 'XEQ 08', *text_steps(24)); a('REGS', 'RTN')      # stack size back first: the lines go onto the stack last
+        elif d == 9:                        # INFO: the page, held like a view (+ menu)
+            a('LBL 18', 'CLLCD')
+            for k, t in enumerate(INFO):
+                if t:
+                    a(216 - 16 * k, 8, '"%s"' % t, 'XEQ "PTXS"')
+            a(36, 2, '"+ MENU"', 'XEQ "PTXS"', 22, 0, 400, 'XEQ "PHLS"', 5, 2, '"%s"' % WARNING, 'XEQ "PTXS"',
+              'XEQ "WPLS"', 'GTO 05')
         else:
             a('LBL %d' % (9 + d), 'XEQ 21', 'XEQ "%s"' % VIEWS[d - 1], 'GTO 05')
     # LBL 6d: item d chosen: invert it for a moment, then its view

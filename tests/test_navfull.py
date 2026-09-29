@@ -109,13 +109,12 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     c.run('NAV',maxsteps=10**7)
     a={(x,239-y) for y,x in c.frames[1] if 0<=x<400 and 0<=y<240}     # frames: menu, the view (highlight + ants: PAUSE 1), menu
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
-# option 7 BODY: first list page and a chosen star
+# option 9 INFO: the page with the licence and the repository, held until +
 c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
-c.s=[D(0)]*4; c.keys=[KEYCODE[7]]; c.answers=[18,None,None]; c.msgs=[]; c.maxprompts=7
+c.s=[D(0)]*4; c.keys=[KEYCODE[9],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
-try: c.run('NAV',maxsteps=10**8)
-except StopIteration: pass
-print('NAV option 7 (BODY):', [str(m) for m in c.msgs][1:4])
+c.run('NAV',maxsteps=10**8)
+print('NAV option 9 (INFO): frames', len(c.frames), 'pixels on the page', len(c.frames[1]), '| ended', c.pix==[])
 # FAST series through INIT option 2
 pass
 mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False,fast=True)
@@ -134,7 +133,7 @@ def load_one(path):
     c=c47sim.load(files); c.flags.add(82)
     return c
 ref=Engine('programs',fast=True)
-for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,9)),('build/NAVCOMP.txt',(1,2,4,9))):
+for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,8)),('build/NAVCOMP.txt',(1,2,4,8))):
     c=load_one(name)
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
     res=[]
@@ -142,7 +141,7 @@ for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,9)),('build/NAVCOMP.txt',(1,2,4
         keys=[KEYCODE[3]] if 'COMP' in name and k==0 else []          # 3 is not in the compact menu: ignored
         c.s=[D(0)]*4; c.keys=keys+[KEYCODE[opt]]+([11,85] if opt==4 else [85])+[KEYCODE[0]]; c.frames=[]; c.pix=[]
         c.run('NAV',maxsteps=10**8)
-        v={1:'ALMF',2:'HALMV',4:'HORZ',5:'ALMS',6:'HALMH',9:'ALLSKY'}[opt]
+        v={1:'ALMF',2:'HALMV',4:'HORZ',5:'ALMS',6:'HALMH',8:'ALLSKY'}[opt]
         b,_=ref.screen(v,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
         f=c.frames[1+len(keys)]                                      # an ignored key: the menu waits again                                    # an ignored key: 6 ant frames + the menu again
         res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])

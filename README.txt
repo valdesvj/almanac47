@@ -483,4 +483,6 @@ SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   text with αIP / x→α. The Hc of a body below the horizon is white on black.
   On the real C47 the screen is shown at a PAUSE or a key: NAV makes a PAUSE 1 after drawing.
   Details: DEVELOPMENT_NOTES.md; every view and the N-label map: docs/C47_Nav_User_Manual.pdf.
-
+  Menu now: 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 ANIM 8 ALLSKY 9 INFO (BODY left out of
+  the NAV files; programs/BODY.txt still works on its own). While the calculator works a box says
+  SINKING....ABOUT.

@@ -41,8 +41,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
-KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'BODY', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
-        'SBRT', 'SNMU', 'TGET', 'CWID', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY', 'WPLS', 'CACHE']
+KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
+        'SBRT', 'SNMU', 'TGET', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY', 'WPLS', 'CACHE']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
@@ -114,8 +114,6 @@ def no_tables(progs):
     assert 'XEQ "TGET"' in s[i:j] and s[i:j].endswith('LBL 32\nRCL 34\nSTO 09\n')
     p['PLAN'] = cut(s[:i] + s[j:], 'LBL "PLN3"\nFS? 10\nGTO "PLN2"\n', 'LBL "PLN3"\n')
     # BODY: Moon distance from the tables and its "T" letter
-    p['BODY'] = cut(p['BODY'], 'FC? 10\nGTO 15\nRCL 10\n6\nXEQ "TGET"\nX≥0?\nXEQ 59\n')
-    p['BODY'] = cut(p['BODY'], 'LBL 59\n"T"\nSTO 25\nRTN\n')
     # screens: "T" letter (FS? 11 XEQ 29, LBL 29 "T" ...)
     for n in ('ALMF', 'ALMS', 'ALMT', 'HALMV', 'HALMH', 'HORZ'):
         p[n] = cut(p[n], 'FS? 11\nXEQ 29\n')
@@ -130,7 +128,7 @@ LABEL_OPS = ('LBL', 'XEQ', 'GTO')
 
 # what every program label does (NAVFULL_LABELS.txt); FONT = text-drawing routine
 LABEL_TEXT = {
- 'NAV':   'graphic menu (KEY?): key 1-9, asks DATE UTC LAT LON, runs the view; 0 ends (the only named program)',
+ 'NAV':   'graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)',
  'CSUN':  'Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place',
  'CMOO':  'Moon from the cache',
  'CPLN':  'planet from the cache',
@@ -153,9 +151,8 @@ LABEL_TEXT = {
  'HORZ':  'view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)',
  'ALMS':  'view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)',
  'HALMH': 'view 6 SPLIT: horizon chart on top, short almanac below',
- 'BODY':  'view 7 BODY: list above the horizon, pick one body, its pages and chart',
- 'HANIM': 'view 8 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
- 'ALLSKY':'view 9 ALLSKY: whole sky, over the horizon above, under the horizon below',
+ 'HANIM': 'view 7 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
+ 'ALLSKY':'view 8 ALLSKY: whole sky, over the horizon above, under the horizon below',
  'SDM':   'text: degrees and minutes "ddd°mm.m\'" as a string',
  'SNS':   'text: latitude with N / S',
  'SEW':   'text: longitude with E / W',
@@ -340,7 +337,7 @@ def build():
         progs[n] = gencache.swap(progs[n])
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
-    big = set(strings(progs['NAV']) + strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['BODY']) + strings(progs['SNMU']) + strings(progs['ALLSKY'])
+    big = set(strings(progs['NAV']) + strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['SNMU']) + strings(progs['ALLSKY'])
               + '0123456789-.: %')
     # small font: warning, T/S/X, chart axis letters and altitude marks
     small = set(WARNING + 'TSX NEWZHC-.0123456789' + strings(progs['ALLSKY']))

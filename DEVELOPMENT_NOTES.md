@@ -338,7 +338,7 @@ INIT with the builders as LBL 01-04.
   (LBL 08). c47sim (4 levels) reads AGRAPH D from T, the same value after R↓.
   ALMF from the cache 22,200 -> 20,000 steps.
 - Ants off by default (easter egg): ANTS = 0 in gennav.py, the step after LBL 48 in NAV
-  (line 387 NAVFULL / NAVFULL_NOTBL, 394 NAVALL, 225 NAVCOMP). LBL 48 returns at once for 0
+  (line 431 NAVFULL / NAVFULL_NOTBL, 438 NAVALL, 292 NAVCOMP). LBL 48 returns at once for 0
   (X=0? RTN); any other number = that many ants, 0.1 s each, after a number, + or an arrow.
   The menu highlight gets its own PAUSE 1 so it shows while the view computes.
 - Docs (Sep 29): manual rebuilt (tools/generators/build_manual.py + manual_nav.py -> docs/):
@@ -358,3 +358,7 @@ INIT with the builders as LBL 01-04.
   display while the calculator works. LBL 48 = the box, then the ants (count = the step after
   LBL 48, 0 by default). Shown after LON (CLLCD first), after a menu number, + and the arrows.
   docs/NAV_busy_box.png.
+- Menu: BODY removed from the NAV builds (programs/BODY.txt and the PC version keep it);
+  7 ANIM, 8 ALLSKY, 9 INFO (LBL 18 in NAV: repository, copyright, GPL, no warranty, cross-check,
+  the ants hint; held by WPLS). CWID no longer in the NAV builds. Compact: 1 2 4 8 9.
+  NAVFULL 12,951 -> 11,825 lines.

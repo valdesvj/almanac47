@@ -33,7 +33,7 @@ def main():
         for f in ('NAVFULL', 'NAVFULL_NOTBL'):
             named = load(['build/%s.txt' % init, 'build/dev/%s.txt' % f])
             renamed = load(['build/%s.txt' % init, 'build/%s.txt' % f])
-            for opt, extra in ((1, []), (2, []), (3, [None] * 8), (4, []), (5, []), (6, []), (7, [None, None, 60, None, None]),
+            for opt, extra in ((1, []), (2, []), (3, [None] * 8), (4, []), (5, []), (6, []), (7, []),
                                (8, []), (9, [])):
                 a, b = run_nav(named, opt, extra), run_nav(renamed, opt, extra)
                 if a != b:

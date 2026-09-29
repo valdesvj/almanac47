@@ -12,9 +12,9 @@ You need two files from build/ (convert each .txt to .p47 with rejig first):
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
 NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these + NAVINIT_FAST
-  NAVALL    all nine views                          12,656 lines
-  NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY  8,515 lines
-  NAVTXT    text only, no drawing                    4,497 lines: XEQ "NAV" asks DATE UTC LAT
+  NAVALL    all the views                           11,541 lines
+  NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 8 ALLSKY 9 INFO  8,645 lines
+  NAVTXT    text only, no drawing                    4,500 lines: XEQ "NAV" asks DATE UTC LAT
             LON and writes the almanac page into R50 ... R76, and lines 1-26 also into the
             stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
             L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
@@ -52,7 +52,7 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
      LON   e.g. 55.18   (55 deg 18 min E; minus = W)
    (R/S keeps the value shown.) While the sky is computed a box in the middle of the screen
    says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
-     1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 BODY  8 ANIM  9 ALLSKY  0 END
+     1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 ANIM  8 ALLSKY  9 INFO  0 END
    The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
    the date, time and DR position in use.
    Press the number key (no R/S): the item is highlighted and the view is drawn.
@@ -65,11 +65,11 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
    the views then only draw. After a number the item is highlighted and the SINKING box shows
    until the view is drawn (also after + and the arrows).
-   (Something lives in NAV at the step after LBL 48 - line 387 of NAVFULL / NAVFULL_NOTBL,
-   394 of NAVALL, 225 of NAVCOMP. It is 0. Try 20 and press + or an arrow ... ;-)
+   (Something lives in NAV at the step after LBL 48 - line 431 of NAVFULL / NAVFULL_NOTBL,
+   438 of NAVALL, 292 of NAVCOMP. It is 0. Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
-   (7 BODY and 8 ANIM compute their own times, as before.)
+   (7 ANIM computes its own times, as before.)
    4 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
    (do not use R/S: it stops the program). 3 TEXT: the almanac page as text, the same as
    NAVTXT: lines in R50-R76, lines 1-26 also in the stack and lettered registers (REGS order);
@@ -82,9 +82,9 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
      4 SKY      horizon chart, the top line names each body in turn (3 s each)
      5 SMALL    short almanac (Sun, Moon, 1 planet, 3 stars)
      6 SPLIT    horizon chart on top, short almanac below
-     7 BODY     one body: key its number (stars 1-58, Sun 60, Moon 61, planets 62-65)
-     8 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
-     9 ALLSKY   the whole sky: over the horizon above, under the horizon below
+     7 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
+     8 ALLSKY   the whole sky: over the horizon above, under the horizon below
+     9 INFO     the repository, the licence, no warranty, cross-check with the almanac
 
    An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
    A body below the horizon (in practice the Sun) has its Hc shown white on black.

@@ -34,10 +34,10 @@ S += [P('Almanac 47', title),
       P('1. What to load', h2),
       prose_tbl([
           ['File', 'What it is'],
-          ['NAVFULL', 'the program NAV with all 9 views and the almanac tables support (TBL)'],
+          ['NAVFULL', 'the program NAV with all the views and the almanac tables support (TBL)'],
           ['NAVFULL_NOTBL', 'the same without the tables: a little smaller'],
           ['NAVALL', 'all views, NAV runs INIT by itself the first time (flag 81)'],
-          ['NAVCOMP', 'compact menu: 1 ALMANAC, 2 CHART, 4 SKY, 9 ALLSKY'],
+          ['NAVCOMP', 'compact menu: 1 ALMANAC, 2 CHART, 4 SKY, 8 ALLSKY, 9 INFO'],
           ['NAVTXT', 'text only (no drawing): the almanac page in the registers'],
           ['NAVINIT_FULL', 'INIT: builds the series matrices, valid 2000–2050 (about 6 000 numbers)'],
           ['NAVINIT_FAST', 'INIT: fitted series for a few years only: smaller and faster'],
@@ -89,14 +89,14 @@ S += [PageBreak(), P('5. The views', h2),
            'DR under it. 23 Sep 2026 03:00 UT, 30° N 0° E.',
            '<b>5 SMALL</b> (ALMS): short almanac: the Sun, the Moon, one planet, three stars.'),
       Spacer(1, 4),
-      pair('HALMH_preview.png', 'BODY_preview.png',
+      pair('HALMH_preview.png', 'NAV_info.png',
            '<b>6 SPLIT</b> (HALMH): the chart on top, the short almanac below.',
-           '<b>7 BODY</b>: the bodies above the horizon; key a number (stars 1–58, Sun 60, Moon 61, planets 62–65) '
-           'for its data and its place on the chart. Here 49 Vega.'),
+           '<b>9 INFO</b>: the repository (github.com/valdesvj/almanac47), the licence (GNU GPL v3 or later), '
+           'no warranty, and the rule: always cross-check the values with the Nautical Almanac.'),
       Spacer(1, 4),
       pair('ANIM_preview.png', 'ALLSKY_preview.png',
-           '<b>8 ANIM</b> (HANIM): the Sun and the Moon moving over 12 hours (24 frames, 1 s each).',
-           '<b>9 ALLSKY</b>: the whole sky, over the horizon above, under the horizon below: every star, '
+           '<b>7 ANIM</b> (HANIM): the Sun and the Moon moving over 12 hours (24 frames, 1 s each).',
+           '<b>8 ALLSKY</b>: the whole sky, over the horizon above, under the horizon below: every star, '
            'the Sun, the Moon and the planets; DAY / TWILIGHT / NIGHT.'),
       P('<b>3 TEXT</b> (ALMR): the same page as text, one line per register (R50 …, lines 1–26 also in the stack and '
         'the lettered registers). NAV ends and opens the register browser (REGS). XEQ "NAV" for the menu again.'),
