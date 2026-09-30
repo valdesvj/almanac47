@@ -425,7 +425,9 @@ ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
   (tests/test_atext.py).
   C64_ATEXT: the C64 tribute with ATEXT: about 560 bytes instead of 3,750 (no 8 x 8 font; the
   text is in the C47 font). DEMOATX (python3 tools/build_demo_atext.py): the DEMOALM page with
-  ATEXT, no AGRAPH and no symbols: one ATEXT per line (the columns made with spaces, as wide as a
+  ATEXT, no AGRAPH; the symbols are characters of the C47 font (the Sun STD_SUN U+2299, the
+  stars *, the Moon (, the planets Greek letters: Venus phi, Mars sigma, Jupiter psi, Saturn h-bar),
+  one ATEXT each at x 0; one ATEXT per line (the columns made with spaces, as wide as a
   digit), the three footer lines in one ATEXT with the CR glyph, the two lines across with PIXEL,
   the time top right. About 2 KB (with STXT for the time) and 170 program steps, against 23,000
   for the AGRAPH page. Both need a firmware

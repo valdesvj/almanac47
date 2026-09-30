@@ -66,15 +66,14 @@ class Calc:
         GRMOD 0 sets the glyph pixels, 1 clears the glyph box first, 2 clears them, 3 flips them."""
         import os, sys
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from stdfont import STD
+        from stdfont import STD, code as stdcode
         X, Y = int(self.s[0]), int(self.s[1])
         x, y = abs(X), abs(Y); x0 = x; line = y; mode = getattr(self, 'grmod', 0)
         ps = set(self.pix)
         t = str(text); i = 0
         while i < len(t):
             ch = t[i]; i += 1
-            code = ord(ch) if ord(ch) < 128 else 0x8000 + ord(ch)
-            cb, cg, ca, ra, rg, rb, rows = STD.get(code, STD[0x3f])
+            cb, cg, ca, ra, rg, rb, rows = STD.get(stdcode(ch), STD[0x3f])
             adv = cb + cg + ca
             if x > 380 and x + adv > 400:
                 x, line = x0, line - 20

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """build_demo_atext.py - DEMOATX: the DEMOALM almanac page drawn with the new C47 command
-ATEXT (standardFont, built in): no AGRAPH, no font program. One ATEXT per line (the columns
+ATEXT (standardFont, built in): no AGRAPH, no font program; the symbols are characters of the
+C47 font (Sun STD_SUN, stars *, Moon (, planets Greek letters). One ATEXT per line (the columns
 made with spaces), the three footer lines in one ATEXT with the CR glyph; the two lines
 across the page with PIXEL. The symbols (Sun, planet, stars)
 are left out. The numbers are the same sample values as DEMOALM, as text; the bottom line
@@ -39,8 +40,14 @@ def fmt(name, v):
 
 
 def width(s):
-    from stdfont import STD
-    return sum(sum(STD[ord(c) if ord(c) < 128 else 0x8000 + ord(c)][:3]) for c in s)
+    from stdfont import STD, code
+    return sum(sum(STD[code(c)][:3]) for c in s)
+
+
+# the symbols from the C47 font instead of the PTXS ones (no AGRAPH): the Sun is STD_SUN (U+2299),
+# the stars the asterisk, the Moon a parenthesis, the planets Greek letters (Saturn: h-bar)
+SYMBOLS = {'@': '\u2299', '*': '*', '(': '(', '<': '\u03c6', '>': '\u03c3', '=': '\u03c8', '?': '\u0127'}
+X0 = 13                                                  # the table lines start here, the symbols at x 0
 
 
 def layout(items, gap=4):
@@ -80,10 +87,13 @@ def join(pieces, gap=1):
 
 def build():
     calls, rows = BD.record()
-    items, lines = [], []
+    items, lines, syms = [], [], []
     for name, a, k in calls:
-        if name == 'pixel' or name == 'glyph' or (name == 'small' and a[2] == BD.S.WARNING):
-            continue                                   # lines across: PIXEL below; symbols left out
+        if name == 'glyph':
+            syms.append((a[2], SYMBOLS[a[1]]))         # (row, symbol): one ATEXT each at x 1
+            continue
+        if name == 'pixel' or (name == 'small' and a[2] == BD.S.WARNING):
+            continue                                   # lines across: PIXEL below
         items.append((a[0], a[1], (a[2] if name in ('text', 'small') else fmt(name, a[2])).strip(),
                       name, a[2]))
     ys = sorted({i[0] for i in items}, reverse=True)
@@ -108,10 +118,10 @@ def build():
         if len(num) > 1:
             f += [num[1][2], dm(num[2][1])[1:], dm(num[3][1], True), '%05.1f' % (ip(num[4][1] * 10 + 0.5) / 10)]
         rowsT.append((y, pre, f))
-    xg = 2 + max(width(pre) for y, pre, f in rowsT) + 8           # where the numbers start
+    xg = X0 + max(width(pre) for y, pre, f in rowsT) + 8          # where the numbers start
     for y, pre, f in rowsT:
-        n = max(1, round((xg - 2 - width(pre)) / 8))
-        lines.append((y, (2, pre + ' ' * n + ' '.join(f)), []))
+        n = max(1, round((xg - X0 - width(pre)) / 8))
+        lines.append((y, (X0, pre + ' ' * n + ' '.join(f)), []))
     # the header: BODY over the names, GHA DEC HC ZN centred over their numbers
     full = max(rowsT, key=lambda r: len(r[2]))[2]
     starts, x = [], xg
@@ -119,7 +129,7 @@ def build():
         starts.append((x, width(t))); x += width(t) + 8
     cols = [(starts[0], 'GHA'), (((starts[1][0]), starts[2][0] + starts[2][1] - starts[1][0]), 'DEC'),
             (starts[3], 'HC'), (starts[4], 'ZN')]
-    hp = [(26, 'BODY')] + [(round(c[0] + (c[1] - width(t)) / 2), t) for c, t in cols]
+    hp = [(X0 + width('   '), 'BODY')] + [(round(c[0] + (c[1] - width(t)) / 2), t) for c, t in cols]
     lines[1] = (head, join(hp), [])
     # the footer: its three lines in one ATEXT, separated by the CR glyph (20 rows each)
     fl = []
@@ -131,6 +141,8 @@ def build():
     P = ['LBL "DEMO"', 'TICKS', 'STO 41', 'CLLCD', 'CLSTK', '-221', '0', 'PIXEL', '-61', '0', 'PIXEL']
     for y, (x, line), right in lines:
         P += ['"%s"' % line, 'STO 45', BD.num(y - 4), BD.num(x), 'ATEXT 45']
+    for y, ch in syms:
+        P += ['"%s"' % ch, 'STO 45', BD.num(y - 4), '0', 'ATEXT 45']
     P += ['"%s"' % '\u21b5'.join(fl), 'STO 45', '40', '2', 'ATEXT 45']
     # the time in the top right corner (the one number made into text on the calculator: SF1)
     P += ['TICKS', 'RCL- 41', '10', '÷', 'XEQ "SF1"', '" S"', '+', 'STO 45', str(top - 4), '350', 'ATEXT 45',
