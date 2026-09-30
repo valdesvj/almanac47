@@ -214,7 +214,8 @@ def nav1_program(inp):
             + [str(x) for x in gennav.busy_box()] + inp + ['END'])
 
 
-def main():
+def builds():
+    """The four DM42 builds before assembly: {name: (NAV lines, the programs it may call)}."""
     p = programs()
     inp = gennav.inputs()
     # text only
@@ -245,14 +246,19 @@ def main():
     k = nav1.index('CLLCD', nav1.index('XEQ "ALMF"'))
     assert nav1[k:k + 7] == ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN']
     nav1t = nav1[:k] + ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4'] + gennav.text_steps(5) + ['REGS', 'RTN'] + nav1[k + 7:]
-    res = {}
     p1 = nav1_programs(p)
     p12 = nav1_programs(p, chart=True)
     nav1, nav1t, nav12 = no_box(nav1), no_box(nav1t), no_box(nav12)
+    return {'NAVTXT_DM42': (navtxt, p1), 'NAVLITTLE': (nav1, p1), 'NAV1T_DM42': (nav1t, p1),
+            'NAV12_DM42': (nav12, p12)}
+
+
+def main():
+    res = {}
     # build/dm42/NAVLITTLE (was NAV1_DM42) + NAVINIT_LITTLE; the other builds in dev/;
     # dev/src/ has every build with the original names; short labels from tools/labels/*.map
-    for name, nav in (('NAVTXT_DM42', navtxt), ('NAVLITTLE', nav1), ('NAV1T_DM42', nav1t), ('NAV12_DM42', nav12)):
-        L, need = assemble(nav, p12 if name == 'NAV12_DM42' else p1)
+    for name, (nav, progs) in builds().items():
+        L, need = assemble(nav, progs)
         B.write(os.path.join(SRC, name + '.txt'), L)
         m = B.fixed_map(name, L, keep=('NAV', 'INIT'))
         d = OUT if name == 'NAVLITTLE' else DEV

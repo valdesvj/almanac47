@@ -1,0 +1,60 @@
+NAV12_ATX - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
+
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
+N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
+N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
+N03     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
+N04     SDM     text: degrees and minutes "ddd°mm.m'" as a string
+N05     SNS     text: latitude with N / S
+N06     SEW     text: longitude with E / W
+N07     SZN     text: azimuth "ddd.d°"
+N08     SHM     text: time "hh:mm" (--:-- when no event)
+N09     SF1     text: number with one decimal
+N10     SINT    text: whole number
+N11     SDAT    text: date "dd-mm-yyyy" from a Julian Date
+N12     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+N13     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+N14     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
+N15     SER     sum of one series matrix with the matrix functions (COS, DOT)
+N16     SERT    the time vectors SV1 SV2 used by SER
+N17     NUT     nutation in longitude and obliquity (matrix NU)
+N18     STAR    star: SUNA, then STR2
+N19     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
+N20     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
+N21     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
+N22     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
+N23     HCZ0    sight reduction for Dec 0 (equator points)
+N24     HCZQ    celestial equator: start of the dot-by-dot rotation
+N25     HCZR    celestial equator: next point by rotation (no trig)
+N26     HCZI    keeps sin/cos of the latitude for HCZ
+N27     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
+N28     RISE    sunrise time UT (SUNRISE program)
+N29     SET     sunset time UT
+N30     NTWA    nautical twilight, morning, UT
+N31     NTWP    nautical twilight, evening, UT
+N32     CTWA    civil twilight, morning, UT
+N33     CTWP    civil twilight, evening, UT
+N34     TRAN    meridian passage of the Sun, UT
+N35     SBRT    star number by brightness rank (1st brightest ... 58th)
+N36     SNMU    star name from its number
+N37     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
+N38     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
+N39     PINS    FONT big: whole number
+N40     PF1S    FONT big: number with one decimal
+N41     PHMS    FONT big: hh:mm from hours
+N42     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
+N43     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
+N44     PZNS    FONT big: azimuth "ddd.d"
+N45     PHLS    FONT big: horizontal line (X = length in pixels)
+N46     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
+N47     PTNS    FONT small: whole number
+N48     PT1     FONT small: number with one decimal
+N49     PTXB    
+N50     PINB    
+N51     PF1     
+N52     PHM     
+N53     PDM     
+N54     PDAT    
+N55     PZN     
+N56     PHL     
+N57     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier

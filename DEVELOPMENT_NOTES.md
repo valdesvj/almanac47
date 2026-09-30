@@ -448,3 +448,36 @@ INIT with the builders as LBL 01-04.
   ⇄ zyxt, 4, -, x<>y, ATEXT Z. DEMOATX 670 steps, DEMOATXS 1,282.
 - c47sim: ATEXT with a stack register (ATEXT Z) and the shuffle ⇄ (⇄ zyxt).
 - For rejig (no ATEXT yet): the only ATEXT is in LBL 98; convert a copy with VIEW Z there.
+
+## Sep 30, 2026 - EXPERIMENTAL: DM42 builds with ATEXT (branch dm42-atext)
+
+- tools/build_dm42_atext.py -> build/dm42/atext/NAVLITTLE_ATX, NAV1T_ATX, NAV12_ATX (+ src/,
+  labels in tools/labels/*_ATX.map). build_dm42.py: main() split, builds() gives the four builds
+  before assembly (same outputs as before).
+- PTXS = Didier's N03 trick (⇄ zyxt, 4, -, x<>y, ATEXT Z) plus 4 back on the row for chained
+  text; the number printers of PTXB with LBL 03 / 04 appending characters to R18 (x→α; R21 = the
+  string started, R22 the piece; R33 stays PDTS's temporary), padding "6 STO+ 30" -> a space,
+  one ATEXT at the end (LBL 02). PHLS unchanged (its own end, LBL 25).
+- ALMF columns for the standard font from layout(): name 36 (longest star name 102 px),
+  GHA 138, N/S 211, DEC 212, Hc 279 (box 286, 63 wide), Zn 354; top line 2 90 135 163 191 194
+  271 283; footer times 91 136. Symbols -> PSYM (PTXB glyphs @ ( * < > = ?), NAV12: PTXB.
+- NAV12: the menu with ATEXT; HALMV keeps the 5 x 7 font under the PTXB names.
+- tools/rejig47_atext.py: ATEXT (item 1340, bytes 133 60) written as KTYP (133 221), converted
+  with rejig 0.34, bytes set back; the count must match.
+- Sizes (program bytes): NAVLITTLE 12,716 -> 10,482; NAV1T 15,216 -> 12,982; NAV12 18,516 ->
+  19,838. Simulator: same values; tests/test_dm42_atext.py.
+
+## Sep 30, 2026 - EXPERIMENTAL: NAVFULL_ATX (every text with ATEXT)
+
+- tools/generators/atext/genviews_atx.py -> programs/atext/ ALMF ALMS HALMV HORZ HALMH HANIM
+  ALLSKY: the same steps as genf / genv / genh2 / genhh / genanim / genallsky, the columns and
+  rows for the standard font (top line 2 90 135 163 191 194 271 283; table symbol 0, number 14,
+  name 36, GHA 138, N/S 211, DEC 212, Hc 279, Zn 354), symbols through PSYM, the small font
+  replaced by PTXS / PINS. CHART horizon at 18 (was 14) for the letters; SPLIT horizon 132,
+  table 6 rows from 102, no ARIES row; ANIM / ALLSKY: no axis, no OVER / UNDER, no star numbers.
+- tools/build_navfull_atext.py -> build/atext/NAVFULL_ATX (+ src, tools/labels/NAVFULL_ATX.map):
+  PTXS = Didier's trick; the printers add characters to variable ATX with + (flag 48 clear =
+  start: every numbered register is used in NAVFULL); PSYM = the status-bar glyphs @ ( * < > = ?.
+- ATEXT goes to the next line when a text ends after x 380: a chained text must start at or
+  before 380 (the SKY view's DR line moved left for its last digit).
+- Program bytes 42,130 -> 34,136; tests/test_navfull_atext.py.

@@ -14,6 +14,7 @@ before running them again.
 | `genalmt.py` | ALMT |
 | `gencache.py` | CACHE (sky cache for the NAV builds: views read matrix ALMC) |
 | `genstxt.py` | STXT (number to text) |
+| `atext/genviews_atx.py` | EXPERIMENTAL: the views with ATEXT (standard font), `programs/atext/` |
 | `genmp2.py` | MOON and PLAN (uses `mconst.json`, `pcounts.json`) |
 | `annot.py` | `listings/*_doc.txt` and `programs_rem/` (REM comments) |
 | `build_manual.py` | the user manual `docs/C47_Nav_User_Manual.pdf` (with `manual_head.py`, `manual_results.json`; part 1 from `manual_nav.py`: NAV, the views, the N-label map; images from `docs/`) |
