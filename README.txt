@@ -414,6 +414,20 @@ AGRAPH / PIXEL DEMO (Sep 2026) - extras/DEMOALM.txt (python3 tools/build_demo.py
   commented file each one says what it does and whether it is a FONT routine
   (table: extras/DEMOALM_LABELS.txt).
 
+ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
+  ATEXT r draws the string in register r in the C47 standardFont: Y = row of the bottom of the
+  20-row glyph box (base line 4 rows up), X = column; it leaves the Y and X of the next character.
+  The CR glyph starts a new line 20 rows down at the start column; GRMOD 0 sets, 1 clears the
+  glyph box first, 2 clears, 3 flips. AGRAPH stays, for own fonts and symbols.
+  The simulator (python/c47sim.py, font python/stdfont.py) draws ATEXT like the C47: the
+  ATEXTing demonstration (Jaco Mostert) gives the calculator's screen to 15 of 12,656 pixels
+  (tests/test_atext.py).
+  C64_ATEXT: the C64 tribute with ATEXT: about 560 bytes instead of 3,750 (no 8 x 8 font; the
+  text is in the C47 font). DEMOATX (python3 tools/build_demo_atext.py): the DEMOALM page with
+  ATEXT, no AGRAPH and no symbols, columns moved for the wider font: about 3.5 KB (with STXT
+  for the time) and 600 program steps against 23,000 for the AGRAPH page. Both need a firmware
+  with ATEXT, and rejig will need to learn the command before they convert to .p47.
+
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
   otherwise WAXING (age under 14.765 d) or WANING.

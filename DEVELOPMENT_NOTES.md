@@ -406,3 +406,9 @@ INIT with the builders as LBL 01-04.
   tests/test_f42_little.py: f42run against c47sim, 3 dates / places (south, west), start,
   +1 h, -1 h: identical. f42run "num": a leading - is now keyed as +/- after the digits (before,
   +/- negated the old X and the number was entered positive).
+- ATEXT (Sep 30, announced for the C47): c47sim draws it with python/stdfont.py (standardFont from
+  the C43 source rasterFontsData.c; widths checked to the pixel on the ATEXTing screen). Found on
+  that screen: every glyph box 20 rows (4 below the base line), CR = 20 rows down at the start
+  column, a glyph past x 400 goes to the next line, after the text x > 380 = next line, below the
+  bottom the returned Y is 0, and a negative Y is drawn at -Y (the V test). 15 + 6 pixels differ
+  out of 12,656 (single dots). c47sim also got DROP and GRMOD without a register (mode from X).

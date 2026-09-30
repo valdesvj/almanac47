@@ -55,6 +55,43 @@ class Calc:
         # high-precision range reduction for large degree arguments
         if self.deg: x = x % D(360)
         return D(fn(math.radians(f(x)) if self.deg else f(x)))
+    def atext(self, text):
+        """ATEXT: the characters one after the other in the standardFont; the CR glyph (↵) = next line
+        (20 rows down) at the start column; a character that would pass x 400 goes to the next line at the
+        start column; after the text a column past 380 moves the next position one line down; below
+        the bottom the next row is 0. GRMOD 0 sets the glyph pixels, 1 clears the glyph box first,
+        2 clears them, 3 flips them. Pixels outside the screen are not drawn."""
+        import os, sys
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from stdfont import STD
+        y, x = int(self.s[1]), int(self.s[0]); x0 = x; mode = getattr(self, 'grmod', 0)
+        yin = y
+        y = abs(y)                     # a row below 0 is drawn at -row (seen on the C47: the V test)
+        ps = set(self.pix)
+        for ch in str(text):
+            if ch == '\u21b5':
+                y, x = y - 20, x0; continue
+            code = ord(ch) if ord(ch) < 128 else 0x8000 + ord(ch)
+            cb, cg, ca, ra, rg, rb, rows = STD.get(code, STD[0x3f])
+            adv = cb + cg + ca
+            if x + adv > 400:
+                y, x = y - 20, x0
+            on = {(y + rb + rg - 1 - r, x + cb + c) for r, v in enumerate(rows) for c in range(cg) if v >> (cg - 1 - c) & 1}
+            on = {p for p in on if 0 <= p[0] < 240 and 0 <= p[1] < 400}
+            if mode == 1:
+                ps -= {(yy, xx) for yy in range(y, y + ra + rg + rb) for xx in range(x, x + adv)}
+            if mode == 2: ps -= on
+            elif mode == 3: ps ^= on
+            else: ps |= on
+            x += adv
+        if x > 380:
+            y, x = y - 20, x0
+        if y < 0:
+            y = 0
+        elif yin < 0 and y == -yin:    # nothing wrapped: Y stays as it came
+            y = yin
+        self.pix = list(ps)
+        self.s[1], self.s[0] = D(y), D(x)
     def regkey(self, arg):
         if arg.startswith('IND '): return int(self.rget(arg[4:].strip()))
         return arg
@@ -220,7 +257,12 @@ class Calc:
             if op == 'RAN#':
                 import random as _r; self.push(D(repr(_r.Random(getattr(self,'seed',0)).random()))); self.seed=getattr(self,'seed',0)+1; continue
             if op == 'DELP': self.deleted=getattr(self,'deleted',[])+[arg]; continue
-            if op == 'GRMOD': self.grmod=int(self.rget(arg)); continue
+            if op == 'GRMOD': self.grmod=int(self.rget(arg)) if arg else int(self.s[0]); continue
+            if op in ('DROP', 'DROP𝑥'): self.s = self.s[1:] + self.s[3:]; continue
+            if op == 'ATEXT' and arg:
+                # ATEXT r (new C47 command): the string in r in the standardFont, Y = row of the bottom of
+                # the 20-row glyph box (base line 4 rows up), X = column; returns Y, X of the next character
+                self.atext(self.rget(self.regkey(arg))); continue
             if op == 'AGRAPH' and arg:
                 # AGRAPH D: the pattern pushed and rotated down by R↓ (D on the C47's 8-level stack = T here)
                 v=int(self.s[3] if arg == 'D' else self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])
