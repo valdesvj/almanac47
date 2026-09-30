@@ -441,11 +441,15 @@ ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
   ATEXT, no AGRAPH; the symbols are characters of the C47 font (the Sun STD_SUN U+2299, the
   stars *, the Moon (, the planets Greek letters: Venus phi, Mars sigma, Jupiter psi, Saturn h-bar),
   one ATEXT each at x 0. DEMOATXS: the same with the symbols from an own AGRAPH font instead
-  (PSYM: only the three symbols on the page, Sun, Saturn and star, 36 AGRAPH). One ATEXT per line (the columns made with spaces, as wide as a
-  digit), the three footer lines in one ATEXT with the CR glyph, the two lines across with PIXEL,
-  the time top right. About 2 KB (with STXT for the time) and 170 program steps, against 23,000
-  for the AGRAPH page. Both need a firmware
-  with ATEXT, and rejig will need to learn the command before they convert to .p47.
+  (PSYM: only the three symbols on the page, Sun, Saturn and star, 36 AGRAPH).
+  The standardFont is proportional (letters 5-14 px, digits and the space 8 px), so one string per
+  line did not line up: now every column is its own ATEXT at a fixed x (number and name, GHA, N/S,
+  DEC HC ZN), the footer in three columns with the CR glyph. Every text goes through LBL 98, the
+  N03 trick of Didier (dlachieze): row, column, text, XEQ 98 -> ⇄ zyxt, 4, -, x<>y, ATEXT Z.
+  The two lines across with PIXEL, the time top right. DEMOATX 670 steps, DEMOATXS 1,282,
+  against 23,000 for the AGRAPH page (.p47: 7.9 KB and 10.4 KB against 72.8 KB). Both need a firmware
+  with ATEXT. rejig does not know ATEXT yet: convert a copy with VIEW Z in LBL 98 and change
+  that one step to ATEXT Z on the calculator.
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,

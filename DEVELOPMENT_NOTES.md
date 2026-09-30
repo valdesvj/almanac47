@@ -430,3 +430,12 @@ INIT with the builders as LBL 01-04.
   C47: TBL_1 as .p47 is 111 KB of program plus 135 KB of matrices: it does not fit in 256 KiB.
 - build_free42.py: raw_files() was defined after the __main__ block (NameError when run).
 
+
+## Sep 30, 2026 - DEMOATX aligned, Didier's N03 trick
+
+- On the calculator the one-string-per-line DEMOATX did not line up: the standardFont is
+  proportional (N 11 px, S 10, names of any width; digits and the space 8 px). Now every column
+  is its own ATEXT at a fixed x, through LBL 98 = the N03 trick of Didier (dlachieze):
+  ⇄ zyxt, 4, -, x<>y, ATEXT Z. DEMOATX 670 steps, DEMOATXS 1,282.
+- c47sim: ATEXT with a stack register (ATEXT Z) and the shuffle ⇄ (⇄ zyxt).
+- For rejig (no ATEXT yet): the only ATEXT is in LBL 98; convert a copy with VIEW Z there.

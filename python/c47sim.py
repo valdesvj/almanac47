@@ -265,8 +265,13 @@ class Calc:
             if op in ('DROP', 'DROP𝑥'): self.s = self.s[1:] + self.s[3:]; continue
             if op == 'ATEXT' and arg:
                 # ATEXT r (new C47 command): the string in r in the standardFont, Y = row of the bottom of
-                # the 20-row glyph box (base line 4 rows up), X = column; returns Y, X of the next character
-                self.atext(self.rget(self.regkey(arg))); continue
+                # the 20-row glyph box (base line 4 rows up), X = column; returns Y, X of the next character.
+                # r may be a stack register: ATEXT Z (ST Z) takes the string from Z
+                k = arg[3:] if arg.startswith('ST ') else arg
+                self.atext(self.s['XYZT'.index(k)] if k in ('X', 'Y', 'Z', 'T') else self.rget(self.regkey(arg))); continue
+            if op == '⇄':
+                # stack shuffle: ⇄ zyxt puts the old z in X, y in Y, x in Z, t in T
+                old = list(self.s); self.s = [old['xyzt'.index(c)] for c in arg.lower()] + old[4:]; self.lift = True; continue
             if op == 'AGRAPH' and arg:
                 # AGRAPH D: the pattern pushed and rotated down by R↓ (D on the C47's 8-level stack = T here)
                 v=int(self.s[3] if arg == 'D' else self.rget(arg)) & ((1<<self.ws)-1); x=int(self.s[0]); y=int(self.s[1])

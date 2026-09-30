@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
-"""build_demo_atext.py - DEMOATX: the DEMOALM almanac page drawn with the new C47 command
-ATEXT (standardFont, built in): no AGRAPH, no font program; the symbols are characters of the
-C47 font (Sun STD_SUN, stars *, Moon (, planets Greek letters). One ATEXT per line (the columns
-made with spaces), the three footer lines in one ATEXT with the CR glyph; the two lines
-across the page with PIXEL. The symbols (Sun, planet, stars)
-are left out. The numbers are the same sample values as DEMOALM, as text; the bottom line
-shows the time (TICKS) - the one number converted on the calculator (SF1 from STXT).
+"""build_demo_atext.py - DEMOATX / DEMOATXS: the DEMOALM almanac page drawn with the new C47
+command ATEXT (standardFont, built in). The standardFont is proportional (letters 5-14 px wide,
+digits and the space 8 px), so every column is its own ATEXT at a fixed x: number and name, GHA,
+N/S, then DEC HC ZN (only digits, spaces, '.' and '-': they line up); the footer in three columns,
+each one ATEXT with the CR glyph. Every text goes through LBL 98, the N03 trick of Didier
+(dlachieze): row of the base line, column, text -> XEQ 98 -> ⇄ zyxt, 4, -, x<>y, ATEXT Z.
+DEMOATX: the symbols are characters of the C47 font (no AGRAPH); DEMOATXS: the symbols on the
+page from a small AGRAPH font (PSYM). The bottom line time (TICKS) is made into text with STXT.
 
-  XEQ "DEMO" -> the page; PAUSE 99 keeps it until a key.   python3 tools/build_demo_atext.py -> extras/DEMOATX.txt
+  XEQ "DEMO" -> the page; PAUSE 99 keeps it until a key.   python3 tools/build_demo_atext.py
   ATEXT r: Y = row of the bottom of the 20-row glyph box (base line 4 rows up), X = column.
 """
 import os, sys
@@ -131,41 +132,53 @@ def build(symfont=False):
         if len(num) > 1:
             f += [num[1][2], dm(num[2][1])[1:], dm(num[3][1], True), '%05.1f' % (ip(num[4][1] * 10 + 0.5) / 10)]
         rowsT.append((y, pre, f))
-    xg = X0 + max(width(pre) for y, pre, f in rowsT) + 8          # where the numbers start
+    # Every column is its own ATEXT at a fixed x (the standardFont is proportional: letters have
+    # different widths, digits and the space are all 8 px). A row: number and name | GHA | N/S |
+    # DEC HC ZN. Each text goes through LBL 98 (Didier's N03 trick): row of the base line, column,
+    # text -> XEQ 98, which turns the stack for ATEXT Z.
+    pieces = []                                        # (base line row, x, text)
+    xg = X0 + max(width(pre) for y, pre, f in rowsT) + 8           # GHA
+    wg = max(width(f[0]) for y, pre, f in rowsT)
+    xns = xg + wg + 8                                              # N / S
+    xd = xns + max(width('N'), width('S')) + 6                     # DEC HC ZN
     for y, pre, f in rowsT:
-        n = max(1, round((xg - X0 - width(pre)) / 8))
-        lines.append((y, (X0, pre + ' ' * n + ' '.join(f)), []))
-    # the header: BODY over the names, GHA DEC HC ZN centred over their numbers
+        pieces += [(y, X0, pre), (y, xg + wg - width(f[0]), f[0])]
+        if len(f) > 1:
+            pieces += [(y, xns, f[1]), (y, xd, ' '.join(f[2:]))]
     full = max(rowsT, key=lambda r: len(r[2]))[2]
-    starts, x = [], xg
-    for k, t in enumerate(full):
-        starts.append((x, width(t))); x += width(t) + 8
-    cols = [(starts[0], 'GHA'), (((starts[1][0]), starts[2][0] + starts[2][1] - starts[1][0]), 'DEC'),
-            (starts[3], 'HC'), (starts[4], 'ZN')]
-    hp = [(X0 + width('   '), 'BODY')] + [(round(c[0] + (c[1] - width(t)) / 2), t) for c, t in cols]
-    lines[1] = (head, join(hp), [])
-    # the footer: its three lines in one ATEXT, separated by the CR glyph (20 rows each)
-    fl = []
-    for y in foot:                                     # two blocks: times left, Moon right (same x)
-        fl.append((join([(x, t) for yy, x, t, n, v in items if yy == y and x < 180])[1],
-                   join([(x, t) for yy, x, t, n, v in items if yy == y and x >= 180])[1]))
-    xr = max(width(l) for l, r in fl) + 16
-    fl = [l + ' ' * max(1, round((xr - width(l)) / 8)) + r for l, r in fl]
+    wdec, whc, wzn = width(full[2]), width(full[3]), width(full[4])
+    cols = [((xg, wg), 'GHA'), ((xns, xd + wdec - xns), 'DEC'), ((xd + wdec + 8, whc), 'HC'),
+            ((xd + wdec + whc + 16, wzn), 'ZN')]
+    pieces.append((head, X0 + width('   '), 'BODY'))
+    pieces += [(head, round(c[0] + (c[1] - width(t)) / 2), t) for c, t in cols]
+    pieces.append((top, 2, join([(x, t) for y, x, t, n, v in items if y == top and x < 380])[1]))
+    # the footer: three columns (labels, times, the Moon block), each one ATEXT with the CR glyph
+    lab, val, rgt = [], [], []
+    for y in foot:
+        row = sorted((x, t) for yy, x, t, n, v in items if yy == y)
+        lab.append(row[0][1])
+        val.append(join([(x, t) for x, t in row[1:] if x < 180])[1])
+        rgt.append(join([(x, t) for x, t in row if x >= 180])[1])
+    xv = 2 + max(width(t) for t in lab) + 8
+    xr = xv + max(width(t) for t in val) + 16
+    CR = '↵'
+    pieces += [(44, 2, CR.join(lab)), (44, xv, CR.join(val)), (44, xr, CR.join(rgt))]
+    assert max(x + max(width(l) for l in t.split(CR)) for y, x, t in pieces) <= 400
     P = ['LBL "DEMO"', 'TICKS', 'STO 41', 'CLLCD', 'CLSTK', '-221', '0', 'PIXEL', '-61', '0', 'PIXEL']
-    for y, (x, line), right in lines:
-        P += ['"%s"' % line, 'STO 45', BD.num(y - 4), BD.num(x), 'ATEXT 45']
+    for y, x, t in pieces:
+        P += [BD.num(y), BD.num(x), '"%s"' % t, 'XEQ 98']
     for y, ch in syms:
         if symfont:                                    # the custom AGRAPH symbol (PSYM), base line y
             P += [BD.num(y), '0', '"%s"' % ch, 'XEQ "PSYM"']
         else:
-            P += ['"%s"' % SYMBOLS[ch], 'STO 45', BD.num(y - 4), '0', 'ATEXT 45']
-    P += ['"%s"' % '\u21b5'.join(fl), 'STO 45', '40', '2', 'ATEXT 45']
+            P += [BD.num(y), '0', '"%s"' % SYMBOLS[ch], 'XEQ 98']
     # the time in the top right corner (the one number made into text on the calculator: SF1)
-    P += ['TICKS', 'RCL- 41', '10', '÷', 'XEQ "SF1"', '" S"', '+', 'STO 45', str(top - 4), '350', 'ATEXT 45',
-          'PAUSE 99', 'CLLCD', 'CLSTK', 'RTN', 'END']
-    for y, (x, line), right in lines:
-        print('%3d %3d |%s|' % (y - 4, x, line))
-    print(' 40   2 |%s|' % '|\n        |'.join(fl))
+    P += ['TICKS', 'RCL- 41', '10', '÷', 'XEQ "SF1"', '" S"', '+', 'STO 45', str(top), '350', 'RCL 45', 'XEQ 98',
+          'PAUSE 99', 'CLLCD', 'CLSTK', 'RTN',
+          'REM "LBL 98 (the N03 trick of Didier): Z row of the base line, Y column, X text -> ATEXT"',
+          'LBL 98', '⇄ zyxt', '4', '-', 'X<>Y', 'ATEXT Z', 'RTN', 'END']
+    for y, x, t in sorted(pieces, key=lambda p: (-p[0], p[1])):
+        print('%3d %3d |%s|' % (y, x, t.replace(CR, '|')))
     stxt = B.read('STXT')
     prog = P + stxt + (psym(''.join(sorted({ch for y, ch in syms}))) if symfont else [])
     m = B.label_map(prog, keep=('DEMO',))
