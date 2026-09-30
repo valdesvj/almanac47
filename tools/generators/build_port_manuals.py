@@ -140,9 +140,9 @@ def free42():
         'graphics, binary arithmetic). NAVFULL tested on a DM42n with the stock firmware by the author.'])
     S += [PageBreak(), P('10. NAVLITTLE: Sun and stars', h2),
           P('The NAVLITTLE of the old DM42 with the C47 firmware, converted the same way. It keeps the Sun and the 58 '
-            'navigation stars (no Moon, no planets, no tables), draws with the 5 × 7 font of the first versions and has '
+            'navigation stars (no Moon, no planets), draws with the 5 × 7 font of the first versions and has '
             'no box and no ants: for a calculator with little free memory. The Sun and star values are the same as in '
-            'NAVFULL.'),
+            'NAVFULL. If a TBL has been run (section 11), the Sun and GHA Aries come from the tables (T on the screen).'),
           img(F('little'), 0.6)] + B([
         'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
@@ -242,7 +242,18 @@ def python_port(name, key):
     else:
         S += B(['The six files are about 26 KB; the Prime\'s Python memory is far larger than needed.',
                 'Text goes through the PPL command TEXTOUT_P (font size and colour), keys through GETKEY.'])
-    S += [P('8. Status', h2)] + B([
+    S += [P('8. Limitations', h2)] + B([
+        '<b>Series only, no almanac tables.</b> The Sun comes from the truncated VSOP87 series: valid 2000–2050, '
+        'better than 0.1′. The tables TBL_1 / TBL_5 of the C47 and Free42 are not read (they mainly serve the Moon and '
+        'the planets, which this version does not compute).',
+        '<b>No Moon position and no planets:</b> only the Moon phase and age. For the Moon and the planets use the C47, '
+        'Free42 / DM42n (NAVFULL) or the Python version on the PC (python/native).',
+        '<b>ΔT fixed</b> at 69.2 s (TT − UT1), as in the C47 series; the input time is UT1 (add DUT1 to UTC).',
+        '<b>Two views only:</b> ALMANAC and HORIZON (no split sky, all-sky, animation or star pages).'] +
+        (['<b>Memory:</b> on Epsilon before 19 (32 KB heap) the program is close to the limit (section 7); the '
+          'almanac tables (1 year is about 8,400 numbers) could not fit in any NumWorks Python heap.'] if nw else
+         ['<b>Memory</b> is not a limit on the Prime: the Moon and the planets could be added later.']))
+    S += [P('9. Status', h2)] + B([
         'Not yet tried on a real %s. Checked on a PC (stand-in module) and in a MicroPython interpreter.' % name] +
         ([] if nw else ['Not sure on the real Prime: the exact pixel size of its fonts (columns may be a few pixels off) and '
                         'whether ESC reaches GETKEY in every firmware (ON always stops the program).']))
