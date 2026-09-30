@@ -517,3 +517,17 @@ INIT with the builders as LBL 01-04.
   DM42 NAV12_ATX / NAV1T_ATX / NAVLITTLE_ATX get SNAP on key 9 from the shared NAV menu (gennav)
   and WPLS; the ATEXT SKY view (genviews_atx HORZ key loop) got the same RCL 39, 54, X=Y?, SNAP.
   tests/test_navfull_atext.py checks the snapshots (menu, ALMANAC, SKY).
+
+## Oct 1, 2026 - Menu without SMALL, key 9 = SNAP, fewer warnings
+
+- NAV menu (gennav): 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO 0 END. ALMS left
+  out of the NAV builds (programs/ALMS.txt still works alone). NAVALL options 1 2 4 5 7, NAVCOMP 1 2 4 7.
+- Key 9 (keycode 54) = SNAP on the menu (LBL 25 in NAV, after LBL 26 so an ignored key does not
+  fall into it) and on every view (WPLS and the HORZ info loop: RCL 39, 54, X=Y?, SNAP).
+  Free42 (build_free42.py): SNAP -> PRLCD; the KM table maps the Free42 key 9 to 54.
+- CHART (genv): no ARIES row, no Moon line, no PHA2. SPLIT (genhh): no footer (twilight / Moon),
+  the stars fill the table to the bottom (8 rows). The warning line only on the menu and INFO
+  (ALMF / ALMS / HALMV / HALMH lost it; NAVLITTLE has none and no longer needs PTXT; the TPG
+  helper is left out of the Free42 file when not called).
+- Native screens (python/native/c47screen.py) follow: test_parity 0 differences. Simulator: SNAP.
+- Manuals, QUICKSTART, README, docs/free42 shots (free42_shots.py renumbered) updated.

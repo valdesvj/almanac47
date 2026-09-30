@@ -314,8 +314,8 @@ build_free42.py)
   program on the calculator is always NAV (and INIT), so two versions can be kept.
 
   build/        C47 / R47 / DM42n with the C47 firmware
-    NAVFULL.txt      NAV: all 9 views (1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 ANIM
-                     8 ALLSKY 9 INFO), the sky cache, the SINKING box, the ants (flag 47),
+    NAVFULL.txt      NAV: all 8 views (1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM
+                     7 ALLSKY 8 INFO; 9 = SNAP), the sky cache, the SINKING box, the ants (flag 47),
                      and the almanac tables (TBL) when they are loaded. Kept for calculators
                      with more RAM: TBL together with NAVFULL and the matrices fills a C47.
     NAVTXT.txt       NAV, text only (no drawing): the almanac page into R50 ..., the stack
@@ -539,7 +539,7 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
 SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   NAV asks DATE (YYYY.MMDD, read with x→ⅅ ⅅ→J: date format YYYY-MM-DD), UTC, LAT, LON once,
   computes the sky (matrix ALMC; the charts' equator in ALMQ) and shows a graphic menu (KEY?):
-  1-9 a view, + back to the menu, up / down arrow one hour later / earlier, 0 end.
+  1-8 a view, 9 SNAP, + back to the menu, up / down arrow one hour later / earlier, 0 end.
   Views only draw from the cache; a new hour computes again. Faster drawing in the NAV files
   (tools/navopt.py): font columns read from stack register D (8-level stack, set by NAV and
   restored at the end), full-width lines with PIXEL, dates with J→ⅅℸ DAY MONTH YEAR, number
@@ -547,8 +547,10 @@ SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   On the real C47 the screen is shown at a PAUSE or a key: NAV makes a PAUSE 0 after drawing
   (it shows the screen with no wait; PAUSE 1 did the same with 0.1 s). SCREEN UPDATE below.
   Details: DEVELOPMENT_NOTES.md; every view and the N-label map: docs/C47_Nav_User_Manual.pdf.
-  Menu now: 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 ANIM 8 ALLSKY 9 INFO (BODY left out of
-  the NAV files; programs/BODY.txt still works on its own). While the calculator works a box says
+  Menu now: 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO, 9 = SNAP (screenshot of
+  the menu or of any view; Free42: PRLCD), 0 END (BODY and SMALL left out of the NAV files;
+  programs/BODY.txt and ALMS.txt still work on their own). The warning (cross-check with the
+  almanac) only on the menu and INFO. While the calculator works a box says
   SINKING....ABOUT.
 
 SCREEN UPDATE - C47 AND FREE42 (DM42 / DM42n)
