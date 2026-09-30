@@ -45,6 +45,7 @@ KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'STXT', 'SUNA', 'STAR'
         'SBRT', 'SNMU', 'TGET', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY', 'WPLS', 'CACHE']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
+TXT_TABLES = True          # NAVTXT reads the almanac tables (TBL) when they are loaded
 
 
 def read(name):
@@ -248,6 +249,47 @@ def label_map(lines, keep=('NAV',)):
     return m
 
 
+LABELS = os.path.join(ROOT, 'tools', 'labels')
+
+
+def fixed_map(name, lines, keep=('NAV',)):
+    """The short labels of one build from its fixed map tools/labels/<name>.map (one line
+    'N01 SUNA' per routine). A routine not in the map yet gets the next free number and is
+    added to the file; numbers are never reused, so the N.. labels stay the same from one
+    version to the next. Returns {long name: short label} for the labels in lines, in order."""
+    path = os.path.join(LABELS, name + '.map')
+    m = {}
+    if os.path.exists(path):
+        for l in open(path, encoding='utf-8'):
+            l = l.split('#')[0].split()
+            if len(l) == 2:
+                m[l[1]] = l[0]
+    present = []
+    for l in lines:
+        g = re.fullmatch(r'LBL "(.+)"', l)
+        if g and g.group(1) not in keep and g.group(1) not in present:
+            present.append(g.group(1))
+    new = [n for n in present if n not in m]
+    top = max([int(v[1:]) for v in m.values()] or [0])
+    for n in new:
+        top += 1
+        m[n] = 'N%02d' % top
+    if new or not os.path.exists(path):
+        os.makedirs(LABELS, exist_ok=True)
+        with open(path, 'w', encoding='utf-8') as fh:
+            fh.write('# %s: fixed short labels (short label, original name in programs/ and build/.../src/).\n'
+                     '# Read by the build: a new routine gets the next free number, numbers are never\n'
+                     '# reused, so the labels stay the same from one version to the next.\n' % name)
+            fh.write(''.join('%s %s\n' % (v, k) for k, v in sorted(m.items(), key=lambda kv: int(kv[1][1:]))))
+    return {k: m[k] for k in sorted(present, key=lambda k: int(m[k][1:]))}
+
+
+def write(path, lines):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, 'w', encoding='utf-8') as fh:
+        fh.write('\n'.join(lines) + '\n')
+
+
 def rename(lines, m):
     """LBL / XEQ / GTO "name" -> the N.. label (variables in STO, RCL, INDEX, INPUT stay)."""
     out = []
@@ -375,13 +417,14 @@ def build():
         os.remove(old)
     nt = no_tables(progs)
     notbl = nav + [l for n in KEEP if n != 'TGET' for l in nt[n]]
-    # named versions (development, tests) in build/dev/; the files to load get N01... labels
+    # build/        the files to load (short N01... labels from tools/labels/*.map)
+    # build/dev/    other builds, also with short labels
+    # build/dev/src/  every build with the original names (development, tests)
     dev = os.path.join(OUT, 'dev')
-    os.makedirs(dev, exist_ok=True)
+    src = os.path.join(dev, 'src')
     for name, L in (('NAVFULL', full), ('NAVFULL_NOTBL', notbl)):
-        with open(os.path.join(dev, name + '.txt'), 'w', encoding='utf-8') as fh:
-            fh.write('\n'.join(L) + '\n')
-    mapping = label_map(full)
+        write(os.path.join(src, name + '.txt'), L)
+    mapping = fixed_map('NAVFULL', full)
     with open(os.path.join(OUT, 'NAVFULL_LABELS.txt'), 'w', encoding='utf-8') as fh:
         fh.write('NAVFULL / NAVFULL_NOTBL - program labels\n'
                  '==========================================\n'
@@ -392,13 +435,13 @@ def build():
                  '(bold capitals 12 px, glyphs from the firmware, GPL-3.0), PTXT a small 3x5 font.\n\n')
         fh.write('NAV     NAV     %s\n' % LABEL_TEXT['NAV'])
         fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in mapping.items()) + '\n')
-        fh.write('\nNAVFULL_NOTBL has no TGET; its labels are the same (N50 is simply missing there).\n')
+        fh.write('\nNAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (N50 is simply missing there).\n')
     with open(os.path.join(OUT, 'NAVINIT_LABELS.txt'), 'w', encoding='utf-8') as fh:
         fh.write(NAVINIT_TEXT % {'period': period})
-    for name, L in (('NAVFULL', rename(full, mapping)), ('NAVFULL_NOTBL', rename(notbl, mapping)),
-                    ('NAVINIT_FULL', init_full), ('NAVINIT_FAST', init_fast)):
-        with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
-            fh.write('\n'.join(L) + '\n')
+    for path, L in ((os.path.join(OUT, 'NAVFULL.txt'), rename(full, mapping)),
+                    (os.path.join(dev, 'NAVFULL_NOTBL.txt'), rename(notbl, mapping)),
+                    (os.path.join(OUT, 'NAVINIT_FULL.txt'), init_full), (os.path.join(OUT, 'NAVINIT_FAST.txt'), init_fast)):
+        write(path, L)
     shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(OUT, 'TBL.txt'))
     # ---- NAV + INIT in one file (the first NAV builds the matrices and deletes INIT), no tables:
     #      NAVALL_FAST (all views) and NAVCOMP_FAST (compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY)
@@ -419,19 +462,11 @@ def build():
     extra = {}
     # NAV + programs in one file, INIT in its own (NAVINIT_FAST or NAVINIT_FULL): one file of
     # 15-19 thousand lines gave "invalid data" in rejig. NAV runs INIT once and deletes it.
-    for f in ('NAVALL_FAST', 'NAVCOMP_FAST', 'NAVTXT_FAST'):
-        for suf in ('.txt', '_LABELS.txt'):
-            for d in (OUT, dev):
-                if os.path.exists(os.path.join(d, f + suf)):
-                    os.remove(os.path.join(d, f + suf))
     for name, L in (('NAVALL', allf), ('NAVCOMP', comp)):
-        with open(os.path.join(dev, name + '.txt'), 'w', encoding='utf-8') as fh:
-            fh.write('\n'.join(L) + '\n')
-        m = label_map(L, keep=('NAV', 'INIT'))
-        out = rename_keep(L, m, ('NAV', 'INIT'))
-        with open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8') as fh:
-            fh.write('\n'.join(out) + '\n')
-        with open(os.path.join(OUT, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        write(os.path.join(src, name + '.txt'), L)
+        m = fixed_map(name, L, keep=('NAV', 'INIT'))
+        write(os.path.join(dev, name + '.txt'), rename_keep(L, m, ('NAV', 'INIT')))
+        with open(os.path.join(dev, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
             fh.write('%s - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:\n'
                      'the first NAV runs INIT, flag 81 remembers it; then delete INIT by hand; CF 81 before loading INIT again)\n\n' % name)
             fh.write('NAV     NAV     %s\nINIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it\n' % LABEL_TEXT['NAV'])
@@ -440,18 +475,25 @@ def build():
     # ---- text only (no drawing): NAV asks the position, ALMR writes the page into R50 ... ;
     #      then lines 1-26 also go to the stack and the lettered registers (REGS shows them in
     #      order from X). NAVTXT_FAST = NAV + the programs ALMR needs + INIT.
-    ntt = dict(nt)
+    #      NAVTXT reads the almanac tables too (TGET): after XEQ "TBL" (flag 10), inside the table
+    #      period, the Sun, the Moon and the planets come from the tables, else from the series.
+    ntt = dict(progs) if TXT_TABLES else dict(nt)
     navtxt = ['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
               ] + gencache.NEWMAT + ['0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5)
     navtxt += ['REGS', 'RTN'] + inp + ['END']                         # open the register browser
     needt = closure(ntt, ['ALMR'])
     txt = navtxt + [l for n in KEEP if n in needt for l in ntt[n]]
     L = txt
-    with open(os.path.join(dev, 'NAVTXT.txt'), 'w', encoding='utf-8') as fh:
-        fh.write('\n'.join(L) + '\n')
-    m = label_map(L, keep=('NAV', 'INIT'))
-    with open(os.path.join(OUT, 'NAVTXT.txt'), 'w', encoding='utf-8') as fh:
-        fh.write('\n'.join(rename_keep(L, m, ('NAV', 'INIT'))) + '\n')
+    write(os.path.join(src, 'NAVTXT.txt'), L)
+    m = fixed_map('NAVTXT', L, keep=('NAV', 'INIT'))
+    write(os.path.join(OUT, 'NAVTXT.txt'), rename_keep(L, m, ('NAV', 'INIT')))
+    with open(os.path.join(OUT, 'NAVTXT_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('NAVTXT - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:\n'
+                 'the first NAV runs INIT, flag 81 remembers it; then delete INIT by hand; CF 81 before loading INIT again).\n'
+                 'With TBL run (flag 10) and the date inside the table period, the page comes from the tables.\n\n')
+        fh.write('NAV     NAV     text only: asks DATE UTC LAT LON, the almanac page into R50 ..., the stack and the\n'
+                 '                lettered registers, then REGS\nINIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it\n')
+        fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
     extra['NAVTXT'] = (L, sorted(needt))
     return full, init_full, init_fast, progs, nav, notbl, extra
 

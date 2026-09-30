@@ -63,7 +63,7 @@ S += [PageBreak(), P('Part 2 — the programs one by one', h1),
       '<b>Julian Date (JD):</b> use the C47 date function (Date→J) and add UT/24. It must be a plain number: for example 23 Sep 2026 12:00 UT = <b>2461307</b>, and 0h UT that day = 2461306.5.',
       '<b>Signs:</b> latitude N +, S −; longitude E +, W −; declination negative = South.',
       '<b>Angles</b> come out in decimal degrees. Use →HMS or the d.mmm display to read degrees and minutes.',
-      '<b>Setup order:</b> the NAV files do it all: load NAVFULL (or NAVFULL_NOTBL) and NAVINIT_FULL (or NAVINIT_FAST), XEQ INIT once, delete INIT. The single programs of part 2 can still be loaded one by one (programs/ folder) for other uses.'])
+      '<b>Setup order:</b> the NAV files do it all: load NAVFULL and NAVINIT_FULL (or NAVINIT_FAST), XEQ INIT once, delete INIT. The single programs of part 2 can still be loaded one by one (programs/ folder) for other uses.'])
 
 # ---- SUNA
 r = R['SUNA']

@@ -86,4 +86,4 @@ N76     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; st
 N77     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
 N78     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
 
-NAVFULL_NOTBL has no TGET; its labels are the same (N50 is simply missing there).
+NAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (N50 is simply missing there).

@@ -9,7 +9,7 @@ programs only - no navigation calculations. A demo of what AGRAPH and PIXEL can 
   The bottom line shows the time taken (TICKS) and how many AGRAPH or PIXEL calls.
 
 Sample data: Dubai (N 25 12, E 55 18), 02-10-2026 18:00 UT, as calculated by ALMF.
-Writes build/DEMOALM.txt (convert with rejig). PTXS and PTXP carry the C47 standardFont
+Writes extras/DEMOALM.txt (convert with rejig). PTXS and PTXP carry the C47 standardFont
 glyphs: GPL-3.0 (programs/LICENSE-PTXS.txt).
 
   python3 tools/build_demo.py
@@ -171,10 +171,10 @@ def build():
     # only DEMO keeps its name; every other label becomes N01, N02 ... (table in DEMOALM_LABELS.txt)
     mapping = B.label_map(prog, keep=('DEMO',))
     renamed = B.rename_keep(prog, mapping, 'DEMO')
-    out = os.path.join(ROOT, 'build', 'DEMOALM.txt')
+    out = os.path.join(ROOT, 'extras', 'DEMOALM.txt')
     with open(out, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(renamed) + '\n')
-    with open(os.path.join(ROOT, 'build', 'DEMOALM_LABELS.txt'), 'w', encoding='utf-8') as fh:
+    with open(os.path.join(ROOT, 'extras', 'DEMOALM_LABELS.txt'), 'w', encoding='utf-8') as fh:
         fh.write('DEMOALM: program labels on the calculator (left), original name, what it does.\n'
                  'Only DEMO keeps its name.\n\n')
         fh.write('\n'.join('%s  %-5s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in mapping.items()) + '\n')

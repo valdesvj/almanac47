@@ -31,6 +31,7 @@ import gencache, gennav, navopt
 
 OUT = os.path.join(ROOT, 'build', 'dm42')
 DEV = os.path.join(OUT, 'dev')
+SRC = os.path.join(DEV, 'src')
 NOTE = 'NO MOON - NO PLANETS - DM42 BETA'
 VALID = '2000-2050'
 ALMC = [str(gencache.ROWS), 'ENTER', '4', 'NEWMAT', 'STO "ALMC"', '1', 'STO "KR"']
@@ -193,6 +194,18 @@ def assemble(nav, p, font='PTXB'):
     return nav + [l for n in B.KEEP if n in need for l in q[n]], sorted(need)
 
 
+def nav1_program(inp):
+    """NAV1 / NAVLITTLE: no menu - the inputs, then the ALMANAC view; up / down one hour,
+    + ends (screen and stack cleared, the stack size put back). no_box() takes the box out."""
+    return (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
+             'SSIZE#', 'STO "SSZ"', 'SSIZE8', '0', 'STO "DH"', 'XEQ 20', 'CLLCD',
+             'LBL 01', 'XEQ 52', 'XEQ 21', 'XEQ "ALMF"',
+             'RCL 39', str(gennav.UP), 'X=Y?', 'GTO 06', 'RCL 39', str(gennav.DOWN), 'X=Y?', 'GTO 07',
+             'CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN',
+             'LBL 06', '1', 'STO+ "DH"', 'GTO 01', 'LBL 07', '1', 'STO- "DH"', 'GTO 01']
+            + [str(x) for x in gennav.busy_box()] + inp + ['END'])
+
+
 def main():
     p = programs()
     inp = gennav.inputs()
@@ -218,42 +231,38 @@ def main():
     nav12 = nav12[:i] + ['LBL 28', 'RTN'] + nav12[j:]
     # NAV1: no menu - the inputs, then the ALMANAC view; up / down one hour (the box while it
     # computes), + ends (screen and stack cleared, the stack size put back)
-    nav1 = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04',
-             'SSIZE#', 'STO "SSZ"', 'SSIZE8', '0', 'STO "DH"', 'XEQ 20', 'CLLCD',
-             'LBL 01', 'XEQ 52', 'XEQ 21', 'XEQ "ALMF"',
-             'RCL 39', str(gennav.UP), 'X=Y?', 'GTO 06', 'RCL 39', str(gennav.DOWN), 'X=Y?', 'GTO 07',
-             'CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN',
-             'LBL 06', '1', 'STO+ "DH"', 'GTO 01', 'LBL 07', '1', 'STO- "DH"', 'GTO 01']
-            + [str(x) for x in gennav.busy_box()] + inp + ['END'])
+    nav1 = nav1_program(inp)
     # NAV1T: NAV1, and + ends with the text page of the hour on the screen (ALMR into the
     # registers, as NAVTXT) and the register browser
     k = nav1.index('CLLCD', nav1.index('XEQ "ALMF"'))
     assert nav1[k:k + 7] == ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN']
     nav1t = nav1[:k] + ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4'] + gennav.text_steps(5) + ['REGS', 'RTN'] + nav1[k + 7:]
-    os.makedirs(DEV, exist_ok=True)
     res = {}
     p1 = nav1_programs(p)
     p12 = nav1_programs(p, chart=True)
     nav1, nav1t, nav12 = no_box(nav1), no_box(nav1t), no_box(nav12)
-    for name, nav in (('NAVTXT_DM42', navtxt), ('NAV1_DM42', nav1), ('NAV1T_DM42', nav1t), ('NAV12_DM42', nav12)):
+    # build/dm42/NAVLITTLE (was NAV1_DM42) + NAVINIT_LITTLE; the other builds in dev/;
+    # dev/src/ has every build with the original names; short labels from tools/labels/*.map
+    for name, nav in (('NAVTXT_DM42', navtxt), ('NAVLITTLE', nav1), ('NAV1T_DM42', nav1t), ('NAV12_DM42', nav12)):
         L, need = assemble(nav, p12 if name == 'NAV12_DM42' else p1)
-        open(os.path.join(DEV, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
-        m = B.label_map(L, keep=('NAV', 'INIT'))
-        open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(B.rename_keep(L, m, ('NAV', 'INIT'))) + '\n')
-        with open(os.path.join(OUT, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
-            fh.write('%s - program labels (NAV keeps its name; INIT is NAVINIT_DM42)\n\n' % name)
+        B.write(os.path.join(SRC, name + '.txt'), L)
+        m = B.fixed_map(name, L, keep=('NAV', 'INIT'))
+        d = OUT if name == 'NAVLITTLE' else DEV
+        B.write(os.path.join(d, name + '.txt'), B.rename_keep(L, m, ('NAV', 'INIT')))
+        with open(os.path.join(d, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('%s - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)\n\n' % name)
             fh.write('NAV     NAV     %s\n' % B.LABEL_TEXT['NAV'])
             fh.write('\n'.join('%s     %-7s %s' % (v, k, B.LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
         res[name] = (L, need)
     init = init_dm42()
-    open(os.path.join(OUT, 'NAVINIT_DM42.txt'), 'w', encoding='utf-8').write('\n'.join(init) + '\n')
-    open(os.path.join(DEV, 'NAVINIT_DM42.txt'), 'w', encoding='utf-8').write('\n'.join(init) + '\n')
+    B.write(os.path.join(OUT, 'NAVINIT_LITTLE.txt'), init)
+    B.write(os.path.join(SRC, 'NAVINIT_LITTLE.txt'), init)
     init5 = init_dm42_5y()
-    open(os.path.join(OUT, 'NAVINIT_DM42_5Y.txt'), 'w', encoding='utf-8').write('\n'.join(init5) + '\n')
+    B.write(os.path.join(DEV, 'NAVINIT_DM42_5Y.txt'), init5)
     print('%-13s %7s %8s' % ('file', 'lines', 'bytes'))
     for name, (L, need) in res.items():
         print('%-13s %7d %8d   %s' % ((name,) + B.size(L) + (' '.join(need),)))
-    print('%-13s %7d %8d' % (('NAVINIT_DM42',) + B.size(init)))
+    print('%-13s %7d %8d' % (('NAVINIT_LITTLE',) + B.size(init)))
     print('%-13s %7d %8d' % (('NAVINIT_DM42_5Y',) + B.size(init5)))
     return res, init
 

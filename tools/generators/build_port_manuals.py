@@ -62,23 +62,28 @@ def free42():
          P(WARN), P(LIC, small),
          P('1. What you need', h2)] + B([
         'A <b>DM42n</b> (recommended) or DM42 with the SwissMicros stock firmware (DM42 3.26 = Free42 3.3.10 or later). '
-        'The DM42n has ample memory; on the old DM42 the full version with the Moon and planets is tight.',
+        'The DM42n has ample memory. For little memory there is NAVLITTLE: the ALMANAC screen with the Sun and the '
+        '58 stars only (section 10).',
         'Free42 on a PC or phone has only the 131 × 16 HP-42S screen: NAV runs there, but you see only the top left '
         'corner of each screen. Use the calculator for the views.'])
     S += [P('2. Files (build/free42)', h2),
           prose_tbl([['File', 'What it is'],
-                     ['NAVFULL_F42.raw', 'the program NAV and its routines: the screen builds up as it is drawn (Free42 way)'],
-                     ['NAVFULL_F42_RLCD.raw', 'the same, the screen appears complete at once (C47 way) — load this one OR the other'],
-                     ['NAVINIT_F42_FULL.raw', 'INIT: the series matrices, valid 2000–2050'],
-                     ['NAVINIT_F42_FAST.raw', 'INIT: fitted series for 2026–2030 (smaller, faster)'],
-                     ['*.txt', 'the same programs as text (Free42 on a PC: Paste in PRGM mode)']],
+                     ['NAVFULL.raw', 'the program NAV and its routines: all 9 views; the screen appears complete, '
+                                     'at once, as on the C47'],
+                     ['NAVINIT_FULL.raw', 'INIT for NAVFULL: the series matrices, valid 2000–2050'],
+                     ['NAVINIT_FAST.raw', 'INIT for NAVFULL: fitted series for 2026–2030 (smaller, faster)'],
+                     ['NAVLITTLE.raw', 'NAV for little memory: the ALMANAC screen, Sun and stars only (section 10)'],
+                     ['NAVINIT_LITTLE.raw', 'INIT for NAVLITTLE: Sun, nutation and stars, valid 2000–2050'],
+                     ['*.txt', 'the same programs as text (Free42 on a PC: Paste in PRGM mode)'],
+                     ['dev/NAVFULL_DRAW.raw', 'NAVFULL with the Free42 screen update: each screen builds up as it is drawn']],
                     [45 * mm, 135 * mm]),
           P('3. Loading and first start', h2)] + B([
         'Connect the calculator by USB (it appears as a disk) and copy the .raw files into the PROGRAMS folder.',
-        'On the calculator: <b>SETUP → Load Program</b>, load NAVINIT_F42_FULL.raw (or _FAST).',
+        'The file name is the version: on the calculator the programs are always NAV and INIT.',
+        'On the calculator: <b>SETUP → Load Program</b>, load NAVINIT_FULL.raw (or NAVINIT_FAST.raw).',
         '<b>XEQ "INIT"</b>: it builds the matrices and shows MATRICES READY. Then delete INIT (GTO "INIT", CLP): the '
         'matrices stay.',
-        'Load NAVFULL_F42.raw (or NAVFULL_F42_RLCD.raw) and <b>XEQ "NAV"</b>.'])
+        'Load NAVFULL.raw and <b>XEQ "NAV"</b>.'])
     S += [P('4. Starting NAV', h2),
           P('NAV asks four numbers with INPUT (R/S keeps the value shown); the formats are in the message line first:'),
           prose_tbl([['Input', 'Meaning', 'Example'],
@@ -112,15 +117,15 @@ def free42():
                '<b>8 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.'), Spacer(1, 4),
           pair(F('info'), F('box_ants'), '<b>9 INFO</b>: repository, licence, no warranty, cross-check.',
                'The SINKING....ABOUT box while the calculator works, with the ants (flag 97, below).'),
-          PageBreak(), P('7. How the screen appears: NAVFULL_F42 and NAVFULL_F42_RLCD', h2),
-          P('Free42 sends every drawing step to the LCD at once, so with <b>NAVFULL_F42</b> each screen builds up in '
+          PageBreak(), P('7. How the screen appears', h2),
+          P('Free42 sends every drawing step to the LCD at once, so a program builds each screen up in '
             'front of you (the stars of SKY appear one by one), and the SINKING box is cleared as soon as the next view '
             'starts to draw. The C47 shows its screen only at a PAUSE, a key press or the end, so there a view appears '
             'complete, at once, and the box stays until it is ready.'),
-          P('<b>NAVFULL_F42_RLCD</b> does it the C47 way with the DM42 variable RefLCD: 0 STO "RefLCD" (no LCD update '
+          P('<b>NAVFULL</b> and <b>NAVLITTLE</b> do it the C47 way with the DM42 variable RefLCD: 0 STO "RefLCD" (no LCD update '
             'while NAV computes and draws), −1 STO "RefLCD" (one update) where the C47 program shows its screen, and '
             '7 (normal) when NAV ends. If you stop it with R/S or EXIT and the screen stays frozen, key '
-            '<b>7 STO "RefLCD"</b>.'),
+            '<b>7 STO "RefLCD"</b>. dev/NAVFULL_DRAW keeps the Free42 way.'),
           P('8. The ants', h2),
           P('The ants live in NAV as on the C47, but they wait for <b>flag 97</b> (the HP-42S flag 47 is a system flag): '
             'SF 97 and press a view number, + or an arrow.'),
@@ -131,7 +136,20 @@ def free42():
         'Keys (GETKEY / GETKEYA) are translated to the C47 key codes; pauses use TIME; strings use XSTR, APPEND, HEAD; '
         'the date is computed (Free42 has no C47 date functions). NAV sets SIZE 100 (R00–R99).',
         'Built with tools/build_free42.py from the C47 programs; tested with tools/f42 (the Free42 core with the DM42 '
-        'graphics, binary arithmetic). Tested on a DM42n with the stock firmware by the author.'])
+        'graphics, binary arithmetic). NAVFULL tested on a DM42n with the stock firmware by the author.'])
+    S += [PageBreak(), P('10. NAVLITTLE: Sun and stars', h2),
+          P('The NAVLITTLE of the old DM42 with the C47 firmware, converted the same way. It keeps the Sun and the 58 '
+            'navigation stars (no Moon, no planets, no tables), draws with the 5 × 7 font of the first versions and has '
+            'no box and no ants: for a calculator with little free memory. The Sun and star values are the same as in '
+            'NAVFULL.'),
+          img(F('little'), 0.6)] + B([
+        'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
+        'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
+        'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
+        'earlier (the screen stays while it computes), + ends (GrMod 0, screen and stack cleared).',
+        'Programs: NAVLITTLE about 10 KB, NAVINIT_LITTLE about 8 KB (.raw files), matrices 667 numbers.',
+        'Tested in the Free42 core against the C47 NAVLITTLE, pixel by pixel (tests/test_f42_little.py); not yet on '
+        'a real calculator.'])
     make(os.path.join(DOCS, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
 
 

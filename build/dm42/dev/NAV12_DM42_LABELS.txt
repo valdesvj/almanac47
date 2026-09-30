@@ -1,4 +1,4 @@
-NAV12_DM42 - program labels (NAV keeps its name; INIT is NAVINIT_DM42)
+NAV12_DM42 - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
 
 NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon

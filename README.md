@@ -12,8 +12,10 @@ version and the base for a phone app (**Almanac 47**).
   `programs_rem/` and `listings/`. See `README.txt` and `PROGRAM_MAP.txt`.
 - **PC, native Python:** `python/native/c47pc.py` (GTK window, PNG, text).
 - **PC, reference viewer:** `python/c47view.py` runs the real calculator programs.
-- **Other calculators:** `build/dm42/` (C47 on the old DM42, Sun and stars), `build/free42/`
-  (the full NAV for the DM42 / DM42n stock Free42 firmware), `python/numworks/`,
+- **Calculator files:** `build/` (C47 / R47: NAVFULL, NAVTXT, NAVINIT_FULL / _FAST, TBL),
+  `build/dm42/` (C47 on the old DM42: NAVLITTLE, Sun and stars), `build/free42/` (DM42 /
+  DM42n stock Free42 firmware: NAVFULL, NAVLITTLE and their INITs); other builds in the
+  `dev/` folders. Other calculators: `python/numworks/`,
   `python/hpprime/`. How the C47 and Free42 update the screen: `README.txt`, SCREEN UPDATE.
 - **Manuals of the other calculators:** `docs/Almanac47_Free42_Manual.pdf`,
   `docs/Almanac47_NumWorks_Manual.pdf`, `docs/Almanac47_HPPrime_Manual.pdf`.

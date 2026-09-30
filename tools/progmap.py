@@ -29,13 +29,15 @@ def main():
             '  programs_rem/  same programs with REM comment lines (try one file with the converter first)',
             '  listings/      numbered listings with comments per subroutine, for reading and debugging',
             '                 (step numbers = line numbers of the plain programs)',
-            '  build/         the files for the calculator: NAVFULL, NAVFULL_NOTBL, NAVALL, NAVCOMP, NAVTXT,',
-            '                 NAVINIT_FULL, NAVINIT_FAST, TBL (python3 tools/build_navfull.py)',
+            '  build/         the files for the calculator: NAVFULL, NAVTXT, NAVINIT_FULL, NAVINIT_FAST, TBL',
+            '                 (python3 tools/build_navfull.py); build/dev/ NAVFULL_NOTBL, NAVALL, NAVCOMP;',
+            '                 build/dm42/ NAVLITTLE; build/free42/ the Free42 files; dev/src/ original names',
             '',
             'LABELS IN THE NAV FILES',
             '  In the build/ files only NAV (and INIT) keep their names; every other global label is',
-            '  N01, N02 ... The map for NAVFULL / NAVFULL_NOTBL (fonts included) follows; NAVALL, NAVCOMP',
-            '  and NAVTXT have their own numbering in build/<file>_LABELS.txt.', '']
+            '  N01, N02 ... The numbers are fixed in tools/labels/<build>.map (a new routine gets the next',
+            '  free number). The map for NAVFULL / NAVFULL_NOTBL (fonts included) follows; the other',
+            '  builds have their own numbering in <folder>/<build>_LABELS.txt.', '']
     out += ['  ' + l for l in open(os.path.join(ROOT, 'build', 'NAVFULL_LABELS.txt'), encoding='utf-8').read().split('\n')
             if re.match(r'(NAV|N\d\d)\s', l)]
     open(os.path.join(ROOT, 'PROGRAM_MAP.txt'), 'w', encoding='utf-8').write('\n'.join(out) + '\n')

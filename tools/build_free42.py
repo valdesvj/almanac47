@@ -112,7 +112,7 @@ def glyph_columns(lines):
         if not (m and int(m.group(1)) >= 32):
             i += 1
             continue
-        code, x, cols, reg, pend, adv = int(m.group(1)), 0, {}, 0, None, None
+        code, x, cols, reg, pend, adv, yoff = int(m.group(1)), 0, {}, 0, None, None, 0
         i += 1
         while lines[i] != 'RTN':
             l = lines[i]
@@ -129,6 +129,10 @@ def glyph_columns(lines):
                 pend = int(l)
             elif l == '+':
                 x += pend
+            elif l == '-':                    # RCL 31 n -: the glyph starts n rows below the base line
+                yoff -= pend
+            elif l.startswith('WSIZE'):
+                pass
             elif l == 'STO 30':
                 adv = x
             elif l == 'STO+ 30':
@@ -136,9 +140,14 @@ def glyph_columns(lines):
             else:
                 raise ValueError('glyph %d: %s' % (code, l))
             i += 1
+        if yoff:
+            YOFF[code] = yoff
         out[code] = (cols, adv)
         i += 1
     return out
+
+
+YOFF = {}                              # glyphs drawn below the base line (PTXB '@', the Sun: 2 rows)
 
 
 SPLIT = {33, 45, 60, 62, 92, 124}      # first bytes of the paste aliases (<= >= != -> <- |- \\ \\x)
@@ -209,9 +218,13 @@ EXTRA = {'PTXT': {19: ({0: 8, 1: 20, 2: 8}, 4), ord("'"): ({0: 24}, 2),
                   ord('%'): ({0: 18, 1: 4, 2: 9}, 4)}}
 
 
-def font(name, keep):
-    src = B.read(name)
+def font(name, keep, src=None):
+    src = B.trim_font(src, keep) if src else B.read(name)       # PTXB: only the glyphs used ('@' is 12 px high)
+    YOFF.clear()
     g = glyph_columns(src)
+    sh = -min(YOFF.values(), default=0)                 # rows below the base line: patterns shifted up
+    if sh:
+        g = {c: ({x: p << (sh + YOFF.get(c, 0)) for x, p in cols.items()}, adv) for c, (cols, adv) in g.items()}
     hp = {v: k for k, v in HPCODE.items()}
     extra = {c: v for c, v in EXTRA.get(name, {}).items() if c not in g and hp.get(c, chr(c)) in keep}
     H = max(p.bit_length() for cols, _ in g.values() for p in cols.values())
@@ -244,7 +257,7 @@ def font(name, keep):
                 out += [str(adv), 'STO+ 30', 'RTN']
         out.append(l)
         if l == 'STO 31':                                   # the row: Free42 top rows of the bands
-            out += [str(241 - H), 'RCL 31', '-', 'STO "FT"', '8', '+', 'STO "FB"']
+            out += [str(241 - H + sh), 'RCL 31', '-', 'STO "FT"', '8', '+', 'STO "FB"']
         i += 1
     return out, H
 
@@ -420,46 +433,101 @@ def programs():
     return p
 
 
-def build(rlcd=False):
-    RLCD[0] = rlcd
-    WAITS.clear()
-    p = programs()
-    N = nav()
+def nav_little():
+    """NAVLITTLE (the DM42 NAVLITTLE, was NAV1_DM42): no menu - the inputs, then the ALMANAC
+    view; up / down one hour, + ends. Sun and stars only, 5 x 7 font, no box, no ants."""
+    import build_dm42 as D
+    P = D.no_box(D.nav1_program(gennav.inputs()))
+    i = P.index('LBL 20')
+    P = P[:i] + inputs() + ['END']
+    P = seq(P, ['SSIZE#', 'STO "SSZ"', 'SSIZE8'], ['SIZE 100'])
+    P = seq(P, ['XEQ 20', 'CLLCD'], ['XEQ 20', '3', 'STO "GrMod"'] + (['0', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLLCD'])
+    P = seq(P, ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN'],
+            ['CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'RTN'])
+    return P
+
+
+def assemble(N, p, big_src=None):
+    """NAV N + the programs it needs (converted) + F42; returns (long names, short names, map)."""
     keep = [k for k in B.KEEP if k != 'TGET']
-    need = B.closure(p, [c for c in B.calls(N) if c != 'INIT'] + ['ALMR'])
+    need = B.closure(p, [c for c in B.calls(N) if c != 'INIT'] + (['ALMR'] if 'XEQ "ALMR"' in N else []))
     chars = set(''.join(B.strings(N)) + ''.join(''.join(B.strings(p[n])) for n in need) + '0123456789-.: %')
     progs = {}
     for n in keep:
         if n not in need:
             continue
         if n in ('PTXS', 'PTXT'):
-            progs[n] = conv(font(n, chars)[0], n)
+            progs[n] = conv(font(n, chars, big_src if n == 'PTXS' else None)[0], n)
         else:
             progs[n] = conv(p[n], n)
-    nav_f = conv(N, 'NAV')
-    full = nav_f + [l for n in keep if n in progs for l in progs[n]] + lib()
-    m = B.label_map(full, keep=('NAV',))
-    full = B.rename_keep(full, m, ('NAV',))
-    os.makedirs(OUT, exist_ok=True)
-    if rlcd:
-        open(os.path.join(OUT, 'NAVFULL_F42_RLCD.txt'), 'w', encoding='utf-8').write('\n'.join(full) + '\n')
+    return conv(N, 'NAV') + [l for n in keep if n in progs for l in progs[n]] + lib()
+
+
+def little_programs():
+    import build_dm42 as D
+    with contextlib.redirect_stdout(io.StringIO()):
+        p = D.nav1_programs(D.programs())
+    p['STXT'] = B.read('STXT')                            # without the C47 text / date functions
+    p['WPLS'] = wpls()
+    return p
+
+
+DEV = os.path.join(OUT, 'dev')
+SRC = os.path.join(DEV, 'src')
+
+
+def save(name, L, d, mapname):
+    """long names to dev/src/, short labels (fixed map tools/labels/<mapname>.map) to d."""
+    B.write(os.path.join(SRC, name + '.txt'), L)
+    m = B.fixed_map(mapname, L, keep=('NAV',))
+    B.write(os.path.join(d, name + '.txt'), B.rename_keep(L, m, ('NAV',)))
+    return m
+
+
+def build(rlcd=False, little=False):
+    RLCD[0] = rlcd
+    WAITS.clear()
+    if little:
+        import build_dm42 as D
+        L = assemble(nav_little(), little_programs(), D.ptxb_as_ptxs())
+        m = save('NAVLITTLE', L, OUT, 'F42_NAVLITTLE')
+        with open(os.path.join(OUT, 'NAVLITTLE_LABELS.txt'), 'w', encoding='utf-8') as fh:
+            fh.write('NAVLITTLE (Free42) - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)\n\n')
+            fh.write('\n'.join('%s  %s' % (v, k) for k, v in m.items()) + '\n')
+        init = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'), encoding='utf-8') if l.strip()]
+        B.write(os.path.join(OUT, 'NAVINIT_LITTLE.txt'), conv(init, 'INIT'))
+        return L
+    full = assemble(nav(), programs())
+    if not rlcd:                                 # the screen builds up as it is drawn: dev/
+        save('NAVFULL_DRAW', full, DEV, 'F42_NAVFULL_DRAW')
         return full
-    open(os.path.join(OUT, 'NAVFULL_F42.txt'), 'w', encoding='utf-8').write('\n'.join(full) + '\n')
-    with open(os.path.join(OUT, 'NAVFULL_F42_LABELS.txt'), 'w', encoding='utf-8') as fh:
-        fh.write('NAVFULL_F42 - program labels (NAV keeps its name)\n\n')
+    m = save('NAVFULL', full, OUT, 'F42_NAVFULL')
+    with open(os.path.join(OUT, 'NAVFULL_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('NAVFULL (Free42) - program labels (NAV keeps its name)\n\n')
         fh.write('\n'.join('%s  %s' % (v, k) for k, v in m.items()) + '\n')
     # INIT: the same matrix builders, strings with XSTR
-    import build_navfull
     for kind in ('FULL', 'FAST'):
-        src = B.read  # noqa
         L = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'build', 'NAVINIT_%s.txt' % kind), encoding='utf-8') if l.strip()]
-        L = conv(L, 'INIT')
-        L = L[:-1] + ['END'] if L[-1] == 'END' else L
-        open(os.path.join(OUT, 'NAVINIT_F42_%s.txt' % kind), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+        B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % kind), conv(L, 'INIT'))
     return full
 
 
 if __name__ == '__main__':
-    rl = sys.argv[1:] == ['rlcd']
-    full = build(rl)
-    print('NAVFULL_F42' + ('_RLCD' if rl else ''), len(full), 'lines,', sum(len(l) + 1 for l in full), 'bytes; waits', sorted(WAITS))
+    for rl, li, name in ((True, False, 'NAVFULL'), (False, False, 'dev/NAVFULL_DRAW'), (True, True, 'NAVLITTLE')):
+        L = build(rl, li)
+        print('%-17s %6d lines %7d bytes; waits %s' % (name, len(L), sum(len(l) + 1 for l in L), sorted(WAITS)))
+    raw_files()
+
+
+def raw_files():
+    """The .raw files (Free42 program files) with tools/f42/f42run: paste the listing, export."""
+    import subprocess
+    f42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
+    if not os.path.exists(f42):
+        print('no tools/f42/f42run (sh tools/f42/setup.sh): .raw files not written')
+        return
+    for name in ('NAVFULL', 'NAVLITTLE', 'NAVINIT_FULL', 'NAVINIT_FAST', 'NAVINIT_LITTLE', 'dev/NAVFULL_DRAW'):
+        txt = os.path.join(OUT, name + '.txt')
+        r = subprocess.run([f42], input='paste %s\nexport %s\n' % (txt, txt[:-4] + '.raw'), text=True,
+                           capture_output=True, timeout=300)
+        print(r.stdout.strip().split('\n')[-1])

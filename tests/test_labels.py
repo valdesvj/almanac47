@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The NAVFULL builds with N01... labels (build/) must work exactly like the named ones
-(build/dev/): every NAV menu option, same screens and PROMPT texts, FULL and FAST matrices.
+(build/dev/src/): every NAV menu option, same screens and PROMPT texts, FULL and FAST matrices.
   python3 tests/test_labels.py"""
 import os, sys, re
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,15 +24,16 @@ def run_nav(c, option, answers_after):
 
 def main():
     # names that must not appear in the renamed files as labels
+    short = {'NAVFULL': 'build/NAVFULL.txt', 'NAVFULL_NOTBL': 'build/dev/NAVFULL_NOTBL.txt'}
     for f in ('NAVFULL', 'NAVFULL_NOTBL'):
-        labels = re.findall(r'^(?:LBL|XEQ|GTO) "(.+)"$', open(os.path.join(ROOT, 'build', f + '.txt'), encoding='utf-8').read(), re.M)
+        labels = re.findall(r'^(?:LBL|XEQ|GTO) "(.+)"$', open(os.path.join(ROOT, short[f]), encoding='utf-8').read(), re.M)
         other = sorted({l for l in labels if l != 'NAV' and not re.fullmatch(r'N\d\d', l)})
         assert not other, (f, other)
     bad = 0
     for init in ('NAVINIT_FULL', 'NAVINIT_FAST'):
         for f in ('NAVFULL', 'NAVFULL_NOTBL'):
-            named = load(['build/%s.txt' % init, 'build/dev/%s.txt' % f])
-            renamed = load(['build/%s.txt' % init, 'build/%s.txt' % f])
+            named = load(['build/%s.txt' % init, 'build/dev/src/%s.txt' % f])
+            renamed = load(['build/%s.txt' % init, short[f]])
             for opt, extra in ((1, []), (2, []), (3, [None] * 8), (4, []), (5, []), (6, []), (7, []),
                                (8, []), (9, [])):
                 a, b = run_nav(named, opt, extra), run_nav(renamed, opt, extra)

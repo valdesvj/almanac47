@@ -184,7 +184,7 @@ by genf.py (ALMF, ALMS with `short`), genv.py (HALMV), genhh.py (HALMH), genh2.p
 
 `build_navfull.py` writes the NAVFULL builds with every global label except NAV renamed to
 N01... (`label_map`, `rename`: only LBL/XEQ/GTO, never variable names in STO/RCL/INDEX/INPUT).
-Named copies go to `build/dev/` for the tests; `build/NAVFULL_LABELS.txt` is the table.
+Named copies go to `build/dev/src/` for the tests; `build/NAVFULL_LABELS.txt` is the table.
 `tests/test_labels.py` runs every NAV option on both and compares. NAVINIT is one program
 INIT with the builders as LBL 01-04.
 
@@ -386,4 +386,23 @@ INIT with the builders as LBL 01-04.
   CHART change, the RLCD build 3 (menu, highlight, box) and then the finished chart.
   Free42 on a PC / phone: 131 x 16 only (graphics_mode() is 0 outside the ARM build), so only
   the top left of the 400 x 240 screen is drawn; Plus42 has SETDS but no GrMod.
-
+- Builds reorganized (Sep 30): build/ keeps NAVFULL (all views + TBL option, for more RAM
+  later), NAVTXT, NAVINIT_FULL, NAVINIT_FAST, TBL; build/dev/ NAVFULL_NOTBL, NAVALL,
+  NAVCOMP, TBL_OCT2026; build/dm42/ NAVLITTLE (was NAV1_DM42) + NAVINIT_LITTLE (was
+  NAVINIT_DM42), the rest in build/dm42/dev/; build/free42/ NAVFULL (was NAVFULL_F42_RLCD),
+  NAVLITTLE (new), NAVINIT_FULL / _FAST / _LITTLE, dev/NAVFULL_DRAW (was NAVFULL_F42);
+  DEMOALM to extras/. Every dev/src/ holds the builds with the original label names.
+  Short labels: fixed maps tools/labels/<build>.map (F42_* for Free42), read by the builds;
+  fixed_map() in build_navfull.py gives a new routine the next free number, never reuses one.
+  The maps were written from the v1.1.0 builds, so the labels did not change.
+- NAVTXT reads TBL (Sep 30): built from the table programs (TGET, the hooks in SUNA / MOON /
+  PLAN, the T letter), no longer from no_tables(); TGET is N59 in NAVTXT.map. Checked in the
+  simulator (test_navfull.py): with TBL the page equals ALMT with TBL, T after ARIES, about
+  15 % fewer steps; without TBL the page equals the series.
+- Free42 NAVLITTLE (Sep 30): nav_little() converts the DM42 NAV1 (build_dm42.nav1_program)
+  as nav() does for the menu NAV (SIZE 100, GrMod 3 / 0, RefLCD 0 / 7, INPUT); the fonts: PTXB
+  glyphs as AGRAPH strings - its '@' (the Sun) starts 2 rows below the base line (RCL 31 2 -,
+  WSIZE 12): glyph_columns records it (YOFF) and font() shifts every glyph up 2 rows.
+  tests/test_f42_little.py: f42run against c47sim, 3 dates / places (south, west), start,
+  +1 h, -1 h: identical. f42run "num": a leading - is now keyed as +/- after the digits (before,
+  +/- negated the old X and the number was entered positive).

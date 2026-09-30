@@ -165,12 +165,15 @@ int main() {
             press(36);                                             // R/S
         } else if (!strcmp(line, "num")) {
             char *s = a;
+            bool neg = *s == '-';                                  // +/- after the digits (before, it
+            if (neg) s++;                                          // would negate the old X)
             for (; *s; s++) {
                 int k = 0;
                 if (*s >= '1' && *s <= '9') k = "\x1d\x1e\x1f\x18\x19\x1a\x13\x14\x15"[*s - '1'];
-                else if (*s == '0') k = 34; else if (*s == '.') k = 35; else if (*s == '-') k = 15;
+                else if (*s == '0') k = 34; else if (*s == '.') k = 35;
                 if (k) { bool enq; int rep; core_keydown(k, &enq, &rep); core_keyup(); }
             }
+            if (neg) { bool enq; int rep; core_keydown(15, &enq, &rep); core_keyup(); }
             press(36);                                             // R/S
         } else if (!strcmp(line, "qkey")) {                  // qkey CODE MS: then a key while running
             int c, ms; qshot[0] = 0; sscanf(a, "%d %d %511s", &c, &ms, qshot); qkey = c; qtime = shell_milliseconds() + ms;

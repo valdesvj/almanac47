@@ -1,0 +1,66 @@
+NAVTXT - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:
+the first NAV runs INIT, flag 81 remembers it; then delete INIT by hand; CF 81 before loading INIT again).
+With TBL run (flag 10) and the date inside the table period, the page comes from the tables.
+
+NAV     NAV     text only: asks DATE UTC LAT LON, the almanac page into R50 ..., the stack and the
+                lettered registers, then REGS
+INIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it
+N01     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
+N02     SDM     text: degrees and minutes "ddd°mm.m'" as a string
+N03     SNS     text: latitude with N / S
+N04     SEW     text: longitude with E / W
+N05     SZN     text: azimuth "ddd.d°"
+N06     SHM     text: time "hh:mm" (--:-- when no event)
+N07     SF1     text: number with one decimal
+N08     SINT    text: whole number
+N09     SDAT    text: date "dd-mm-yyyy" from a Julian Date
+N10     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+N11     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+N12     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
+N13     SER     sum of one series matrix with the matrix functions (COS, DOT)
+N14     SERT    the time vectors SV1 SV2 used by SER
+N15     NUT     nutation in longitude and obliquity (matrix NU)
+N16     STAR    star: SUNA, then STR2
+N17     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
+N18     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
+N19     MOON    Moon: SUNA, then MOO2
+N20     MOO2    Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
+N21     MOOQ    Moon, quick low-precision formula (BODY list, ANIM)
+N22     PLAN    planet: SUNA, then PLN2
+N23     PLN2    planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
+N24     PLN3    planet for the screens: quick position first, full series only if it can be above the horizon
+N25     PLNQ    planet, quick position from mean elements (BODY list)
+N26     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
+N27     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
+N28     HCZ0    sight reduction for Dec 0 (equator points)
+N29     HCZQ    celestial equator: start of the dot-by-dot rotation
+N30     HCZR    celestial equator: next point by rotation (no trig)
+N31     HCZI    keeps sin/cos of the latitude for HCZ
+N32     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
+N33     RISE    sunrise time UT (SUNRISE program)
+N34     SET     sunset time UT
+N35     NTWA    nautical twilight, morning, UT
+N36     NTWP    nautical twilight, evening, UT
+N37     CTWA    civil twilight, morning, UT
+N38     CTWP    civil twilight, evening, UT
+N39     TRAN    meridian passage of the Sun, UT
+N40     PHAS    Moon phase: SUNA, then PHA2
+N41     PHA2    Moon phase after SUNA: illumination % and age in days
+N42     SBRT    star number by brightness rank (1st brightest ... 58th)
+N43     SNMU    star name from its number
+N44     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
+N45     CMOO    Moon from the cache
+N46     CPLN    planet from the cache
+N47     CSTR    star R82 from the cache
+N48     CSQK    star from the cache: over the horizon test (computes the star the first time: SQK, STR2, HCZ)
+N49     CHCZ    Hc Zn from the cache for the body just read (else the real HCZ)
+N50     CPHA    Moon phase from the cache
+N51     CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
+N52     CRIS    sunrise from the cache
+N53     CTRN    meridian passage from the cache
+N54     CSET    sunset from the cache
+N55     CNTP    nautical twilight pm from the cache
+N56     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
+N57     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
+N58     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
+N59     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)

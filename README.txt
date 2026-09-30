@@ -303,36 +303,47 @@ FULL OR FAST SERIES (Sep 2026) - NAVINIT_FULL or NAVINIT_FAST (load one, XEQ "IN
   SUNA and PLAN work with either set. Rebuild the matrices after loading these programs.
   PC: c47pc.py --fast
 
-MINIMUM SET FOR THE CALCULATOR - build/ (python3 tools/build_navfull.py)
-  In NAVFULL and NAVFULL_NOTBL only NAV keeps its name: every other program label is
-  N01 ... N80 (list: build/NAVFULL_LABELS.txt). The same files with the original names
-  are in build/dev/ (used by the tests); tests/test_labels.py checks that both work alike.
-  NAVFULL.txt  stays on the C47: NAV (menu 1 ALMANAC = ALMF, 2 CHART = HALMV,
-               3 TEXT = ALMT, one two-line page per R/S, 4 SKY = HORZ, info line per
-               body without end; EXIT to stop, 5 SMALL = ALMS, 6 SPLIT = HALMH,
-               7 BODY), ALMF, HALMV, ALMT, HORZ, ALMS, HALMH, BODY,
-               STXT, SUNA, STAR, MOON, PLAN, CHZ, SUNRISE, PHAS, SBRT, SNMU, TGET, CWID
-               and the fonts PTXS (status-bar font) / PTXT cut to the characters the
-               screens print. 12,427 lines, 77.5 KB as text (with HANIM and ALLSKY).
-  NAVFULL_NOTBL.txt  the same without the almanac tables, if memory is short and you never
-               load TBL: no TGET, no table hooks in SUNA/MOON/PLAN/BODY, no T letter
-               (S always; X outside the FAST period stays). 12,139 lines, 75.8 KB
-               (288 lines less). Same screens; about 5-24 steps less per screen (no speed
-               change you can see). Load NAVFULL OR NAVFULL_NOTBL, not both.
-               Check: python3 tests/test_notbl.py [cases] [seed] [F]. The PC/Python
-               version keeps the tables option.
-  NAVINIT_FULL.txt  one program INIT (builders MATA MATST MATM MATP as LBL 01-04 inside),
-               12,235 lines (VSOP87, 2000-2050)
-  NAVINIT_FAST.txt  one program INIT (MATN MATST MATM MATF as LBL 01-04), 6,529 lines
-               (fitted series, 2026-2030)
-               Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", CLP); the matrices stay.
-               Zero elements are not stored: a new matrix starts with zeros.
-  TBL.txt      optional tables: load, XEQ "TBL" once, delete the program.
-               26 Sep 2026 - 31 Jan 2027, about 3,000 numbers: "RAM FULL" on a C47
-               that also holds NAVFULL and the matrices.
-  TBL_OCT2026.txt  the same for 27 Sep - 31 Oct 2026 only (906 numbers, 2,759 lines).
-               Make one month at a time: python3 tools/almanac/tab2c47.py START END
+THE FILES FOR THE CALCULATORS - build/ (python3 tools/build_navfull.py, build_dm42.py,
+build_free42.py)
+  Only NAV (and INIT) keep their names: every other program label is N01, N02 ... The
+  numbers come from fixed maps, tools/labels/<build>.map (one line "N01 SUNA" each): a new
+  routine gets the next free number and a number is never reused, so the labels stay the
+  same from one version to the next. build/.../<build>_LABELS.txt lists them. The same
+  programs with the original names are in the dev/src/ folders (used by the tests);
+  tests/test_labels.py checks that both work alike. The file name is the version: the
+  program on the calculator is always NAV (and INIT), so two versions can be kept.
+
+  build/        C47 / R47 / DM42n with the C47 firmware
+    NAVFULL.txt      NAV: all 9 views (1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SMALL 6 SPLIT 7 ANIM
+                     8 ALLSKY 9 INFO), the sky cache, the SINKING box, the ants (flag 47),
+                     and the almanac tables (TBL) when they are loaded. Kept for calculators
+                     with more RAM: TBL together with NAVFULL and the matrices fills a C47.
+    NAVTXT.txt       NAV, text only (no drawing): the almanac page into R50 ..., the stack
+                     and the lettered registers, then REGS. The first NAV runs INIT (flag 81).
+                     It reads TBL too: after XEQ "TBL" (flag 10), inside the table period,
+                     the page comes from the tables (T after ARIES), else from the series (S).
+    NAVINIT_FULL.txt INIT: VSOP87 series, valid 2000-2050 (MATA MATST MATM MATP as LBL 01-04)
+    NAVINIT_FAST.txt INIT: fitted series, valid 2026-2030 (MATN MATST MATM MATF), smaller
+                     Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", CLP); the
+                     matrices stay. Zero elements are not stored: a new matrix starts with zeros.
+    TBL.txt          optional tables, 26 Sep 2026 - 31 Jan 2027 (about 3,000 numbers): load,
+                     XEQ "TBL" once, delete the program.
+    build/dev/       NAVFULL_NOTBL (NAVFULL without the tables), NAVALL (all views, NAV runs
+                     INIT itself), NAVCOMP (compact menu 1 2 4 8 9), TBL_OCT2026 (tables for
+                     27 Sep - 31 Oct 2026 only; make one: python3 tools/almanac/tab2c47.py START END)
+  build/dm42/   old DM42 with the C47 firmware (64 KiB): Sun and 58 stars only
+    NAVLITTLE.txt    NAV: straight to the ALMANAC screen, UP / DOWN one hour, + ends;
+                     5 x 7 font, no box, no ants, no cache
+    NAVINIT_LITTLE.txt  INIT: Sun series (FULL, 2000-2050), nutation, stars
+    build/dm42/dev/  NAV1T_DM42, NAV12_DM42, NAVTXT_DM42, NAVINIT_DM42_5Y
+  build/free42/ DM42 / DM42n with the stock firmware (Free42): .raw files and .txt listings
+    NAVFULL          as the C47 NAVFULL without the tables; the screen appears complete, as on
+                     the C47 (RefLCD). build/free42/dev/NAVFULL_DRAW: the screen builds up.
+    NAVLITTLE        as the DM42 NAVLITTLE (Sun and stars, 5 x 7 font), screen as on the C47
+    NAVINIT_FULL, NAVINIT_FAST, NAVINIT_LITTLE   the INITs, as above
   Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
+  Checks: tests/test_labels.py, test_navfull.py (also NAVTXT with TBL), test_notbl.py,
+  test_f42_little.py (Free42 NAVLITTLE against the C47 NAVLITTLE, pixel by pixel).
 
 STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
   PTXS (tools/generators/mkstd.py) is the C47's own status-bar font (standardFont, bold
@@ -388,7 +399,7 @@ WHOLE SKY (Sep 2026) - ALLSKY, NAV option 10 (NAVFULL: 9 ALLSKY)
   (within about 0.05 deg, 9 trig each). About 32,000 steps and 1,100 trigonometric
   functions: roughly 12 s on USB power (estimate), like HORZ.
 
-AGRAPH / PIXEL DEMO (Sep 2026) - build/DEMOALM.txt (python3 tools/build_demo.py)
+AGRAPH / PIXEL DEMO (Sep 2026) - extras/DEMOALM.txt (python3 tools/build_demo.py)
   No navigation programs: the almanac page ALMF with fixed sample data (Dubai,
   02-10-2026 18:00 UT) and the text programs. XEQ "DEMO" -> 1 AGRAPH 2 PIXEL 0 END.
     1  DALA  the page with PTXS/PTXT: one AGRAPH per glyph column (2,925 AGRAPH calls).
@@ -396,12 +407,12 @@ AGRAPH / PIXEL DEMO (Sep 2026) - build/DEMOALM.txt (python3 tools/build_demo.py)
              and every lit dot is one PIXEL (19,372 PIXEL calls).
   The bottom line shows the time measured with TICKS. Simulator estimate (USB power):
   AGRAPH about 4 s, PIXEL about 90 s. 6,690 lines; GPL-3.0 (contains PTXS).
-  build/DEMOALM_rem.txt (python3 tools/annotate_demo.py): the same program with ~2,000 REM
+  extras/DEMOALM_rem.txt (python3 tools/annotate_demo.py): the same program with ~2,000 REM
   comments - every drawing call (row, column, what it prints), the font routines, a picture
   of every character, and the PIXEL routine LBL 99 line by line. Same steps, same pages.
   Labels: only DEMO keeps its name; the pages and font routines are N01-N24, and in the
   commented file each one says what it does and whether it is a FONT routine
-  (table: build/DEMOALM_LABELS.txt).
+  (table: extras/DEMOALM_LABELS.txt).
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
@@ -507,8 +518,8 @@ Both calculators draw with PIXEL and AGRAPH; they differ in WHEN the drawing rea
           once, so the screen builds up in front of you (the stars of SKY appear one by one)
           and the SINKING box is cleared as soon as the next view starts drawing.
           The DM42 variable RefLCD switches the LCD update: 0 STO "RefLCD" = no update, -1 STO
-          "RefLCD" = update once, 7 = normal. build/free42/NAVFULL_F42_RLCD uses it to behave
-          like the C47 (the screen complete, at once); NAVFULL_F42 keeps the Free42 way.
+          "RefLCD" = update once, 7 = normal. build/free42/NAVFULL and NAVLITTLE use it to behave
+          like the C47 (the screen complete, at once); dev/NAVFULL_DRAW keeps the Free42 way.
           Free42 on a PC or phone has only the 131 x 16 HP-42S screen (no GrMod 3): NAV runs,
           but only the top left corner of each screen is shown.
 
