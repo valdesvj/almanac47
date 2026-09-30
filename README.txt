@@ -441,7 +441,7 @@ ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
   ATEXT, no AGRAPH; the symbols are characters of the C47 font (the Sun STD_SUN U+2299, the
   stars *, the Moon (, the planets Greek letters: Venus phi, Mars sigma, Jupiter psi, Saturn h-bar),
   one ATEXT each at x 0. DEMOATXS: the same with the symbols from an own AGRAPH font instead
-  (PSYM: the seven PTXS symbols, about 1.8 KB). One ATEXT per line (the columns made with spaces, as wide as a
+  (PSYM: only the three symbols on the page, Sun, Saturn and star, 36 AGRAPH). One ATEXT per line (the columns made with spaces, as wide as a
   digit), the three footer lines in one ATEXT with the CR glyph, the two lines across with PIXEL,
   the time top right. About 2 KB (with STXT for the time) and 170 program steps, against 23,000
   for the AGRAPH page. Both need a firmware

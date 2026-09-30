@@ -85,13 +85,14 @@ def join(pieces, gap=1):
     return x0, line
 
 
-def psym():
-    """PSYM: the seven symbols of PTXS (Sun @, Moon (, star *, planets < > = ?) as a small AGRAPH
-    font: the PTXS character loop and only these glyphs. Z row of the base line, Y column, X text."""
+def psym(chars='@(*<=>?'):
+    """PSYM: symbols of PTXS (Sun @, Moon (, star *, planets < > = ?) as a small AGRAPH font: the
+    PTXS character loop and only the glyphs in chars (DEMOATXS: the ones on its page).
+    Z row of the base line, Y column, X text."""
     L = [l.strip() for l in open(os.path.join(ROOT, 'programs', 'PTXS.txt'), encoding='utf-8') if l.strip()]
     head = L[:L.index('LBL 03')]
     out = [l.replace('"PTXS"', '"PSYM"') for l in head]
-    for c in '@(*<=>?':
+    for c in chars:
         i = L.index('LBL %d' % ord(c)); j = L.index('RTN', i)
         out += L[i:j + 1]
     return out + ['END']
@@ -166,7 +167,7 @@ def build(symfont=False):
         print('%3d %3d |%s|' % (y - 4, x, line))
     print(' 40   2 |%s|' % '|\n        |'.join(fl))
     stxt = B.read('STXT')
-    prog = P + stxt + (psym() if symfont else [])
+    prog = P + stxt + (psym(''.join(sorted({ch for y, ch in syms}))) if symfont else [])
     m = B.label_map(prog, keep=('DEMO',))
     return prog, B.rename_keep(prog, m, 'DEMO'), m
 
