@@ -85,12 +85,24 @@ def join(pieces, gap=1):
     return x0, line
 
 
-def build():
+def psym():
+    """PSYM: the seven symbols of PTXS (Sun @, Moon (, star *, planets < > = ?) as a small AGRAPH
+    font: the PTXS character loop and only these glyphs. Z row of the base line, Y column, X text."""
+    L = [l.strip() for l in open(os.path.join(ROOT, 'programs', 'PTXS.txt'), encoding='utf-8') if l.strip()]
+    head = L[:L.index('LBL 03')]
+    out = [l.replace('"PTXS"', '"PSYM"') for l in head]
+    for c in '@(*<=>?':
+        i = L.index('LBL %d' % ord(c)); j = L.index('RTN', i)
+        out += L[i:j + 1]
+    return out + ['END']
+
+
+def build(symfont=False):
     calls, rows = BD.record()
     items, lines, syms = [], [], []
     for name, a, k in calls:
         if name == 'glyph':
-            syms.append((a[2], SYMBOLS[a[1]]))         # (row, symbol): one ATEXT each at x 1
+            syms.append((a[2], a[1]))                  # (row, PTXS symbol): one ATEXT each at x 0
             continue
         if name == 'pixel' or (name == 'small' and a[2] == BD.S.WARNING):
             continue                                   # lines across: PIXEL below
@@ -142,7 +154,10 @@ def build():
     for y, (x, line), right in lines:
         P += ['"%s"' % line, 'STO 45', BD.num(y - 4), BD.num(x), 'ATEXT 45']
     for y, ch in syms:
-        P += ['"%s"' % ch, 'STO 45', BD.num(y - 4), '0', 'ATEXT 45']
+        if symfont:                                    # the custom AGRAPH symbol (PSYM), base line y
+            P += [BD.num(y), '0', '"%s"' % ch, 'XEQ "PSYM"']
+        else:
+            P += ['"%s"' % SYMBOLS[ch], 'STO 45', BD.num(y - 4), '0', 'ATEXT 45']
     P += ['"%s"' % '\u21b5'.join(fl), 'STO 45', '40', '2', 'ATEXT 45']
     # the time in the top right corner (the one number made into text on the calculator: SF1)
     P += ['TICKS', 'RCL- 41', '10', '÷', 'XEQ "SF1"', '" S"', '+', 'STO 45', str(top - 4), '350', 'ATEXT 45',
@@ -151,13 +166,14 @@ def build():
         print('%3d %3d |%s|' % (y - 4, x, line))
     print(' 40   2 |%s|' % '|\n        |'.join(fl))
     stxt = B.read('STXT')
-    prog = P + stxt
+    prog = P + stxt + (psym() if symfont else [])
     m = B.label_map(prog, keep=('DEMO',))
     return prog, B.rename_keep(prog, m, 'DEMO'), m
 
 
 if __name__ == '__main__':
-    prog, short, m = build()
-    out = os.path.join(ROOT, 'extras', 'DEMOATX.txt')
-    open(out, 'w', encoding='utf-8').write('\n'.join(short) + '\n')
-    print(out, len(short), 'lines', m)
+    for name, sf in (('DEMOATX', False), ('DEMOATXS', True)):      # symbols: C47 font / own AGRAPH font
+        prog, short, m = build(sf)
+        out = os.path.join(ROOT, 'extras', name + '.txt')
+        open(out, 'w', encoding='utf-8').write('\n'.join(short) + '\n')
+        print(out, len(short), 'lines')
