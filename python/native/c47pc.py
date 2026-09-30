@@ -19,7 +19,7 @@ Two ways to use it
 Times are UT (UT1), as on the calculator. Latitude N+ / longitude E+, or
 written with N S E W ("25 20.0 N", "55 12 E", "25.3333", "-75.5").
 Files needed (same folder): c47pc.py c47astro.py c47screen.py c47font.py c47data.py
-                            c47tables.py, jplcheck.py; optional TBL.txt (almanac tables)
+                            c47tables.py, jplcheck.py; optional TBL_5.txt / TBL_1.txt (almanac tables)
 PNG and text need Python 3 only; the window needs PyGObject + cairo + GTK 3
 (Arch: pacman -S python-gobject python-cairo gtk3
  Debian/Ubuntu: apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0).
@@ -101,7 +101,7 @@ COMMAND LINE
   python3 c47pc.py --help    all options
 
 ALMANAC TABLES  (T / S in the corner of every screen)
-  With TBL.txt (programs/ folder, the same file loaded on the C47) the Sun,
+  With TBL_5.txt (build/ folder, the same file loaded on Free42 / C47) the Sun,
   Aries, Moon and planets come from the Chebyshev tables (JPL) inside the
   table period, and the screens show T; outside it, or with the box off,
   they come from the series and show S. Stars always from the series.
@@ -197,7 +197,7 @@ def parse_ut(s):
 # ------------------------------------------------------------------ engine
 class Engine:
     """Same interface as the simulator engine of c47view.py, native calculations.
-    tables: path of TBL.txt (almanac tables) or None; use = on/off switch (flag 10)."""
+    tables: path of TBL_5.txt / TBL_1.txt (almanac tables) or None; use = on/off switch (flag 10)."""
 
     def __init__(self, tables=None):
         self.tables = c47tables.Tables(tables) if tables else None
@@ -392,7 +392,7 @@ def run_gtk(eng, args):
             ct = Gtk.CheckButton(label='Almanac tables'); ct.set_active(eng.use)
             ct.set_sensitive(eng.tables is not None)
             ct.set_tooltip_text(('%s (%s)' % (eng.tables.period, eng.tables.path)) if eng.tables
-                                else 'TBL.txt not found (programs/ or next to c47pc.py)')
+                                else 'TBL_5.txt / TBL_1.txt not found (build/ or next to c47pc.py)')
             ct.connect('toggled', self.on_tables); hb.pack_end(ct, False, False, 6)
 
             ab = Gtk.Box(spacing=6); box.pack_start(ab, False, False, 0)
@@ -631,7 +631,7 @@ def main():
     ap.add_argument('--plain', action='store_true', help='black on white instead of LCD colours')
     ap.add_argument('--no-bezel', action='store_true', help='PNG without the dark frame')
     ap.add_argument('--check', action='store_true', help='online: compare Sun, Moon, planets and Aries with JPL Horizons')
-    ap.add_argument('--tables', help='almanac tables TBL.txt (default: programs/TBL.txt or next to this file)')
+    ap.add_argument('--tables', help='almanac tables (default: build/TBL_5.txt, then TBL_1.txt; or next to this file)')
     ap.add_argument('--series', action='store_true', help='do not use the almanac tables (like CF 10 on the C47)')
     ap.add_argument('--body', type=int, help='BODY: list the bodies above the horizon; with a number (1-58 stars, 60 Sun, 61 Moon, 62-65 planets) also its pages and, with --png, its chart')
     ap.add_argument('--fast', nargs='?', const=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fast_series.json'),

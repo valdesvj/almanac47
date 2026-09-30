@@ -280,7 +280,7 @@ section('TBL and TGET — almanac tables, and the T / S switch',
      'One TGET call takes about 265 steps (Moon 400) against 2 000–12 000 for the series; that is where the time saving comes from.',
      'The tables expire: load the next period in time (a quarter or a year per file, depending on memory). TBL for 26 Sep 2026 – 31 Jan 2027 holds 3 054 numbers, about the size of MATP.',
      'ΔT (TT − UT1) is fixed in the generator (69.2 s). One second of error moves the Moon by about 0.01′.',
-     'The PC version (python/native/c47pc.py) reads the same TBL.txt and gives the same screens (box “Almanac tables”, or --tables / --series).'])
+     'The PC version (python/native/c47pc.py) reads the same tables (by default build/TBL_5.txt, 1 Oct 2026 – 30 Sep 2031) and gives the same screens (box “Almanac tables”, or --tables / --series).'])
 
 # ---- sight reduction & python & maps
 S += [P('Using the results for Hc and Zn', h1)] + B([
