@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EXPERIMENTAL NAVFULL_ATX (build/atext): one ATEXT step (in PTXS), no small font (PTXT, PTNS),
+"""EXPERIMENTAL NAVFULL_ATX (build/atext): one ATEXT step (in PTXS), the small font only on the charts,
 and every view runs in the simulator: menu, 1 ALMANAC, 2 CHART, 4 SKY, 5 SMALL, 6 SPLIT, 7 ANIM,
 8 ALLSKY, 9 INFO. The texts given to ATEXT are checked for a few values of the page.
     python3 tests/test_navfull_atext.py"""
@@ -44,10 +44,10 @@ def run(keys):
 
 L = open(NAV, encoding='utf-8').read().split('\n')
 n = sum(1 for l in L if l.startswith('ATEXT '))
-small = [l for l in L if l in ('XEQ "PTXT"', 'XEQ "PTNS"', 'XEQ "PT1"')]
-print('ATEXT steps %d, small-font calls %d' % (n, len(small)))
-bad = (n != 1) + bool(small)
-CHECK = {None: ('1 ALMANAC', '9 INFO', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'), 73: ('NOT FOR NAVIGATION', 'HAMAL'),
+warn = sum(1 for l in L if 'DOES NOT REPLACE' in l or 'NOT FOR NAVIGATION' in l)
+print('ATEXT steps %d, warning lines %d (menu, INFO, TEXT page)' % (n, warn))
+bad = (n != 1) + (warn != 3)            # menu, INFO and the TEXT page (ALMR, in the registers)
+CHECK = {None: ('1 ALMANAC', '9 INFO', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'), 73: ('ARIES', 'HAMAL', 'WANING'),
          62: ('SUN', '  ZN ', ' UT'), 63: ('FOMALHAUT', 'AGE '), 64: ('RISE', 'TWI', 'FOMALHAUT'), 52: ('24', 'DAY'),
          53: ('NIGHT',), 54: ('ALMANAC 47 - INFO', '+ MENU')}
 for k, want in CHECK.items():

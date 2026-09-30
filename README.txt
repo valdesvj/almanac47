@@ -346,10 +346,10 @@ build_free42.py)
                      5 x 7 font, no box, no ants, no cache
     NAVINIT_LITTLE.txt  INIT: Sun series (FULL, 2000-2050), nutation, stars
     build/dm42/dev/  NAV1T_DM42, NAV12_DM42, NAVTXT_DM42, NAVINIT_DM42_5Y
-  build/atext/  EXPERIMENTAL: NAVFULL_ATX - NAVFULL with ATEXT for every text and number, only
-                the body symbols in AGRAPH (README_ATX.txt, tools/build_navfull_atext.py)
-    build/dm42/atext/  EXPERIMENTAL: NAVLITTLE_ATX, NAV1T_ATX, NAV12_ATX - the ALMANAC text
-                     with ATEXT (standard font; Didier's N03 trick), symbols 5 x 7; needs a
+  build/atext/  EXPERIMENTAL: NAVFULL_ATX - NAVFULL with ATEXT for the texts and numbers; body
+                symbols AGRAPH, chart axes in the small font (README_ATX.txt, build_navfull_atext.py)
+    build/dm42/atext/  EXPERIMENTAL: NAVLITTLE_ATX, NAV1T_ATX, NAV12_ATX - all text with ATEXT
+                     (Didier's N03 trick), only the Sun and star symbols 5 x 7; needs a
                      firmware with ATEXT (README_ATX.txt, tools/build_dm42_atext.py)
   build/free42/ DM42 / DM42n with the stock firmware (Free42): .raw files and .txt listings
     NAVFULL          as the C47 NAVFULL without the tables; the screen appears complete, as on

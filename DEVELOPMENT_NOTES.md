@@ -481,3 +481,20 @@ INIT with the builders as LBL 01-04.
 - ATEXT goes to the next line when a text ends after x 380: a chained text must start at or
   before 380 (the SKY view's DR line moved left for its last digit).
 - Program bytes 42,130 -> 34,136; tests/test_navfull_atext.py.
+
+## Sep 30, 2026 - ATEXT builds, second round
+
+- tools/atext_common.py: one set of text routines for all _ATX builds. The number printers no
+  longer go character by character: first digit from LBL 48-57, then alpha-IP (whole numbers,
+  two-digit fields) and x->alpha (signs, '.', ':'), one ATEXT. Text-routine steps for the
+  ALMANAC screen: NAVLITTLE 15,323 (5 x 7 font) -> 9,642 (first ATEXT version) -> 4,289;
+  NAVFULL 30,987 -> 12,160 -> 5,721. String register: R18 (DM42), R49 (NAVFULL; SBRT / SNMU use
+  it only before a printer runs). No named variable, no flag.
+- genviews_atx.py: SMALL = True (programs/atext/, NAVFULL_ATX) keeps NAVFULL's charts: axes,
+  marks, letters, OVER / UNDER, ALLSKY small stars with numbers, SKY DR line and T / S in the
+  small font; SMALL = False (programs/atext/big/: ALMF, HALMV) all ATEXT for the DM42 builds.
+  No warning line on the views (menu, INFO and the TEXT page keep it).
+- build_dm42_atext.py: the DM42 views from programs/atext/big/ (Moon, planets and phase cut as
+  build_dm42 does; unused local routines dropped); PSYM = the 5 x 7 Sun and star only; no PTXT.
+- Program bytes: NAVLITTLE 12,716 -> 8,119; NAV1T 15,216 -> 10,619; NAV12 18,516 -> 13,865;
+  NAVFULL 42,130 -> 36,915.

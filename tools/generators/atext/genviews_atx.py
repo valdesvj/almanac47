@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
-"""genviews_atx.py - EXPERIMENTAL: the NAV views with ATEXT (the C47's standard font) for every
-text and number; only the body symbols (Sun, Moon, planets, stars) keep the AGRAPH glyphs of the
-status-bar font (PSYM). The small 3 x 5 font (PTXT, PTNS) is not used any more.
+"""genviews_atx.py - EXPERIMENTAL: the NAV views with ATEXT (the C47's standard font) for the texts
+and numbers; the body symbols (Sun, Moon, planets, stars) through PSYM (AGRAPH glyphs).
 
-The views are the ones of genf.py (ALMF, ALMS), genv.py (HALMV), genh2.py (HORZ), genhh.py
-(HALMH), genanim.py (HANIM) and genallsky.py (ALLSKY), with the same calculation steps (so the
-sky cache, gencache.swap, still finds them), new columns and rows for the standard font, and the
-layout of the ATEXT simulation (all_views): no star numbers on ALLSKY, no altitude marks and no
-OVER / UNDER HORIZON on ALLSKY and ANIM, the SPLIT table without the ARIES row.
+The views are those of genf.py (ALMF, ALMS), genv.py (HALMV), genh2.py (HORZ), genhh.py (HALMH),
+genanim.py (HANIM) and genallsky.py (ALLSKY), with the same calculation steps (the sky cache,
+gencache.swap, still finds them) and new columns and rows for the standard font. No warning line
+on the views (it stays in the menu and INFO).
+
+Two variants:
+  programs/atext/      (SMALL = True, NAVFULL_ATX) the charts as NAVFULL: axes, altitude marks,
+                       N E S W, OVER / UNDER HORIZON, the ALLSKY stars and numbers, the SKY DR
+                       line and T / S in the small font (PTXT, PTNS)
+  programs/atext/big/  (SMALL = False, the DM42 _ATX builds) ALMF and HALMV all in ATEXT: the
+                       altitude labels and letters in the standard font (the chart horizon 4 rows
+                       higher so the letters fit under it)
 
 The text routines keep their stack (Z row of the base line, Y column, X text or number; they
-return Y row, X next column): PTXS, PINS, PF1S, PHMS, PDMS, PDTS, PZNS, PHLS (build_navfull_atext.py
-puts ATEXT behind them). The standard font is proportional: every column is its own call at a
-fixed x, numbers apart from letters; a number printer always gives the same width.
+return Y row, X next column); the standard font is proportional, so every column is its own call
+at a fixed x, numbers apart from letters, and a chained text must not start after x 380.
 
-  python3 genviews_atx.py      -> programs/atext/ALMF.txt ALMS.txt HALMV.txt HORZ.txt HALMH.txt HANIM.txt ALLSKY.txt
+  python3 genviews_atx.py      -> programs/atext/*.txt and programs/atext/big/*.txt
 """
 import math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +28,7 @@ sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'python', 'nati
 from stdfont import STD, code
 OUT = os.path.join(ROOT, 'programs', 'atext')
 SYM = 'PSYM'                                  # the AGRAPH symbols
+SMALL = True      # True (NAVFULL_ATX): chart axes, letters and the ALLSKY stars in the small font, as NAVFULL
 
 
 def width(t):
@@ -157,8 +163,6 @@ def almf(short):
     a(y2, MX, '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"')
     a(y3, MX, '"HP "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PF1S"', '" SD "', 'XEQ "PTXS"', 'RCL 22', 'XEQ "PF1S"')
     a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
-    W = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
-    a(4, (400 - width(W)) // 2, '"%s"' % W, 'XEQ "PTXS"')
     a('XEQ "WPLS"', 'RTN')
     a('LBL 26', 'RCL 10', '0.5', '-', 'IP', '0.5', '+', 'RCL 11', 'RCL 12', 'RTN')
     a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
@@ -183,19 +187,27 @@ def almf(short):
 # ---------------------------------------------------------------- HALMV (genv.py)
 def halmv():
     g = Gen(); a, txt = g.a, g.txt
-    X0, CW, HY, HS = 176, 150, 18, 196          # the horizon 4 rows higher: the letters fit under it
+    X0, CW = 176, 150
+    HY, HS = (14, 200) if SMALL else (18, 196)      # big letters: the horizon 4 rows higher
     a('LBL "HALMV"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10')
     a('RCL 10', 'STO 90', 'RCL 11', 'STO 91', 'RCL 12', 'STO 92', 'XEQ "HCZI"', 'CLLCD')
     a('0', '-%d' % (X0 - 4), 'PIXEL')
     a(HY, '18', CW + 1, 'XEQ "PHLS"')
     a('%d.%03d' % (HY, HY + HS), 'STO 47', 'LBL 12', 'RCL 47', 'IP', '17', 'PIXEL', 'ISG 47', 'GTO 12')
-    alt_marks(g, HY, HS)
     xs = [16 + CW * k // 4 for k in range(5)]
-    xs = [min(max(x - width(l) // 2 + 1, 0), X0 - 6 - width(l)) for x, l in zip(xs, 'NESWN')]
+    if SMALL:
+        for v in (10, 20, 30, 45, 60, 90):
+            y = HY + int(HS * math.sin(math.radians(v)))
+            a(y, 15, 'PIXEL', y, 16, 'PIXEL', y - 2, 2, v, 'XEQ "PTNS"')
+        lt = lambda x, l: a(5, x, '"%s"' % l, 'XEQ "PTXT"')
+    else:
+        alt_marks(g, HY, HS)
+        xs = [min(max(x - width(l) // 2 + 1, 0), X0 - 6 - width(l)) for x, l in zip(xs, 'NESWN')]
+        lt = lambda x, l: txt(4, x, l)
     a('0', 'STO 44', 'RCL 11', 'X<0?', 'GTO 23')
-    for x, l in zip(xs, 'NESWN'): txt(4, x, l)
+    for x, l in zip(xs, 'NESWN'): lt(x, l)
     a('GTO 24', 'LBL 23', '180', 'STO 44')
-    for x, l in zip(xs, 'SWNES'): txt(4, x, l)
+    for x, l in zip(xs, 'SWNES'): lt(x, l)
     a('LBL 24')
     a('RCL 10', 'XEQ "SUNA"', 'STO 45', 'R↓', 'STO 46', 'R↓', 'STO 48')
     a('XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19')
@@ -228,7 +240,6 @@ def halmv():
     a('"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 18', '99.5', 'X≤Y?', 'XEQ 25', 'RCL 18', '0.5', 'X>Y?', 'XEQ 30')
     a(24, X0, '"MOON "', 'XEQ "PTXS"', 'RCL 18', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"')
     a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
-    a(4, X0 + 4, '"NOT FOR NAVIGATION"', 'XEQ "PTXS"')
     a('XEQ "WPLS"', 'RTN')
     a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
     a('LBL 25', '"FULL"', 'STO 43', 'RTN', 'LBL 30', '"NEW"', 'STO 43', 'RTN')
@@ -266,13 +277,20 @@ def horz():
     for v in (10, 20, 30, 45, 60, 90):
         y = 16 + int(HS * math.sin(math.radians(v)))
         for x in (15, 16, 17): a(y, x, 'PIXEL')
-        if y - last >= 13:
+        if SMALL:
+            a(y - 2, 2, v, 'XEQ "PTNS"')
+        elif y - last >= 13:
             a(y - 6, 0, v, 'XEQ "PINS"'); last = y
-    xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
+    if SMALL:
+        xs = (19, 112, 206, 300, 394)
+        lt = lambda x, l: a(7, x, '"%s"' % l, 'XEQ "PTXT"')
+    else:
+        xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
+        lt = lambda x, l: g.txt(4, x, l)
     a('0', 'STO 44', 'RCL 91', 'X<0?', 'GTO 38')
-    for x, l in zip(xs, 'NESWN'): g.txt(4, x, l)
+    for x, l in zip(xs, 'NESWN'): lt(x, l)
     a('GTO 37', 'LBL 38', '180', 'STO 44')
-    for x, l in zip(xs, 'SWNES'): g.txt(4, x, l)
+    for x, l in zip(xs, 'SWNES'): lt(x, l)
     a('LBL 37', 'RCL 90', 'XEQ "SUNA"',
       '%d' % rows, 'ENTER', '3', 'NEWMAT', 'STO "HZT"', '0', 'STO 10',
       '0', '2', 'XEQ "HCZQ"', '0', 'STO 86', 'LBL 53', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 55', '2', 'STO+ 86', '358', 'RCL 86', 'X≤Y?', 'GTO 53',
@@ -281,12 +299,16 @@ def horz():
       '1.004', 'STO 11', 'LBL 45', 'RCL 11', 'IP', 'XEQ "PLN3"', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 48', 'ISG 11', 'GTO 45',
       '1.058', 'STO 11', 'LBL 44', '%d' % rows, 'RCL 10', 'X≥Y?', 'GTO 42', 'RCL 11', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 36', 'XEQ "STR2"', 'XEQ 52',
       '10', 'RCL 96', 'X>Y?', 'XEQ 43', 'LBL 36', 'ISG 11', 'GTO 44', 'LBL 42')
-    a('"S"', 'STO 15', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', '4', '2', 'RCL 15', 'XEQ "PTXS"')
-    # DR position, right in the top area: N 25 12  E 55 18 (to the minute)
     DRX = 388 - width('S 89 59  W 179 59')     # a chained text must not end after 380 (ATEXT: next line)
-    a('"N"', 'STO 43', 'RCL 91', 'X<0?', 'XEQ 59', '"E"', 'STO 39', 'RCL 92', 'X<0?', 'XEQ 60',
-      '212', DRX, 'RCL 43', 'XEQ "PTXS"', '" "', 'XEQ "PTXS"', 'RCL 91', 'XEQ 54', '"  "', 'XEQ "PTXS"', 'RCL 39', 'XEQ "PTXS"',
-      '" "', 'XEQ "PTXS"', 'RCL 92', 'XEQ 54')
+    if SMALL:                                  # T / S and the DR position in the small font, as NAVFULL
+        a('"S"', 'STO 15', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', '7', '2', 'RCL 15', 'XEQ "PTXT"')
+        a('"N"', 'STO 43', 'RCL 91', 'X<0?', 'XEQ 59', '"E"', 'STO 39', 'RCL 92', 'X<0?', 'XEQ 60',
+          '215', '326', 'RCL 43', 'XEQ "PTXT"', 'RCL 91', 'XEQ 54', '"  "', 'XEQ "PTXT"', 'RCL 39', 'XEQ "PTXT"', 'RCL 92', 'XEQ 54')
+    else:
+        a('"S"', 'STO 15', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', '4', '2', 'RCL 15', 'XEQ "PTXS"')
+        a('"N"', 'STO 43', 'RCL 91', 'X<0?', 'XEQ 59', '"E"', 'STO 39', 'RCL 92', 'X<0?', 'XEQ 60',
+          '212', DRX, 'RCL 43', 'XEQ "PTXS"', '" "', 'XEQ "PTXS"', 'RCL 91', 'XEQ 54', '"  "', 'XEQ "PTXS"', 'RCL 39', 'XEQ "PTXS"',
+          '" "', 'XEQ "PTXS"', 'RCL 92', 'XEQ 54')
     UTX = 398 - width('00:00 UT')
     a('RCL 10', 'X=0?', 'RTN', '1', 'STO 42',
       'LBL 35', 'INDEX "HZT"', 'RCL 42', '1', 'STOIJ', 'RCLEL', 'J+', 'STO 13', 'RCLEL', 'J+', 'STO 97', 'RCLEL', 'STO 96',
@@ -306,8 +328,12 @@ def horz():
     a('LBL 29', '"T"', 'STO 15', 'RTN', 'LBL 65', '"X"', 'STO 15', 'RTN')
     a('LBL 59', '"S"', 'STO 43', 'RTN', 'LBL 60', '"W"', 'STO 39', 'RTN')
     # LBL 54: "dd mm" (rounded to the minute), the minutes with two digits
-    a('LBL 54', 'ABS', '60', '×', '0.5', '+', 'IP', 'STO 37', '60', '÷', 'IP', 'XEQ "PINS"', '" "', 'XEQ "PTXS"',
-      'RCL 37', '60', 'MOD', 'STO 37', '10', '÷', 'IP', 'XEQ "PINS"', 'RCL 37', '10', 'MOD', 'XEQ "PINS"', 'RTN')
+    if SMALL:
+        a('LBL 54', 'ABS', '60', '×', '0.5', '+', 'IP', 'STO 37', '60', '÷', 'IP', 'XEQ "PTNS"', '" "', 'XEQ "PTXT"',
+          'RCL 37', '60', 'MOD', 'XEQ "PTNS"', 'RTN')
+    else:
+        a('LBL 54', 'ABS', '60', '×', '0.5', '+', 'IP', 'STO 37', '60', '÷', 'IP', 'XEQ "PINS"', '" "', 'XEQ "PTXS"',
+          'RCL 37', '60', 'MOD', 'STO 37', '10', '÷', 'IP', 'XEQ "PINS"', 'RCL 37', '10', 'MOD', 'XEQ "PINS"', 'RTN')
     a('LBL 40', 'STO 13', '1', 'STO+ 10', 'INDEX "HZT"', 'RCL 10', '1', 'STOIJ', 'RCL 13', 'STOEL', 'J+', 'RCL 97', 'STOEL', 'J+', 'RCL 96', 'STOEL', 'RTN')
     a('LBL 47', '241', 'RCL- 99', '6', '-', 'RCL 98', '6', '-', '"("', 'XEQ "%s"' % SYM, '-1', 'XEQ 40', 'RTN')
     a('LBL 48', 'RCL 11', 'IP', '70', '+', 'STO 14', '241', 'RCL- 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 14', 'XEQ "%s"' % SYM,
@@ -333,8 +359,10 @@ def halmh():
     g = Gen(); a, txt, num = g.a, g.txt, g.num
     T, X = top_x(), table_x()
     NX, GX, NSX, DX, HX, ZX = X['name'], X['gha'], X['ns'], X['dec'], X['hc'], X['zn']
-    HY, HS = 132, 86                  # letters under the horizon (row 118), the top line above the chart
-    TOP = 102                         # first table row (6 rows at most: Sun, Moon, a planet, 3 stars)
+    if SMALL:
+        HY, HS, TOP = 129, 89, 107    # as NAVFULL; 6 table rows at most: Sun, Moon, a planet, 3 stars
+    else:
+        HY, HS, TOP = 132, 86, 102    # big letters under the horizon (row 118)
     a('LBL "HALMH"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10')
     for reg, lab in ((13, 'NTWA'), (14, 'RISE'), (15, 'TRAN'), (16, 'SET'), (17, 'NTWP')):
         a('XEQ 26', 'XEQ "%s"' % lab, 'STO %d' % reg)
@@ -344,14 +372,24 @@ def halmh():
     header(g, 226, 10, 11, 12, T)
     a(HY, '20', '376', 'XEQ "PHLS"')
     a('%d.%03d03' % (HY, HY + HS), 'STO 47', 'LBL 12', 'RCL 47', 'IP', '18', 'PIXEL', 'ISG 47', 'GTO 12')
-    alt_marks(g, HY, HS)
+    if SMALL:
+        for v in (10, 20, 30, 45, 60, 90):
+            y = HY + int(HS * math.sin(math.radians(v)))
+            a(y, 15, 'PIXEL', y, 16, 'PIXEL', y, 17, 'PIXEL', y - 2, 2, v, 'XEQ "PTNS"')
+    else:
+        alt_marks(g, HY, HS)
     for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
         a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
-    xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
+    if SMALL:
+        xs = (19, 112, 206, 300, 394)
+        lt = lambda x, l: a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
+    else:
+        xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
+        lt = lambda x, l: txt(HY - 14, x, l)
     a('0', 'STO 44', 'RCL 11', 'X<0?', 'GTO 23')
-    for x, l in zip(xs, 'NESWN'): txt(HY - 14, x, l)
+    for x, l in zip(xs, 'NESWN'): lt(x, l)
     a('GTO 24', 'LBL 23', '180', 'STO 44')
-    for x, l in zip(xs, 'SWNES'): txt(HY - 14, x, l)
+    for x, l in zip(xs, 'SWNES'): lt(x, l)
     a('LBL 24')
     a('0', '3', 'XEQ "HCZQ"', '0', 'STO 47', 'LBL 13', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 15', '3', 'STO+ 47', '357', 'RCL 47', 'X≤Y?', 'GTO 13')
     a(TOP, 'STO 40')
@@ -368,7 +406,7 @@ def halmh():
       '1', 'STO+ 24', 'LBL 31', 'ISG 42', 'GTO 30', 'LBL 32')
     # footer: RISE SET MER | TWI and the Moon
     x = 2
-    y1, y2 = 18, 4
+    y1, y2 = (23, 9) if SMALL else (18, 4)
     for lab, reg in (('RISE', 14), ('SET', 16), ('MER', 15)):
         txt(y1, x, lab); x += width(lab) + 8; num(y1, x, reg, 'PHMS'); x += HMW + 16
     txt(y2, 2, 'TWI'); x = 2 + width('TWI') + 8; num(y2, x, 13, 'PHMS'); x += HMW + 8; num(y2, x, 17, 'PHMS'); x += HMW + 16
@@ -405,10 +443,26 @@ def halmh():
 
 
 # ---------------------------------------------------------------- ANIM and ALLSKY: the chart
-def sky_chart(g, HY, lbl9, lbl10):
-    """Horizon across, its Zn ticks and N E S W under it (no altitude axis, no OVER / UNDER HORIZON)."""
+def sky_chart(g, HY, lbl9, lbl10, HS=100):
+    """Horizon across, its Zn ticks and N E S W under it; SMALL: as NAVFULL, the altitude axis up and
+    down with its marks, the letters and OVER / UNDER HORIZON in the small font."""
     a = g.a
     a('-%d' % HY, '0', 'PIXEL')
+    if SMALL:
+        a('%d.%03d03' % (HY - HS, HY + HS), 'STO 26', 'LBL 08', 'RCL 26', 'IP', '18', 'PIXEL', 'ISG 26', 'GTO 08')
+        for v in (10, 20, 30, 45, 60, 90):
+            dy = int(HS * math.sin(math.radians(v)))
+            for y in (HY + dy, HY - dy):
+                a(y, 15, 'PIXEL', y, 16, 'PIXEL', y, 17, 'PIXEL', y - 2, 2, v, 'XEQ "PTNS"')
+        for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
+            a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
+        xs = (19, 112, 206, 300, 394)
+        a('RCL 44', 'X≠0?', 'GTO %02d' % lbl9)
+        for x, l in zip(xs, 'NESWN'): a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
+        a('GTO %02d' % lbl10, 'LBL %02d' % lbl9)
+        for x, l in zip(xs, 'SWNES'): a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
+        a('LBL %02d' % lbl10, HY + HS + 1, 150, '"OVER HORIZON"', 'XEQ "PTXT"', 2, 150, '"UNDER HORIZON"', 'XEQ "PTXT"')
+        return
     for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
         a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
     xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
@@ -475,7 +529,7 @@ def allsky():
       'LBL 20', 'INDEX "ST"', 'RCL 42', 'IP', '1', 'STOIJ', 'RCLEL', 'STO 22', 'J+', 'RCLEL', 'STO 23',
       'RCL 22', 'COS', '20.0431', '×', 'RCL× 26', 'RCL+ 23',
       'RCL 22', 'SIN', 'RCL 23', 'TAN', '×', '20.0431', '×', '46.1244', '+', 'RCL× 26', 'RCL+ 22', 'RCL 80', 'X<>Y', '-', '360', 'MOD',
-      'XEQ "HCZ"', 'XEQ 48', '63', 'STO 43', 'XEQ 16', 'ISG 42', 'GTO 20')
+      'XEQ "HCZ"', 'XEQ 48', *(['XEQ 15'] if SMALL else ['63', 'STO 43', 'XEQ 16']), 'ISG 42', 'GTO 20')
     a('1.004', 'STO 42', 'LBL 21', 'RCL 42', 'IP', 'XEQ "PLN3"', 'XEQ "HCZ"', 'XEQ 48', 'RCL 42', 'IP', '70', '+', 'STO 43', 'XEQ 16', 'ISG 42', 'GTO 21')
     a('XEQ "MOO2"', 'XEQ "HCZ"', 'XEQ 48', '62', 'STO 43', 'XEQ 16')
     a('RCL 46', 'RCL 45', 'XEQ "HCZ"', 'STO 27', 'XEQ 48', '61', 'STO 43', 'XEQ 16')
@@ -487,6 +541,9 @@ def allsky():
       'RCL "SHC"', HS, '×', HY, '+', 'IP', 'STO 99', 'RTN')
     a('LBL 14', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL',
       'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')
+    if SMALL:                          # a star: small star and its number (small font), as NAVFULL
+        a('LBL 15', 'RCL 99', '2', '-', 'RCL 98', '2', '-', '"*"', 'XEQ "PTXT"', 'RCL 98', '5', '+', 'STO 28', '388', 'RCL 28', 'X>Y?', 'XEQ 17',
+          'RCL 99', '2', '-', 'RCL 28', 'RCL 42', 'IP', 'XEQ "PTNS"', 'RTN', 'LBL 17', '17', 'STO- 28', 'RTN')
     a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 43', 'XEQ "%s"' % SYM, 'RTN')
     for lab, t in ((61, '@'), (62, '('), (63, '*'), (71, '<'), (72, '>'), (73, '='), (74, '?')):
         a('LBL %d' % lab, '"%s"' % t, 'RTN')
@@ -495,11 +552,16 @@ def allsky():
 
 
 def main():
-    os.makedirs(OUT, exist_ok=True)
-    for f in (lambda: almf(False), lambda: almf(True), halmv, horz, halmh, hanim, allsky):
-        name, P = f()
-        open(os.path.join(OUT, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(P) + '\n')
-        print('programs/atext/%s.txt %d lines' % (name, len(P)))
+    global SMALL
+    for small, sub, views in ((True, '', (lambda: almf(False), lambda: almf(True), halmv, horz, halmh, hanim, allsky)),
+                              (False, 'big', (lambda: almf(False), halmv))):
+        SMALL = small
+        d = os.path.join(OUT, sub)
+        os.makedirs(d, exist_ok=True)
+        for f in views:
+            name, P = f()
+            open(os.path.join(d, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(P) + '\n')
+            print('%s %d lines' % (os.path.relpath(os.path.join(d, name + '.txt'), ROOT), len(P)))
 
 
 if __name__ == '__main__':

@@ -26,7 +26,7 @@ N22     TRAN    meridian passage of the Sun, UT
 N23     SBRT    star number by brightness rank (1st brightest ... 58th)
 N24     SNMU    star name from its number
 N25     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
-N26     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
+N26     PTXS    TEXT with ATEXT (standard font; Didier's N03 trick) and the number printers - Z row, Y column, X text or number
 N27     PINS    FONT big: whole number
 N28     PF1S    FONT big: number with one decimal
 N29     PHMS    FONT big: hh:mm from hours
@@ -34,8 +34,5 @@ N30     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
 N31     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
 N32     PZNS    FONT big: azimuth "ddd.d"
 N33     PHLS    FONT big: horizontal line (X = length in pixels)
-N34     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
-N35     PTNS    FONT small: whole number
-N36     PT1     FONT small: number with one decimal
-N37     PSYM    
+N37     PSYM    the AGRAPH symbols of the bodies - Z row, Y column, X symbol
 N38     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
