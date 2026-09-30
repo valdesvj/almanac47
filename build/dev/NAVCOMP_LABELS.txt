@@ -1,10 +1,10 @@
 NAVCOMP - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:
 the first NAV runs INIT, flag 81 remembers it; then delete INIT by hand; CF 81 before loading INIT again)
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
 INIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
-N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
+N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right (no ARIES, no Moon line)
 N03     HORZ    view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
 N04     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N05     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
@@ -51,7 +51,7 @@ N45     PHLS    FONT big: horizontal line (X = length in pixels)
 N46     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
 N47     PTNS    FONT small: whole number
 N48     PT1     FONT small: number with one decimal
-N49     ALLSKY  view 8 ALLSKY: whole sky, over the horizon above, under the horizon below
+N49     ALLSKY  view 7 ALLSKY: whole sky, over the horizon above, under the horizon below
 N50     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N51     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 N52     CMOO    Moon from the cache

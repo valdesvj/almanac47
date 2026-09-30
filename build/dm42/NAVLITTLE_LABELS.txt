@@ -1,6 +1,6 @@
 NAVLITTLE - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N03     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
@@ -33,8 +33,5 @@ N29     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
 N30     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
 N31     PZNS    FONT big: azimuth "ddd.d"
 N32     PHLS    FONT big: horizontal line (X = length in pixels)
-N33     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
-N34     PTNS    FONT small: whole number
-N35     PT1     FONT small: number with one decimal
 N36     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N37     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)

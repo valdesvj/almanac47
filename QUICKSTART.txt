@@ -50,11 +50,13 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
      LON   e.g. 55.18   (55 deg 18 min E; minus = W)
    (R/S keeps the value shown.) While the sky is computed a box in the middle of the screen
    says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
-     1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SMALL  6 SPLIT  7 ANIM  8 ALLSKY  9 INFO  0 END
+     1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SPLIT  6 ANIM  7 ALLSKY  8 INFO  0 END   (9 SNAP)
    The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
    the date, time and DR position in use.
    Press the number key (no R/S): the item is highlighted and the view is drawn.
    On a drawn view:  +  back to the menu
+                     9           SNAP: a screenshot of the screen (Free42: PRLCD);
+                                 also on the menu
                      other keys are ignored (R/S stops the program)
                      UP arrow    the same view one hour later
                      DOWN arrow  the same view one hour earlier
@@ -75,14 +77,14 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
    and clears the screen and the stack. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
                 meridian passage, Moon
-     2 CHART    horizon chart left, the bodies' HC ZN right
+     2 CHART    horizon chart left, the bodies' HC ZN right (no ARIES, no Moon line)
      3 TEXT     the almanac as text in the registers, shown with REGS (NAV ends)
      4 SKY      horizon chart, the top line names each body in turn (3 s each)
-     5 SMALL    short almanac (Sun, Moon, 1 planet, 3 stars)
-     6 SPLIT    horizon chart on top, short almanac below
-     7 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
-     8 ALLSKY   the whole sky: over the horizon above, under the horizon below
-     9 INFO     the repository, the licence, no warranty, cross-check with the almanac
+     5 SPLIT    horizon chart on top, the bodies below down to the bottom (8 rows)
+     6 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
+     7 ALLSKY   the whole sky: over the horizon above, under the horizon below
+     8 INFO     the repository, the licence, no warranty, cross-check with the almanac
+   The warning (cross-check with the almanac) is shown on the menu and on INFO only.
 
    An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
    A body below the horizon (in practice the Sun) has its Hc shown white on black.

@@ -2,7 +2,8 @@
 """genv.py - HALMV: horizon chart on the left (sine altitude scale), panel on the right in
 the status-bar font (PTXS): date, UT, DR, ARIES, then symbol, star number, name, HC, ZN for
 the 10 bodies of ALMF (Sun always, Moon and planets above the horizon, brightest stars
-higher than 10 deg), and the Moon phase. Writes programs/HALMV.txt"""
+higher than 10 deg). No ARIES row, no Moon line, no warning line (they stay blank).
+Writes programs/HALMV.txt"""
 import math, os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 P = []
@@ -27,7 +28,6 @@ a('GTO 24', 'LBL 23', '180', 'STO 44')
 for x, l in zip(xs, 'SWNES'): a(5, x, '"%s"' % l, 'XEQ "PTXT"')
 a('LBL 24')
 a('RCL 10', 'XEQ "SUNA"', 'STO 45', 'R↓', 'STO 46', 'R↓', 'STO 48')
-a('XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19')                         # Moon phase from the SUNA just run
 # equator
 a('0', '3', 'XEQ "HCZQ"', '0', 'STO 47', 'LBL 14', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 15', '3', 'STO+ 47', '357', 'RCL 47', 'X≤Y?', 'GTO 14')
 # panel: date UT | DR | ARIES | titles
@@ -35,7 +35,7 @@ a(226, X0, 'RCL 10', 'XEQ "PDTS"')
 a(226, X0 + 78, 'RCL 10', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"'); txt(226, X0 + 114, 'UT')
 a('"N"', 'STO 43', 'RCL 11', 'X<0?', 'XEQ 22'); a(212, X0, 'RCL 43', 'XEQ "PTXS"'); a(212, X0 + 2, 'RCL 11', 'ABS', 'XEQ "PDMS"')
 a('"E"', 'STO 43', 'RCL 12', 'X<0?', 'XEQ 27'); a(212, X0 + 70, 'RCL 43', 'XEQ "PTXS"'); a(212, X0 + 72, 'RCL 12', 'ABS', 'XEQ "PDMS"')
-txt(198, X0, 'ARIES'); a(198, X0 + 50, 'RCL 48', 'XEQ "PDMS"')
+# no ARIES row and no Moon line under the list: those rows stay blank
 txt(184, X0 + 34, 'BODY'); txt(184, X0 + 148, 'HC'); txt(184, X0 + 194, 'ZN')
 a('170', 'STO 40')
 a('RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 16')
@@ -51,17 +51,12 @@ a('1.058', 'STO 42', 'LBL 17', '10', 'RCL 41', 'X≥Y?', 'GTO 19', 'RCL 42', 'IP
   'XEQ 57', 'RCL 40', X0, '"*"', 'XEQ "PTXS"', 'RCL 40', X0 + 16, 'RCL 82', 'XEQ "PINS"',
   'RCL 82', 'XEQ "SNMU"', 'STO 43', 'RCL 40', X0 + 34, 'RCL 43', 'XEQ "PTXS"', 'XEQ 60',
   '1', 'STO+ 41', 'LBL 18', 'ISG 42', 'GTO 17', 'LBL 19')
-# Moon phase
-a('"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 18', '99.5', 'X≤Y?', 'XEQ 25', 'RCL 18', '0.5', 'X>Y?', 'XEQ 30')
-a(24, X0, '"MOON "', 'XEQ "PTXS"', 'RCL 18', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"')
 # T tables / S series / X outside the FAST period (flag 11 is set by MOO2: draw last)
 a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
-a(8, X0 + 38, '"DOES NOT REPLACE THE NAUTICAL ALMANAC"', 'XEQ "PTXT"')
 a('XEQ "WPLS"', 'RTN')                                         # hold until + (back to the menu)
 # subroutines
 a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
-a('LBL 25', '"FULL"', 'STO 43', 'RTN', 'LBL 30', '"NEW"', 'STO 43', 'RTN')
-a('LBL 28', '"WANING"', 'STO 43', 'RTN', 'LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
+a('LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
 a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')          # equator dot: 2 x 2 pixels
 a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "PTXS"', 'RTN')
 # chart column R98 = IP(((Zn + R44) MOD 360) * 150/360 + 18), row R99 = IP(sin(Hc) * 200 + 14)
