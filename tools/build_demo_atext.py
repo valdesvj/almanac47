@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """build_demo_atext.py - DEMOATX: the DEMOALM almanac page drawn with the new C47 command
-ATEXT (standardFont, built in): no AGRAPH, no font program. The symbols (Sun, planet, stars)
+ATEXT (standardFont, built in): no AGRAPH, no font program. One ATEXT per line (the columns
+made with spaces), the three footer lines in one ATEXT with the CR glyph; the two lines
+across the page with PIXEL. The symbols (Sun, planet, stars)
 are left out. The numbers are the same sample values as DEMOALM, as text; the bottom line
 shows the time (TICKS) - the one number converted on the calculator (SF1 from STXT).
 
@@ -52,7 +54,7 @@ def layout(items, gap=4):
         for y in {y for y, x, s in items}:
             row = sorted((x, s) for yy, x, s in items if yy == y)
             for (x0, s0), (x1, s1) in zip(row, row[1:]):
-                need = x0 + shift[x0] + width(s0) + gap - x1
+                need = x0 + shift[x0] + width(s0) + (0 if s1[:1] == ' ' else gap) - x1
                 if need > shift[x1]:
                     shift[x1] = need; moved = True
         run = 0
@@ -63,34 +65,80 @@ def layout(items, gap=4):
     return shift
 
 
+def join(pieces, gap=1):
+    """(x, text) pieces of a line -> (x of the line, one string): the number of spaces (8 px) that
+    brings each piece nearest to its column, at least one between two pieces."""
+    pieces = sorted(pieces)
+    x0, line = pieces[0]
+    pos = x0 + width(line)
+    for x, t in pieces[1:]:
+        n = max(gap, round((x - pos) / 8))
+        line += ' ' * n + t
+        pos += 8 * n + width(t)
+    return x0, line
+
+
 def build():
     calls, rows = BD.record()
-    P = ['LBL "DEMO"', 'TICKS', 'STO 41', 'CLLCD', 'CLSTK']
-    items = []
+    items, lines = [], []
     for name, a, k in calls:
-        if name == 'pixel':
-            P += [BD.num(a[0]), BD.num(a[1]), 'PIXEL']
-            continue
-        if name == 'glyph' or (name == 'small' and a[2] == BD.S.WARNING):
-            continue                                   # symbols left out; the bottom line shows the time
-        t = a[2] if name in ('text', 'small') else fmt(name, a[2])
-        n = len(t) - len(t.lstrip(' '))              # right-aligned numbers: the padding becomes x
-        items.append((a[0], a[1] + 7 * n, t[n:]))
-    out = []
-    for lo, hi, left in ((220, 999, 0), (60, 220, -14), (-1, 60, 0)):     # top line, table, footer
-        grp = [(y, x, s) for y, x, s in items if lo < y <= hi and x < 380]  # table: the symbol column is gone
-        shift = layout(grp)
-        for y, x, s in grp:
-            out.append((y, x + shift[x] + left, s))
-        out += [(y, 398 - width(s), s) for y, x, s in items if lo < y <= hi and x >= 380]   # S / T at the right edge
-        print('rows %d-%d right edge %d' % (lo, hi, max(x + shift[x] + left + width(s) for y, x, s in grp)))
-    for y, x, s in out:
-        P += ['"%s"' % s, 'STO 45', BD.num(y - 4), BD.num(x), 'ATEXT 45']
-    P += ['TICKS', 'RCL- 41', '10', '÷', 'XEQ "SF1"', 'STO 46',
-          '"ATEXT "', 'RCL 46', '+', '" S - DEMO PAGE, SAMPLE DATA"', '+', 'STO 45', '0', '2', 'ATEXT 45',
+        if name == 'pixel' or name == 'glyph' or (name == 'small' and a[2] == BD.S.WARNING):
+            continue                                   # lines across: PIXEL below; symbols left out
+        items.append((a[0], a[1], (a[2] if name in ('text', 'small') else fmt(name, a[2])).strip(),
+                      name, a[2]))
+    ys = sorted({i[0] for i in items}, reverse=True)
+    top, head, table, foot = ys[0], ys[1], [y for y in ys if 60 < y < ys[1]], [y for y in ys if y < 60]
+    # the top line and the table header: words to their columns
+    lines.append((top, join([(x, t) for y, x, t, n, v in items if y == top and x < 380]),
+                  [t for y, x, t, n, v in items if y == top and x >= 380]))
+    lines.append((head, join([(x - 14, t) for y, x, t, n, v in items if y == head]), []))
+    # the table: star number and name, then the numbers in fixed columns (digits and spaces are
+    # both 8 px, so the numbers line up in every line; N and S differ by 1 px)
+    rowsT = []
+    for y in table:
+        row = sorted((x, t, n, v) for yy, x, t, n, v in items if yy == y)
+        pre = [t for x, t, n, v in row if x < 100]
+        pre = (('%2s ' % pre[0]) + ' '.join(pre[1:])) if pre[0].isdigit() else '   ' + ' '.join(pre)   # names line up
+        num = [(n, v, t) for x, t, n, v in row if x >= 100]
+        def dm(v, sign=False):
+            t = ip(abs(v) * 600 + 0.5); d = ip(t / 600); m = (t - d * 600) / 10
+            return ('-' if v < 0 else ' ' if sign else '') + '%3d %04.1f' % (d, m) if not sign else \
+                   '%3s %04.1f' % (('-' if v < 0 else '') + str(d), m)
+        f = [dm(num[0][1])]
+        if len(num) > 1:
+            f += [num[1][2], dm(num[2][1])[1:], dm(num[3][1], True), '%05.1f' % (ip(num[4][1] * 10 + 0.5) / 10)]
+        rowsT.append((y, pre, f))
+    xg = 2 + max(width(pre) for y, pre, f in rowsT) + 8           # where the numbers start
+    for y, pre, f in rowsT:
+        n = max(1, round((xg - 2 - width(pre)) / 8))
+        lines.append((y, (2, pre + ' ' * n + ' '.join(f)), []))
+    # the header: BODY over the names, GHA DEC HC ZN centred over their numbers
+    full = max(rowsT, key=lambda r: len(r[2]))[2]
+    starts, x = [], xg
+    for k, t in enumerate(full):
+        starts.append((x, width(t))); x += width(t) + 8
+    cols = [(starts[0], 'GHA'), (((starts[1][0]), starts[2][0] + starts[2][1] - starts[1][0]), 'DEC'),
+            (starts[3], 'HC'), (starts[4], 'ZN')]
+    hp = [(26, 'BODY')] + [(round(c[0] + (c[1] - width(t)) / 2), t) for c, t in cols]
+    lines[1] = (head, join(hp), [])
+    # the footer: its three lines in one ATEXT, separated by the CR glyph (20 rows each)
+    fl = []
+    for y in foot:                                     # two blocks: times left, Moon right (same x)
+        fl.append((join([(x, t) for yy, x, t, n, v in items if yy == y and x < 180])[1],
+                   join([(x, t) for yy, x, t, n, v in items if yy == y and x >= 180])[1]))
+    xr = max(width(l) for l, r in fl) + 16
+    fl = [l + ' ' * max(1, round((xr - width(l)) / 8)) + r for l, r in fl]
+    P = ['LBL "DEMO"', 'TICKS', 'STO 41', 'CLLCD', 'CLSTK', '-221', '0', 'PIXEL', '-61', '0', 'PIXEL']
+    for y, (x, line), right in lines:
+        P += ['"%s"' % line, 'STO 45', BD.num(y - 4), BD.num(x), 'ATEXT 45']
+    P += ['"%s"' % '\u21b5'.join(fl), 'STO 45', '40', '2', 'ATEXT 45']
+    # the time in the top right corner (the one number made into text on the calculator: SF1)
+    P += ['TICKS', 'RCL- 41', '10', '÷', 'XEQ "SF1"', '" S"', '+', 'STO 45', str(top - 4), '350', 'ATEXT 45',
           'PAUSE 99', 'CLLCD', 'CLSTK', 'RTN', 'END']
+    for y, (x, line), right in lines:
+        print('%3d %3d |%s|' % (y - 4, x, line))
+    print(' 40   2 |%s|' % '|\n        |'.join(fl))
     stxt = B.read('STXT')
-    need = B.closure({'STXT': stxt}, ['SF1'])
     prog = P + stxt
     m = B.label_map(prog, keep=('DEMO',))
     return prog, B.rename_keep(prog, m, 'DEMO'), m

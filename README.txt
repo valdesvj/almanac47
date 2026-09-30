@@ -424,8 +424,10 @@ ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
   (tests/test_atext.py).
   C64_ATEXT: the C64 tribute with ATEXT: about 560 bytes instead of 3,750 (no 8 x 8 font; the
   text is in the C47 font). DEMOATX (python3 tools/build_demo_atext.py): the DEMOALM page with
-  ATEXT, no AGRAPH and no symbols, columns moved for the wider font: about 3.5 KB (with STXT
-  for the time) and 600 program steps against 23,000 for the AGRAPH page. Both need a firmware
+  ATEXT, no AGRAPH and no symbols: one ATEXT per line (the columns made with spaces, as wide as a
+  digit), the three footer lines in one ATEXT with the CR glyph, the two lines across with PIXEL,
+  the time top right. About 2 KB (with STXT for the time) and 170 program steps, against 23,000
+  for the AGRAPH page. Both need a firmware
   with ATEXT, and rejig will need to learn the command before they convert to .p47.
 
 MOON WORD (Sep 2026)
