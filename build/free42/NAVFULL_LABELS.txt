@@ -1,4 +1,4 @@
-NAVFULL_F42 - program labels (NAV keeps its name)
+NAVFULL (Free42) - program labels (NAV keeps its name)
 
 N01  ALMF
 N02  HALMV
@@ -81,10 +81,11 @@ N78  F42
 N79  PX
 N80  KM
 N81  KQ
-N82  TK
-N83  AD
-N84  FBX
-N85  CLT
-N86  TPG
-N87  W1
-N88  W10
+N82  RF
+N83  TK
+N84  AD
+N85  FBX
+N86  CLT
+N87  TPG
+N88  W1
+N89  W10

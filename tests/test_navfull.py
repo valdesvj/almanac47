@@ -29,7 +29,7 @@ def screen(c,view,j,la,lo):
     return {(x,239-y) for y,x in c.pix if 0<=x<400 and 0<=y<240}, c.steps
 random.seed(2); bad=0; n=0
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables)
     print('flags', sorted(mini.flags))
     for k in range(10):
@@ -45,14 +45,14 @@ for tables in (False, True):
 print('%d screens compared, %d differences'%(n,bad))
 # NAV graphic menu (KEY? keycodes: 1 = 72, 2 = 73, 3 = 74, 4 = 62, 5 = 63, 6 = 64, 7 = 52, 0 = 82, + = 85)
 KEYCODE={1:72,2:73,3:74,4:62,5:63,6:64,7:52,8:53,9:54,0:82}
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[1],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12'); c.pix=[]
 c.run('NAV',maxsteps=10**7)
 print('NAV menu: 1, +, 0 -> frames', len(c.frames), '(menu, item inverted, ALMF, 6 ants, menu), ended', c.pix==[])
 print('NAV input formats shown:', [str(m) for m in c.msgs][:1], '| stack after 0:', [str(v) for v in c.s])
 # arrows: 1 (ALMF), up (one hour later), down twice (one hour earlier), +, 0
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[1],51,61,61,85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.run('NAV',maxsteps=10**8)
@@ -64,7 +64,7 @@ for f,dh in zip(views,(0,1,0,-1)):
 print('NAV arrows: ALMF at +0 +1 0 -1 h:', ok)
 # TEXT (ALMR) through the minimum set: its lines = the reference ALMT pages (same words)
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(6):
         j=jd(2026,10+k%3,3+5*k,7.5+k); la=-40+15*k; lo=-150+50*k
@@ -74,7 +74,7 @@ for tables in (False, True):
         lines=[str(mini.rget(str(r))) for r in range(50,int(mini.rget('79')))]
         if ' '.join(lines).split()!=' '.join(ref.text(j,la,lo)[0]).split(): bad+=1
     print('ALMR', 'tables' if tables else 'series', 'differences', bad, '| first line:', lines[0])
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[3]]; c.msgs=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.run('NAV',maxsteps=10**8)
@@ -88,21 +88,21 @@ def horz(c,j,la,lo):
     c.maxpauses=None
     return [{(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240} for f in c.frames[:int(c.rget('10'))]]
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(5):
         j=jd(2026,10+k%3,3+5*k,4.5+4*k); la=-50+25*k; lo=-150+60*k
         a=horz(mini,j,la,lo); b,_=ref.screen('HORZ',j,la,lo)
         if a!=b: bad+=1; print('HORZ DIFF',k,len(a),len(b))
     print('HORZ', 'tables' if tables else 'series', 'differences', bad, 'frames last case', len(a))
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[4]]; c.keyskip=True; c.msgs=[]; c.frames=[]; c.pix=[]; c.maxpauses=4
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 try: c.run('NAV',maxsteps=10**7)
 except StopIteration: pass
 print('NAV option 4:', [str(m) for m in c.msgs][:1], 'HORZ frames', len(c.frames), 'pixels', len(c.pix))
 for opt,name in ((5,'ALMS'),(6,'HALMH')):
-    c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+    c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
     c.s=[D(0)]*4; c.keys=[KEYCODE[opt],85,KEYCODE[0]]; c.msgs=[]; c.pix=[]; c.frames=[]
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
     ref=Engine('programs'); b,_=ref.screen(name,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
@@ -110,14 +110,14 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     a={(x,239-y) for y,x in c.frames[1] if 0<=x<400 and 0<=y<240}     # frames: menu, the view (highlight + ants: PAUSE 1), menu
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
 # option 9 INFO: the page with the licence and the repository, held until +
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.s=[D(0)]*4; c.keys=[KEYCODE[9],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.run('NAV',maxsteps=10**8)
 print('NAV option 9 (INFO): frames', len(c.frames), 'pixels on the page', len(c.frames[1]), '| ended', c.pix==[])
 # FAST series through INIT option 2
 pass
-mini=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False,fast=True)
+mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False,fast=True)
 ref=Engine('programs',fast=True); bad=0; n=0
 for k in range(8):
     j=jd(2026+k%5,1+k,3+3*k,2.5+2*k); la=-50+14*k; lo=-170+45*k
@@ -133,7 +133,7 @@ def load_one(path):
     c=c47sim.load(files); c.flags.add(82)
     return c
 ref=Engine('programs',fast=True)
-for name,opts in (('build/NAVALL.txt',(1,2,4,5,6,8)),('build/NAVCOMP.txt',(1,2,4,8))):
+for name,opts in (('build/dev/NAVALL.txt',(1,2,4,5,6,8)),('build/dev/NAVCOMP.txt',(1,2,4,8))):
     c=load_one(name)
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
     res=[]
@@ -162,8 +162,33 @@ order=[str(c.s[k]) for k in range(4)]+[str(c.rget(r)) for r in 'IJKMNPQRSEFGHOUV
 lett = order[:4]==lines[:4] and order[4:]==lines[9:26]
 print('NAVTXT: X =', c.s[0][:30], '| lines', len(lines), '| same text as ALMT:', ok and i==len(lines), '| stack + lettered in REGS order:', lett, '| pixels', len(c.pix))
 for l in lines[:4]: print('   ', l)
+# NAVTXT with the almanac tables (TBL run, flag 10): the page from the tables, as ALMT with TBL
+def navtxt_lines(files_extra, tables, date, utc):
+    tmp=tempfile.mkdtemp(); files=[]
+    for i,pr in enumerate(split('build/NAVTXT.txt')+split('build/NAVINIT_FAST.txt')+sum((split(p) for p in files_extra),[])):
+        f=os.path.join(tmp,'p_%d.txt'%i); open(f,'w').write('\n'.join(pr)+'\n'); files.append(f)
+    c=c47sim.load(files); c.flags.add(82)
+    if tables: c.run('INIT',maxsteps=10**7); c.flags.add(81); c.run('TBL',maxsteps=10**7)
+    c.reg['DATE']=D(date); c.reg['UTC']=D(utc); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
+    c.s=[D(0)]*4; c.steps=0; c.run('NAV',maxsteps=10**8)
+    n=int(c.rget('79')); return [str(c.rget(str(r))) for r in range(50,n)], c.steps, 10 in c.flags
+def same_text(lines, pages):
+    i=0; ok=True
+    for pg in pages:
+        if pg.strip().startswith('DOES NOT'):
+            ok &= lines[i]==pg; i+=1; continue
+        ok &= pg.split()==(lines[i]+' '+lines[i+1]).split(); i+=2
+    return ok and i==len(lines)
+reft=Engine('programs',tables=True,fast=True)
+for date,utc,h in (('2026.1015','3.30',3.5),('2026.1203','21.45',21.75)):
+    y,m,d=int(date[:4]),int(date[5:7]),int(date[7:9])
+    lt,st,f10=navtxt_lines(['build/TBL.txt'],True,date,utc)
+    ls,ss,_=navtxt_lines([],False,date,utc)
+    pt,_=reft.text(jd(y,m,d,h),25+20/60,55+12/60); ps,_=ref.text(jd(y,m,d,h),25+20/60,55+12/60)
+    print('NAVTXT + TBL %s: flag 10 %s | same text as ALMT with TBL: %s | without TBL same as the series: %s | T after ARIES: %s | steps %d (series %d)'
+          % (date, f10, same_text(lt,pt), same_text(ls,ps), lt[1].rstrip().endswith('T'), st, ss))
 # arrows on the menu: up, up, down -> the menu shows one hour later (DH = 1)
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.s=[D(0)]*4; c.keys=[51,51,61,KEYCODE[1],85,KEYCODE[0]]; c.frames=[]; c.pix=[]
 c.run('NAV',maxsteps=10**8)
@@ -173,7 +198,7 @@ print('NAV menu arrows: DH =', c.rget('DH'), '| ALMF drawn at 15:57 UT:', len(al
 c=load_one('build/NAVTXT.txt'); c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.s=[D(0)]*4; c.run('NAV',maxsteps=10**8); print('NAVTXT ends with REGS:', getattr(c,'regs_opened',False))
 # any other key on a view: drawn again (ants first); + menu; 0 end
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.s=[D(0)]*4; c.keys=[KEYCODE[1],11,85,KEYCODE[0]]; c.frames=[]; c.pix=[]
 c.run('NAV',maxsteps=10**8)
@@ -181,7 +206,7 @@ ref=Engine('programs'); b,_=ref.screen('ALMF',jd(2026,9,26,14+57/60),25+20/60,55
 n=sum(1 for f in c.frames if {(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
 print('NAV other key on ALMF: ignored, the view stays (seen', n, 'times, 2 expected)')
 # sky cache (CACHE, matrix ALMC): the second view at the same time and place computes nothing
-c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt'],False)
+c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
 j=jd(2026,9,26,14.9); res=[]
 for v in ('ALMF','HALMV','ALMF'):
     res.append(screen(c,v,j,25.3,55.2))
@@ -189,7 +214,7 @@ print('CACHE: ALMF again same screen:', res[0][0]==res[2][0], '| steps first %d,
       '| key JD in ALMC:', c.mats['ALMC'][66][0]==D(repr(j)))
 # every view one after the other at the same time and place (from the cache, stars computed lazily)
 for tables in (False, True):
-    c=load(['build/NAVINIT.txt','build/dev/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); ok=[]
     for k,(j,la,lo) in enumerate(((jd(2026,10,5,3.3),-33.9,18.4),(jd(2026,11,12,21.7),51.5,-0.1))):
         for v in ('HALMV','ALMS','ALMF','HALMH','ALLSKY','ALMF'):

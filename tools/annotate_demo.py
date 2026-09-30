@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""annotate_demo.py - build/DEMOALM_rem.txt: DEMOALM with REM comments on every part.
+"""annotate_demo.py - extras/DEMOALM_rem.txt: DEMOALM with REM comments on every part.
 
-Same program steps as build/DEMOALM.txt (tools/build_demo.py); REM lines only explain:
+Same program steps as extras/DEMOALM.txt (tools/build_demo.py); REM lines only explain:
   - DEMO, DALA, DALP: what each drawing call puts on the screen (row, column, text / value)
   - PTXS, PTXT and their PIXEL copies PTXP, PTTP: the comments of programs_rem/PTXB.txt and
     PTXT.txt carried over line by line, and a picture of every character (# = lit dot)
   - LBL 99, the dot-by-dot PIXEL routine, line by line
 
-  python3 tools/annotate_demo.py      -> build/DEMOALM_rem.txt
+  python3 tools/annotate_demo.py      -> extras/DEMOALM_rem.txt
 """
 import os, re, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -340,7 +340,7 @@ def main():
             for n in names:
                 l = re.sub(r'(?<![A-Z0-9])%s(?![A-Z0-9])' % n, '%s (%s)' % (n, mapping[n]), l, count=1) if n in l and '(%s)' % mapping[n] not in l else l
         res.append(l)
-    out = os.path.join(ROOT, 'build', 'DEMOALM_rem.txt')
+    out = os.path.join(ROOT, 'extras', 'DEMOALM_rem.txt')
     with open(out, 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(res) + '\n')
     code = [l for l in res if not l.startswith('REM ')]

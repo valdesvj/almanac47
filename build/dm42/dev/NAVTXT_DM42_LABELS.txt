@@ -1,4 +1,4 @@
-NAVTXT_DM42 - program labels (NAV keeps its name; INIT is NAVINIT_DM42)
+NAVTXT_DM42 - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
 
 NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
 N01     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS

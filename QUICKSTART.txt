@@ -4,29 +4,25 @@ C47_nav - QUICK START (install and run)
 You need two files. The release zip has them as .p47, ready to load (converted with rejig);
 from the repository, convert the .txt files in build/ with rejig first:
 
-  rejig build/NAVFULL_NOTBL.txt -o NAVFULL_NOTBL.p47
-  rejig build/NAVINIT_FAST.txt  -o NAVINIT_FAST.p47
+  rejig build/NAVFULL.txt      -o NAVFULL.p47
+  rejig build/NAVINIT_FAST.txt -o NAVINIT_FAST.p47
 
-  NAVFULL_NOTBL  the programs that stay on the calculator (all views, no almanac tables).
-                 NAVFULL is the same with the almanac-tables option; load one of the two.
+  NAVFULL        the programs that stay on the calculator (all views; it also reads the
+                 almanac tables TBL if you load them, but they need a lot of memory).
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
-NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these + NAVINIT_FAST
-  NAVALL    all the views                           11,541 lines
-  NAVCOMP   compact: 1 ALMANAC 2 CHART 4 SKY 8 ALLSKY 9 INFO  8,645 lines
-  NAVTXT    text only, no drawing                    4,500 lines: XEQ "NAV" asks DATE UTC LAT
-            LON and writes the almanac page into R50 ... R76, and lines 1-26 also into the
-            stack and the lettered registers in the order REGS shows them: X Y Z T A B C D,
-            L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
-            ends by opening the register browser (REGS).
-  NAVINIT_FAST  (6,546 lines) builds the matrices.
-  Load both .p47 files, XEQ "NAV". The first NAV runs INIT (takes a while) and sets
-  flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (it frees the memory;
-  the matrices stay). New INIT later: CF 81 first.
-  (One file with NAV and INIT together gave "invalid data" in rejig, so they are two files.)
+TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
+  XEQ "NAV" asks DATE UTC LAT LON and writes the almanac page into R50 ... R76, and lines
+  1-26 also into the stack and the lettered registers in the order REGS shows them: X Y Z T
+  A B C D, L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
+  ends by opening the register browser (REGS). The first NAV runs INIT (takes a while) and
+  sets flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (the matrices
+  stay). New INIT later: CF 81 first. With TBL run (flag 10) and the date inside the table
+  period, the page comes from the tables (T after ARIES).
+  Other builds (NAVFULL_NOTBL, NAVALL, NAVCOMP) are in build/dev/.
 
-1. LOAD THE PROGRAMS (two files: NAVFULL_NOTBL + NAVINIT_FAST)
+1. LOAD THE PROGRAMS (two files: NAVFULL + NAVINIT_FAST)
    Copy both .p47 files to the calculator (USB disk) and load them as you load any
    program file (I/O menu, READP).
 
@@ -66,8 +62,8 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
    the views then only draw. After a number the item is highlighted and the SINKING box shows
    until the view is drawn (also after + and the arrows).
-   (Something lives in NAV at the step after LBL 48 - line 431 of NAVFULL / NAVFULL_NOTBL,
-   438 of NAVALL, 292 of NAVCOMP. It is 0. Try 20 and press + or an arrow ... ;-)
+   (Something lives in NAV at the step after LBL 48 - line 431 of NAVFULL. It is 0.
+   Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
    (7 ANIM computes its own times, as before.)
@@ -95,9 +91,8 @@ NAV THAT RUNS INIT BY ITSELF (no almanac tables); load TWO files: one of these +
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY: programs (measured with rejig) NAVFULL 41.1 KB, NAVFULL_NOTBL 40.4 KB, NAVALL 40.5 KB,
-NAVCOMP 30.7 KB, NAVTXT 14.2 KB; INIT while loaded NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB;
-TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
+MEMORY: programs (measured with rejig) NAVFULL 41.1 KB, NAVTXT 14.8 KB; INIT while loaded
+NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB; TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
 and ALMQ about 20 KB.
 
 DOES NOT REPLACE THE NAUTICAL ALMANAC.

@@ -1,58 +1,66 @@
 ALMANAC 47 FOR FREE42 - SwissMicros DM42 / DM42n with the stock (Free42) firmware
 ================================================================================
 
-The full Almanac 47 (all views, no almanac tables) converted from the C47 to Free42 3.3
-with the DM42 graphics extension (400 x 240). Same menu, same screens, same values: in the
-Free42 core the screens were compared pixel by pixel with the C47 build (menu, ALMANAC,
-CHART, SMALL, SPLIT, ALLSKY, INFO identical; the text page identical line by line).
+Almanac 47 converted from the C47 to Free42 3.3 with the DM42 graphics extension (400 x 240).
+Same names, same screens, same values as the C47 files: in the Free42 core the screens were
+compared pixel by pixel with the C47 builds.
 
 User manual: docs/Almanac47_Free42_Manual.pdf
 
-FILES
-  NAVFULL_F42.raw        the program NAV and its routines (load on the calculator)
-  NAVINIT_F42_FULL.raw   INIT: the series matrices, valid 2000-2050
-  NAVINIT_F42_FAST.raw   INIT: fitted series 2026-2030 (smaller, faster)
-  NAVFULL_F42_RLCD.raw   the same NAV, but the screen appears as on the C47: complete, at
-                         once (see SCREEN UPDATE); load this one OR NAVFULL_F42.raw
-  *.txt                  the same programs as text (Free42 on a PC or phone: Paste them
-                         into a program in PRGM mode)
-  NAVFULL_F42_LABELS.txt the label map (every routine except NAV is N01, N02 ...)
+FILES (the file name is the version: on the calculator the programs are NAV and INIT)
+  NAVFULL.raw          NAV: all 9 views (as the C47 NAVFULL, without the almanac tables)
+  NAVLITTLE.raw        NAV: Sun and 58 stars only, straight to the ALMANAC screen, UP / DOWN
+                       one hour, + ends; the 5 x 7 font, no box, no ants (as the NAVLITTLE of
+                       the old DM42 with the C47 firmware). For little memory.
+  NAVINIT_FULL.raw     INIT for NAVFULL: the series matrices, valid 2000-2050
+  NAVINIT_FAST.raw     INIT for NAVFULL: fitted series 2026-2030 (smaller, faster)
+  NAVINIT_LITTLE.raw   INIT for NAVLITTLE: Sun, nutation and stars, valid 2000-2050
+  *.txt                the same programs as text (Free42 on a PC or phone: Paste them into
+                       a program in PRGM mode)
+  NAVFULL_LABELS.txt, NAVLITTLE_LABELS.txt   the label maps (every routine except NAV is
+                       N01, N02 ...; the numbers are fixed: tools/labels/F42_*.map)
+  dev/NAVFULL_DRAW     NAVFULL with the Free42 screen update (each screen builds up as it is
+                       drawn); dev/src/ has the programs with the original label names
 
 LOADING (DM42n / DM42, stock firmware)
   1. Copy the .raw files to the calculator's disk (USB, the PROGRAMS folder).
-  2. On the calculator: SETUP > Load Program, load NAVINIT_F42_FULL.raw (or _FAST).
+  2. On the calculator: SETUP > Load Program, load NAVINIT_FULL.raw (or NAVINIT_FAST.raw;
+     NAVINIT_LITTLE.raw for NAVLITTLE).
   3. XEQ "INIT": builds the matrices, shows MATRICES READY. Then delete INIT (GTO "INIT",
      CLP or the program catalogue): the matrices stay.
-  4. Load NAVFULL_F42.raw. XEQ "NAV".
+  4. Load NAVFULL.raw (or NAVLITTLE.raw). XEQ "NAV".
   NAV asks DATE (YYYY.MMDD), UTC (HH.MMSS), LAT and LON (DD.MMm, south and west negative),
   like the C47 version, and works in the 400 x 240 graphics mode (GrMod 3). 0 on the menu
-  ends NAV and sets the normal screen again (GrMod 0).
+  (NAVLITTLE: +) ends NAV and sets the normal screen again (GrMod 0).
+  The Free42 and Plus42 simulators on a PC run the programs but have no GrMod: they show
+  only the top-left corner (131 x 16) of the screens.
 
-KEYS
+KEYS (NAVFULL)
   1 - 9      a view on the menu          +          back to the menu
   UP / DOWN  one hour later / earlier    0          end
   3 TEXT     the almanac page in R50 ... (as on the C47), drawn with the small font;
              + back to the menu (Free42 has no register browser)
   The ants: flag 97 (the HP-42S flag 47 is a system flag). SF 97 and try a view.
 
-SCREEN UPDATE (NAVFULL_F42 and NAVFULL_F42_RLCD)
-  Free42 shows every AGRAPH / PIXEL at once, so NAVFULL_F42 builds each screen up in front
-  of you (the SINKING box is cleared as soon as the next view starts drawing). The C47
-  shows its screen only at a PAUSE, when it waits for a key and at the end, so there the
-  box stays until the finished screen appears in one piece.
-  NAVFULL_F42_RLCD does the same on the DM42: 0 STO "RefLCD" (no LCD refresh while NAV
+SCREEN UPDATE
+  Free42 shows every AGRAPH / PIXEL at once, so a program builds each screen up in front of
+  you. The C47 shows its screen only at a PAUSE, when it waits for a key and at the end, so
+  there the SINKING box stays until the finished screen appears in one piece.
+  NAVFULL and NAVLITTLE do the same on the DM42: 0 STO "RefLCD" (no LCD refresh while NAV
   computes and draws), -1 STO "RefLCD" where the C47 program has PAUSE 0, before every key
-  wait and pause. 0 on the menu ends NAV with RefLCD 7 (normal) again.
+  wait and pause. At the end NAV sets RefLCD 7 (normal) again.
   If you stop it with R/S or EXIT, the screen may stay frozen: key 7 STO "RefLCD".
+  dev/NAVFULL_DRAW keeps the Free42 way (no RefLCD).
 
 WHAT IS DIFFERENT FROM THE C47 VERSION (inside the programs, not on the screen)
   - AGRAPH draws the ALPHA register (8-pixel columns): the fonts are strings of column
     bytes; the drawing modes (OR, set, clear, XOR) are the HP-42S flags 34 and 35.
   - PIXEL, keys, pauses, TICKS, strings and the date input use Free42 functions (PX, KM,
     KQ, W1 / W10, TK, XSTR, APPEND, HEAD). No C47 date functions: the date is computed.
-  - Tested by the author on a DM42n (SwissMicros firmware DM42-3.26, Free42 3.3.10), and in
-    the Free42 3.3.10 core (SwissMicros source) with the DM42 graphics code, in binary
-    (double) arithmetic.
+  - NAVFULL tested by the author on a DM42n (SwissMicros firmware DM42-3.26, Free42 3.3.10).
+    NAVLITTLE is new: tested in the Free42 3.3.10 core (SwissMicros source) with the DM42
+    graphics code (binary arithmetic), where its screens are the same as the C47 NAVLITTLE
+    pixel by pixel (tests/test_f42_little.py); not yet on a real calculator.
 
 Built with: python3 tools/build_free42.py
 Copyright 2026 Victor Valdes. GNU GPL v3 or later. It supports, and does not replace,

@@ -1,0 +1,35 @@
+# NAVTXT_DM42: fixed short labels (short label, original name in programs/ and build/.../src/).
+# Read by the build: a new routine gets the next free number, numbers are never
+# reused, so the labels stay the same from one version to the next.
+N01 ALMR
+N02 SDM
+N03 SNS
+N04 SEW
+N05 SZN
+N06 SHM
+N07 SF1
+N08 SINT
+N09 SDAT
+N10 SUNA
+N11 SUNG
+N12 SUNF
+N13 SER
+N14 SERT
+N15 NUT
+N16 STAR
+N17 STR2
+N18 SQK
+N19 CHZ
+N20 HCZ
+N21 HCZ0
+N22 HCZI
+N23 DHA
+N24 RISE
+N25 SET
+N26 NTWA
+N27 NTWP
+N28 CTWA
+N29 CTWP
+N30 TRAN
+N31 SBRT
+N32 SNMU

@@ -35,16 +35,18 @@ S += [P('Almanac 47', title),
       prose_tbl([
           ['File', 'What it is'],
           ['NAVFULL', 'the program NAV with all the views and the almanac tables support (TBL)'],
-          ['NAVFULL_NOTBL', 'the same without the tables: a little smaller'],
-          ['NAVALL', 'all views, NAV runs INIT by itself the first time (flag 81)'],
-          ['NAVCOMP', 'compact menu: 1 ALMANAC, 2 CHART, 4 SKY, 8 ALLSKY, 9 INFO'],
-          ['NAVTXT', 'text only (no drawing): the almanac page in the registers'],
+          ['NAVTXT', 'text only (no drawing): the almanac page in the registers; NAV runs INIT the first time; '
+                     'reads TBL too'],
           ['NAVINIT_FULL', 'INIT: builds the series matrices, valid 2000–2050 (about 6 000 numbers)'],
-          ['NAVINIT_FAST', 'INIT: fitted series for a few years only: smaller and faster'],
-          ['TBL', 'optional: almanac tables (JPL) for a period; XEQ TBL once, then delete it']],
+          ['NAVINIT_FAST', 'INIT: fitted series, valid 2026–2030: smaller and faster'],
+          ['TBL', 'optional: almanac tables (JPL) for a period; XEQ TBL once, then delete it'],
+          ['NAVLITTLE', 'build/dm42/: for the old DM42 with the C47 firmware (64 KiB): the ALMANAC screen, '
+                        'Sun and 58 stars only, with NAVINIT_LITTLE (2000–2050)']],
           [32 * mm, 148 * mm]),
       P('2. First start', h2)] + B([
       'Convert each text file with <b>rejig</b> (rejig FILE.txt -o FILE.p47) and load it on the C47.',
+      'The file name is the version: on the calculator the programs are always NAV and INIT. Other builds '
+      '(NAVFULL_NOTBL, NAVALL, NAVCOMP) are in build/dev/.',
       'Load one NAV file and one NAVINIT file. <b>XEQ "INIT"</b> once: it builds the matrices and shows MATRICES READY. '
       'Then delete INIT (GTO "INIT", CLP): the matrices stay.',
       'Optional: load TBL, XEQ "TBL" once, delete it. The screens then show T (tables) instead of S (series).',
@@ -113,8 +115,8 @@ S += [P('6. Speed and memory', h2)] + B([
       'PAUSE 0 after each drawing (no wait), so every screen appears complete, at once, and the SINKING box stays until '
       'the next screen is ready. (Holding a key while a view draws makes the C47 show the drawing step by step.)',
       'Free42 on the DM42 / DM42n (build/free42) shows every drawing step at once, so the screens build up in front of '
-      'you. NAVFULL_F42_RLCD switches this off with the DM42 variable RefLCD (0 = no update, -1 = update once, '
-      '7 = normal) and then behaves like the C47.',
+      'you. The Free42 NAVFULL and NAVLITTLE switch this off with the DM42 variable RefLCD (0 = no update, '
+      '-1 = update once, 7 = normal) and so behave like the C47.',
       'With the tables (TBL) the Sun, the Moon and the planets come from the tables inside their period and the '
       'computation is about twice as fast.',
       '<i>Something lives in NAV at the step after LBL 48. It is 0. Try 20 and press + or an arrow …</i>'])
@@ -128,6 +130,7 @@ for l in lines('build/NAVFULL_LABELS.txt'):
 S += [PageBreak(), P('7. Program map', h2),
       P('In the NAV files every program label except NAV is renamed N01, N02 … (so the names do not clash with your own '
         'programs). This is the map of the navigation routines in NAVFULL; the font routines (PTXS, PTXT and their number '
-        'entries, N52–N62) are left out. NAVFULL_NOTBL has the same labels without N50 (TGET). NAVALL, NAVCOMP and NAVTXT '
-        'have their own numbering: see their _LABELS.txt files.'),
+        'entries, N52–N62) are left out. The numbers are fixed (tools/labels/NAVFULL.map): a new routine gets the next free '
+        'number, so the labels stay the same from one version to the next. NAVFULL_NOTBL has the same labels without '
+        'N50 (TGET). NAVTXT and NAVLITTLE have their own numbering: see their _LABELS.txt files.'),
       prose_tbl(rows, [16 * mm, 18 * mm, 146 * mm])]

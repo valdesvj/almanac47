@@ -50,8 +50,8 @@ def main():
     random.seed(int(sys.argv[2]) if len(sys.argv) > 2 else 1)
     fast = len(sys.argv) > 3 and 'F' in sys.argv[3].upper()
     init = 'build/NAVINIT_FAST.txt' if fast else 'build/NAVINIT_FULL.txt'
-    a = load([init, 'build/dev/NAVFULL.txt'])
-    b = load([init, 'build/dev/NAVFULL_NOTBL.txt'])
+    a = load([init, 'build/dev/src/NAVFULL.txt'])
+    b = load([init, 'build/dev/src/NAVFULL_NOTBL.txt'])
     bad = 0; saved = {}
     for k in range(n):
         y = random.randint(2025, 2032) if fast else random.randint(2025, 2050)

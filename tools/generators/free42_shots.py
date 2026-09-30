@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """free42_shots.py - the Free42 screens for the Free42 manual (docs/free42/*.png), captured in
 f42run (tools/f42, the Free42 core with the DM42 400 x 240 graphics): 26 Sep 2026 14:57 UT,
-25 20 N 055 12 E, NAVINIT_F42_FAST + NAVFULL_F42.   python3 tools/generators/free42_shots.py"""
+25 20 N 055 12 E, NAVINIT_FAST + NAVFULL (build/free42/); NAVLITTLE: F42_little.png.   python3 tools/generators/free42_shots.py"""
 import os, subprocess, tempfile
 from PIL import Image
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -25,7 +25,7 @@ def png(pbm, dst):
 def main():
     os.makedirs(OUT, exist_ok=True)
     t = tempfile.mkdtemp()
-    cmd = ['paste %s/build/free42/NAVINIT_F42_FAST.txt' % ROOT, 'paste %s/build/free42/NAVFULL_F42.txt' % ROOT,
+    cmd = ['paste %s/build/free42/NAVINIT_FAST.txt' % ROOT, 'paste %s/build/free42/NAVFULL.txt' % ROOT,
            'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20', 'num 55.12', 'shot %s/v0.pbm' % t]
     for v in (1, 2, 3, 5, 6, 8, 9):
         cmd += ['key %d' % KEY[v], 'shot %s/v%d.pbm' % (t, v), 'key 37']
@@ -43,6 +43,11 @@ def main():
     fs = sorted((f for f in os.listdir(t) if f.startswith('b_')), key=lambda f: int(f[2:-4]))
     if fs:
         png(os.path.join(t, fs[len(fs) // 2]), os.path.join(OUT, 'F42_box_ants.png'))
+    # NAVLITTLE: the ALMANAC screen with the 5 x 7 font, Sun and stars only
+    cmd = ['paste %s/build/free42/NAVINIT_LITTLE.txt' % ROOT, 'paste %s/build/free42/NAVLITTLE.txt' % ROOT,
+           'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20', 'num 55.12', 'shot %s/l.pbm' % t]
+    subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=300)
+    png('%s/l.pbm' % t, os.path.join(OUT, 'F42_little.png'))
     print(sorted(os.listdir(OUT)))
 
 

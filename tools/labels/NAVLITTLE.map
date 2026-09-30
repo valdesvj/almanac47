@@ -1,0 +1,39 @@
+# NAVLITTLE: fixed short labels (short label, original name in programs/ and build/.../src/).
+# Read by the build: a new routine gets the next free number, numbers are never
+# reused, so the labels stay the same from one version to the next.
+N01 ALMF
+N02 SUNA
+N03 SUNG
+N04 SUNF
+N05 SER
+N06 SERT
+N07 NUT
+N08 STAR
+N09 STR2
+N10 SQK
+N11 CHZ
+N12 HCZ
+N13 HCZ0
+N14 HCZI
+N15 DHA
+N16 RISE
+N17 SET
+N18 NTWA
+N19 NTWP
+N20 CTWA
+N21 CTWP
+N22 TRAN
+N23 SBRT
+N24 SNMU
+N25 PTXS
+N26 PINS
+N27 PF1S
+N28 PHMS
+N29 PDMS
+N30 PDTS
+N31 PZNS
+N32 PHLS
+N33 PTXT
+N34 PTNS
+N35 PT1
+N36 WPLS
