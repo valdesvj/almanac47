@@ -17,7 +17,9 @@ NAVLITTLE draws with the 5 x 7 font of the first versions (PTXB) instead of the 
 font: about 3.4 KB less. No sky cache: the screen computes what it shows. No ants and no
 SINKING box: the screen shown stays until the next one is drawn.
 
-Not in NAVLITTLE: the Moon, the planets, the Moon phase, the almanac tables (TBL). The Sun
+Not in NAVLITTLE: the Moon, the planets, the Moon phase. It reads the almanac tables when
+they are loaded (TBL, flag 10) for the Sun and GHA Aries, but in 64 KiB only a very short
+table can fit (make one with tools/almanac/tab2c47.py START END). The Sun
 and star values are the same as in the full builds (same series): the Moon and planet places
 in the list of ten bodies are taken by the next stars.
 

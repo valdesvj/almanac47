@@ -170,7 +170,15 @@ def ptxb_as_ptxs():
 def programs():
     with contextlib.redirect_stdout(io.StringIO()):
         progs = B.build()[3]                                # the processed programs (cache swaps, ALMR, navopt)
-    p = B.no_tables(progs)
+    # the almanac tables are read when they are loaded (TBL, flag 10): SUNA takes the Sun and
+    # GHA Aries from TGET. No Moon here, so flag 11 (the T on the screens) is set by SUNA itself.
+    p = dict(progs)
+    s = '\n'.join(p['SUNA']) + '\n'
+    for a, b in (('FS? 10\nXEQ 45\n', 'CF 11\nFS? 10\nXEQ 45\n'),
+                 ('RCL 70\n6\nXEQ "TGET"\nX<0?\nRTN\nSTO 80\nRTN\n', 'RCL 70\n6\nXEQ "TGET"\nX<0?\nRTN\nSTO 80\nSF 11\nRTN\n')):
+        assert s.count(a) == 1, a
+        s = s.replace(a, b)
+    p['SUNA'] = s.rstrip('\n').split('\n')
     p['CACHE'] = cache_lite()
     # the Moon lines of the pages: phase, age, HP, SD
     p['ALMT'] = cut(p['ALMT'], '"MOON "', '"   DOES NOT REPLACE THE NAUTICAL ALMANAC    "')    # ALMR (TEXT)
@@ -182,7 +190,7 @@ def programs():
 
 def assemble(nav, p, font='PTXB'):
     need = B.closure(p, [c for c in B.calls(nav) if c != 'INIT'])
-    assert not need & {'MOON', 'PLAN', 'PHAS', 'TGET'}, need
+    assert not need & {'MOON', 'PLAN', 'PHAS'}, need
     q = dict(p)
     if 'PTXS' in need:
         big = set(''.join(B.strings(nav)) + ''.join(''.join(B.strings(q[n])) for n in need if n not in ('PTXS', 'PTXT'))

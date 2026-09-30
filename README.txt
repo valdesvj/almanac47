@@ -326,11 +326,21 @@ build_free42.py)
     NAVINIT_FAST.txt INIT: fitted series, valid 2026-2030 (MATN MATST MATM MATF), smaller
                      Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", CLP); the
                      matrices stay. Zero elements are not stored: a new matrix starts with zeros.
-    TBL.txt          optional tables, 26 Sep 2026 - 31 Jan 2027 (about 3,000 numbers): load,
-                     XEQ "TBL" once, delete the program.
+    TBL_1.txt        almanac tables, 1 year (1 Oct 2026 - 30 Sep 2027): 8,441 numbers
+    TBL_5.txt        almanac tables, 5 years (1 Oct 2026 - 30 Sep 2031): 41,882 numbers
+                     Chebyshev coefficients fitted to JPL DE421 (tools/almanac/). Load ONE,
+                     XEQ "TBL" once (flag 10), delete the program; the matrices stay. Every NAV
+                     reads them when they are there (T on the screens): NAVFULL, NAVTXT, NAVLITTLE
+                     (Sun and GHA Aries) and the Free42 versions; outside the table period, or
+                     after CF 10, the series. Memory (16 bytes a number): TBL_1 about 135 KB of
+                     matrices, TBL_5 about 670 KB - too much for the C47's 256 KiB together with
+                     NAV and INIT: they are meant for Free42 / Plus42 on a PC or phone. On the C47
+                     only a short table can fit (4 months already filled it next to NAVFULL and
+                     the matrices; build/dev/TBL_OCT2026 is one month; make one with
+                     tools/almanac/tab2c47.py START END).
     build/dev/       NAVFULL_NOTBL (NAVFULL without the tables), NAVALL (all views, NAV runs
-                     INIT itself), NAVCOMP (compact menu 1 2 4 8 9), TBL_OCT2026 (tables for
-                     27 Sep - 31 Oct 2026 only; make one: python3 tools/almanac/tab2c47.py START END)
+                     INIT itself), NAVCOMP (compact menu 1 2 4 8 9), TBL_4M (26 Sep 2026 - 31 Jan
+                     2027, the tests), TBL_OCT2026 (27 Sep - 31 Oct 2026)
   build/dm42/   old DM42 with the C47 firmware (64 KiB): Sun and 58 stars only
     NAVLITTLE.txt    NAV: straight to the ALMANAC screen, UP / DOWN one hour, + ends;
                      5 x 7 font, no box, no ants, no cache
@@ -341,9 +351,12 @@ build_free42.py)
                      the C47 (RefLCD). build/free42/dev/NAVFULL_DRAW: the screen builds up.
     NAVLITTLE        as the DM42 NAVLITTLE (Sun and stars, 5 x 7 font), screen as on the C47
     NAVINIT_FULL, NAVINIT_FAST, NAVINIT_LITTLE   the INITs, as above
+    TBL_1, TBL_5     the almanac tables as above (.raw 97 KB and 481 KB); flag 11 of the C47
+                     programs is flag 91 here (11 is auto-execution on the HP-42S)
   Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
   Checks: tests/test_labels.py, test_navfull.py (also NAVTXT with TBL), test_notbl.py,
-  test_f42_little.py (Free42 NAVLITTLE against the C47 NAVLITTLE, pixel by pixel).
+  test_f42_little.py (Free42 NAVLITTLE against the C47 NAVLITTLE, pixel by pixel),
+  test_f42_tables.py (NAVFULL and NAVLITTLE with TBL_1 / TBL_5, Free42 against the C47).
 
 STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
   PTXS (tools/generators/mkstd.py) is the C47's own status-bar font (standardFont, bold
