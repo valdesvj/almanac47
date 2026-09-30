@@ -29,16 +29,27 @@ OUT = os.path.join(ROOT, 'build', 'atext')
 SRC = os.path.join(OUT, 'src')
 P47 = os.path.join(ROOT, 'build', 'p47', 'atext')
 SYMBOLS = '@(*<>=?'
-ATX_VIEWS = ('ALMF', 'ALMS', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')
+ATX_VIEWS = ('ALMF', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')
 
 
 LABELS = {'PTXS': 'TEXT with ATEXT (standard font; Didier\'s N03 trick) and the number printers - Z row, Y column, X text or number',
          'PSYM': 'the AGRAPH symbols of the bodies - Z row, Y column, X symbol'}
 
 
+ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SPLIT', 'ANIM', 'ALLSKY', 'INFO']      # no 5 SMALL: renumbered
+VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY', None]
+
+
 def nav_atx():
-    """NAV of NAVFULL (gennav): the top line of the menu for the standard font, the SINKING box text centred."""
-    L = B.read('NAV')
+    """NAV (gennav) with the menu of NAVFULL_ATX (8 items, no SMALL), the top line of the menu for
+    the standard font, the SINKING box text centred."""
+    import gennav
+    old = gennav.ITEMS, gennav.VIEWS
+    gennav.ITEMS, gennav.VIEWS = ITEMS, VIEWS
+    try:
+        L = [str(l) for l in gennav.program(gennav.inputs(), list(range(1, len(ITEMS) + 1)))]
+    finally:
+        gennav.ITEMS, gennav.VIEWS = old
     T = V.top_x()
     s = '\n' + '\n'.join(L) + '\n'
     for a, b in (((206, 80), (206, T['time'])), ((206, 116, '"UT"'), (206, T['UT'], '"UT"')),
@@ -55,7 +66,7 @@ def nav_atx():
 
 
 def build():
-    progs = {n: B.read(n) for n in B.KEEP + ['NAV']}
+    progs = {n: B.read(n) for n in B.KEEP if n != 'ALMS'}
     for n in ATX_VIEWS:
         with open(os.path.join(ROOT, 'programs', 'atext', n + '.txt'), encoding='utf-8') as fh:
             progs[n] = [l.rstrip('\n') for l in fh if l.strip()]
@@ -63,7 +74,8 @@ def build():
     progs['CACHE'] = gencache.program(True)
     progs['STXT'] = navopt.stxt(progs['STXT'])
     for n in gencache.VIEWS:
-        progs[n] = gencache.swap(progs[n])
+        if n in progs:
+            progs[n] = gencache.swap(progs[n])
     font = navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS'))))
     progs['PTXS'] = AC.printers(font, '49')            # R49: free while a view draws (SBRT / SNMU use it before)
     progs['PSYM'] = AC.symbols(font, SYMBOLS)

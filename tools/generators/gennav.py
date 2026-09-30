@@ -141,10 +141,10 @@ def program(inp, items=ALL, autoinit=False):
     a('GTO 01', 'LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN', 'LBL 08', 'RCL "SSZ"', 4, 'X=Y?', 'SSIZE4', 'RTN',   # 0: nothing left on the stack   # LBL 08: the user's stack size back
       'LBL 22', 1, 'STO+ "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01', 'LBL 23', 1, 'STO- "DH"', 'XEQ 48', 'XEQ 28', 'GTO 01')
     for d in items:
-        if d == 3:                          # TEXT: the page into the registers, NAV ends in REGS
-            a('LBL 12', 'XEQ 08', *text_steps(24)); a('REGS', 'RTN')      # stack size back first: the lines go onto the stack last
-        elif d == 9:                        # INFO: the page, held like a view (+ menu)
-            a('LBL 18', 'CLLCD')
+        if VIEWS[d - 1] == 'ALMT':          # TEXT: the page into the registers, NAV ends in REGS
+            a('LBL %d' % (9 + d), 'XEQ 08', *text_steps(24)); a('REGS', 'RTN')      # stack size back first: the lines go onto the stack last
+        elif VIEWS[d - 1] is None:          # INFO: the page, held like a view (+ menu)
+            a('LBL %d' % (9 + d), 'CLLCD')
             for k, t in enumerate(INFO):
                 if t:
                     a(216 - 16 * k, 8, '"%s"' % t, 'XEQ "PTXS"')

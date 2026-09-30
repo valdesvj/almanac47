@@ -498,3 +498,13 @@ INIT with the builders as LBL 01-04.
   build_dm42 does; unused local routines dropped); PSYM = the 5 x 7 Sun and star only; no PTXT.
 - Program bytes: NAVLITTLE 12,716 -> 8,119; NAV1T 15,216 -> 10,619; NAV12 18,516 -> 13,865;
   NAVFULL 42,130 -> 36,915.
+
+## Oct 1, 2026 - NAVFULL_ATX: menu without SMALL, CHART and SPLIT
+
+- Menu 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO 0 END (ALMS not in the
+  build). gennav: TEXT and INFO found by their view (VIEWS entry 'ALMT' / None) and their labels
+  9 + d, so a shorter menu works; NAV.txt for NAVFULL is unchanged.
+- CHART (HALMV, SMALL variant): no ARIES row, no Moon line and no Moon phase (PHA2) - blank.
+- SPLIT (HALMH, SMALL variant): no footer and no sun events / phase; the stars fill the table
+  until row 9 (8 rows), each also on the chart.
+- Program bytes 34,419 (NAVFULL 42,130).

@@ -11,6 +11,12 @@ ATEXT command in its standard font. INIT: NAVINIT_FULL or NAVINIT_FAST (build/),
     not on the views
 Screens: docs/NAVFULL_ATEXT_views.png.
 
+MENU (no SMALL view): 1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SPLIT  6 ANIM  7 ALLSKY  8 INFO  0 END
+  2 CHART   the panel without the ARIES row and without the Moon line under the list (blank)
+  5 SPLIT   no footer lines: the table goes on to the bottom of the screen, 8 rows (Sun, the
+            Moon if it is up, the first planet above the horizon, then the brightest stars
+            higher than 10 deg), all of them on the chart too
+
 HOW THE TEXT IS WRITTEN (tools/atext_common.py)
   PTXS keeps its stack (Z row of the base line, Y column, X text) and is the N03 trick of
   Didier (dlachieze): the stack turned for ATEXT, the row 4 lower (ATEXT takes the bottom of
@@ -26,7 +32,7 @@ HOW THE TEXT IS WRITTEN (tools/atext_common.py)
 
 SIZES (program bytes in the .p47 file) and simulator steps (INIT not counted)
                         NAVFULL   NAVFULL_ATX
-  program                42,130      36,915   (-12 %; the small font stays for the charts)
+  program                42,130      34,419   (-18 %; no SMALL; the small font stays for the charts)
   menu + 1 ALMANAC       52,787      27,300   text routines 30,987 -> 5,721 steps
 
 CONVERTING: tools/rejig47_atext.py (rejig 0.34 does not know ATEXT: KTYP placeholder, then
