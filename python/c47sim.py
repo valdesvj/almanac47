@@ -56,42 +56,47 @@ class Calc:
         if self.deg: x = x % D(360)
         return D(fn(math.radians(f(x)) if self.deg else f(x)))
     def atext(self, text):
-        """ATEXT: the characters one after the other in the standardFont; the CR glyph (↵) = next line
-        (20 rows down) at the start column; a character that would pass x 400 goes to the next line at the
-        start column; after the text a column past 380 moves the next position one line down; below
-        the bottom the next row is 0. GRMOD 0 sets the glyph pixels, 1 clears the glyph box first,
-        2 clears them, 3 flips them. Pixels outside the screen are not drawn."""
+        """ATEXT as in the C47 source (screen.c: fnAText, _doShowString), standardFont, 20-row lines:
+        X, Y are used as |X|, |Y| (Y = bottom of the glyph box). A CR glyph (U+21B5) or LF after a
+        character = next line (20 rows down) at the start column; several in a row = several lines.
+        A CR as the FIRST character is not a line break: it is drawn as a character (the CR glyph,
+        not in our font data: drawn here as '?'). Before a character, if x > 380 and the character
+        would pass x 400: next line. After the text, x > 380: next line; below the bottom: row 0.
+        X and Y get the offset to the next position added (a negative X or Y grows in magnitude).
+        GRMOD 0 sets the glyph pixels, 1 clears the glyph box first, 2 clears them, 3 flips them."""
         import os, sys
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         from stdfont import STD
-        y, x = int(self.s[1]), int(self.s[0]); x0 = x; mode = getattr(self, 'grmod', 0)
-        yin = y
-        y = abs(y)                     # a row below 0 is drawn at -row (seen on the C47: the V test)
+        X, Y = int(self.s[0]), int(self.s[1])
+        x, y = abs(X), abs(Y); x0 = x; line = y; mode = getattr(self, 'grmod', 0)
         ps = set(self.pix)
-        for ch in str(text):
-            if ch == '\u21b5':
-                y, x = y - 20, x0; continue
+        t = str(text); i = 0
+        while i < len(t):
+            ch = t[i]; i += 1
             code = ord(ch) if ord(ch) < 128 else 0x8000 + ord(ch)
             cb, cg, ca, ra, rg, rb, rows = STD.get(code, STD[0x3f])
             adv = cb + cg + ca
-            if x + adv > 400:
-                y, x = y - 20, x0
-            on = {(y + rb + rg - 1 - r, x + cb + c) for r, v in enumerate(rows) for c in range(cg) if v >> (cg - 1 - c) & 1}
+            if x > 380 and x + adv > 400:
+                x, line = x0, line - 20
+            on = {(line + rb + rg - 1 - r, x + cb + c) for r, v in enumerate(rows) for c in range(cg) if v >> (cg - 1 - c) & 1}
             on = {p for p in on if 0 <= p[0] < 240 and 0 <= p[1] < 400}
             if mode == 1:
-                ps -= {(yy, xx) for yy in range(y, y + ra + rg + rb) for xx in range(x, x + adv)}
+                ps -= {(yy, xx) for yy in range(line, line + ra + rg + rb) for xx in range(x, x + adv)}
             if mode == 2: ps -= on
             elif mode == 3: ps ^= on
             else: ps |= on
             x += adv
-        if x > 380:
-            y, x = y - 20, x0
-        if y < 0:
-            y = 0
-        elif yin < 0 and y == -yin:    # nothing wrapped: Y stays as it came
-            y = yin
+            while i < len(t) and t[i] in ('\u21b5', '\n'):   # CR / LF after a character
+                i += 1; x, line = x0, line - 20
+        nx, ny = x, line
+        if nx > 380:
+            nx, ny = x0, ny - 20
+        if ny < 0:
+            ny = 0
         self.pix = list(ps)
-        self.s[1], self.s[0] = D(y), D(x)
+        self.s[0] = D(X + (x0 - nx if X < 0 else nx - x0))
+        self.s[1] = D(Y + (y - ny if Y < 0 else ny - y))
+
     def regkey(self, arg):
         if arg.startswith('IND '): return int(self.rget(arg[4:].strip()))
         return arg

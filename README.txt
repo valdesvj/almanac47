@@ -417,7 +417,8 @@ AGRAPH / PIXEL DEMO (Sep 2026) - extras/DEMOALM.txt (python3 tools/build_demo.py
 ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
   ATEXT r draws the string in register r in the C47 standardFont: Y = row of the bottom of the
   20-row glyph box (base line 4 rows up), X = column; it leaves the Y and X of the next character.
-  The CR glyph starts a new line 20 rows down at the start column; GRMOD 0 sets, 1 clears the
+  The CR glyph starts a new line 20 rows down at the start column (several CRs = several lines,
+  but a CR as the first character of the string is drawn, not a line break); GRMOD 0 sets, 1 clears the
   glyph box first, 2 clears, 3 flips. AGRAPH stays, for own fonts and symbols.
   The simulator (python/c47sim.py, font python/stdfont.py) draws ATEXT like the C47: the
   ATEXTing demonstration (Jaco Mostert) gives the calculator's screen to 15 of 12,656 pixels

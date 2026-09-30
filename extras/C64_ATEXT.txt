@@ -9,7 +9,7 @@ STO 41
 STO 42
 "N"
 STO 43
-"↵BREAK IN 47↵READY.↵"
+"BREAK IN 47↵READY.↵"
 STO 44
 REM "The dark border, as before: AGRAPH columns and PIXEL lines (negative = whole line)"
 CLLCD
@@ -99,9 +99,14 @@ XEQ 92
 ISG 49
 GTO 06
 PAUSE 8
-REM "RUN/STOP: X back to column 42, then CR, the break message and READY."
+REM "RUN/STOP: X back to column 42, Y one line (20 rows) down: a CR as the first character of a"
+REM "string is drawn, not a line break. Then the break message and READY."
 DROP
 42
+X<>Y
+20
+-
+X<>Y
 ATEXT 44
 REM "The cursor blinks until a key is pressed (not R/S or EXIT), then the screen clears"
 STO 37
