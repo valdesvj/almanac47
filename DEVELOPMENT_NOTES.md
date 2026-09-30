@@ -466,3 +466,18 @@ INIT with the builders as LBL 01-04.
   with rejig 0.34, bytes set back; the count must match.
 - Sizes (program bytes): NAVLITTLE 12,716 -> 10,482; NAV1T 15,216 -> 12,982; NAV12 18,516 ->
   19,838. Simulator: same values; tests/test_dm42_atext.py.
+
+## Sep 30, 2026 - EXPERIMENTAL: NAVFULL_ATX (every text with ATEXT)
+
+- tools/generators/atext/genviews_atx.py -> programs/atext/ ALMF ALMS HALMV HORZ HALMH HANIM
+  ALLSKY: the same steps as genf / genv / genh2 / genhh / genanim / genallsky, the columns and
+  rows for the standard font (top line 2 90 135 163 191 194 271 283; table symbol 0, number 14,
+  name 36, GHA 138, N/S 211, DEC 212, Hc 279, Zn 354), symbols through PSYM, the small font
+  replaced by PTXS / PINS. CHART horizon at 18 (was 14) for the letters; SPLIT horizon 132,
+  table 6 rows from 102, no ARIES row; ANIM / ALLSKY: no axis, no OVER / UNDER, no star numbers.
+- tools/build_navfull_atext.py -> build/atext/NAVFULL_ATX (+ src, tools/labels/NAVFULL_ATX.map):
+  PTXS = Didier's trick; the printers add characters to variable ATX with + (flag 48 clear =
+  start: every numbered register is used in NAVFULL); PSYM = the status-bar glyphs @ ( * < > = ?.
+- ATEXT goes to the next line when a text ends after x 380: a chained text must start at or
+  before 380 (the SKY view's DR line moved left for its last digit).
+- Program bytes 42,130 -> 34,136; tests/test_navfull_atext.py.
