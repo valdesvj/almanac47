@@ -39,7 +39,8 @@ S += [P('Almanac 47', title),
                      'reads TBL too'],
           ['NAVINIT_FULL', 'INIT: builds the series matrices, valid 2000–2050 (about 6 000 numbers)'],
           ['NAVINIT_FAST', 'INIT: fitted series, valid 2026–2030: smaller and faster'],
-          ['TBL', 'optional: almanac tables (JPL) for a period; XEQ TBL once, then delete it'],
+          ['TBL_1, TBL_5', 'optional almanac tables (JPL) for 1 or 5 years from 1 Oct 2026; XEQ TBL once, then '
+                           'delete it. Big: meant for Free42 / Plus42 on a PC or phone; on the C47 only a short table fits'],
           ['NAVLITTLE', 'build/dm42/: for the old DM42 with the C47 firmware (64 KiB): the ALMANAC screen, '
                         'Sun and 58 stars only, with NAVINIT_LITTLE (2000–2050)']],
           [32 * mm, 148 * mm]),

@@ -8,7 +8,8 @@ from the repository, convert the .txt files in build/ with rejig first:
   rejig build/NAVINIT_FAST.txt -o NAVINIT_FAST.p47
 
   NAVFULL        the programs that stay on the calculator (all views; it also reads the
-                 almanac tables TBL if you load them, but they need a lot of memory).
+                 almanac tables if you load them - TBL_1 / TBL_5, 1 and 5 years, for Free42 / Plus42 on a
+                 PC or phone; on the C47 only a short table fits).
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 

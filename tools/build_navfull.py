@@ -21,7 +21,8 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
                faster, smaller). Load ONE of them, XEQ "INIT" once, then delete INIT
                (GTO "INIT", CLP) - the matrices it built stay. Zero elements are not stored (NEWMAT
                starts with zeros).
-  TBL.txt      (copied) almanac tables: load, XEQ "TBL" once, then delete
+  TBL_1.txt, TBL_5.txt  almanac tables for 1 and 5 years (from 1 Oct 2026): load ONE, XEQ "TBL"
+               once, then delete (build/dev/TBL_4M.txt: the 4-month table of the tests)
 
 Menu NAV (graphic, KEY?: key the number; every view waits for + to come back):
 1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
@@ -33,7 +34,7 @@ the Sun and the Moon moving on the horizon chart, 24 frames 0.5 h apart, 1 s eac
 Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
 the font demos.
 
-  python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVFULL_NOTBL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL.txt
+  python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVFULL_NOTBL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL_1.txt, TBL_5.txt
 """
 import os, re, shutil, sys
 
@@ -442,7 +443,7 @@ def build():
                     (os.path.join(dev, 'NAVFULL_NOTBL.txt'), rename(notbl, mapping)),
                     (os.path.join(OUT, 'NAVINIT_FULL.txt'), init_full), (os.path.join(OUT, 'NAVINIT_FAST.txt'), init_fast)):
         write(path, L)
-    shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(OUT, 'TBL.txt'))
+    tables(dev)
     # ---- NAV + INIT in one file (the first NAV builds the matrices and deletes INIT), no tables:
     #      NAVALL_FAST (all views) and NAVCOMP_FAST (compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY)
     sys.path.insert(0, os.path.join(ROOT, 'tools', 'generators'))
@@ -496,6 +497,28 @@ def build():
         fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
     extra['NAVTXT'] = (L, sorted(needt))
     return full, init_full, init_fast, progs, nav, notbl, extra
+
+
+# the almanac tables: TBL_1 (1 year) and TBL_5 (5 years) from the JPL coefficients in
+# tools/almanac/ (c47_almanac_generator.py); build/dev/TBL_4M = programs/TBL.txt (the tests)
+TABLES_CSV = os.path.join(ROOT, 'tools', 'almanac', 'tables_2026-10_2031-09.csv')
+TABLES = (('TBL_1', '2026-10-01', '2027-09-30'), ('TBL_5', '2026-10-01', '2031-09-30'))
+
+
+def tables(dev):
+    import datetime, io, contextlib
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'almanac'))
+    import tab2c47
+    shutil.copy(os.path.join(PROG, 'TBL.txt'), os.path.join(dev, 'TBL_4M.txt'))
+    if os.path.exists(os.path.join(OUT, 'TBL.txt')):
+        os.remove(os.path.join(OUT, 'TBL.txt'))
+    if not os.path.exists(TABLES_CSV):
+        return
+    t = tab2c47.read_csv(TABLES_CSV)
+    for name, a, b in TABLES:
+        with contextlib.redirect_stderr(io.StringIO()):
+            L = tab2c47.program(t, datetime.date.fromisoformat(a), datetime.date.fromisoformat(b), 'TBL')
+        write(os.path.join(OUT, name + '.txt'), L)
 
 
 def size(lines):

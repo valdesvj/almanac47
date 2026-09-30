@@ -15,6 +15,14 @@ FILES (the file name is the version: on the calculator the programs are NAV and 
   NAVINIT_FULL.raw     INIT for NAVFULL: the series matrices, valid 2000-2050
   NAVINIT_FAST.raw     INIT for NAVFULL: fitted series 2026-2030 (smaller, faster)
   NAVINIT_LITTLE.raw   INIT for NAVLITTLE: Sun, nutation and stars, valid 2000-2050
+  TBL_1.raw            almanac tables, 1 year (1 Oct 2026 - 30 Sep 2027), 97 KB
+  TBL_5.raw            almanac tables, 5 years (1 Oct 2026 - 30 Sep 2031), 481 KB
+                       Optional: load ONE, XEQ "TBL" once (it builds the matrices TSU ... TAR and
+                       sets flag 10), then delete it. NAVFULL and NAVLITTLE then take the Sun, the
+                       Moon, the planets and GHA Aries from the tables (JPL DE421) inside their
+                       period, and the screens show T instead of S; CF 10 = the series again.
+                       The matrices need about 135 KB (1 year) or 670 KB (5 years): for Free42 /
+                       Plus42 on a PC or phone.
   *.txt                the same programs as text (Free42 on a PC or phone: Paste them into
                        a program in PRGM mode)
   NAVFULL_LABELS.txt, NAVLITTLE_LABELS.txt   the label maps (every routine except NAV is

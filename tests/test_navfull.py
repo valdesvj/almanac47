@@ -29,7 +29,7 @@ def screen(c,view,j,la,lo):
     return {(x,239-y) for y,x in c.pix if 0<=x<400 and 0<=y<240}, c.steps
 random.seed(2); bad=0; n=0
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/dev/TBL_4M.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables)
     print('flags', sorted(mini.flags))
     for k in range(10):
@@ -64,7 +64,7 @@ for f,dh in zip(views,(0,1,0,-1)):
 print('NAV arrows: ALMF at +0 +1 0 -1 h:', ok)
 # TEXT (ALMR) through the minimum set: its lines = the reference ALMT pages (same words)
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/dev/TBL_4M.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(6):
         j=jd(2026,10+k%3,3+5*k,7.5+k); la=-40+15*k; lo=-150+50*k
@@ -88,7 +88,7 @@ def horz(c,j,la,lo):
     c.maxpauses=None
     return [{(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240} for f in c.frames[:int(c.rget('10'))]]
 for tables in (False, True):
-    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/dev/TBL_4M.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); bad=0
     for k in range(5):
         j=jd(2026,10+k%3,3+5*k,4.5+4*k); la=-50+25*k; lo=-150+60*k
@@ -182,7 +182,7 @@ def same_text(lines, pages):
 reft=Engine('programs',tables=True,fast=True)
 for date,utc,h in (('2026.1015','3.30',3.5),('2026.1203','21.45',21.75)):
     y,m,d=int(date[:4]),int(date[5:7]),int(date[7:9])
-    lt,st,f10=navtxt_lines(['build/TBL.txt'],True,date,utc)
+    lt,st,f10=navtxt_lines(['build/dev/TBL_4M.txt'],True,date,utc)
     ls,ss,_=navtxt_lines([],False,date,utc)
     pt,_=reft.text(jd(y,m,d,h),25+20/60,55+12/60); ps,_=ref.text(jd(y,m,d,h),25+20/60,55+12/60)
     print('NAVTXT + TBL %s: flag 10 %s | same text as ALMT with TBL: %s | without TBL same as the series: %s | T after ARIES: %s | steps %d (series %d)'
@@ -214,7 +214,7 @@ print('CACHE: ALMF again same screen:', res[0][0]==res[2][0], '| steps first %d,
       '| key JD in ALMC:', c.mats['ALMC'][66][0]==D(repr(j)))
 # every view one after the other at the same time and place (from the cache, stars computed lazily)
 for tables in (False, True):
-    c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/TBL.txt'] if tables else []), tables)
+    c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/dev/TBL_4M.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); ok=[]
     for k,(j,la,lo) in enumerate(((jd(2026,10,5,3.3),-33.9,18.4),(jd(2026,11,12,21.7),51.5,-0.1))):
         for v in ('HALMV','ALMS','ALMF','HALMH','ALLSKY','ALMF'):

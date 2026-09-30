@@ -11,6 +11,11 @@ The series programs (SUNA, STAR, MOON, PLAN) stay the fallback and work for any 
 `docs/C47_almanac_coefficients_2026-2027.xlsx` already holds 1 Sep 2026 - 31 Dec 2027.
 Set `DT` (TT - UT1, seconds) in the script for the years you generate.
 
+`tables_2026-10_2031-09.csv` holds 1 Oct 2026 - 1 Oct 2031 (made with DT = 69.2 s):
+`python3 tools/build_navfull.py` turns it into `build/TBL_1.txt` (1 year, 8,441 numbers)
+and `build/TBL_5.txt` (5 years, 41,882 numbers); `tools/build_free42.py` makes the Free42
+versions (`build/free42/TBL_1.raw`, `TBL_5.raw`). DE421 ends in 2050.
+
 ## 2. Turn a period into a C47 program
 
     python3 tab2c47.py 2026-09-26 2027-01-31                 # from the spreadsheet

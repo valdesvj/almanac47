@@ -74,6 +74,7 @@ def free42():
                      ['NAVINIT_FAST.raw', 'INIT for NAVFULL: fitted series for 2026–2030 (smaller, faster)'],
                      ['NAVLITTLE.raw', 'NAV for little memory: the ALMANAC screen, Sun and stars only (section 10)'],
                      ['NAVINIT_LITTLE.raw', 'INIT for NAVLITTLE: Sun, nutation and stars, valid 2000–2050'],
+                     ['TBL_1.raw, TBL_5.raw', 'optional almanac tables (JPL) for 1 or 5 years from 1 Oct 2026 (section 11)'],
                      ['*.txt', 'the same programs as text (Free42 on a PC: Paste in PRGM mode)'],
                      ['dev/NAVFULL_DRAW.raw', 'NAVFULL with the Free42 screen update: each screen builds up as it is drawn']],
                     [45 * mm, 135 * mm]),
@@ -150,6 +151,16 @@ def free42():
         'Programs: NAVLITTLE about 10 KB, NAVINIT_LITTLE about 8 KB (.raw files), matrices 667 numbers.',
         'Tested in the Free42 core against the C47 NAVLITTLE, pixel by pixel (tests/test_f42_little.py); not yet on '
         'a real calculator.'])
+    S += [P('11. Almanac tables: TBL_1 and TBL_5', h2)] + B([
+        'Optional: Chebyshev coefficients fitted to JPL DE421. <b>TBL_1</b>: 1 Oct 2026 – 30 Sep 2027 (8,441 numbers, '
+        'file 97 KB). <b>TBL_5</b>: 1 Oct 2026 – 30 Sep 2031 (41,882 numbers, file 481 KB).',
+        'Load ONE, <b>XEQ "TBL"</b> once: it builds the matrices TSU, TVE, TMA, TJU, TSA, TMO, TAR and sets flag 10. Then '
+        'delete TBL; the matrices stay (about 135 KB for 1 year, 670 KB for 5 years).',
+        'NAVFULL and NAVLITTLE then take the Sun, the Moon, the planets and GHA Aries from the tables inside their period '
+        '(NAVLITTLE: the Sun and Aries), and the screens show <b>T</b> instead of S. Outside the period, or after '
+        '<b>CF 10</b>, the series are used. The values agree with the series to 0.1′.',
+        'The tables need more memory than the C47 has: they are meant for Free42 / Plus42 on a PC or phone, or a DM42n '
+        'with enough free memory.'])
     make(os.path.join(DOCS, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
 
 
