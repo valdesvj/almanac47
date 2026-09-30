@@ -430,3 +430,12 @@ INIT with the builders as LBL 01-04.
   C47: TBL_1 as .p47 is 111 KB of program plus 135 KB of matrices: it does not fit in 256 KiB.
 - build_free42.py: raw_files() was defined after the __main__ block (NameError when run).
 
+
+## Sep 30, 2026 - PC tables default, THANKS_ATEXT
+
+- python/native (c47pc.py): c47tables.find() now takes the longest tables first:
+  build/TBL_5.txt (1 Oct 2026 - 30 Sep 2031), then build/TBL_1.txt, then the old
+  4-month programs/TBL.txt (TBL_5/TBL_1/TBL.txt next to c47pc.py win). Checked: 2030 -> T,
+  2032 -> S. The tests keep using programs/TBL.txt explicitly.
+- extras/THANKS_ATEXT.txt: the Jaco tribute with ATEXT (label THANKS); runs in the
+  simulator in tests/test_atext.py (8,007 steps, ends with the screen cleared).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """ATEXT in the simulator (python/c47sim.py, font python/stdfont.py) against the C47: the
 ATEXTing demonstration (tests/data/ATEXTing.txt) and its screen on the calculator
-(tests/data/ATEXTing_C47.png, 400 x 240). Then the two ATEXT programs of extras/ run.
+(tests/data/ATEXTing_C47.png, 400 x 240). Then the ATEXT programs of extras/ run.
     python3 tests/test_atext.py"""
 import os, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -43,3 +43,5 @@ c = run(os.path.join(ROOT, 'extras', 'C64_ATEXT.txt'), 'C64', keys=[0, 0, 0, 0, 
 print('C64_ATEXT: %d steps, %d screens, ends cleared: %s' % (c.steps, len(c.frames), not c.pix))
 c = run(os.path.join(ROOT, 'extras', 'DEMOATX.txt'), 'DEMO')
 print('DEMOATX: %d steps, %d pixels on the page' % (c.steps, len(c.frames[-1])))
+c = run(os.path.join(ROOT, 'extras', 'THANKS_ATEXT.txt'), 'THANKS', keys=[0, 0, 0, 0, 72])
+print('THANKS_ATEXT: %d steps, %d screens, ends cleared: %s' % (c.steps, len(c.frames), not c.pix))

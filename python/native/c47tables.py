@@ -1,6 +1,6 @@
 """c47tables.py - the almanac tables (Method B) for the native Python version.
 
-Reads the table program TBL.txt (written by tools/almanac/tab2c47.py, the same file
+Reads a table program TBL_5.txt / TBL_1.txt / TBL.txt (written by tools/almanac/tab2c47.py, the same file
 that is loaded on the C47) and evaluates it exactly like TGET does on the calculator.
 """
 import os, re
@@ -66,9 +66,14 @@ class Tables:
 
 
 def find(start=None):
-    """TBL.txt next to this file or in ../../programs; None if not found."""
+    """The almanac tables, longest period first: TBL_5.txt, TBL_1.txt or TBL.txt next to this
+    file, then ../../build/TBL_5.txt, ../../build/TBL_1.txt, ../../programs/TBL.txt (4 months).
+    None if not found."""
     here = start or os.path.dirname(os.path.abspath(__file__))
-    for p in (os.path.join(here, 'TBL.txt'), os.path.join(here, '..', '..', 'programs', 'TBL.txt')):
+    top = os.path.join(here, '..', '..')
+    for p in ([os.path.join(here, n) for n in ('TBL_5.txt', 'TBL_1.txt', 'TBL.txt')] +
+              [os.path.join(top, 'build', 'TBL_5.txt'), os.path.join(top, 'build', 'TBL_1.txt'),
+               os.path.join(top, 'programs', 'TBL.txt')]):
         if os.path.exists(p):
             return os.path.normpath(p)
     return None
