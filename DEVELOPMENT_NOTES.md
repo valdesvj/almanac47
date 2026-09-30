@@ -406,6 +406,18 @@ INIT with the builders as LBL 01-04.
   tests/test_f42_little.py: f42run against c47sim, 3 dates / places (south, west), start,
   +1 h, -1 h: identical. f42run "num": a leading - is now keyed as +/- after the digits (before,
   +/- negated the old X and the number was entered positive).
+- ATEXT (Sep 30, announced for the C47): c47sim draws it with python/stdfont.py (standardFont from
+  the C43 source rasterFontsData.c; widths checked to the pixel on the ATEXTing screen). Found on
+  that screen: every glyph box 20 rows (4 below the base line), CR = 20 rows down at the start
+  column, a glyph past x 400 goes to the next line, after the text x > 380 = next line, below the
+  bottom the returned Y is 0, and a negative Y is drawn at -Y (the V test). 15 + 6 pixels differ
+  out of 12,656 (single dots). c47sim also got DROP and GRMOD without a register (mode from X).
+- ATEXT from the C47 source (screen.c fnAText / _doShowString, Sep 30): after each character a
+  while loop takes every CR (U+21B5, code 0xA1B5) or LF that follows: several CRs, also "↵↵", each
+  go one line down. A CR as the FIRST character is not checked by that loop: it is drawn as a
+  character. Wrap only when x > 380 and the next character would pass 400. X and Y are used as
+  |X| |Y|, and ATEXT adds the offset to the next position to X and Y (a negative one grows in
+  magnitude). c47sim follows this code now; C64_ATEXT no longer starts a string with a CR.
 - Tables for 1 and 5 years (Sep 30): c47_almanac_generator.py 2026-10-01 2031-10-02 (55 s) ->
   tools/almanac/tables_2026-10_2031-09.csv; build_navfull.tables() writes build/TBL_1.txt (8,441
   numbers, 25,364 lines) and TBL_5.txt (41,882 numbers, 125,687 lines); build/TBL.txt (4 months)

@@ -1,0 +1,203 @@
+LBL "ATDEMO"
+REM "ATEXTing, the ATEXT demonstration by Jaco Mostert (C47 team), in the syntax of this repository:"
+REM "INCR, FOR / NEXT and indirect ATEXT written with ISG, DSE and ATEXT IND. ATEXTing_C47.png = its screen."
+"123↵"
+STO 50
+"456↵"
+STO 51
+"789↵"
+STO 52
+"012↵"
+STO 53
+"345↵"
+STO 54
+"678↵"
+STO 55
+"901↵"
+STO 56
+"234↵"
+STO 57
+"567↵"
+STO 58
+"890"
+STO 59
+CLLCD
+49.059
+STO 00
+1.010
+STO 08
+CLSTK
+198
+2
+LBL 01
+ISG 00
+X<>Y
+X<>Y
+X<>Y
+RCL 08
+IP
++
+X<>Y
+ATEXT IND 00
+ISG 08
+GTO 01
+CLSTK
+"Almost top left↵"
+STO 00
+218
+2
+ATEXT 00
+"Almost top right"
+STO 00
+218
+230
+ATEXT 00
+"Middle right"
+STO 00
+110
+275
+ATEXT 00
+"Almost bottom left"
+STO 00
+2
+2
+ATEXT 00
+"Almost bottom right"
+STO 00
+2
+200
+ATEXT 00
+"Wrapping 12345678901234567"
+STO 00
+180
+250
+ATEXT 00
+"The CR glyph↵forces a line↵break like this"
+STO 00
+80
+90
+ATEXT 00
+"ABC"
+STO 00
+"Continued"
+STO 03
+150
+120
+ATEXT 00
+ATEXT 03
+0
+GRMOD
+DROP
+-1
+STO 01
+29
+300
+XEQ 10
+255
+STO 01
+93
+300
+XEQ 10
+"0: sets"
+STO 03
+"GRMOD "
+STO 00
+85
+235
+1
+GRMOD
+DROP
+ATEXT 00
+0
+GRMOD
+DROP
+ATEXT 03
+"1: box"
+STO 03
+"GRMOD "
+STO 00
+65
+235
+1
+GRMOD
+DROP
+ATEXT 00
+1
+GRMOD
+DROP
+ATEXT 03
+"2: clears"
+STO 03
+"GRMOD "
+STO 00
+45
+235
+1
+GRMOD
+DROP
+ATEXT 00
+2
+GRMOD
+DROP
+ATEXT 03
+"3: flips"
+STO 03
+"GRMOD "
+STO 00
+25
+235
+1
+GRMOD
+DROP
+ATEXT 00
+3
+GRMOD
+DROP
+ATEXT 03
+0
+GRMOD
+DROP
+"A"
+STO 00
+20
+STO 09
+CLSTK
+220
+100
+ATEXT 00
+LBL 20
+ATEXT 00
+X<>Y
+1
++
+X<>Y
+DSE 09
+GTO 20
+"V"
+STO 00
+30
+STO 09
+CLSTK
+20
+100
+ATEXT 00
+LBL 21
+ATEXT 00
+X<>Y
+1
+-
+X<>Y
+DSE 09
+GTO 21
+PAUSE 99
+RTN
+LBL 10
+40
+STO 02
+DROP
+LBL 11
+AGRAPH 01
+DSE 02
+GTO 11
+RTN
+END
