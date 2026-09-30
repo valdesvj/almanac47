@@ -256,6 +256,7 @@ class Calc:
                 self.push(D(v)); self.rset(arg,k[1:]); continue
             if op == 'αSL': self.rset(arg, self.rget(arg)[int(self.s[0]):]); continue
             if op == 'REM': continue
+            if op == 'SNAP': self.snaps = getattr(self, 'snaps', []) + [list(self.pix)]; continue   # a picture of the screen
             if op == 'WSIZE': self.ws=int(arg); continue
             if op == 'REGS': self.regs_opened=True; continue
             if op == 'RAN#':

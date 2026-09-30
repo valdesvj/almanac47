@@ -282,10 +282,10 @@ class Almanac:
         return out
 
 
-    def bodies_short(self):
+    def bodies_short(self, rows=None):
         """ALMS / HALMH: Sun; Moon if above the horizon; the first planet above the
         horizon in the order Venus, Jupiter, Mars, Saturn; the 3 brightest stars higher
-        than 10 deg."""
+        than 10 deg (rows: stars until the list has that many rows - HALMH, 8)."""
         s = self.sun
         out = [(0, s.gha, s.dec) + self.hcz(s.dec, s.gha)]
         m = self.moon
@@ -300,7 +300,7 @@ class Almanac:
                 break
         k = 0
         for n in BRIGHT:
-            if k >= 3:
+            if (len(out) >= rows) if rows else (k >= 3):
                 break
             g, d, _ = self.star(n)
             hc, zn = self.hcz(d, g)
@@ -360,8 +360,7 @@ def almf(al, short=False):
     x = sc.text(y1, 196, 'MOON '); x = sc.pinb(y1, x, al.illum); x = sc.text(y1, x, '% '); sc.text(y1, x, moon_word(al))
     x = sc.text(y2, 196, 'AGE '); x = sc.pf1(y2, x, al.age); sc.text(y2, x, ' DAYS')
     x = sc.text(y3, 196, 'HP '); x = sc.pf1(y3, x, al.moon[2]); x = sc.text(y3, x, ' SD '); sc.pf1(y3, x, al.moon[3])
-    sc.small(1, 126, WARNING)
-    return [sc.rows()]
+    return [sc.rows()]                                       # the warning line: menu and INFO only
 
 
 def _row(sc, y, ident, g, d, hc, zn, NX, GX, DX, HX, ZX):
@@ -408,7 +407,7 @@ def halmv(al):
     sc.text(226, 388, al.source)
     sc.text(212, X0, 'S' if al.lat < 0 else 'N'); sc.pdm(212, X0 + 2, abs(al.lat))
     sc.text(212, X0 + 70, 'W' if al.lon < 0 else 'E'); sc.pdm(212, X0 + 72, abs(al.lon))
-    sc.text(198, X0, 'ARIES'); sc.pdm(198, X0 + 50, s.aries)
+    # no ARIES row (blank)
     sc.text(184, X0 + 34, 'BODY'); sc.text(184, X0 + 148, 'HC'); sc.text(184, X0 + 194, 'ZN')
     y = 170
     for ident, g, d, hc, zn in al.bodies():
@@ -432,9 +431,7 @@ def halmv(al):
         if hc < 0:
             sc.xor_box(y - 1, X0 + 126, 55, 14)
         y -= 14
-    x = sc.text(24, X0, 'MOON '); x = sc.pinb(24, x, al.illum); x = sc.text(24, x, '% '); sc.text(24, x, moon_word(al))
-    sc.small(8, X0 + 38, WARNING)
-    return [sc.rows()]
+    return [sc.rows()]                                       # no Moon line, no warning (blank)
 
 
 # ---------------------------------------------------------------- HORZ / HORZS
@@ -801,7 +798,7 @@ def halmh(al):
         if hc > 1e-4:
             sc.dot4(y, x)
     y = TOP
-    for ident, g, d, hc, zn in al.bodies_short():
+    for ident, g, d, hc, zn in al.bodies_short(rows=8):
         _, _, cx, cy = pos(d, g)
         if ident == 0:
             if hc > 0:
@@ -816,12 +813,7 @@ def halmh(al):
             sc.pinb(cy - 6, lx, ident)
         _row(sc, y, ident, g, d, hc, zn, NX, GX, DX, HX, ZX)
         y -= 14
-    sc.text(23, 2, 'RISE'); sc.phm(23, 44, t['RISE']); sc.text(23, 92, 'SET'); sc.phm(23, 128, t['SET'])
-    sc.text(23, 176, 'MER'); sc.phm(23, 214, t['TRAN']); sc.text(23, 262, 'ARIES'); sc.pdm(23, 312, s.aries)
-    sc.text(9, 2, 'TWI'); sc.phm(9, 36, t['NTWA']); sc.phm(9, 78, t['NTWP'])
-    x = sc.text(9, 176, 'MOON '); x = sc.pinb(9, x, al.illum); x = sc.text(9, x, '% '); sc.text(9, x, moon_word(al))
-    sc.small(1, 126, WARNING)
-    return [sc.rows()]
+    return [sc.rows()]                                       # no footer: the table goes on to the bottom
 
 
 # ---------------------------------------------------------------- BODY (one body)

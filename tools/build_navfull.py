@@ -24,15 +24,15 @@ Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
   TBL_1.txt, TBL_5.txt  almanac tables for 1 and 5 years (from 1 Oct 2026): load ONE, XEQ "TBL"
                once, then delete (build/dev/TBL_4M.txt: the 4-month table of the tests)
 
-Menu NAV (graphic, KEY?: key the number; every view waits for + to come back):
-1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMT, one page per R/S),
-4 SKY (HORZ, info line per body without end), 5 SMALL (ALMS: Sun, Moon, 1 planet,
-3 stars), 6 SPLIT (HALMH: chart on top, the same short table below), 7 BODY (one body:
-list above the horizon, key its number, text pages, then the chart), 8 ANIM (HANIM:
-the Sun and the Moon moving on the horizon chart, 24 frames 0.5 h apart, 1 s each),
-9 ALLSKY (the whole sky: horizon across the middle, over / under the horizon).
-Not included: HORZS, HPLT, HALM, ALM (manual table method), SNAM, SUNSD and
-the font demos.
+Menu NAV (graphic, KEY?: key the number; every view waits for + to come back; key 9 takes a
+picture of the screen with SNAP, in the menu and in every view):
+1 ALMANAC (ALMF), 2 CHART (HALMV), 3 TEXT (ALMR: the page into the registers, NAV ends),
+4 SKY (HORZ, info line per body without end), 5 SPLIT (HALMH: chart on top, the table below
+to the bottom of the screen), 6 ANIM (HANIM: the Sun and the Moon moving on the horizon chart,
+24 frames 0.5 h apart, 1 s each), 7 ALLSKY (the whole sky: horizon across the middle, over /
+under the horizon), 8 INFO. The warning line is in the menu and INFO (not on the views).
+Not included: ALMS (the old 5 SMALL), HORZS, HPLT, HALM, ALM (manual table method), SNAM,
+SUNSD and the font demos.
 
   python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVFULL_NOTBL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL_1.txt, TBL_5.txt
 """
@@ -42,7 +42,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROG = os.path.join(ROOT, 'programs')
 OUT = os.path.join(ROOT, 'build')
 
-KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
+KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'HALMH', 'STXT', 'SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ', 'SUNRISE', 'PHAS',
         'SBRT', 'SNMU', 'TGET', 'PTXS', 'PTXT', 'HANIM', 'ALLSKY', 'WPLS', 'CACHE']
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
@@ -117,7 +117,7 @@ def no_tables(progs):
     p['PLAN'] = cut(s[:i] + s[j:], 'LBL "PLN3"\nFS? 10\nGTO "PLN2"\n', 'LBL "PLN3"\n')
     # BODY: Moon distance from the tables and its "T" letter
     # screens: "T" letter (FS? 11 XEQ 29, LBL 29 "T" ...)
-    for n in ('ALMF', 'ALMS', 'ALMT', 'HALMV', 'HALMH', 'HORZ'):
+    for n in ('ALMF', 'ALMT', 'HALMV', 'HALMH', 'HORZ'):
         p[n] = cut(p[n], 'FS? 11\nXEQ 29\n')
         p[n] = re.sub(r'LBL 29\n"T"\n(STO \d+\n)?RTN\n', '', p[n], count=1)
     s = ''.join(p.values())
@@ -130,7 +130,7 @@ LABEL_OPS = ('LBL', 'XEQ', 'GTO')
 
 # what every program label does (NAVFULL_LABELS.txt); FONT = text-drawing routine
 LABEL_TEXT = {
- 'NAV':   'graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)',
+ 'NAV':   'graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)',
  'CSUN':  'Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place',
  'CMOO':  'Moon from the cache',
  'CPLN':  'planet from the cache',
@@ -148,13 +148,13 @@ LABEL_TEXT = {
  'CEQR':  'celestial equator of the charts: next dot (from ALMQ, or HCZR and record)',
  'WPLS':  'every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier',
  'ALMF':  'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
- 'HALMV': 'view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right',
+ 'HALMV': 'view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right (no ARIES, no Moon line)',
  'ALMR':  'view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS',
  'HORZ':  'view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)',
- 'ALMS':  'view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)',
- 'HALMH': 'view 6 SPLIT: horizon chart on top, short almanac below',
- 'HANIM': 'view 7 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
- 'ALLSKY':'view 8 ALLSKY: whole sky, over the horizon above, under the horizon below',
+ 'ALMS':  'short almanac (Sun, Moon, 1 planet, 3 stars; not in the NAV menu)',
+ 'HALMH': 'view 5 SPLIT: horizon chart on top, the bodies below (8 rows)',
+ 'HANIM': 'view 6 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
+ 'ALLSKY':'view 7 ALLSKY: whole sky, over the horizon above, under the horizon below',
  'SDM':   'text: degrees and minutes "ddd°mm.m\'" as a string',
  'SNS':   'text: latitude with N / S',
  'SEW':   'text: longitude with E / W',
@@ -377,7 +377,8 @@ def build():
     progs['PTXT'] = navopt.fonts(progs['PTXT'])
     progs['STXT'] = navopt.stxt(progs['STXT'])
     for n in gencache.VIEWS:
-        progs[n] = gencache.swap(progs[n])
+        if n in progs:
+            progs[n] = gencache.swap(progs[n])
     # characters the big font must draw: every string in the screens and the star names,
     # plus what the number routines print (digits, sign, point, colon, space)
     big = set(strings(progs['NAV']) + strings(progs['ALMF']) + strings(progs['HALMV']) + strings(progs['HORZ']) + strings(progs['HALMH']) + strings(progs['SNMU']) + strings(progs['ALLSKY'])

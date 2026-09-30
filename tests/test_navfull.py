@@ -37,7 +37,7 @@ for tables in (False, True):
             import datetime; d=datetime.date(2026,9,26)+datetime.timedelta(days=random.randint(0,120)); y,m,dd=d.year,d.month,d.day
         else: y,m,dd=random.choice([2025,2026,2027,2028]),random.randint(1,12),random.randint(1,28)
         j=jd(y,m,dd,random.uniform(0,24)); la=random.uniform(-65,65); lo=random.uniform(-180,180)
-        for v in ('ALMF','HALMV','ALMS','HALMH'):
+        for v in ('ALMF','HALMV','HALMH'):
             a,sa=screen(mini,v,j,la,lo); b,sb=ref.screen(v,j,la,lo)
             n+=1
             if a!=b[0]: bad+=1; print('DIFF',v,(y,m,dd),la,lo)
@@ -101,7 +101,7 @@ c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); 
 try: c.run('NAV',maxsteps=10**7)
 except StopIteration: pass
 print('NAV option 4:', [str(m) for m in c.msgs][:1], 'HORZ frames', len(c.frames), 'pixels', len(c.pix))
-for opt,name in ((5,'ALMS'),(6,'HALMH')):
+for opt,name in ((5,'HALMH'),):
     c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
     c.s=[D(0)]*4; c.keys=[KEYCODE[opt],85,KEYCODE[0]]; c.msgs=[]; c.pix=[]; c.frames=[]
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
@@ -109,19 +109,19 @@ for opt,name in ((5,'ALMS'),(6,'HALMH')):
     c.run('NAV',maxsteps=10**7)
     a={(x,239-y) for y,x in c.frames[1] if 0<=x<400 and 0<=y<240}     # frames: menu, the view (highlight + ants: PAUSE 1), menu
     print('NAV option %d (%s):'%(opt,name), 'same screen' if a==b[0] else 'DIFF', [str(m) for m in c.msgs][:1])
-# option 9 INFO: the page with the licence and the repository, held until +
+# option 8 INFO: the page with the licence and the repository, held until +
 c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False)
-c.s=[D(0)]*4; c.keys=[KEYCODE[9],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
+c.s=[D(0)]*4; c.keys=[KEYCODE[8],85,KEYCODE[0]]; c.msgs=[]; c.frames=[]; c.pix=[]
 c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
 c.run('NAV',maxsteps=10**8)
-print('NAV option 9 (INFO): frames', len(c.frames), 'pixels on the page', len(c.frames[1]), '| ended', c.pix==[])
+print('NAV option 8 (INFO): frames', len(c.frames), 'pixels on the page', len(c.frames[1]), '| ended', c.pix==[])
 # FAST series through INIT option 2
 pass
 mini=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt'],False,fast=True)
 ref=Engine('programs',fast=True); bad=0; n=0
 for k in range(8):
     j=jd(2026+k%5,1+k,3+3*k,2.5+2*k); la=-50+14*k; lo=-170+45*k
-    for v in ('ALMF','HALMV','ALMS','HALMH'):
+    for v in ('ALMF','HALMV','HALMH'):
         a,_=screen(mini,v,j,la,lo); b,_=ref.screen(v,j,la,lo); n+=1
         if a!=b[0]: bad+=1; print('FAST DIFF',v,k)
 print('FAST via INIT: %d screens, %d differences'%(n,bad), [str(m) for m in mini.msgs][-1:] if mini.msgs else '')
@@ -133,7 +133,7 @@ def load_one(path):
     c=c47sim.load(files); c.flags.add(82)
     return c
 ref=Engine('programs',fast=True)
-for name,opts in (('build/dev/NAVALL.txt',(1,2,4,5,6,8)),('build/dev/NAVCOMP.txt',(1,2,4,8))):
+for name,opts in (('build/dev/NAVALL.txt',(1,2,4,5,7)),('build/dev/NAVCOMP.txt',(1,2,4,7))):
     c=load_one(name)
     c.reg['DATE']=D('2026.0926'); c.reg['UTC']=D('14.57'); c.reg['LAT']=D('25.20'); c.reg['LON']=D('55.12')
     res=[]
@@ -141,7 +141,7 @@ for name,opts in (('build/dev/NAVALL.txt',(1,2,4,5,6,8)),('build/dev/NAVCOMP.txt
         keys=[KEYCODE[3]] if 'COMP' in name and k==0 else []          # 3 is not in the compact menu: ignored
         c.s=[D(0)]*4; c.keys=keys+[KEYCODE[opt]]+([11,85] if opt==4 else [85])+[KEYCODE[0]]; c.frames=[]; c.pix=[]
         c.run('NAV',maxsteps=10**8)
-        v={1:'ALMF',2:'HALMV',4:'HORZ',5:'ALMS',6:'HALMH',8:'ALLSKY'}[opt]
+        v={1:'ALMF',2:'HALMV',4:'HORZ',5:'HALMH',7:'ALLSKY'}[opt]
         b,_=ref.screen(v,jd(2026,9,26,14+57/60),25+20/60,55+12/60)
         f=c.frames[1+len(keys)]                                      # an ignored key: the menu waits again                                    # an ignored key: 6 ant frames + the menu again
         res.append({(x,239-y) for y,x in f if 0<=x<400 and 0<=y<240}==b[0])
@@ -217,6 +217,6 @@ for tables in (False, True):
     c=load(['build/NAVINIT.txt','build/dev/src/NAVFULL.txt']+(['build/dev/TBL_4M.txt'] if tables else []), tables)
     ref=Engine('programs', tables=tables); ok=[]
     for k,(j,la,lo) in enumerate(((jd(2026,10,5,3.3),-33.9,18.4),(jd(2026,11,12,21.7),51.5,-0.1))):
-        for v in ('HALMV','ALMS','ALMF','HALMH','ALLSKY','ALMF'):
+        for v in ('HALMV','ALMF','HALMH','ALLSKY','ALMF'):
             a,_=screen(c,v,j,la,lo); b,_=ref.screen(v,j,la,lo); ok.append(a==b[0])
     print('CACHE same time, all views', 'tables' if tables else 'series', ok.count(True), 'of', len(ok), 'same')

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """genhh.py - HALMH: horizon chart on top (full width, sine altitude scale), short almanac
 table below in the status-bar font (PTXS): Sun, Moon, the first planet above the horizon
-in the order Venus, Jupiter, Mars, Saturn, the 3 brightest stars higher than 10 deg.
-Footer: rise, set, meridian passage, ARIES; twilight and the Moon phase.
+in the order Venus, Jupiter, Mars, Saturn, then the brightest stars higher than 10 deg until
+the table reaches the bottom of the screen (8 rows). No footer, no warning line.
 Writes programs/HALMH.txt"""
 import math, os
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -15,11 +15,8 @@ NX, GX, DX, HX, ZX = 36, 128, 196, 262, 338   # as ALMF: name (star number at 17
 HY, HS = 129, 89                       # horizon row, pixels for sin(Hc) = 1
 TOP = 107                              # first table row
 a('LBL "HALMH"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10')
-for reg, lab in ((13, 'NTWA'), (14, 'RISE'), (15, 'TRAN'), (16, 'SET'), (17, 'NTWP')):
-    a('XEQ 26', 'XEQ "%s"' % lab, 'STO %d' % reg)
 a('RCL 10', 'STO 90', 'RCL 11', 'STO 91', 'RCL 12', 'STO 92', 'XEQ "HCZI"', 'CLLCD')
 a('RCL 10', 'XEQ "SUNA"', 'STO 45', 'R↓', 'STO 46', 'R↓', 'STO 48')
-a('XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19')
 # header: date, UT, DR, T/S/X
 num(226, 2, 10, 'PDTS')
 a(226, 80, 'RCL 10', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"'); txt(226, 116, 'UT')
@@ -50,27 +47,19 @@ a('XEQ "MOO2"', 'STO 45', 'R↓', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', 'RCL 9
 # the first planet above the horizon: Venus, Jupiter, Mars, Saturn (LBL 91-94)
 a('1.004', 'STO 24', 'LBL 17', 'RCL 24', 'IP', '90', '+', 'STO 43', 'XEQ IND 43', 'STO 42', 'XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46',
   'RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'GTO 18', 'ISG 24', 'GTO 17', 'GTO 19', 'LBL 18', 'XEQ 63', 'LBL 19')
-# the 3 brightest stars higher than 10 deg
-a('0', 'STO 24', '1.058', 'STO 42', 'LBL 30', '3', 'RCL 24', 'X≥Y?', 'GTO 32',
+# the brightest stars higher than 10 deg until the table reaches the bottom (row 9: 8 rows in all)
+a('0', 'STO 24', '1.058', 'STO 42', 'LBL 30', '9', 'RCL 40', 'X<Y?', 'GTO 32',
   'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 31', 'XEQ "STR2"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52',
   '10', 'RCL 96', 'X≤Y?', 'GTO 31',
   'XEQ 57', 'RCL 40', '1', '"*"', 'XEQ "PTXS"', 'RCL 40', '17', 'RCL 82', 'XEQ "PINS"',
   'RCL 82', 'XEQ "SNMU"', 'STO 43', 'RCL 40', NX, 'RCL 43', 'XEQ "PTXS"', 'XEQ 60',
   '1', 'STO+ 24', 'LBL 31', 'ISG 42', 'GTO 30', 'LBL 32')
-# footer: rise, set, meridian passage, ARIES | twilight, Moon
-txt(23, 2, 'RISE'); num(23, 44, 14, 'PHMS'); txt(23, 92, 'SET'); num(23, 128, 16, 'PHMS')
-txt(23, 176, 'MER'); num(23, 214, 15, 'PHMS'); txt(23, 262, 'ARIES'); num(23, 312, 48, 'PDMS')
-txt(9, 2, 'TWI'); num(9, 36, 13, 'PHMS'); num(9, 78, 17, 'PHMS')
-a('"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 18', '99.5', 'X≤Y?', 'XEQ 25', 'RCL 18', '0.5', 'X>Y?', 'XEQ 33')
-a(9, 176, '"MOON "', 'XEQ "PTXS"', 'RCL 18', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"')
+# no footer: the table goes on to the bottom of the screen
 # T tables / S series / X outside the FAST period (flag 11 is set by MOO2: draw last)
 a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
-a(1, 126, '"DOES NOT REPLACE THE NAUTICAL ALMANAC"', 'XEQ "PTXT"')
 a('XEQ "WPLS"', 'RTN')                                         # hold until + (back to the menu)
 # subroutines
-a('LBL 26', 'RCL 10', '0.5', '-', 'IP', '0.5', '+', 'RCL 11', 'RCL 12', 'RTN')
 a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
-a('LBL 25', '"FULL"', 'STO 43', 'RTN', 'LBL 33', '"NEW"', 'STO 43', 'RTN', 'LBL 28', '"WANING"', 'STO 43', 'RTN')
 a('LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
 a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')          # equator dot: 2 x 2 pixels
 a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "PTXS"', 'RTN')

@@ -481,3 +481,39 @@ INIT with the builders as LBL 01-04.
 - ATEXT goes to the next line when a text ends after x 380: a chained text must start at or
   before 380 (the SKY view's DR line moved left for its last digit).
 - Program bytes 42,130 -> 34,136; tests/test_navfull_atext.py.
+
+## Sep 30, 2026 - ATEXT builds, second round
+
+- tools/atext_common.py: one set of text routines for all _ATX builds. The number printers no
+  longer go character by character: first digit from LBL 48-57, then alpha-IP (whole numbers,
+  two-digit fields) and x->alpha (signs, '.', ':'), one ATEXT. Text-routine steps for the
+  ALMANAC screen: NAVLITTLE 15,323 (5 x 7 font) -> 9,642 (first ATEXT version) -> 4,289;
+  NAVFULL 30,987 -> 12,160 -> 5,721. String register: R18 (DM42), R49 (NAVFULL; SBRT / SNMU use
+  it only before a printer runs). No named variable, no flag.
+- genviews_atx.py: SMALL = True (programs/atext/, NAVFULL_ATX) keeps NAVFULL's charts: axes,
+  marks, letters, OVER / UNDER, ALLSKY small stars with numbers, SKY DR line and T / S in the
+  small font; SMALL = False (programs/atext/big/: ALMF, HALMV) all ATEXT for the DM42 builds.
+  No warning line on the views (menu, INFO and the TEXT page keep it).
+- build_dm42_atext.py: the DM42 views from programs/atext/big/ (Moon, planets and phase cut as
+  build_dm42 does; unused local routines dropped); PSYM = the 5 x 7 Sun and star only; no PTXT.
+- Program bytes: NAVLITTLE 12,716 -> 8,119; NAV1T 15,216 -> 10,619; NAV12 18,516 -> 13,865;
+  NAVFULL 42,130 -> 36,915.
+
+## Oct 1, 2026 - NAVFULL_ATX: menu without SMALL, CHART and SPLIT
+
+- Menu 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO 0 END (ALMS not in the
+  build). gennav: TEXT and INFO found by their view (VIEWS entry 'ALMT' / None) and their labels
+  9 + d, so a shorter menu works; NAV.txt for NAVFULL is unchanged.
+- CHART (HALMV, SMALL variant): no ARIES row, no Moon line and no Moon phase (PHA2) - blank.
+- SPLIT (HALMH, SMALL variant): no footer and no sun events / phase; the stars fill the table
+  until row 9 (8 rows), each also on the chart.
+- Program bytes 34,419 (NAVFULL 42,130).
+- The DM42 NAV12_ATX chart the same way: no ARIES row, no "NO MOON - NO PLANETS" line (the
+  HALMV of genviews_atx has neither in both variants).
+
+## Oct 1, 2026 - ATEXT builds: key 9 = SNAP
+
+- menu-snap merged into dm42-atext (the ATEXT files kept from this branch). NAVFULL_ATX and the
+  DM42 NAV12_ATX / NAV1T_ATX / NAVLITTLE_ATX get SNAP on key 9 from the shared NAV menu (gennav)
+  and WPLS; the ATEXT SKY view (genviews_atx HORZ key loop) got the same RCL 39, 54, X=Y?, SNAP.
+  tests/test_navfull_atext.py checks the snapshots (menu, ALMANAC, SKY).
