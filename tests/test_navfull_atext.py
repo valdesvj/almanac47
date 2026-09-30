@@ -57,4 +57,10 @@ for k, want in CHECK.items():
     ok = all(w in txt for w in want) and not any(w in txt for w in NOT.get(k, ())) and c.frames
     bad += not ok
     print('%-5s %2d screens %6d steps: %s' % (k or 'menu', len(c.frames), c.steps, 'OK' if ok else 'FAILED %s' % [w for w in want if w not in txt]))
+# key 9 (54) = SNAP on the menu, on a view (WPLS) and on SKY (its own key loop)
+for keys, want in (([54, 82], 1), ([72, 54, 85, 82], 1), ([62, 54, 85, 82], 1), ([54, 72, 54, 85, 82], 2)):
+    c, _ = run(keys)
+    n = len(getattr(c, 'snaps', []) or [])
+    bad += n != want
+    print('SNAP  keys %-20s snapshots %d: %s' % (keys, n, 'OK' if n == want else 'FAILED'))
 print('%d failed' % bad)

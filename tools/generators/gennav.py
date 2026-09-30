@@ -23,8 +23,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path[:0] = [os.path.join(ROOT, 'python', 'native'), os.path.dirname(os.path.abspath(__file__))]
 import gencache
 
-ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SMALL', 'SPLIT', 'ANIM', 'ALLSKY', 'INFO']
-VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'ALMS', 'HALMH', 'HANIM', 'ALLSKY', None]      # 9 INFO: a page in NAV
+ITEMS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SPLIT', 'ANIM', 'ALLSKY', 'INFO']
+VIEWS = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY', None]      # 8 INFO: a page in NAV
+SNAPKEY = 54                           # key 9: SNAP (a picture of the screen) in the menu and every view
 INFO = ['ALMANAC 47 - INFO', '', 'GITHUB.COM/VALDESVJ/ALMANAC47', 'COPYRIGHT 2026 VICTOR VALDES', 'FREE SOFTWARE: GNU GPL V3 OR LATER', '',
         'NO WARRANTY - IT MAY HAVE BUGS AND', 'ALWAYS CROSS-CHECK THE VALUES', 'WITH THE NAUTICAL ALMANAC', '', 'THE ANTS ARE WAITING FOR A FLAG']
 TOP, PITCH, XL, XR = 176, 28, 16, 206
@@ -42,8 +43,8 @@ SHOW = 'PAUSE 0'
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 
 
-ALL = list(range(1, 10))
-COMPACT = [1, 2, 4, 8, 9]              # compact version: ALMANAC CHART SKY ALLSKY INFO
+ALL = list(range(1, len(ITEMS) + 1))
+COMPACT = [1, 2, 4, 7, 8]              # compact version: ALMANAC CHART SKY ALLSKY INFO
 
 
 def place(d, items=ALL):
@@ -127,14 +128,14 @@ def program(inp, items=ALL, autoinit=False):
     # SHOW (PAUSE 0): on the real C47 the screen is only sent to the display at a PAUSE (or a key), not
     # while the program waits in a KEY? loop - without it the menu stays invisible until a key
     a(SHOW, 'LBL 02', 'KEY? 39', 'GTO 02',
-      'RCL 39', 82, 'X=Y?', 'GTO 09',
+      'RCL 39', 82, 'X=Y?', 'GTO 09', 'RCL 39', SNAPKEY, 'X=Y?', 'GTO 25',       # 9: SNAP, the menu stays
       'RCL 39', UP, 'X=Y?', 'GTO 22', 'RCL 39', DOWN, 'X=Y?', 'GTO 23',        # arrows: the menu one hour later / earlier
       'RCL 39', 10, '÷', 'IP', 'STO 38', 5, 'X>Y?', 'GTO 26', 'RCL 38', 7, 'X<Y?', 'GTO 26',     # row 5-7
       'RCL 39', 10, 'MOD', 'STO 37', 2, 'X>Y?', 'GTO 26', 'RCL 37', 4, 'X<Y?', 'GTO 26',        # column 2-4
       7, 'RCL- 38', 3, '×', 'RCL+ 37', 1, '-', 'STO 38')                                   # the digit
     for d in items:
         a(d, 'RCL 38', 'X=Y?', 'GTO %d' % (60 + d))
-    a('LBL 26', 'GTO 02')                                                   # another key: ignored, the menu stays
+    a('LBL 26', 'GTO 02', 'LBL 25', 'SNAP', 'GTO 02')                       # another key: ignored, the menu stays; 9: SNAP
     a('LBL 03', 0, 'STO 39')                                                # LBL 03: (re)draw view VW
     for d in items:
         a(d, 'RCL "VW"', 'X=Y?', 'GTO %d' % (9 + d))

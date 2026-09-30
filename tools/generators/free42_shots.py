@@ -8,7 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 OUT = os.path.join(ROOT, 'docs', 'free42')
 KEY = {1: 29, 2: 30, 3: 31, 4: 24, 5: 25, 6: 26, 7: 19, 8: 20, 9: 21}
-NAMES = {0: 'menu', 1: 'almanac', 2: 'chart', 3: 'text', 4: 'sky', 5: 'small', 6: 'split', 7: 'anim', 8: 'allsky', 9: 'info'}
+NAMES = {0: 'menu', 1: 'almanac', 2: 'chart', 3: 'text', 4: 'sky', 5: 'split', 6: 'anim', 7: 'allsky', 8: 'info'}
 
 
 def png(pbm, dst):
@@ -27,10 +27,10 @@ def main():
     t = tempfile.mkdtemp()
     cmd = ['paste %s/build/free42/NAVINIT_FAST.txt' % ROOT, 'paste %s/build/free42/NAVFULL.txt' % ROOT,
            'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20', 'num 55.12', 'shot %s/v0.pbm' % t]
-    for v in (1, 2, 3, 5, 6, 8, 9):
+    for v in (1, 2, 3, 5, 7, 8):
         cmd += ['key %d' % KEY[v], 'shot %s/v%d.pbm' % (t, v), 'key 37']
     cmd += ['qkey 37 3500 %s/v4.pbm' % t, 'key 24']                  # SKY: the name line changes every 3 s
-    cmd += ['film %s/a' % t, 'key 19', 'stopfilm', 'shot %s/v7.pbm' % t, 'key 37']
+    cmd += ['film %s/a' % t, 'key 26', 'stopfilm', 'shot %s/v6.pbm' % t, 'key 37']
     subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=300)
     for v, n in NAMES.items():
         if os.path.exists('%s/v%d.pbm' % (t, v)):

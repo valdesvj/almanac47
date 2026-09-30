@@ -137,7 +137,8 @@ def nav1_programs(p, chart=False):
     back = {'XEQ "%s"' % n: 'XEQ "%s"' % o for o, n in gencache.SWAP.items()}
     for v in ('ALMF', 'ALMT') + (('HALMV',) if chart else ()):
         A = [back.get(l, l) for l in p[v]]
-        A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
+        if 'XEQ "PHA2"' in A:                              # the chart has no Moon phase any more
+            A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
         i = A.index('XEQ "MOO2"')
         j = A.index('1.058', i)
         assert 'XEQ "PLN3"' in A[i:j] and A[j - 1].startswith('GTO '), v
@@ -184,7 +185,6 @@ def programs():
     p['ALMT'] = cut(p['ALMT'], '"MOON "', '"   DOES NOT REPLACE THE NAUTICAL ALMANAC    "')    # ALMR (TEXT)
     p['ALMF'] = cut(p['ALMF'], '"WAXING"', '"S"', ['47', '196', '"NO MOON - NO PLANETS"', 'XEQ "PTXS"',
                                                     '33', '196', '"DM42 BETA"', 'XEQ "PTXS"'])
-    p['HALMV'] = cut(p['HALMV'], '"WAXING"', '"S"', ['24', '176', '"NO MOON - NO PLANETS"', 'XEQ "PTXS"'])
     return p
 
 

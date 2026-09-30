@@ -70,7 +70,8 @@ S += [P('3. Starting NAV', h2),
       img('NAV_menu.png', 0.8),
       P('Title ALMANAC 47, the period the matrices are valid for, the date, UT and DR in use.', small),
       prose_tbl([['Key', 'On the menu', 'On a view'],
-                 ['1 – 9', 'the item is highlighted and its view is drawn', '—'],
+                 ['1 – 8', 'the item is highlighted and its view is drawn', '—'],
+                 ['9', 'SNAP (a screenshot)', 'SNAP (a screenshot)'],
                  ['+', '—', 'back to the menu'],
                  ['▲ / ▼', 'one hour later / earlier (the title shows the new time)', 'the same view one hour later / earlier'],
                  ['0', 'end of NAV: clears the screen and the stack', '—'],
@@ -85,22 +86,24 @@ S += [PageBreak(), P('5. The views', h2),
            'the brightest stars higher than 10°; twilight, rise/set, meridian passage, Moon phase, HP, SD. '
            '23 Sep 2026 23:30 UT, 10° N 075° 30′ W.',
            '<b>2 CHART</b> (HALMV): the sky on the left (Hc up, Zn across, the celestial equator dotted), '
-           'the Hc/Zn table on the right. Same time and place.'),
+           'the Hc/Zn table on the right (no ARIES row, no Moon line). Same time and place.'),
       Spacer(1, 4),
-      pair('HORZ_axes_night.png', 'ALMS_preview.png',
+      pair('HORZ_axes_night.png', 'HALMH_preview.png',
            '<b>4 SKY</b> (HORZ): full-screen chart; the top line names each body in turn (3 s each), UT at the top right, '
            'DR under it. 23 Sep 2026 03:00 UT, 30° N 0° E.',
-           '<b>5 SMALL</b> (ALMS): short almanac: the Sun, the Moon, one planet, three stars.'),
-      Spacer(1, 4),
-      pair('HALMH_preview.png', 'NAV_info.png',
-           '<b>6 SPLIT</b> (HALMH): the chart on top, the short almanac below.',
-           '<b>9 INFO</b>: the repository (github.com/valdesvj/almanac47), the licence (GNU GPL v3 or later), '
-           'no warranty, and the rule: always cross-check the values with the Nautical Almanac.'),
+           '<b>5 SPLIT</b> (HALMH): the chart on top, the bodies below down to the bottom of the screen (8 rows). '
+           '26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E.'),
       Spacer(1, 4),
       pair('ANIM_preview.png', 'ALLSKY_preview.png',
-           '<b>7 ANIM</b> (HANIM): the Sun and the Moon moving over 12 hours (24 frames, 1 s each).',
-           '<b>8 ALLSKY</b>: the whole sky, over the horizon above, under the horizon below: every star, '
+           '<b>6 ANIM</b> (HANIM): the Sun and the Moon moving over 12 hours (24 frames, 1 s each).',
+           '<b>7 ALLSKY</b>: the whole sky, over the horizon above, under the horizon below: every star, '
            'the Sun, the Moon and the planets; DAY / TWILIGHT / NIGHT.'),
+      Spacer(1, 4),
+      img('NAV_info.png', 0.49),
+      P('<b>8 INFO</b>: the repository (github.com/valdesvj/almanac47), the licence (GNU GPL v3 or later), '
+        'no warranty, and the rule: always cross-check the values with the Nautical Almanac. The warning line '
+        '(DOES NOT REPLACE THE NAUTICAL ALMANAC) is on the menu and on INFO only.', small),
+      P('<b>9 SNAP</b>, on the menu and on every view: a screenshot of the screen (SNAP), then the same screen again.'),
       P('<b>3 TEXT</b> (ALMR): the same page as text, one line per register (R50 …, lines 1–26 also in the stack and '
         'the lettered registers). NAV ends and opens the register browser (REGS). XEQ "NAV" for the menu again.'),
       P('<b>Below the horizon:</b> a body with a negative Hc (in practice the Sun) has its Hc shown white on black, '

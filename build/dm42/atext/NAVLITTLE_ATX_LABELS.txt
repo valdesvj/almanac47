@@ -1,6 +1,6 @@
 NAVLITTLE_ATX - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N02     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N03     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)

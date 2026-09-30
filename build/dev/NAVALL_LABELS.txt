@@ -1,14 +1,13 @@
 NAVALL - program labels (NAV keeps its name; load NAVINIT_FAST or NAVINIT_FULL too:
 the first NAV runs INIT, flag 81 remembers it; then delete INIT by hand; CF 81 before loading INIT again)
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-8 a view, 9 INFO, 0 ends (the only named program; INFO page inside)
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
 INIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
-N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right
+N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right (no ARIES, no Moon line)
 N03     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
 N04     HORZ    view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
-N05     ALMS    view 5 SMALL: short almanac (Sun, Moon, 1 planet, 3 stars)
-N06     HALMH   view 6 SPLIT: horizon chart on top, short almanac below
+N06     HALMH   view 5 SPLIT: horizon chart on top, the bodies below (8 rows)
 N07     SDM     text: degrees and minutes "ddd°mm.m'" as a string
 N08     SNS     text: latitude with N / S
 N09     SEW     text: longitude with E / W
@@ -62,8 +61,8 @@ N56     PHLS    FONT big: horizontal line (X = length in pixels)
 N57     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
 N58     PTNS    FONT small: whole number
 N59     PT1     FONT small: number with one decimal
-N60     HANIM   view 7 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
-N61     ALLSKY  view 8 ALLSKY: whole sky, over the horizon above, under the horizon below
+N60     HANIM   view 6 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
+N61     ALLSKY  view 7 ALLSKY: whole sky, over the horizon above, under the horizon below
 N62     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N63     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 N64     CMOO    Moon from the cache

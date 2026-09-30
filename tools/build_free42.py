@@ -310,6 +310,8 @@ def conv(L, name):
             out.append('RAN')
         elif l == 'CLSTK':
             out.append('CLST')
+        elif l == 'SNAP':                             # key 9: no SNAP in Free42 - print the screen (PRLCD)
+            out.append('PRLCD')
         elif l.startswith('WSIZE'):
             continue
         elif l == 'PIXEL':
@@ -422,7 +424,8 @@ def nav():
 
 def wpls():
     return ['LBL "WPLS"'] + (['XEQ "RF"'] if RLCD[0] else []) + ['LBL 01', 'GETKEY', 'XEQ "KM"', 'STO 39', 'RCL 39', '85', 'X=Y?', 'RTN',
-            'RCL 39', '51', 'X=Y?', 'RTN', 'RCL 39', '61', 'X=Y?', 'RTN', 'GTO 01', 'END']
+            'RCL 39', '51', 'X=Y?', 'RTN', 'RCL 39', '61', 'X=Y?', 'RTN',
+            'RCL 39', '54', 'X=Y?', 'PRLCD', 'GTO 01', 'END']          # key 9: print the screen (C47: SNAP)
 
 
 def programs():
@@ -463,7 +466,13 @@ def assemble(N, p, big_src=None):
             progs[n] = conv(font(n, chars, big_src if n == 'PTXS' else None)[0], n)
         else:
             progs[n] = conv(p[n], n)
-    return conv(N, 'NAV') + [l for n in keep if n in progs for l in progs[n]] + lib()
+    L = conv(N, 'NAV') + [l for n in keep if n in progs for l in progs[n]]
+    lb = lib()
+    if 'XEQ "TPG"' not in L:                               # the text page (small font) only with TEXT
+        i = lb.index('LBL "TPG"')
+        j = lb.index('RTN', lb.index('XSTR "+ MENU"', i))
+        lb = lb[:i] + lb[j + 1:]
+    return L + lb
 
 
 def little_programs():

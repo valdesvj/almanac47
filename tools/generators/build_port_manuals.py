@@ -98,7 +98,8 @@ def free42():
           img(F('menu'), 0.6),
           P('5. Keys', h2),
           prose_tbl([['Key', 'On the menu', 'On a view'],
-                     ['1 – 9', 'the item is highlighted and its view is drawn', '—'],
+                     ['1 – 8', 'the item is highlighted and its view is drawn', '—'],
+                     ['9', 'PRLCD: the screen to the printer (a screenshot)', 'PRLCD'],
                      ['+', '—', 'back to the menu'],
                      ['▲ / ▼', 'one hour later / earlier', 'the same view one hour later / earlier'],
                      ['0', 'end of NAV (screen and stack cleared)', '—'],
@@ -112,12 +113,13 @@ def free42():
           pair(F('text'), F('sky'), '<b>3 TEXT</b>: the almanac page as text, drawn with the small font; the lines are '
                'also in R50 … (Free42 has no register browser). + back to the menu.',
                '<b>4 SKY</b>: full-screen chart; the top line names each body in turn (3 s each).'), Spacer(1, 4),
-          pair(F('small'), F('split'), '<b>5 SMALL</b>: short almanac.', '<b>6 SPLIT</b>: chart on top, short almanac below.'),
+          pair(F('split'), F('anim'), '<b>5 SPLIT</b>: chart on top, the bodies below down to the bottom.',
+               '<b>6 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).'), Spacer(1, 4),
+          pair(F('allsky'), F('info'), '<b>7 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.',
+               '<b>8 INFO</b>: repository, licence, no warranty, cross-check (the warning is on the menu and INFO only).'),
           Spacer(1, 4),
-          pair(F('anim'), F('allsky'), '<b>7 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).',
-               '<b>8 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.'), Spacer(1, 4),
-          pair(F('info'), F('box_ants'), '<b>9 INFO</b>: repository, licence, no warranty, cross-check.',
-               'The SINKING....ABOUT box while the calculator works, with the ants (flag 97, below).'),
+          img(F('box_ants'), 0.3),
+          P('The SINKING....ABOUT box while the calculator works, with the ants (flag 97, below).', small),
           PageBreak(), P('7. How the screen appears', h2),
           P('Free42 sends every drawing step to the LCD at once, so a program builds each screen up in '
             'front of you (the stars of SKY appear one by one), and the SINKING box is cleared as soon as the next view '

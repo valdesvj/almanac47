@@ -58,7 +58,7 @@ def main():
         j = jd(y, random.randint(1, 12), random.randint(1, 28), random.uniform(0, 24))
         la = random.uniform(-65, 65); lo = random.uniform(-180, 180)
         code = random.choice([60, 61, 62, 63, 64, 65, random.randint(1, 58)])
-        cases = [('ALMF', {}), ('HALMV', {}), ('ALMS', {}), ('HALMH', {}), ('HORZ', {'pauses': 3})]
+        cases = [('ALMF', {}), ('HALMV', {}), ('HALMH', {}), ('HORZ', {'pauses': 3})]
         for view, kw in cases:
             ra, sa = run(a, view, j, la, lo, **kw)
             rb, sb = run(b, view, j, la, lo, **kw)

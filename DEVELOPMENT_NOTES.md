@@ -510,3 +510,10 @@ INIT with the builders as LBL 01-04.
 - Program bytes 34,419 (NAVFULL 42,130).
 - The DM42 NAV12_ATX chart the same way: no ARIES row, no "NO MOON - NO PLANETS" line (the
   HALMV of genviews_atx has neither in both variants).
+
+## Oct 1, 2026 - ATEXT builds: key 9 = SNAP
+
+- menu-snap merged into dm42-atext (the ATEXT files kept from this branch). NAVFULL_ATX and the
+  DM42 NAV12_ATX / NAV1T_ATX / NAVLITTLE_ATX get SNAP on key 9 from the shared NAV menu (gennav)
+  and WPLS; the ATEXT SKY view (genviews_atx HORZ key loop) got the same RCL 39, 54, X=Y?, SNAP.
+  tests/test_navfull_atext.py checks the snapshots (menu, ALMANAC, SKY).
