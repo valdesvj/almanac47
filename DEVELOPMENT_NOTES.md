@@ -517,6 +517,7 @@ INIT with the builders as LBL 01-04.
   DM42 NAV12_ATX / NAV1T_ATX / NAVLITTLE_ATX get SNAP on key 9 from the shared NAV menu (gennav)
   and WPLS; the ATEXT SKY view (genviews_atx HORZ key loop) got the same RCL 39, 54, X=Y?, SNAP.
   tests/test_navfull_atext.py checks the snapshots (menu, ALMANAC, SKY).
+
 ## Oct 1, 2026 - Menu without SMALL, key 9 = SNAP, fewer warnings
 
 - NAV menu (gennav): 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO 0 END. ALMS left
