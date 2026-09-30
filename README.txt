@@ -427,7 +427,7 @@ AGRAPH / PIXEL DEMO (Sep 2026) - extras/DEMOALM.txt (python3 tools/build_demo.py
   commented file each one says what it does and whether it is a FONT routine
   (table: extras/DEMOALM_LABELS.txt).
 
-ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
+ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt, extras/THANKS_ATEXT.txt
   ATEXT r draws the string in register r in the C47 standardFont: Y = row of the bottom of the
   20-row glyph box (base line 4 rows up), X = column; it leaves the Y and X of the next character.
   The CR glyph starts a new line 20 rows down at the start column (several CRs = several lines,
@@ -450,6 +450,10 @@ ATEXT (coming C47 command, Sep 2026) - extras/C64_ATEXT.txt, extras/DEMOATX.txt
   against 23,000 for the AGRAPH page (.p47: 7.9 KB and 10.4 KB against 72.8 KB). Both need a firmware
   with ATEXT. rejig does not know ATEXT yet: convert a copy with VIEW Z in LBL 98 and change
   that one step to ATEXT Z on the calculator.
+  THANKS_ATEXT (XEQ "THANKS"): a thank-you to Jaco Mostert for ATEXT, in the C64 style: the boot
+  screen, 10 PRINT "THANK YOU JACO " typed letter by letter with the cursor, 20 GOTO 10, RUN, then
+  the screen fills with THANK YOU JACO, BREAK IN 10, READY. and the cursor blinks until a key.
+  The text with ATEXT (CR for the lines), the dark border with AGRAPH, the cursor with XOR (GRMOD 3).
 
 MOON WORD (Sep 2026)
   ALMF, HALMV and ALMT show FULL when the Moon is shown 100 %, NEW at 0 %,
@@ -524,6 +528,8 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   Check against JPL (online, optional): link under the screen or menu Info opens a
   window with every C47 value beside JPL Horizons and the difference; --check prints it.
   Almanac tables: box "Almanac tables" (TBL.txt), --tables FILE, --series.
+  Sep 30, 2026: the default tables are build/TBL_5.txt (1 Oct 2026 - 30 Sep 2031), then
+  build/TBL_1.txt, then the old 4-month programs/TBL.txt (or TBL_5/TBL_1/TBL.txt next to c47pc.py).
 
 SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   NAV asks DATE (YYYY.MMDD, read with x→ⅅ ⅅ→J: date format YYYY-MM-DD), UTC, LAT, LON once,
