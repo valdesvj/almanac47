@@ -46,6 +46,7 @@ import gencache, gennav
 OUT = os.path.join(ROOT, 'build', 'free42')
 TEXTPROGS = ('STXT', 'ALMT')                # programs where + may join strings
 ANTFLAG = 97
+TFLAG = 91                             # flag 11 of the C47 programs (values from the tables)
 WAITS = set()
 RLCD = [False]                         # the RLCD build: the LCD shows the screen only where the C47 does
 
@@ -338,6 +339,8 @@ def conv(L, name):
             out += ['RCLEL', 'J+']
         elif l in ('FS? 47', 'SF 47', 'CF 47'):
             out.append(l[:-2] + str(ANTFLAG))
+        elif l in ('FS? 11', 'FC? 11', 'SF 11', 'CF 11'):     # flag 11 (Moon/Sun from the tables): on the
+            out.append(l[:-2] + str(TFLAG))                   # HP-42S 11 is auto-execution: flag 91 instead
         else:
             out.append(l)
     bad = [l for l in out if l.endswith('#2') or l.split(' ')[0] in (
@@ -428,7 +431,7 @@ def programs():
     progs['STXT'] = B.read('STXT')                        # without the C47 text / date functions
     progs['PTXS'] = B.read('PTXS')
     progs['PTXT'] = B.read('PTXT')
-    p = B.no_tables(progs)
+    p = dict(progs)                                       # with the almanac tables (TGET, flag 10)
     p['WPLS'] = wpls()
     return p
 
@@ -449,7 +452,7 @@ def nav_little():
 
 def assemble(N, p, big_src=None):
     """NAV N + the programs it needs (converted) + F42; returns (long names, short names, map)."""
-    keep = [k for k in B.KEEP if k != 'TGET']
+    keep = list(B.KEEP)
     need = B.closure(p, [c for c in B.calls(N) if c != 'INIT'] + (['ALMR'] if 'XEQ "ALMR"' in N else []))
     chars = set(''.join(B.strings(N)) + ''.join(''.join(B.strings(p[n])) for n in need) + '0123456789-.: %')
     progs = {}
@@ -509,14 +512,13 @@ def build(rlcd=False, little=False):
     for kind in ('FULL', 'FAST'):
         L = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'build', 'NAVINIT_%s.txt' % kind), encoding='utf-8') if l.strip()]
         B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % kind), conv(L, 'INIT'))
+    # the almanac tables: TBL_1 (1 year), TBL_5 (5 years) - the same program, strings with XSTR
+    for name in ('TBL_1', 'TBL_5'):
+        src = os.path.join(ROOT, 'build', name + '.txt')
+        if os.path.exists(src):
+            L = [l.rstrip('\n') for l in open(src, encoding='utf-8') if l.strip()]
+            B.write(os.path.join(OUT, name + '.txt'), conv(L, 'TBL'))
     return full
-
-
-if __name__ == '__main__':
-    for rl, li, name in ((True, False, 'NAVFULL'), (False, False, 'dev/NAVFULL_DRAW'), (True, True, 'NAVLITTLE')):
-        L = build(rl, li)
-        print('%-17s %6d lines %7d bytes; waits %s' % (name, len(L), sum(len(l) + 1 for l in L), sorted(WAITS)))
-    raw_files()
 
 
 def raw_files():
@@ -526,8 +528,15 @@ def raw_files():
     if not os.path.exists(f42):
         print('no tools/f42/f42run (sh tools/f42/setup.sh): .raw files not written')
         return
-    for name in ('NAVFULL', 'NAVLITTLE', 'NAVINIT_FULL', 'NAVINIT_FAST', 'NAVINIT_LITTLE', 'dev/NAVFULL_DRAW'):
+    for name in ('NAVFULL', 'NAVLITTLE', 'NAVINIT_FULL', 'NAVINIT_FAST', 'NAVINIT_LITTLE', 'TBL_1', 'TBL_5', 'dev/NAVFULL_DRAW'):
         txt = os.path.join(OUT, name + '.txt')
         r = subprocess.run([f42], input='paste %s\nexport %s\n' % (txt, txt[:-4] + '.raw'), text=True,
                            capture_output=True, timeout=300)
         print(r.stdout.strip().split('\n')[-1])
+
+
+if __name__ == '__main__':
+    for rl, li, name in ((True, False, 'NAVFULL'), (False, False, 'dev/NAVFULL_DRAW'), (True, True, 'NAVLITTLE')):
+        L = build(rl, li)
+        print('%-17s %6d lines %7d bytes; waits %s' % (name, len(L), sum(len(l) + 1 for l in L), sorted(WAITS)))
+    raw_files()

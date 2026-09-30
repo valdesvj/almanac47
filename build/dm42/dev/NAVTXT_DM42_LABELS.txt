@@ -33,3 +33,4 @@ N29     CTWP    civil twilight, evening, UT
 N30     TRAN    meridian passage of the Sun, UT
 N31     SBRT    star number by brightness rank (1st brightest ... 58th)
 N32     SNMU    star name from its number
+N33     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)

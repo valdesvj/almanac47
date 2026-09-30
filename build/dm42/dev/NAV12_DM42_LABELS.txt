@@ -49,3 +49,4 @@ N45     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X tex
 N46     PTNS    FONT small: whole number
 N47     PT1     FONT small: number with one decimal
 N48     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
+N49     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)

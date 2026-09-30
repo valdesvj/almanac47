@@ -406,3 +406,15 @@ INIT with the builders as LBL 01-04.
   tests/test_f42_little.py: f42run against c47sim, 3 dates / places (south, west), start,
   +1 h, -1 h: identical. f42run "num": a leading - is now keyed as +/- after the digits (before,
   +/- negated the old X and the number was entered positive).
+- Tables for 1 and 5 years (Sep 30): c47_almanac_generator.py 2026-10-01 2031-10-02 (55 s) ->
+  tools/almanac/tables_2026-10_2031-09.csv; build_navfull.tables() writes build/TBL_1.txt (8,441
+  numbers, 25,364 lines) and TBL_5.txt (41,882 numbers, 125,687 lines); build/TBL.txt (4 months)
+  is now build/dev/TBL_4M.txt (the tests). All NAV builds read the tables when loaded: the DM42 /
+  NAVLITTLE builds now include TGET, and their SUNA sets flag 11 itself (no Moon there: T for the
+  Sun from the tables); the Free42 builds include TGET, flag 11 -> 91 (HP-42S 11 = auto-exec).
+  Free42 TBL_1.raw 97 KB, TBL_5.raw 481 KB; f42run imports TBL_5.raw and runs it in 0.4 s.
+  tests/test_f42_tables.py: NAVFULL and NAVLITTLE, Free42 = C47 pixel for pixel with TBL_1 and
+  TBL_5; with the tables the values match the FULL series to 0.1' (one digit here and there).
+  C47: TBL_1 as .p47 is 111 KB of program plus 135 KB of matrices: it does not fit in 256 KiB.
+- build_free42.py: raw_files() was defined after the __main__ block (NameError when run).
+
