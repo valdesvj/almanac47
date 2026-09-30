@@ -6,7 +6,7 @@ command in its standard font; only the symbols of the Sun and the stars stay AGR
 glyphs of PTXB, program PSYM). No small font, and the warning line only in the NAV12 menu (the
 views have none).
 
-The ALMANAC view and the NAV12 chart come from tools/generators/atext/genviews_atx.py (the
+The ALMANAC view and the NAV12 chart (no ARIES row, no Moon line, no note under the list) come from tools/generators/atext/genviews_atx.py (the
 all-ATEXT variant, programs/atext/big/): the Moon, the planets and the Moon phase are taken out
 as for the other DM42 builds (build_dm42.py). The text routines are those of atext_common.py:
 PTXS is Didier's N03 trick (the only ATEXT step), the number printers put the number together
@@ -42,7 +42,8 @@ def read_big(name):
 
 def no_moon(A, name):
     """As build_dm42 does for the views: no Moon phase, no Moon and no planet rows."""
-    A = D.seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
+    if 'XEQ "PHA2"' in A:
+        A = D.seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
     i = A.index('XEQ "MOO2"')
     j = A.index('1.058', i)
     assert 'XEQ "PLN3"' in A[i:j] and A[j - 1].startswith('GTO '), name
@@ -76,7 +77,6 @@ def views():
                                      '33', str(note_x), '"DM42 BETA"', 'XEQ "PTXS"'])
     A = unused_locals(no_moon(A, 'ALMF'))
     H = read_big('HALMV')
-    H = D.cut(H, '"WAXING"', '"S"', ['24', '176', '"NO MOON - NO PLANETS"', 'XEQ "PTXS"'])
     H = unused_locals(no_moon(H, 'HALMV'))
     for L in (A, H):
         assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"') for l in L)

@@ -508,3 +508,5 @@ INIT with the builders as LBL 01-04.
 - SPLIT (HALMH, SMALL variant): no footer and no sun events / phase; the stars fill the table
   until row 9 (8 rows), each also on the chart.
 - Program bytes 34,419 (NAVFULL 42,130).
+- The DM42 NAV12_ATX chart the same way: no ARIES row, no "NO MOON - NO PLANETS" line (the
+  HALMV of genviews_atx has neither in both variants).

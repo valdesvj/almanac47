@@ -9,7 +9,8 @@ menu (NAVLITTLE and NAV1T have no menu, so they have none). Needs a C47 firmware
   NAVLITTLE_ATX.txt  NAVLITTLE with ATEXT: the inputs, then the ALMANAC screen
   NAV1T_ATX.txt      NAV1T with ATEXT: + ends with the text page in the registers
   NAV12_ATX.txt      NAV12 with ATEXT: menu 1 ALMANAC 2 CHART 3 TEXT; the chart with its
-                     altitude labels and N E S W in the standard font
+                     altitude labels and N E S W in the standard font, the panel without the
+                     ARIES row and without a line under the list (blank)
   INIT: NAVINIT_LITTLE (build/dm42/), as for NAVLITTLE.
 Screens: docs/DM42_ATEXT_almanac.png.
 
