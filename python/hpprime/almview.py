@@ -1,9 +1,10 @@
-# almview.py - the ALMANAC page (C47 ALMF, "vintage" view) on the HP Prime.
-# Sun + brightest navigation stars: GHA, Dec, Hc, Zn; twilight, rise/set,
-# meridian passage, Sun SD, Moon phase. Needs nav.py, navdata.py, hplib.py.
+# almview.py - the ALMANAC page (C47 ALMF) on the HP Prime, as the C47 views of Oct 2026:
+# one header line (date, UT, DR) with a line under it, the Sun and the same brightest stars
+# as the horizon chart (nav.NBODY bodies), GHA Dec Hc Zn; twilight, rise/set, meridian
+# passage, Sun SD, Moon phase with its glyph. Needs nav.py, navdata.py, hplib.py.
 # Almanac 47. Copyright 2026 Victor Valdes. GPL-3.0-or-later.
 # Supports, does not replace, the Nautical Almanac.
-from hplib import text, rtext, sym, box, BK, WH, GR
+from hplib import text, rtext, sym, moon, header, box, BK, WH, GR
 import hplib
 import nav
 
@@ -19,18 +20,15 @@ def dm(s, xr, y, c=BK):
 def draw(j, la, lo, sel):
     h, tab, f = nav.almanac(j, la, lo)
     box(0, 0, 320, 240, WH)
-    text(h[0] + '  ' + h[1] + ' UT', 1, 0, BK, 4)
-    rtext('DR ' + h[2], 318, 0)
-    rtext(h[3], 318, 10)
-    box(0, 22, 320, 1, BK)
-    text('BODY', 25, 25)
-    rtext('GHA', 170, 25)
-    rtext('DEC', 230, 25)
-    rtext('HC', 284, 25)
-    rtext('ZN', 318, 25)
-    text('ARIES', 25, 37)
-    dm(h[4], 170, 37)
-    y = 49
+    header(j, la, lo)
+    text('BODY', 25, 19)
+    rtext('GHA', 170, 19)
+    rtext('DEC', 230, 19)
+    rtext('HC', 284, 19)
+    rtext('ZN', 318, 19)
+    text('ARIES', 25, 32)
+    dm(h[4], 170, 32)
+    y = 45
     for k, nm, g, d, hc, zn, x in tab:
         if k:
             sym('*', 1, y + 2)
@@ -47,13 +45,15 @@ def draw(j, la, lo, sel):
         else:
             dm(hc, 284, y)
         rtext(zn, 318, y)
-        y += 12
-    box(0, 159, 320, 1, BK)
-    text('NAUT TWI  ' + f[0] + '  ' + f[1], 1, 163)
-    text('RISE/SET  ' + f[2] + '  ' + f[3], 1, 175)
-    text('MER PASS  ' + f[4] + '   SD ' + f[5], 1, 187)
-    text('MOON ' + f[6] + '% ' + f[7], 176, 163)
-    text('AGE ' + f[8] + ' DAYS', 176, 175)
+        y += 13
+    box(0, 151, 320, 1, BK)
+    text('NAUT TWI  ' + f[0] + '  ' + f[1], 1, 156)
+    text('RISE/SET  ' + f[2] + '  ' + f[3], 1, 168)
+    text('MER PASS  ' + f[4] + '   SD ' + f[5], 1, 180)
+    x = text('MOON ' + f[6] + '% ', 176, 156)
+    x = moon(nav.phase_index(float(f[8])), x, 158)
+    text(f[7], x + 2, 156)
+    text('AGE ' + f[8] + ' DAYS', 176, 168)
     t = 'UP/DOWN 1 HOUR   ENTER HORIZON   ESC EXIT'
     rtext(t, 160 + hplib.width(t) // 2, 205, GR)
     t = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'

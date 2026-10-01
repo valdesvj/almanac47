@@ -159,7 +159,10 @@ def hcz(lat, lon, dec, gha):
     return degrees(asin(sh)), (zn + 360.0) % 360.0, sh
 
 
-def bodies(j, lat, lon, n=9, hmin=10.0):
+NBODY = 8      # the same bodies on every view (as the C47 views): Sun + 7 stars here
+
+
+def bodies(j, lat, lon, n=NBODY, hmin=10.0):
     """Table rule of ALMF / HORZ without Moon and planets: the Sun (always), then
     the brightest stars higher than hmin, n rows in all.
     Returns (rows, sun); row = (id, gha, dec, hc, zn, sin hc), id 0 = Sun."""
@@ -188,6 +191,17 @@ def cal(j):
     day = b - d - int(30.6001 * e)
     m = e - 1 if e < 14 else e - 13
     return (c - 4716 if m > 2 else c - 4715), m, day, f * 24.0
+
+
+def phase_index(age):
+    """0 new, 1 waxing crescent, 2 first quarter, 3 waxing gibbous, 4 full, 5 waning gibbous,
+    6 last quarter, 7 waning crescent: the age in eight equal steps (the glyph of the views)."""
+    return int(age / 29.530589 * 8 + 0.5) % 8
+
+
+def daylight(sun_hc):
+    """DAY / TWILIGHT / NIGHT from the Sun's Hc (as the C47 chart views)."""
+    return 'DAY' if sun_hc > 0 else 'TWILIGHT' if sun_hc > -12 else 'NIGHT'
 
 
 def moonword(k, age):
@@ -239,7 +253,7 @@ def fdate(j):
     return '%02d-%02d-%04d' % (d, m, y)
 
 
-def almanac(j, lat, lon, n=9):
+def almanac(j, lat, lon, n=NBODY):
     """The ALMANAC page (ALMF) as strings.
     head: date, UT, lat, lon, GHA Aries
     rows: (id, name, GHA, Dec, Hc, Zn, hc)

@@ -63,15 +63,18 @@ for case in ((2026, 9, 23, 23.5, 10.0, -75.5), (2026, 9, 26, 14 + 57 / 60.0, 25 
             if w not in shown:
                 bad += 1
                 print('C47 value not on screen:', w)
-    rows, s = nav.bodies(j, la, lo, 10)
-    for i, r in enumerate(rows):
+    # horizon view: each body above the horizon, selected in turn, has its name on the
+    # chart; the header and DAY / TWILIGHT / NIGHT
+    rows, s = nav.bodies(j, la, lo)
+    up = [r for r in rows if r[3] > 0]
+    for i, r in enumerate(up):
         hpprime.log[:] = []
         skyview.draw(j, la, lo, i)
-        top = [t for t, x, y, f in hpprime.log if f == 4][0]
-        want = 'ZN ' + nav.f1(r[4]) + ' HC ' + ('-' if r[3] < 0 else '') + nav.f1(r[3])
-        if want not in one(top):
+        drawn = [one(t) for t, x, y, f in hpprime.log]
+        want = 'SUN' if r[0] == 0 else nav.SN[r[0] - 1].upper()
+        if want not in drawn or nav.daylight(rows[0][3]) not in drawn or not drawn[0].startswith(nav.fdate(j)):
             bad += 1
-            print('top line', top, 'expected', want)
-    print(case, 'page lines', len(page), 'bodies', len(rows), 'ok' if not bad else 'DIFFERENCES')
+            print('horizon view: missing', want, 'or header / daylight word', drawn[:3])
+    print(case, 'page lines', len(page), 'bodies', len(rows), 'above the horizon', len(up), 'ok' if not bad else 'DIFFERENCES')
 print('all identical' if not bad else '%d differences' % bad)
 sys.exit(1 if bad else 0)

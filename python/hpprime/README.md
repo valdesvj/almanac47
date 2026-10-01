@@ -7,16 +7,17 @@ app, 2.1.14567 or later), drawn through the calculator's `hpprime` module:
 
 | Script | View | C47 original |
 |---|---|---|
-| `almview.py` | ALMANAC page: date / UT / DR, GHA Aries, BODY GHA DEC HC ZN for the Sun and the brightest navigation stars higher than 10 deg, naut. twilight, rise/set, mer. pass, Sun SD, Moon phase and age | ALMF ("vintage" view) |
-| `skyview.py` | HORIZON chart: Hc up (sine scale), Zn across, celestial equator dotted, Sun and stars with their numbers; the top line shows ZN / HC of the selected body | HORZ |
+| `almview.py` | ALMANAC page: the header line (date, UT, DR) with a line under it, GHA Aries, BODY GHA DEC HC ZN for the Sun and the brightest navigation stars higher than 10 deg, naut. twilight, rise/set, mer. pass, Sun SD, Moon phase with its glyph and age | ALMF ("vintage" view) |
+| `skyview.py` | HORIZON chart: the same header line, Hc up (sine scale), Zn across, celestial equator dotted, Sun and stars with their numbers; the selected body has its name next to it (red); DAY / TWILIGHT / NIGHT at the bottom | HORZ |
 | `main.py` | starts `almview` (the file the Python app runs) | |
 | `hplib.py` | text, symbols, keys, main loop | |
 
 All the numbers come from `../nav.py` + `../navdata.py` (same methods as the C47
 programs SUNA, STAR, SUNRISE, PHAS, HCZ; `nav.almanac()` / `nav.bodies()`), the same
 files as the text menu (`nav.py`, option 5 prints the same page as text). There is no Moon
-position and no planets in `nav.py`, so the table is the Sun plus up to 8 stars (horizon:
-Sun plus 9 stars), chosen like the C47: brightest first, only those higher than 10 deg.
+position and no planets in `nav.py`, so both views show the Sun plus the same 7 stars
+(`nav.NBODY` = 8 bodies, as the C47 views of Oct 2026), chosen like the C47: brightest
+first, only those higher than 10 deg.
 
 Previews made on a PC (see below): `docs/HPPRIME_alm.png`, `docs/HPPRIME_sky.png`
 (26 Sep 2026 14:57 UT, 25 20 N 055 12 E) and `docs/HPPRIME_sky_night.png`
@@ -50,7 +51,7 @@ The six files go into one Python app:
 |---|---|---|
 | UP / DOWN | 2 / 12 | one hour later / earlier |
 | ENTER | 30 | switch ALMANAC <-> HORIZON |
-| LEFT / RIGHT | 7 / 8 | HORIZON: previous / next body for the top line (shown in red) |
+| LEFT / RIGHT | 7 / 8 | HORIZON: previous / next body above the horizon: its name next to it, in red |
 | ESC | 4 | exit (ON also stops a Python program) |
 
 ## Size and memory

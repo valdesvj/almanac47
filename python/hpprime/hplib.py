@@ -11,6 +11,9 @@ GR = 0x8C8C8C
 RD = 0xC80000
 # the same 7x7 symbols as the C47 programs: '*' star, '@' Sun (bit 6 = top row)
 SYM = {'*': b'\x10\x1b\x1e|\x1e\x1b\x10', '@': b'\x1c"AIA"\x1c'}
+# the eight Moon phases (nav.phase_index: 0 new ... 4 full ... 7 waning crescent; waxing lit on
+# the right), 7x7 as SYM: the glyphs of the C47 views (tools/generators/atext/glyphs47.py)
+MP = b'\x1c"AAA"\x1c\x1c"AAA>\x1c\x1c"AA\x7f>\x1c\x1c"\x7f\x7f\x7f>\x1c\x1c>\x7f\x7f\x7f>\x1c\x1c>\x7f\x7f\x7f"\x1c\x1c>\x7f\x7fA"\x1c\x1c>AAA"\x1c'
 _w = {}
 
 
@@ -51,13 +54,30 @@ def rtext(s, xr, y, c=BK, f=1):
 
 def sym(ch, x, y, c=BK):
     """Star or Sun symbol, 7x7, top left at (x, y)."""
-    b = SYM[ch]
+    cols(SYM[ch], 0, x, y, c)
+
+
+def moon(p, x, y, c=BK):
+    """Moon phase glyph p, 7x7, top left at (x, y); returns the next x."""
+    cols(MP, 7 * p, x, y, c)
+    return x + 9
+
+
+def header(j, la, lo):
+    """The header of every view: date, UT, DR; the line under it."""
+    yy, m, d, h = nav.cal(j)
+    text(nav.fdate(j) + '  ' + nav.fhm(h) + ' UT   DR ' + nav.fns(la, 'NS', 0) + '  ' + nav.fns(lo, 'EW', 0), 1, 1)
+    box(0, 14, 320, 1, BK)
+
+
+def cols(b, i, x, y, c=BK):
+    """7 column bytes of b from i (bit 6 = top row): runs of pixels as rectangles."""
     for k in range(7):
         r = 0
         while r < 7:
-            if b[k] >> (6 - r) & 1:
+            if b[i + k] >> (6 - r) & 1:
                 t = r
-                while r < 7 and b[k] >> (6 - r) & 1:
+                while r < 7 and b[i + k] >> (6 - r) & 1:
                     r += 1
                 fillrect(0, x + k, y + t, 1, r - t, c, c)
             r += 1
@@ -84,7 +104,7 @@ busy = 0
 
 def run(v):
     """Ask date, UT and DR, then draw view v (0 ALMANAC, 1 HORIZON).
-    UP/DOWN one hour later/earlier, ENTER other view, LEFT/RIGHT body, ESC exit."""
+    UP/DOWN one hour later/earlier, ENTER other view, LEFT/RIGHT body (horizon), ESC exit."""
     global busy
     busy = 1
     print('ALMANAC 47 - does not')
