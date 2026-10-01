@@ -37,7 +37,7 @@ import c47screen
 import c47screen21
 import c47tables
 
-VERSION = '1.4'
+VERSION = '1.5'
 VERSION_DATE = '2026-10-01'
 PROGRAM = 'C47 Nav PC'
 ABOUT = ("This program began as a set of RPN programs for the SwissMicros C47 calculator: "

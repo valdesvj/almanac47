@@ -92,7 +92,7 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
    NAV uses the 8-level stack while it runs (the fonts need it) and puts your stack size
    back when you leave with 0 or TEXT.
 
-PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.4
+PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
   python3 python/native/c47pc.py           a window (GTK 3): date, UT, DR, a view, Now UTC
   python3 python/native/c47pc.py --view ALMANAC --date 2026-09-26 --ut 14:57 \
           --lat "25 20 N" --lon "55 12 E" --png almanac.png      (PNG only: Python 3 alone)

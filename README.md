@@ -10,7 +10,7 @@ version and the base for a phone app (**Almanac 47**).
   PTXS (the C47 status-bar font), with number printers; usable on their own.
 - **Calculator programs:** `programs/` (start with `NAV`), commented versions in
   `programs_rem/` and `listings/`. See `README.txt` and `PROGRAM_MAP.txt`.
-- **PC, native Python:** `python/native/c47pc.py` v1.4 (GTK window, PNG, text): the views
+- **PC, native Python:** `python/native/c47pc.py` v1.5 (GTK window, PNG, text): the views
   ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON, drawn as the C47 screens of Oct 2026 (MOON,
   the Moon phases, is on the PC only).
 - **PC, reference viewer:** `python/c47view.py` runs the real calculator programs.
