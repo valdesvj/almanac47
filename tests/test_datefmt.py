@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """test_datefmt.py - NAV asks the date in the calculator's date format:
-C47: NAVFULL in the simulator set to Y.MD, D.MY and M.DY (system flags DMY / MDY), the date typed
-in that format. The message line must show the format, and the ALMANAC screen must be the same
+C47: NAVFULL and NAVFULL_T21 (experimental, GRFNT) in the simulator set to Y.MD, D.MY and M.DY
+(system flags DMY / MDY), the date typed in that format. The message line must show the format, and the ALMANAC screen must be the same
 as with Y.MD.
 Free42 always takes YYYY.MMDD (its NAV reads DATE with arithmetic, no date functions): NAVLITTLE
 and the NAVFULL ALMANAC view in tools/f42/f42run with the calculator set to YMD, DMY and MDY
@@ -19,9 +19,12 @@ CASES = (('YMD', '2026.0926', 'DATE YYYY.MMDD'), ('DMY', '26.092026', 'DATE DD.M
 SAME = {'3.022031': '2031.0203'}                        # D.MY 3 Feb 2031 = Y.MD 2031.0203
 
 
-def run(fmt, date):
+NAVS = (os.path.join('build', 'NAVFULL.txt'), os.path.join('build', 'atext', 'NAVFULL_T21.txt'))
+
+
+def run(fmt, date, nav=NAVS[0]):
     t = tempfile.mkdtemp(); files = []
-    progs = t21sim._split(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt')) + t21sim._split(os.path.join(ROOT, 'build', 'NAVFULL.txt'))
+    progs = t21sim._split(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt')) + t21sim._split(os.path.join(ROOT, nav))
     for i, pr in enumerate(progs):
         f = os.path.join(t, 'p%d.txt' % i); open(f, 'w').write('\n'.join(pr) + '\n'); files.append(f)
     c = c47sim.load(files); c.flags.add(82)
@@ -40,15 +43,17 @@ def run(fmt, date):
 
 
 bad = 0
-ref = {}
-for fmt, date, want in CASES:
-    msg, almanac = run(fmt, date)
-    key = SAME.get(date, '2026.0926')
-    if key not in ref:
-        ref[key] = almanac if fmt == 'YMD' else run('YMD', key)[1]
-    ok = msg.startswith(want) and almanac == ref[key]
-    bad += not ok
-    print('%s %-10s message %-16r screen = Y.MD %s: %s' % (fmt, date, msg[:16], key, 'OK' if ok else 'DIFFERENT'))
+for nav in NAVS:
+    ref = {}
+    for fmt, date, want in CASES:
+        msg, almanac = run(fmt, date, nav)
+        key = SAME.get(date, '2026.0926')
+        if key not in ref:
+            ref[key] = almanac if fmt == 'YMD' else run('YMD', key, nav)[1]
+        ok = msg.startswith(want) and almanac == ref[key]
+        bad += not ok
+        print('%-11s %s %-10s message %-16r screen = Y.MD %s: %s' % (os.path.basename(nav)[:-4], fmt, date, msg[:16], key,
+                                                                     'OK' if ok else 'DIFFERENT'))
 
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 F42CASES = ('YMD', 'DMY', 'MDY')      # the commands set flags 67 / 31 (SF / CF: Restricted Operation)
