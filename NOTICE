@@ -18,7 +18,10 @@ the documentation and the texts - with these exceptions:
   - PTXS glyph bitmaps: from the C43/C47 firmware's standardFont, (c) the C43/C47 authors,
     GPL-3.0 (see programs/LICENSE-PTXS.txt).
 
-Written with the help of AI (Claude, by Anthropic).
+Written with the help of AI (Claude by Anthropic, Gemini by Google, Grok by xAI).
+I used AI as a cooperative research and drafting tool, but I reviewed, validated, and
+checked every result, and I take full responsibility for this project, its correctness,
+and any mistakes in it.
 
 SwissMicros, C47, R47, DM42 and HP are trademarks of their owners.
 This project is not affiliated with or endorsed by them.
