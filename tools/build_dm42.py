@@ -215,15 +215,17 @@ def unused_locals(A, ind_targets=None):
         A = out
 
 
-def little_almf():
-    """The ALMANAC view of NAVLITTLE (C47 and Free42): the T21 view with Sun and stars only, and
-    the Moon line of moon_lines() in the footer, where the T21 view has MOON / AGE."""
+def little_almf(moon=True):
+    """The ALMANAC view of NAVLITTLE: the T21 view with Sun and stars only. moon (Free42): the Moon
+    line of moon_lines() in the footer, where the T21 view has MOON / AGE; the C47 builds have no
+    Moon at all (moon=False: the right half of the footer stays empty, no phase glyphs)."""
     A = B.read21('ALMF')
-    A = cut(A, '"WAXING"', '"S"', moon_lines())
+    A = cut(A, '"WAXING"', '"S"', moon_lines() if moon else [])
     A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
     A = cut(A, 'XEQ "MOO2"', '1.058')                  # the Moon and planet rows (LBL 35 / 36 go with them)
     assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in A)
-    A = unused_locals(A, ind_targets=range(48, 56))    # XEQ IND 23: only the phase glyphs (LBL 48-55)
+    A = unused_locals(A, ind_targets=range(48, 56) if moon else ())    # XEQ IND 23: only the phase glyphs (LBL 48-55)
+    assert moon or not any(re.fullmatch(r'XEQ IND 23|LBL (4[89]|5[0-5])', l) for l in A), 'phase glyphs left'
     assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"', 'XEQ "PTTY"') for l in A)
     return A
 
@@ -249,22 +251,25 @@ def nav21(nav):
     return seq(nav, ['CLLCD', 'RCL "SSZ"'], ['20', 'GRFNT', 'DROP', 'CLLCD', 'RCL "SSZ"'])
 
 
-def assemble(nav, p):
+def assemble(nav, p, moon=False):
     """NAV + the programs it calls, the T21 views (ALMF and HALMV without the Moon and planets),
-    the ATEXT text routines and the symbols PSYB / PSYS (only those the views draw)."""
+    the ATEXT text routines and the symbols PSYB / PSYS (only those the views draw: the Sun and the
+    star). The tinyFont routines (PTTY, PTNT) only with the chart (NAV12). moon: the ALMANAC view
+    with the Moon line of Free42 NAVLITTLE (the C47 reference of tests/test_f42_little.py)."""
     q = dict(p)
     if 'XEQ "ALMF"' in nav:
         nav = nav21(nav)
-        q['ALMF'] = little_almf()
+        q['ALMF'] = little_almf(moon)
         q['HALMV'] = little_halmv()
-        q['PTXS'] = AC.printers(navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS')))), '49', True, 21)
+        tiny = 'XEQ "HALMV"' in nav                     # the chart labels in the tinyFont
+        q['PTXS'] = AC.printers(navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS')))), '49', tiny, 21)
         import glyphs47
         q['PSYB'] = glyphs47.program('PSYB', glyphs47.BIG, ws=16)
         q['PSYS'] = glyphs47.program('PSYS', glyphs47.SMALL)
     need = B.closure(q, [c for c in B.calls(nav) if c != 'INIT'])
     assert not need & {'MOON', 'PLAN', 'PHAS', 'PTXT'}, need
-    for f in {'PSYB', 'PSYS'} & need:                   # the symbols the views draw: Sun, star, phases
-        q[f] = B.trim_font(q[f], set(''.join(B.strings(q[n]) for n in need if n not in ('PSYB', 'PSYS'))))
+    for f in {'PSYB', 'PSYS'} & need:                   # only the Sun and the star (and the phases: Free42's Moon line)
+        q[f] = B.trim_font(q[f], set('@*' + ('01234567' if moon and f == 'PSYB' else '')))
     return nav + [l for n in B.KEEP21 if n in need for l in q[n]], sorted(need)
 
 
@@ -314,6 +319,17 @@ def builds():
             'NAV12_DM42': (nav12, p12)}
 
 
+# what the routines do in the DM42 builds (Sun and stars only); the rest as in NAVFULL
+LABEL_TEXT = {
+ 'NAV':   'no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends',
+ 'ALMF':  'ALMANAC: GHA ARIES, GHA, Dec, Hc, Zn of the Sun and the stars; twilight, rise/set, meridian passage',
+ 'HALMV': 'CHART: horizon chart of the Sun and the stars left, their Hc / Zn right',
+ 'ALMR':  'TEXT: the almanac page (Sun and stars) as text in R50-R76; NAV ends in REGS',
+ 'PSYB':  'SYMBOL of the Sun and the star, 12 rows (glyphs47, AGRAPH) - Z row, Y column, X symbol',
+ 'PSYS':  'SYMBOL of the Sun and the star, 7 rows (glyphs47, AGRAPH; the chart) - Z row, Y column, X symbol',
+}
+
+
 def main():
     res = {}
     # build/dm42/NAVLITTLE (was NAV1_DM42) + NAVINIT_LITTLE; the other builds in dev/;
@@ -326,8 +342,13 @@ def main():
         B.write(os.path.join(d, name + '.txt'), B.rename_keep(L, m, ('NAV', 'INIT')))
         with open(os.path.join(d, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
             fh.write('%s - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)\n\n' % name)
-            fh.write('NAV     NAV     %s\n' % B.LABEL_TEXT['NAV'])
-            fh.write('\n'.join('%s     %-7s %s' % (v, k, B.LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
+            text = dict(B.LABEL_TEXT, **LABEL_TEXT)
+            if name == 'NAV12_DM42':
+                text['NAV'] = 'graphic menu (KEY?): asks DATE UTC LAT LON, 1 ALMANAC 2 CHART 3 TEXT, 0 ends'
+            elif name == 'NAVTXT_DM42':
+                text['NAV'] = 'text only: asks DATE UTC LAT LON, the almanac page into R50 ..., then REGS'
+            fh.write('NAV     NAV     %s\n' % text['NAV'])
+            fh.write('\n'.join('%s     %-7s %s' % (v, k, text.get(k, '')) for k, v in m.items()) + '\n')
         res[name] = (L, need)
     init = init_dm42()
     B.write(os.path.join(OUT, 'NAVINIT_LITTLE.txt'), init)

@@ -1,9 +1,9 @@
 NAV12_DM42 - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
-N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
-N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right (no ARIES, no Moon line)
-N03     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, 1 ALMANAC 2 CHART 3 TEXT, 0 ends
+N01     ALMF    ALMANAC: GHA ARIES, GHA, Dec, Hc, Zn of the Sun and the stars; twilight, rise/set, meridian passage
+N02     HALMV   CHART: horizon chart of the Sun and the stars left, their Hc / Zn right
+N03     ALMR    TEXT: the almanac page (Sun and stars) as text in R50-R76; NAV ends in REGS
 N04     SDM     text: degrees and minutes "ddd°mm.m'" as a string
 N05     SNS     text: latitude with N / S
 N06     SEW     text: longitude with E / W
@@ -49,5 +49,5 @@ N48     WPLS    every view holds its screen here (KEY?): + back to the menu, up 
 N49     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
 N50     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
 N51     PTNT    TEXT: whole number in the tinyFont
-N52     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
-N53     PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
+N52     PSYB    SYMBOL of the Sun and the star, 12 rows (glyphs47, AGRAPH) - Z row, Y column, X symbol
+N53     PSYS    SYMBOL of the Sun and the star, 7 rows (glyphs47, AGRAPH; the chart) - Z row, Y column, X symbol

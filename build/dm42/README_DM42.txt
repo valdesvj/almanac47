@@ -14,16 +14,16 @@ The file name is the version: on the calculator the programs are called NAV and 
 the full version.
 
 NAVLITTLE needs a C47 firmware with ATEXT and GRFNT: it draws the ALMANAC screen of NAVFULL
-(Oct 2026), every text with ATEXT in GRFNT 21; only the Sun, star and Moon phase symbols are drawn
-(glyphs47). In the footer, the Moon line without the Moon series: the age from the mean lunation
-(within about 14 hours), the lit part and the phase glyph. No sky cache: the screen computes what
-it shows. No ants and no SINKING box: the screen shown stays until the next one is drawn.
+(Oct 2026), every text with ATEXT in GRFNT 21 (no tinyFont, no font of its own); the only glyphs
+drawn are the symbols of the Sun and the star (glyphs47). The footer has the twilight, rise / set
+and meridian passage of the Sun. No sky cache: the screen computes what it shows. No ants and no
+SINKING box: the screen shown stays until the next one is drawn.
 
-Not in NAVLITTLE: the Moon, the planets, the true Moon phase (only the mean one above). It reads the almanac tables when
+Not in NAVLITTLE: the Moon (no Moon line, no phase), the planets. It reads the almanac tables when
 they are loaded (TBL, flag 10) for the Sun and GHA Aries, but in 64 KiB only a very short
 table can fit (make one with tools/almanac/tab2c47.py START END). The Sun
 and star values are the same as in the full builds (same series): the Moon and planet places
-in the list of ten bodies are taken by the next stars.
+in the list of eight bodies are taken by the next stars.
 
 LOADING (load INIT alone first: INIT and its matrices together need the most memory)
   The .p47 files are ready to load (converted with tools/rejig47_atext.py); the .txt files are the same
@@ -37,23 +37,24 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
   DATE is asked in the CLK date format (YYYY.MMDD, DD.MMYYYY or MM.DDYYYY, as the message line
   shows), as in the full version.
 
-MEMORY (measured before the ATEXT version, to be measured again. Program sizes measured with
-rejig: the program bytes in the .p47 file; the .p47
+MEMORY (program sizes measured with rejig 0.34.1 and tools/rejig47_atext.py, Oct 2026: the
+program bytes in the .p47 file; the .p47
 file on disk is about 3 times bigger because it stores each byte as a decimal number)
   After INIT: matrices about 11 KB (667 numbers: Sun, nutation, stars; estimate).
                      program   with the matrices
   NAVINIT_LITTLE      8.5 KB   ~19 KB while it runs; delete it after use
-  NAVLITTLE          11.9 KB   ~23 KB
+  NAVLITTLE           7.9 KB   ~19 KB
   How much of the 64 KiB is left for programs after the firmware's own use is not known
   here: please report the free memory you see (and any crash) on the forum or on GitHub.
 
 OTHER BUILDS (build/dm42/dev/, not in the release)
-  NAVTXT_DM42      6.6 KB  text only: the almanac page in the registers, NAV ends in REGS
-  NAV1T_DM42      14.3 KB  NAVLITTLE, and + ends with the text page of the hour shown
-  NAV12_DM42      17.5 KB  menu 1 ALMANAC, 2 CHART, 3 TEXT
+  NAVTXT_DM42      7.3 KB  text only: the almanac page in the registers, NAV ends in REGS
+  NAV1T_DM42      10.3 KB  NAVLITTLE, and + ends with the text page of the hour shown
+  NAV12_DM42      13.9 KB  menu 1 ALMANAC, 2 CHART (its labels in the tinyFont), 3 TEXT
   NAVINIT_DM42_5Y  7.7 KB  INIT with the Sun's FAST series, valid 2026-2030 only
   build/dm42/dev/src/ has every build with the original label names.
 
-The same NAVLITTLE for the DM42 / DM42n with the stock firmware (Free42): build/free42/.
+For the DM42 / DM42n with the stock firmware (Free42): build/free42/ (no ATEXT there: its own
+AGRAPH fonts, and a Moon line from the mean lunation in the footer).
 
 Built with: python3 tools/build_dm42.py

@@ -624,3 +624,15 @@ INIT with the builders as LBL 01-04.
   itself (test_f42_little, test_f42_tables: Free42 = C47, 0 differences); test_navfull_atext and
   test_dm42_atext check NAVFULL and the DM42 builds (2 ATEXT steps: PTXS and PTTY).
 - .p47 sizes not measured yet (no rejig here): QUICKSTART and README_DM42 say so.
+
+## Oct 1, 2026 - C47 NAVLITTLE: Sun and stars only, ATEXT and the two glyphs
+
+- build_dm42: the C47 DM42 builds have no Moon (little_almf(moon=False): no Moon line, no phase
+  glyphs, LBL 48-55 dropped), PSYB / PSYS only '@' (Sun) and '*' (star), and PTXS without the
+  tinyFont routines PTTY / PTNT unless the build has the chart (NAV12). NAVLITTLE: 1 ATEXT, 2 GRFNT,
+  2,412 steps, 7.9 KB (.p47 program bytes; was 9.9 KB with the Moon line, 11.9 KB with PTXB).
+- Free42 NAVLITTLE keeps its Moon line (build_free42 calls little_almf() with moon=True) and is
+  unchanged; tests/t21sim.little_programs() builds its C47 reference with assemble(moon=True).
+- The DM42 _LABELS files describe the DM42 routines (build_dm42.LABEL_TEXT), not the NAVFULL ones.
+- Sizes measured with rejig 0.34.1 + tools/rejig47_atext.py: NAVFULL 35.8 KB (41.1 before ATEXT),
+  NAVTXT 14.9, NAV1T_DM42 10.3, NAV12_DM42 13.9, NAVTXT_DM42 7.3 KB; README_DM42, QUICKSTART.
