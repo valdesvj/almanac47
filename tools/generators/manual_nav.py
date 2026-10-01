@@ -45,7 +45,10 @@ S += [P('Almanac 47', title),
                         'Sun and 58 stars only, with NAVINIT_LITTLE (2000–2050)']],
           [32 * mm, 148 * mm]),
       P('2. First start', h2)] + B([
-      'Convert each text file with <b>rejig</b> (rejig FILE.txt -o FILE.p47) and load it on the C47.',
+      'The C47 needs a firmware with <b>ATEXT</b> and <b>GRFNT</b>: the screens write their text with ATEXT in '
+      'GRFNT 21 (the tinyFont, GRFNT 10, on the charts); only the body symbols are drawn with AGRAPH.',
+      'Convert each text file with <b>python3 tools/rejig47_atext.py FILE.txt</b> (runs rejig and writes the ATEXT / '
+      'GRFNT steps rejig 0.34 does not know; a rejig that knows them converts directly) and load the .p47 on the C47.',
       'The file name is the version: on the calculator the programs are always NAV and INIT. Other builds '
       '(NAVFULL_NOTBL, NAVALL, NAVCOMP) are in build/dev/.',
       'Load one NAV file and one NAVINIT file. <b>XEQ "INIT"</b> once: it builds the matrices and shows MATRICES READY. '
@@ -82,22 +85,23 @@ S += [P('3. Starting NAV', h2),
       P('The hours added with the arrows stay for the other views. New date or position: XEQ "NAV" again.', small)]
 
 S += [PageBreak(), P('5. The views', h2),
-      P('All examples: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E, unless stated.', small),
+      P('All views: 23 Sep 2026 23:30 UT, 10° N 075° 30′ W (the menu: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E). '
+        'Every view starts with the same line: date, UT, DR, and T / S (tables / series) at the right.', small),
       pair('ALMF_preview.png', 'HALMV_preview.png',
-           '<b>1 ALMANAC</b> (ALMF): GHA, Dec, Hc, Zn of 10 bodies — the Sun, the Moon and planets above the horizon, '
-           'the brightest stars higher than 10°; twilight, rise/set, meridian passage, Moon phase, HP, SD. '
-           '23 Sep 2026 23:30 UT, 10° N 075° 30′ W.',
+           '<b>1 ALMANAC</b> (ALMF): GHA ARIES, then GHA, Dec, Hc, Zn of 8 bodies — the Sun, the Moon if it is up, '
+           'the first planet above the horizon, the brightest stars higher than 10°; twilight, rise/set, meridian '
+           'passage, the Moon (lit part, phase symbol, age, HP, SD).',
            '<b>2 CHART</b> (HALMV): the sky on the left (Hc up, Zn across, the celestial equator dotted), '
-           'the Hc/Zn table on the right (no ARIES row, no Moon line). Same time and place.'),
+           'the Hc/Zn table of the same 8 bodies on the right.'),
       Spacer(1, 4),
       pair('HORZ_axes_night.png', 'HALMH_preview.png',
-           '<b>4 SKY</b> (HORZ): full-screen chart; the top line names each body in turn (3 s each), UT at the top right, '
-           'DR under it. 23 Sep 2026 03:00 UT, 30° N 0° E.',
-           '<b>5 SPLIT</b> (HALMH): the chart on top, the bodies below down to the bottom of the screen (8 rows). '
-           '26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E.'),
+           '<b>4 SKY</b> (HORZ): full-screen chart of the 8 bodies; every second the name of the next one is written '
+           'next to its symbol (here MOON); DAY / TWILIGHT / NIGHT at the bottom.',
+           '<b>5 SPLIT</b> (HALMH): the chart on top, the bodies below down to the bottom of the screen (8 rows).'),
       Spacer(1, 4),
       pair('ANIM_preview.png', 'ALLSKY_preview.png',
-           '<b>6 ANIM</b> (HANIM): the Sun and the Moon moving over 12 hours (24 frames, 1 s each).',
+           '<b>6 ANIM</b> (HANIM): the Sun and the Moon moving on the whole-sky chart over 12 hours (24 frames, '
+           '1 s each, 30 min apart); the first frame.',
            '<b>7 ALLSKY</b>: the whole sky, over the horizon above, under the horizon below: every star, '
            'the Sun, the Moon and the planets; DAY / TWILIGHT / NIGHT.'),
       Spacer(1, 4),
