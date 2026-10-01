@@ -9,12 +9,23 @@ The series programs (SUNA, STAR, MOON, PLAN) stay the fallback and work for any 
     python3 c47_almanac_generator.py 2028-01-01 2029-01-01 > tables_2028.csv
 
 `docs/C47_almanac_coefficients_2026-2027.xlsx` already holds 1 Sep 2026 - 31 Dec 2027.
-Set `DT` (TT - UT1, seconds) in the script for the years you generate.
+TT - UT1: `DT_YEARS` (2000-2025, yearly) and `DT` (from 2025 on) in the script.
 
 `tables_2026-10_2031-09.csv` holds 1 Oct 2026 - 1 Oct 2031 (made with DT = 69.2 s):
 `python3 tools/build_navfull.py` turns it into `build/TBL_1.txt` (1 year, 8,441 numbers)
 and `build/TBL_5.txt` (5 years, 41,882 numbers); `tools/build_free42.py` makes the Free42
 versions (`build/free42/TBL_1.raw`, `TBL_5.raw`). DE421 ends in 2050.
+
+### TBL_50: 2000-2050 for Free42 / Plus42 on a PC (not in the repository, about 18 MB)
+
+    cd tools/almanac
+    uv run --no-project --with numpy --with pyerfa --with "jplephem==2.24" --with de421 \
+        python c47_almanac_generator.py 2000-01-01 2051-01-01 > tables_2000-2050.csv   # about 30 min
+    cd ../.. && python3 tools/build_free42.py      # -> build/free42/TBL_50.txt and .raw (4.9 MB)
+
+TT-UT1 follows the yearly values 2000-2025 in the script (`DT_YEARS`) and stays at `DT`
+(69.2 s) from 2025 on. TBL_50 shows `TBL 01-01-2000 TO 31-12-2050`; its matrices need about
+6.8 MB (a PC, not the DM42).
 
 ## 2. Turn a period into a C47 program
 

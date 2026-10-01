@@ -10,3 +10,7 @@ build/manuals/
 
 # headless Free42 test binary (sh tools/f42/setup.sh)
 tools/f42/f42run
+
+# TBL_50 (2000-2050, about 18 MB): made on the PC, see tools/almanac/README.md
+tools/almanac/tables_2000-2050.csv
+build/free42/TBL_50.*

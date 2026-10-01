@@ -664,7 +664,25 @@ def build(rlcd=False, little=False):
         if os.path.exists(src):
             L = [l.rstrip('\n') for l in open(src, encoding='utf-8') if l.strip()]
             B.write(os.path.join(OUT, name + '.txt'), conv(L, 'TBL'))
+    tbl50()
     return full
+
+
+TBL50_CSV = os.path.join(ROOT, 'tools', 'almanac', 'tables_2000-2050.csv')
+
+
+def tbl50():
+    """TBL_50: the almanac tables 1 Jan 2000 - 31 Dec 2050 (Free42 / Plus42 on a PC: about 427,000
+    numbers, 6.8 MB of matrices; the C47 and the DM42 cannot hold them). Only when
+    tools/almanac/tables_2000-2050.csv is there (c47_almanac_generator.py 2000-01-01 2051-01-01)."""
+    import datetime
+    if not os.path.exists(TBL50_CSV):
+        return
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'almanac'))
+    import tab2c47
+    with contextlib.redirect_stderr(io.StringIO()):
+        L = tab2c47.program(tab2c47.read_csv(TBL50_CSV), datetime.date(2000, 1, 1), datetime.date(2050, 12, 31), 'TBL')
+    B.write(os.path.join(OUT, 'TBL_50.txt'), conv(L, 'TBL'))
 
 
 def raw_files():
@@ -674,10 +692,12 @@ def raw_files():
     if not os.path.exists(f42):
         print('no tools/f42/f42run (sh tools/f42/setup.sh): .raw files not written')
         return
-    for name in ('NAVFULL', 'NAVLITTLE', 'NAVINIT_FULL', 'NAVINIT_FAST', 'NAVINIT_LITTLE', 'TBL_1', 'TBL_5', 'dev/NAVFULL_DRAW'):
+    for name in ('NAVFULL', 'NAVLITTLE', 'NAVINIT_FULL', 'NAVINIT_FAST', 'NAVINIT_LITTLE', 'TBL_1', 'TBL_5', 'TBL_50', 'dev/NAVFULL_DRAW'):
         txt = os.path.join(OUT, name + '.txt')
+        if not os.path.exists(txt):
+            continue
         r = subprocess.run([f42], input='paste %s\nexport %s\n' % (txt, txt[:-4] + '.raw'), text=True,
-                           capture_output=True, timeout=300)
+                           capture_output=True, timeout=3600)
         print(r.stdout.strip().split('\n')[-1])
 
 
