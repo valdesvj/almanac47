@@ -1,8 +1,8 @@
 """glyphs47.py - EXPERIMENTAL body symbols for the ATEXT builds, two sizes drawn with AGRAPH:
 BIG (12 rows, the cap height of the standard / compressed font 20 / 21: the tables) and
 SMALL (7 rows, the tinyFont: the charts). Codes as PSYM: @ Sun, ( Moon, * star,
-< Venus, > Mars, = Jupiter, ? Saturn; & the ant: the firmware's own 'A' inverted in its cell
-(standard font A, 9 x 12; tinyFont A, 5 x 7), as the inverted A of BIGA and the NAV ants. Rows top to bottom, '#' = pixel; the last row is the base line."""
+< Venus, > Mars, = Jupiter, ? Saturn; & the ant (BIG only): the 'A' of our
+original 5 x 7 font (PTXB) inverted in its cell and doubled, 10 x 14, the ant of NAV (LBL 42) and BIGA. Rows top to bottom, '#' = pixel; the last row is the base line."""
 
 BIG = {
     '@': ['....####....',
@@ -89,18 +89,20 @@ BIG = {
           '.##..##...',
           '.##..##...',
           '.##...###.'],    # Saturn
-    '&': ['####.####',
-          '###...###',
-          '###...###',
-          '##..#..##',
-          '##..#..##',
-          '##..#..##',
-          '#..###..#',
-          '#..###..#',
-          '#.......#',
-          '.........',
-          '..#####..',
-          '..#####..'],    # the ant
+    '&': ['##......##',
+          '##......##',
+          '..######..',
+          '..######..',
+          '..######..',
+          '..######..',
+          '..........',
+          '..........',
+          '..######..',
+          '..######..',
+          '..######..',
+          '..######..',
+          '..######..',
+          '..######..'],    # the ant
 }
 
 SMALL = {
@@ -153,13 +155,6 @@ SMALL = {
           '.#...#',
           '.#..#.',
           '.#..##'],    # Saturn
-    '&': ['##.##',
-          '#.#.#',
-          '.###.',
-          '.###.',
-          '.....',
-          '.###.',
-          '.###.'],    # the ant
 }
 
 
