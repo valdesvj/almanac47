@@ -439,6 +439,97 @@ def programs():
     return p
 
 
+# ------------------------------------------------------------------ the screens of Oct 2026 (T21)
+T21_VIEWS = ('ALMF', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')
+FONTS = ('PTXS', 'PTXT', 'PTTY', 'PSYB', 'PSYS')
+
+
+def raw_glyphs(name, glyphs, ws, gap=2, head=None):
+    """A C47 font program in the plain form glyph_columns() reads (STO 32 / AGRAPH 32 per
+    column): the text routine of glyphs47.program and one routine per glyph, bit 0 = base line."""
+    sys.path.insert(0, os.path.join(HERE, 'generators', 'atext'))
+    import glyphs47
+    P = head or glyphs47.program(name, {}, ws=ws)[:-1]
+    for code, rows in glyphs:
+        P += ['LBL %d' % code, 'RCL 31', 'RCL 30']
+        if rows is None:                                  # a blank of `gap` columns
+            P += [str(gap), 'STO+ 30', 'RTN']
+            continue
+        cols, lead = glyphs47.columns(rows[1]), rows[0]
+        if lead:
+            P += [str(lead), '+']
+        for v in cols:
+            P += (['%s#2' % bin(v)[2:], 'STO 32', 'R↓', 'AGRAPH 32'] if v else ['1', '+'])
+        P += [str(rows[2]), '+', 'STO 30', 'RTN']
+    return P + ['END']
+
+
+def psym(name, big):
+    """PSYB (12 rows: the body symbols and the Moon phases) / PSYS (7 rows) of glyphs47."""
+    sys.path.insert(0, os.path.join(HERE, 'generators', 'atext'))
+    import glyphs47
+    G = glyphs47.BIG if big else glyphs47.SMALL
+    return raw_glyphs(name, [(ord(c), (0, r, 2)) for c, r in G.items()], 16 if big else 8)
+
+
+def ptty():
+    """PTTY (text) and PTNT (whole number) in the C47 tinyFont (GRFNT 10 on the C47) as an AGRAPH
+    font: the program PTXT with its names changed and the tinyFont glyphs."""
+    sys.path.insert(0, os.path.join(ROOT, 'python'))
+    from tinyfont import TINY
+    src = B.read('PTXT')
+    k = next(i for i, l in enumerate(src) if re.fullmatch(r'LBL (\d+)', l) and int(l[4:]) >= 32)
+    head = [('LBL "PTTY"' if l == 'LBL "PTXT"' else 'LBL "PTNT"' if l == 'LBL "PTNS"' else l) for l in src[:k]]
+    tail = src[src.index('LBL "PTNS"'):]
+    tail = [('LBL "PTNT"' if l == 'LBL "PTNS"' else l) for l in tail[:tail.index('END')]]
+    head = [l for l in head if l != 'END']
+    gl = []
+    for c in sorted(TINY):
+        if c < 32 or c > 0x7e:
+            continue
+        cb, cg, ca, ra, rg, rb, rows = TINY[c]
+        if c == 32:
+            gl.append((32, None))
+            continue
+        bits = [''.join('#' if v >> (cg - 1 - x) & 1 else '.' for x in range(cg)) for v in rows]
+        gl.append((c, (cb, bits, ca)))
+    P = raw_glyphs('PTTY', gl, 8, gap=6, head=head)[:-1]
+    # the number routine after the glyphs, as in PTXT
+    return P + tail + ['END']
+
+
+def t21_programs():
+    """The programs of NAVFULL with the views of NAVFULL_T21 (programs/atext/t21/, the sky cache
+    swapped in) and the AGRAPH fonts: PTXS (the C47 status-bar font: the widths of GRFNT 21),
+    PTTY / PTNT (tinyFont), PSYB / PSYS (glyphs47)."""
+    p = programs()
+    for n in T21_VIEWS:
+        with open(os.path.join(ROOT, 'programs', 'atext', 't21', n + '.txt'), encoding='utf-8') as fh:
+            p[n] = gencache.swap([l.rstrip('\n') for l in fh if l.strip()])
+    p['PTTY'] = ptty()
+    p['PSYB'] = psym('PSYB', True)
+    p['PSYS'] = psym('PSYS', False)
+    return p
+
+
+def nav_t21():
+    """NAV of Free42 with the top line of the menu at the columns of the T21 header."""
+    sys.path.insert(0, os.path.join(HERE, 'generators', 'atext'))
+    import genviews_atx as V
+    V.mode(True, 't21')
+    T = V.top_x()
+    V.mode()
+    P = nav()
+    s = '\n' + '\n'.join(P) + '\n'
+    for a, b in (((206, 80), (206, T['time'])), ((206, 116, 'XSTR "UT"'), (206, T['UT'], 'XSTR "UT"')),
+                 ((206, 116, '"UT"'), (206, T['UT'], '"UT"')),
+                 ((206, 150, '"DR"'), (206, T['DR'], '"DR"')), ((206, 174), (206, T['N'])), ((206, 176), (206, T['lat'])),
+                 ((206, 244), (206, T['E'])), ((206, 246), (206, T['lon']))):
+        a = '\n' + '\n'.join(map(str, a)) + '\n'; b = '\n' + '\n'.join(map(str, b)) + '\n'
+        s = s.replace(a, b)
+    return s.strip('\n').split('\n')
+
+
 def nav_little():
     """NAVLITTLE (the DM42 NAVLITTLE, was NAV1_DM42): no menu - the inputs, then the ALMANAC
     view; up / down one hour, + ends. Sun and stars only, 5 x 7 font, no box, no ants."""
@@ -455,15 +546,17 @@ def nav_little():
 
 def assemble(N, p, big_src=None):
     """NAV N + the programs it needs (converted) + F42; returns (long names, short names, map)."""
-    keep = list(B.KEEP)
-    need = B.closure(p, [c for c in B.calls(N) if c != 'INIT'] + (['ALMR'] if 'XEQ "ALMR"' in N else []))
+    keep = list(B.KEEP) + ['PTTY', 'PSYB', 'PSYS']
+    need = B.closure(p, [c for c in B.calls(N) if c != 'INIT'] + (['ALMR'] if 'XEQ "ALMR"' in N else [])
+                     + (['PTXT'] if 'XEQ "TPG"' in N else []))       # the text page uses PTXT
     chars = set(''.join(B.strings(N)) + ''.join(''.join(B.strings(p[n])) for n in need) + '0123456789-.: %')
     progs = {}
     for n in keep:
         if n not in need:
             continue
-        if n in ('PTXS', 'PTXT'):
-            progs[n] = conv(font(n, chars, big_src if n == 'PTXS' else None)[0], n)
+        if n in FONTS:
+            src = big_src if n == 'PTXS' and big_src else p[n] if n in ('PTTY', 'PSYB', 'PSYS') else None
+            progs[n] = conv(font(n, chars, src)[0], n)
         else:
             progs[n] = conv(p[n], n)
     L = conv(N, 'NAV') + [l for n in keep if n in progs for l in progs[n]]
@@ -509,7 +602,7 @@ def build(rlcd=False, little=False):
         init = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'), encoding='utf-8') if l.strip()]
         B.write(os.path.join(OUT, 'NAVINIT_LITTLE.txt'), conv(init, 'INIT'))
         return L
-    full = assemble(nav(), programs())
+    full = assemble(nav_t21(), t21_programs())         # the screens of Oct 2026 (as NAVFULL_T21)
     if not rlcd:                                 # the screen builds up as it is drawn: dev/
         save('NAVFULL_DRAW', full, DEV, 'F42_NAVFULL_DRAW')
         return full
