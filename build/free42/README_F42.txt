@@ -11,9 +11,9 @@ FILES (the file name is the version: on the calculator the programs are NAV and 
   NAVFULL.raw          NAV: all 9 views (as the C47 NAVFULL, without the almanac tables)
   NAVLITTLE.raw        NAV: Sun and 58 stars only, straight to the ALMANAC screen, UP / DOWN
                        one hour, + ends; no box, no ants. The ALMANAC screen as in NAVFULL
-                       (header line with a line under it, the same fonts) with Sun and stars,
-                       and the Moon line: % lit, the phase glyph and the age, from the mean
-                       lunation (within about 14 hours of the true age). For little memory.
+                       (header line with a line under it, the same fonts) with the Sun and
+                       the stars, no Moon: the same screen as the C47 NAVLITTLE. For little
+                       memory.
   NAVINIT_FULL.raw     INIT for NAVFULL: the series matrices, valid 2000-2050
   NAVINIT_FAST.raw     INIT for NAVFULL: fitted series 2026-2030 (smaller, faster)
   NAVINIT_LITTLE.raw   INIT for NAVLITTLE: Sun, nutation and stars, valid 2000-2050

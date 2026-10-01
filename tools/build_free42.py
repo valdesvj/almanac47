@@ -490,12 +490,13 @@ def raw_glyphs(name, glyphs, ws, gap=2, head=None):
     return P + ['END']
 
 
-def psym(name, big):
-    """PSYB (12 rows: the body symbols and the Moon phases) / PSYS (7 rows) of glyphs47."""
+def psym(name, big, keep=None):
+    """PSYB (12 rows: the body symbols and the Moon phases) / PSYS (7 rows) of glyphs47; keep: only
+    these symbols."""
     sys.path.insert(0, os.path.join(HERE, 'generators', 'atext'))
     import glyphs47
     G = glyphs47.BIG if big else glyphs47.SMALL
-    return raw_glyphs(name, [(ord(c), (0, r, 2)) for c, r in G.items()], 16 if big else 8)
+    return raw_glyphs(name, [(ord(c), (0, r, 2)) for c, r in G.items() if keep is None or c in keep], 16 if big else 8)
 
 
 def ptty():
@@ -572,7 +573,7 @@ def nav_little():
 
 def little_almf():
     """The ALMANAC view of NAVLITTLE: the one of the C47 NAVLITTLE (build_dm42.little_almf: the
-    T21 view with Sun and stars only and the Moon line from the mean lunation)."""
+    T21 view with the Sun and the stars only, no Moon)."""
     import build_dm42 as D
     return D.little_almf()
 
@@ -627,8 +628,8 @@ def build(rlcd=False, little=False):
     WAITS.clear()
     if little:
         p = little_programs()
-        p['ALMF'] = little_almf()                  # the T21 ALMANAC view, Sun, stars and the Moon line
-        p['PSYB'] = psym('PSYB', True)             # the Sun, the star and the phase glyphs (font() keeps those used)
+        p['ALMF'] = little_almf()                  # the T21 ALMANAC view, the Sun and the stars, no Moon
+        p['PSYB'] = psym('PSYB', True, '@*')       # the Sun and the star only, as the C47 NAVLITTLE
         L = assemble(nav_little(), p)
         m = save('NAVLITTLE', L, OUT, 'F42_NAVLITTLE')
         with open(os.path.join(OUT, 'NAVLITTLE_LABELS.txt'), 'w', encoding='utf-8') as fh:

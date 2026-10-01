@@ -58,7 +58,7 @@ def main():
     fs = sorted((f for f in os.listdir(t) if f.startswith('b_')), key=lambda f: int(f[2:-4]))
     if fs:
         png(os.path.join(t, fs[len(fs) // 2]), os.path.join(OUT, 'F42_box_ants.png'))
-    # NAVLITTLE: the ALMANAC screen (T21 style), Sun and stars, the Moon line with the phase glyph
+    # NAVLITTLE: the ALMANAC screen (T21 style), the Sun and the stars, no Moon
     cmd = ['paste %s/build/free42/NAVINIT_LITTLE.txt' % ROOT, 'paste %s/build/free42/NAVLITTLE.txt' % ROOT,
            'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20', 'num 55.12', 'shot %s/l.pbm' % t]
     subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=300)

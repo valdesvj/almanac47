@@ -54,7 +54,7 @@ OTHER BUILDS (build/dm42/dev/, not in the release)
   NAVINIT_DM42_5Y  7.7 KB  INIT with the Sun's FAST series, valid 2026-2030 only
   build/dm42/dev/src/ has every build with the original label names.
 
-For the DM42 / DM42n with the stock firmware (Free42): build/free42/ (no ATEXT there: its own
-AGRAPH fonts, and a Moon line from the mean lunation in the footer).
+For the DM42 / DM42n with the stock firmware (Free42): build/free42/NAVLITTLE, the same screen
+(no ATEXT there: its own AGRAPH fonts with the same pixels).
 
 Built with: python3 tools/build_dm42.py

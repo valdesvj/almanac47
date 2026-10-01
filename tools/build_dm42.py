@@ -12,9 +12,8 @@ These builds keep the Sun (FULL series, valid 2000-2050) and the 58 navigation s
 
 The screens are those of NAVFULL (the T21 views of programs/atext/t21/): every text with ATEXT
 in GRFNT 21 (PTXS and the number printers of atext_common), the symbols of glyphs47 (PSYB),
-no AGRAPH font. Needs a C47 firmware with ATEXT and GRFNT. The ALMANAC footer has the Moon line
-without the Moon series: its age from the mean lunation, the lit part and the phase glyph
-(moon_lines).
+no AGRAPH font. Needs a C47 firmware with ATEXT and GRFNT. No Moon: the ALMANAC footer has only
+the Sun's times. Free42 NAVLITTLE (build_free42.py) has the same view (little_almf).
 
 What is left out: MOON, PLAN and PHAS (no Moon, no planets, no Moon phase), the Moon and planet
 rows of the views, the tables (TBL), the ants, and the sky cache (CACHE, ALMC): with one view the
@@ -179,22 +178,6 @@ def programs():
     return p
 
 
-LUN, NEW0 = '29.530588861', '2451550.09766'      # mean lunation, mean new Moon of Jan 2000 (Meeus 49.1)
-
-
-def moon_lines(MX=212, rows=(43, 29)):
-    """The Moon line without the Moon series: its age from the mean lunation (within about 14
-    hours of the true one), the lit part (1 - cos)/2, the phase glyph (PSYB '0'-'7').
-    rows: the MOON and AGE lines (the footer of the T21 ALMANAC view)."""
-    return ['RCL 10', NEW0, '-', LUN, 'MOD', 'STO 19',
-            'RCL 19', LUN, '÷', '360', '×', 'COS', '1', 'X<>Y', '-', '50', '×', 'STO 21',
-            '"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 21', '99.5', 'X≤Y?', 'XEQ 23', 'RCL 21', '0.5', 'X>Y?', 'XEQ 24',
-            str(rows[0]), str(MX), '"MOON "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'STO 25', 'R↓', 'STO 20',
-            'RCL 19', LUN, '÷', '8', '×', '0.5', '+', 'IP', '8', 'MOD', '48', '+', 'STO 23',
-            'RCL 20', 'RCL 25', 'XEQ IND 23', 'XEQ "PSYB"', '" "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"',
-            str(rows[1]), str(MX), '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"']
-
-
 def unused_locals(A, ind_targets=None):
     """Drop the subroutines nothing calls any more (Moon and planet rows, their names and words):
     a block LBL n ... RTN right after an RTN, whose label no XEQ / GTO uses. With an XEQ IND
@@ -215,17 +198,16 @@ def unused_locals(A, ind_targets=None):
         A = out
 
 
-def little_almf(moon=True):
-    """The ALMANAC view of NAVLITTLE: the T21 view with Sun and stars only. moon (Free42): the Moon
-    line of moon_lines() in the footer, where the T21 view has MOON / AGE; the C47 builds have no
-    Moon at all (moon=False: the right half of the footer stays empty, no phase glyphs)."""
+def little_almf():
+    """The ALMANAC view of NAVLITTLE (C47 and Free42): the T21 view with the Sun and the stars only,
+    no Moon (the right half of the footer, MOON / AGE in the T21 view, stays empty; no phase glyphs)."""
     A = B.read21('ALMF')
-    A = cut(A, '"WAXING"', '"S"', moon_lines() if moon else [])
+    A = cut(A, '"WAXING"', '"S"')
     A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
     A = cut(A, 'XEQ "MOO2"', '1.058')                  # the Moon and planet rows (LBL 35 / 36 go with them)
     assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in A)
-    A = unused_locals(A, ind_targets=range(48, 56) if moon else ())    # XEQ IND 23: only the phase glyphs (LBL 48-55)
-    assert moon or not any(re.fullmatch(r'XEQ IND 23|LBL (4[89]|5[0-5])', l) for l in A), 'phase glyphs left'
+    A = unused_locals(A, ind_targets=())               # the phase glyphs (LBL 48-55, XEQ IND 23) go too
+    assert not any(re.fullmatch(r'XEQ IND 23|LBL (4[89]|5[0-5])', l) for l in A), 'phase glyphs left'
     assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"', 'XEQ "PTTY"') for l in A)
     return A
 
@@ -260,15 +242,14 @@ def nav21(nav):
     return seq(nav, ['CLLCD', 'RCL "SSZ"'], ['20', 'GRFNT', 'DROP', 'CLLCD', 'RCL "SSZ"'])
 
 
-def assemble(nav, p, moon=False):
+def assemble(nav, p):
     """NAV + the programs it calls, the T21 views (ALMF and HALMV without the Moon and planets),
     the ATEXT text routines and the symbols PSYB / PSYS (only those the views draw: the Sun and the
-    star). The tinyFont routines (PTTY, PTNT) only with the chart (NAV12). moon: the ALMANAC view
-    with the Moon line of Free42 NAVLITTLE (the C47 reference of tests/test_f42_little.py)."""
+    star). The tinyFont routines (PTTY, PTNT) only with the chart (NAV12)."""
     q = dict(p)
     if 'XEQ "ALMF"' in nav:
         nav = nav21(nav)
-        q['ALMF'] = little_almf(moon)
+        q['ALMF'] = little_almf()
         q['HALMV'] = little_halmv()
     if 'ALMT' in q:                                     # ALMR (TEXT): no Moon or planet names
         q['ALMT'] = little_almr(q['ALMT'])
@@ -279,8 +260,8 @@ def assemble(nav, p, moon=False):
         q['PSYS'] = glyphs47.program('PSYS', glyphs47.SMALL)
     need = B.closure(q, [c for c in B.calls(nav) if c != 'INIT'])
     assert not need & {'MOON', 'PLAN', 'PHAS', 'PTXT'}, need
-    for f in {'PSYB', 'PSYS'} & need:                   # only the Sun and the star (and the phases: Free42's Moon line)
-        q[f] = B.trim_font(q[f], set('@*' + ('01234567' if moon and f == 'PSYB' else '')))
+    for f in {'PSYB', 'PSYS'} & need:                   # only the Sun and the star
+        q[f] = B.trim_font(q[f], set('@*'))
     return nav + [l for n in B.KEEP21 if n in need for l in q[n]], sorted(need)
 
 

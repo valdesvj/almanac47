@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Free42 NAVLITTLE (build/free42/) vs the same screens on the C47 pixel by pixel: f42run
 (tools/f42, the Free42 core with the DM42 400 x 240 screen) against the C47 simulator running
-the C47 NAVLITTLE (build/dm42/: no menu, the T21 ALMANAC view with Sun and stars and the Moon
-line from the mean lunation, build_dm42.little_almf; Free42 has the same view).
+the C47 NAVLITTLE (build/dm42/: no menu, the T21 ALMANAC view with the Sun and the stars, no Moon,
+build_dm42.little_almf; Free42 has the same view).
 ALMANAC screen at the start, after UP (one hour later) and after DOWN DOWN (one hour earlier),
 then + ends.       python3 tests/test_f42_little.py   (needs tools/f42/f42run)"""
 import os, sys, subprocess, tempfile
