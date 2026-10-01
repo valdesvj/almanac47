@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """test_hours.py - UP / DOWN (one hour later / earlier) give the same screen as NAV started at
 that hour, in the three date formats and across midnight, a month end and a year end.
-C47: NAVLITTLE (build/dm42) in the simulator (date format Y.MD / D.MY / M.DY); Free42:
-NAVLITTLE and the NAVFULL ALMANAC view in tools/f42/f42run (YMD / DMY / MDY; skipped without it).
+C47: NAVLITTLE (build/dm42) in the simulator (date format Y.MD / D.MY / M.DY, DATE typed in it);
+Free42: NAVLITTLE and the NAVFULL ALMANAC view in tools/f42/f42run, the calculator set to YMD / DMY /
+MDY and DATE always YYYY.MMDD (skipped without f42run).
     python3 tests/test_hours.py"""
 import os, sys, subprocess, tempfile, datetime
 from decimal import Decimal as D
@@ -55,7 +56,7 @@ def f42(t, fmt, nav, steps):
     open(os.path.join(d, 'fl.txt'), 'w').write('LBL "FL"\n%s\nEND\n' % fmt)
     init = 'NAVINIT_LITTLE' if nav == 'NAVLITTLE' else 'NAVINIT_FAST'
     cmd = ['paste %s/build/free42/%s.txt' % (ROOT, init), 'paste %s/build/free42/%s.txt' % (ROOT, nav),
-           'paste %s/fl.txt' % d, 'xeq FL', 'xeq INIT', 'xeq NAV', 'num ' + date_in(t, fmt), 'num ' + ut_in(t),
+           'paste %s/fl.txt' % d, 'xeq FL', 'xeq INIT', 'xeq NAV', 'num ' + date_in(t, 'YMD'), 'num ' + ut_in(t),
            'num ' + POS[0], 'num ' + POS[1]] + (['key 29'] if nav == 'NAVFULL' else [])
     for k, s in enumerate(steps):
         cmd += ([F42KEYS[s]] if s else []) + ['shot %s/s%d.pbm' % (d, k)]

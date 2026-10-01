@@ -3,8 +3,9 @@
 C47: NAVFULL in the simulator set to Y.MD, D.MY and M.DY (system flags DMY / MDY), the date typed
 in that format. The message line must show the format, and the ALMANAC screen must be the same
 as with Y.MD.
-Free42: NAVLITTLE in tools/f42/f42run with flags 67 / 31 (Y.MD / D.MY / M.DY): the hint and the
-ALMANAC screen (skipped without f42run).
+Free42 always takes YYYY.MMDD (its NAV reads DATE with arithmetic, no date functions): NAVLITTLE
+and the NAVFULL ALMANAC view in tools/f42/f42run with the calculator set to YMD, DMY and MDY
+(flags 67 / 31) and DATE 2026.0926 must give the same screen (skipped without f42run).
     python3 tests/test_datefmt.py"""
 import os, sys, tempfile, subprocess
 from decimal import Decimal as D
@@ -50,28 +51,29 @@ for fmt, date, want in CASES:
     print('%s %-10s message %-16r screen = Y.MD %s: %s' % (fmt, date, msg[:16], key, 'OK' if ok else 'DIFFERENT'))
 
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
-F42CASES = (('YMD', 'YMD', '2026.0926', 'Y.MMDD'), ('DMY', 'DMY', '26.092026', 'D.MMYYYY'),     # SF / CF 31 67:
-            ('MDY', 'MDY', '9.262026', 'M.DDYYYY'))       # Restricted Operation; the commands set the flags
+F42CASES = ('YMD', 'DMY', 'MDY')      # the commands set flags 67 / 31 (SF / CF: Restricted Operation)
 
 
-def f42(flags, date):
+def f42(fmt, nav):
     t = tempfile.mkdtemp()
-    open(os.path.join(t, 'fl.txt'), 'w').write('LBL "FL"\n%s\nEND\n' % flags.replace('|', '\n'))
-    cmd = ['paste %s/build/free42/NAVINIT_LITTLE.txt' % ROOT, 'paste %s/build/free42/NAVLITTLE.txt' % ROOT,
-           'paste %s/fl.txt' % t, 'xeq FL', 'xeq INIT', 'xeq NAV', 'msg', 'num ' + date, 'num 14.57', 'num 25.20',
-           'num 55.12', 'shot %s/s.pbm' % t]
-    r = subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=600)
-    return r.stdout, open('%s/s.pbm' % t).read()
+    open(os.path.join(t, 'fl.txt'), 'w').write('LBL "FL"\n%s\nEND\n' % fmt)
+    init = 'NAVINIT_LITTLE' if nav == 'NAVLITTLE' else 'NAVINIT_FAST'
+    cmd = ['paste %s/build/free42/%s.txt' % (ROOT, init), 'paste %s/build/free42/%s.txt' % (ROOT, nav),
+           'paste %s/fl.txt' % t, 'xeq FL', 'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20',
+           'num 55.12'] + (['key 29'] if nav == 'NAVFULL' else []) + ['shot %s/s.pbm' % t]
+    subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=600)
+    return open('%s/s.pbm' % t).read()
 
 
 if os.path.exists(F42):
-    ref = None
-    for fmt, flags, date, hint in F42CASES:
-        out, scr = f42(flags, date)
-        ref = ref or scr
-        ok = scr == ref
-        bad += not ok
-        print('Free42 %s %-10s screen = Y.MD: %s' % (fmt, date, 'OK' if ok else 'DIFFERENT'))
+    for nav in ('NAVLITTLE', 'NAVFULL'):
+        ref = None
+        for fmt in F42CASES:
+            scr = f42(fmt, nav)
+            ref = ref or scr
+            ok = scr == ref
+            bad += not ok
+            print('Free42 %-9s set to %s, DATE 2026.0926: screen = YMD: %s' % (nav, fmt, 'OK' if ok else 'DIFFERENT'))
 else:
     print('no tools/f42/f42run: Free42 skipped')
 print('%d different' % bad)

@@ -91,8 +91,7 @@ def free42():
     S += [P('4. Starting NAV', h2),
           P('NAV asks four numbers with INPUT (R/S keeps the value shown); the formats are in the message line first:'),
           prose_tbl([['Input', 'Meaning', 'Example'],
-                     ['DATE', 'UT date in the calculator\'s date format (hint above the prompt): YMD YYYY.MMDD, '
-                      'DMY DD.MMYYYY, MDY MM.DDYYYY (the DM42 default)', '2026.0926'],
+                     ['DATE', 'UT date, YYYY.MMDD', '2026.0926'],
                      ['UTC', 'UT, HH.MMSS', '14.57'],
                      ['LAT', 'latitude DD.MMm, south negative', '25.20 = 25° 20′ N'],
                      ['LON', 'longitude DDD.MMm, west negative', '55.12 = 55° 12′ E']],

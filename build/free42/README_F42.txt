@@ -39,9 +39,7 @@ LOADING (DM42n / DM42, stock firmware)
   3. XEQ "INIT": builds the matrices, shows MATRICES READY. Then delete INIT (GTO "INIT",
      CLP or the program catalogue): the matrices stay.
   4. Load NAVFULL.raw (or NAVLITTLE.raw). XEQ "NAV".
-  NAV asks DATE in the calculator's date format (YMD: YYYY.MMDD, DMY: DD.MMYYYY, MDY: MM.DDYYYY;
-  flags 67 / 31, only read; the hint shows it), UTC (HH.MMSS), LAT and LON (DD.MMm, south and
-  west negative),
+  NAV asks DATE (YYYY.MMDD), UTC (HH.MMSS), LAT and LON (DD.MMm, south and west negative),
   like the C47 version, and works in the 400 x 240 graphics mode (GrMod 3). 0 on the menu
   (NAVLITTLE: +) ends NAV and sets the normal screen again (GrMod 0).
   The Free42 and Plus42 simulators on a PC run the programs but have no GrMod: they show

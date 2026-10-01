@@ -387,25 +387,14 @@ def seq(L, part, new):
 
 def inputs():
     """LBL 20: the four INPUTs; LBL 21: Z JD (+ DH hours), Y lat, X lon (arithmetic, as the
-    first versions: Free42 has no C47 date functions).
-    DATE in the calculator's date format, as the C47 version: flag 67 set = Y.MD, else flag 31 set
-    = D.MY, else M.DY (the flags are only tested). The hint shows it (XSTR puts it on the stack:
-    INPUT shows it as Y: "...", 18 characters fit); LBL 93 turns DATE into
-    YYYY.MMDD for the arithmetic (DATE itself keeps the number as typed)."""
+    first versions: Free42 has no C47 date functions)."""
     L = gennav.OLD_INPUT.split('|')
     body = L[L.index('RCL "DATE"'):]
     k = body.index('RCL "LAT"')
     body = body[:k] + ['RCL "DH"', '24', '÷', 'STO+ 06'] + body[k:]
-    body = ['XEQ 93'] + body[1:]
-    hint = ['CLA', 'FS? 67', 'GTO 90', 'FS? 31', 'GTO 91', '"M.DDYYYY H.MMSS"', 'GTO 92',
-            'LBL 90', '"Y.MMDD H.MMSS"', 'GTO 92', 'LBL 91', '"D.MMYYYY H.MMSS"', 'LBL 92']
-    ymd = ['LBL 93', 'RCL "DATE"', 'FS? 67', 'RTN',                     # D.MY / M.DY -> YYYY.MMDD
-           '1000000', '×', '0.5', '+', 'IP', 'STO 03', '1000000', '÷', 'IP', 'STO 01',
-           'RCL 03', '10000', '÷', 'IP', '100', 'MOD', 'STO 02', 'RCL 03', '10000', 'MOD',
-           'FS? 31', 'GTO 94', 'RCL 01', '100', '÷', '+', 'RCL 02', '10000', '÷', '+', 'RTN',
-           'LBL 94', 'RCL 02', '100', '÷', '+', 'RCL 01', '10000', '÷', '+', 'RTN']
-    return (['LBL 20'] + hint + ['AVIEW'] + ['INPUT "%s"' % v for v in ('DATE', 'UTC', 'LAT', 'LON')]
-            + ['RTN'] + ymd + ['LBL 21'] + body)
+    hint = '"Y.MMDD H.MMSS D.MMm"'
+    return (['LBL 20', 'CLA', hint, 'AVIEW'] + ['INPUT "%s"' % v for v in ('DATE', 'UTC', 'LAT', 'LON')]
+            + ['RTN', 'LBL 21'] + body)
 
 
 def box_free42():
