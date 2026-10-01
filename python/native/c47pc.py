@@ -3,16 +3,18 @@
 
 Stand-alone: no C47 programs and no simulator. The Sun, Moon, planets, stars,
 sunrise/twilight and Moon phase are calculated in c47astro.py with the same
-methods and coefficients as the calculator programs, and c47screen.py draws the
-C47 screens (ALMF, HALMV, HORZ, HORZS) with the same fonts and layout.
-Tested pixel for pixel against the calculator programs (75 dates and places).
+methods and coefficients as the calculator programs, and c47screen21.py draws the
+C47 screens of Oct 2026 (ALMANAC, CHART, SKY, SPLIT, ANIM, ALLSKY: the header line on
+every view, the Moon phase glyph, the C47 standard and tiny fonts) with the same fonts
+and layout, tested pixel for pixel against the calculator programs
+(tests/test_parity21.py); MOON (the phases) is a view of the PC version only.
 
 Two ways to use it
   1. Window (GTK 3):      python3 c47pc.py
-  2. PNG / text only:     python3 c47pc.py --view HALMV --date 2026-09-25 --ut 18:30 \
+  2. PNG / text only:     python3 c47pc.py --view CHART --date 2026-09-25 --ut 18:30 \
                                   --lat "25 20 N" --lon "55 12 E" --png halmv.png
-     ALMT (text almanac) prints its lines:   ... --view ALMT
-     HORZ info frames (one per object):      ... --view HORZ --png horz.png --all-frames
+     TEXT (text almanac) prints its lines:   ... --view TEXT
+     SKY name frames (one per body):         ... --view SKY --png sky.png --all-frames
      Menu Info: Help and About (version).    --version prints the version.
      Online check against JPL Horizons:      ... --check  (menu Info as well)
 
@@ -31,10 +33,11 @@ from decimal import Decimal as D
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import c47screen
+import c47screen21
 import c47tables
 
-VERSION = '1.3'
-VERSION_DATE = '2026-09-29'
+VERSION = '1.4'
+VERSION_DATE = '2026-10-01'
 PROGRAM = 'C47 Nav PC'
 ABOUT = ("This program began as a set of RPN programs for the SwissMicros C47 calculator: "
          "Sun, Moon, planets and the 57 navigational stars, sight reduction, and the almanac "
@@ -61,25 +64,30 @@ HELP = """INPUT
   Lon      55 12.0 E   or  -75.5     (W or minus for west)
   Now UTC  fills in the current date and time and runs
 
-VIEWS (same as on the C47)
-  ALMF   full-page almanac: GHA, Dec, Hc, Zn of the Sun, the Moon and planets
-         above the horizon, and the brightest stars above 10 deg (10 rows);
-         twilight, sunrise/sunset, meridian passage, Sun SD, Moon phase, HP, SD
-  HALMV  horizon chart on the left, Hc/Zn table and times on the right
-  HORZ   full-screen horizon chart; R/S steps through the objects (name, Zn, Hc);
-         on the C47 (4 SKY) the line changes by itself every 3 s
-  HORZS  horizon chart only
-  ALMT   text almanac, one page of two lines per R/S (as PROMPT on the C47)
-  ALMS   short almanac;  HALMH  chart on top, short almanac below
-  ANIM   animation (HANIM on the C47): the Sun and the Moon on the horizon chart
-         every Step hours, Frames frames, each shown Frame ms; each only while it
-         is above the horizon.
-         Plays in a loop; R/S steps one frame. Save PNG writes an animated PNG.
-  ALLSKY whole sky: horizon across the middle, OVER HORIZON above, UNDER HORIZON
-         below; Sun, Moon, planets and all 58 stars; DAY / TWILIGHT / NIGHT.
+VIEWS (as on the C47, NAV menu; the old names ALMF HALMV HORZ HALMH ALMT still work)
+  Every view has the header line: date, UT, DR position, T / S, and a line under it.
+  The same 8 bodies on ALMANAC, CHART, SKY and SPLIT: the Sun; the Moon above the
+  horizon; the first planet above it (Venus, Jupiter, Mars, Saturn); the brightest
+  stars higher than 10 deg.
+  ALMANAC  GHA, Dec, Hc, Zn and ARIES; twilight, sunrise/sunset, meridian passage,
+           Sun SD; Moon % with its phase glyph, age, HP, SD
+  CHART    horizon chart on the left, the bodies with their Hc / Zn on the right
+  TEXT     text almanac, one page of two lines per R/S (as PROMPT on the C47)
+  SKY      full-screen horizon chart; every second the name of the next body above
+           the horizon is shown next to it (R/S steps); DAY / TWILIGHT / NIGHT
+  SPLIT    chart on top, GHA Dec Hc Zn of the bodies below
+  ANIM     the Sun and the Moon on the whole-sky chart every Step hours, Frames
+           frames, each shown Frame ms; R/S steps one frame. Save PNG writes an
+           animated PNG.
+  ALLSKY   whole sky: horizon across the middle; Sun, Moon, planets and all 58 stars;
+           DAY / TWILIGHT / NIGHT
+  MOON     (PC only) the phase as a disc (as seen from the north, or from the south
+           when the DR is south), its name, % lit, age, HP, SD, the next new Moon,
+           first quarter, full Moon and last quarter (UT, within about half an hour),
+           and the eight phase glyphs with today's one inverted
 
 MARKS
-  Hc white on black (ALMF, HALMV, ALMS, HALMH) or line starting with "* " (ALMT):
+  Hc white on black (ALMANAC, CHART, SPLIT) or line starting with "* " (TEXT):
   the body is below the horizon (only the Sun can be).
   Stars carry their Nautical Almanac number (1-57, 58 = Polaris).
 
@@ -90,12 +98,12 @@ KEYS
   Enter (in a field) = Run      Enter / Space elsewhere = R/S (next object or line)
 
 SAVE
-  Save PNG saves the screen shown (ALMT: the text lines as .txt).
+  Save PNG saves the screen shown (TEXT: the text lines as .txt; ANIM: an animated PNG).
 
 COMMAND LINE
-  python3 c47pc.py --view HALMV --date 2026-09-25 --ut 18:30 \\
-          --lat "25 20 N" --lon "55 12 E" --png halmv.png
-  python3 c47pc.py --view ALMT --date ... --lat ... --lon ...   (prints the lines)
+  python3 c47pc.py --view CHART --date 2026-09-25 --ut 18:30 \\
+          --lat "25 20 N" --lon "55 12 E" --png chart.png
+  python3 c47pc.py --view TEXT --date ... --lat ... --lon ...   (prints the lines)
   python3 c47pc.py --view ANIM --date ... --lat ... --lon ... --png anim.png \
           --frames 24 --step 0.5 --frame-ms 1000        (animated PNG; --all-frames: one PNG each)
   python3 c47pc.py --help    all options
@@ -124,13 +132,15 @@ ON BOARD
 DOES NOT REPLACE THE NAUTICAL ALMANAC."""
 
 W, H = 400, 240
-VIEWS = ['ALMF', 'HALMV', 'HORZ', 'HORZS', 'ALMT', 'ALMS', 'HALMH', 'ANIM', 'ALLSKY']
-VIEW_TEXT = {'ALMF': 'full-page almanac', 'HALMV': 'chart + almanac data',
-             'HORZ': 'horizon chart + info per object', 'HORZS': 'horizon chart',
-             'ALMT': 'text almanac, one line per R/S', 'ALMS': 'short almanac: Sun, Moon, 1 planet, 3 stars',
-             'HALMH': 'horizon chart on top, short almanac below',
-             'ANIM': 'animation: the Sun and the Moon moving on the horizon chart (HANIM)',
-             'ALLSKY': 'whole sky: over the horizon above, under the horizon below, every body'}
+VIEWS = ['ALMANAC', 'CHART', 'TEXT', 'SKY', 'SPLIT', 'ANIM', 'ALLSKY', 'MOON']
+OLD_NAMES = {'ALMF': 'ALMANAC', 'ALMS': 'ALMANAC', 'HALMV': 'CHART', 'ALMT': 'TEXT', 'HORZ': 'SKY',
+             'HORZS': 'SKY', 'HALMH': 'SPLIT'}
+VIEW_TEXT = {'ALMANAC': 'full-page almanac (1 on the C47 menu)', 'CHART': 'chart + Hc / Zn of the bodies (2)',
+             'TEXT': 'text almanac, one line per R/S (3)', 'SKY': 'horizon chart, the bodies named one by one (4)',
+             'SPLIT': 'chart on top, GHA Dec Hc Zn below (5)',
+             'ANIM': 'the Sun and the Moon moving on the whole-sky chart (6)',
+             'ALLSKY': 'whole sky: over the horizon above, under it below, every body (7)',
+             'MOON': 'the Moon phase, the next phases (PC only)'}
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)
@@ -210,10 +220,10 @@ class Engine:
         return self.last
 
     def screen(self, view, j, lat, lon):
+        view = OLD_NAMES.get(view, view)
         if view == 'ANIM':
-            self._al(j, lat, lon)
-            return c47screen.hanim(j, lat, lon, self.anim['frames'], self.anim['step'])[0], None
-        return c47screen.VIEWS[view](self._al(j, lat, lon)), None
+            return c47screen21.anim(self._al(j, lat, lon), self.anim['frames'], self.anim['step']), None
+        return c47screen21.VIEWS[view](self._al(j, lat, lon)), None
 
     def text(self, j, lat, lon):
         return c47screen.almt(self._al(j, lat, lon)), None
@@ -352,7 +362,7 @@ def run_gtk(eng, args):
             super().__init__(title='%s %s' % (PROGRAM, VERSION))
             self.scale = args.scale
             self.lcd = not args.plain
-            self.frames = [set()]; self.lines = []; self.k = 0; self.view = args.view or 'HALMV'
+            self.frames = [set()]; self.lines = []; self.k = 0; self.view = OLD_NAMES.get(args.view, args.view) or 'CHART'
             self.connect('destroy', Gtk.main_quit)
             self.connect('key-press-event', self.on_key)
             outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0); self.add(outer)
@@ -493,7 +503,7 @@ def run_gtk(eng, args):
             t0 = time.time()
             eng.anim = {'frames': int(self.s_frames.get_value()), 'step': self.s_step.get_value()}
             try:
-                if self.view == 'ALMT':
+                if self.view == 'TEXT':
                     self.lines, n = eng.text(j, lat, lon); self.frames = [set()]
                 else:
                     self.frames, n = eng.screen(self.view, j, lat, lon); self.lines = []
@@ -508,24 +518,25 @@ def run_gtk(eng, args):
             """ANIM: show the frames one after another (Frame ms each), in a loop."""
             if self.timer:
                 GLib.source_remove(self.timer); self.timer = None
-            if self.view == 'ANIM' and len(self.frames) > 1 and self.b_play.get_active():
-                self.timer = GLib.timeout_add(int(self.s_ms.get_value()), self.on_tick)
+            if self.view in ('ANIM', 'SKY') and len(self.frames) > 1 and self.b_play.get_active():
+                ms = 1000 if self.view == 'SKY' else int(self.s_ms.get_value())    # SKY: a name a second, as the C47
+                self.timer = GLib.timeout_add(ms, self.on_tick)
 
         def on_tick(self):
-            if self.view != 'ANIM':
+            if self.view not in ('ANIM', 'SKY'):
                 self.timer = None; return False
             self.k = (self.k + 1) % len(self.frames); self.update_status(); self.area.queue_draw()
             return True
 
         def update_status(self):
             extra = ''
-            if self.view == 'ALMT' and self.lines:
+            if self.view == 'TEXT' and self.lines:
                 extra = '   page %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.lines))
             elif self.view == 'ANIM':
                 extra = '   frame %d/%d, every %.2f h' % (self.k + 1, len(self.frames), self.s_step.get_value())
             elif len(self.frames) > 1:
-                extra = '   object %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.frames))
-            grey = '   grey = next pages' if self.view == 'ALMT' else ''
+                extra = '   body %d/%d (R/S = Enter or Space)' % (self.k + 1, len(self.frames))
+            grey = '   grey = next pages' if self.view == 'TEXT' else ''
             src = ''
             if self.view == 'ANIM':
                 src = '   quick positions (as HANIM)'
@@ -535,7 +546,7 @@ def run_gtk(eng, args):
             self.status.set_text('%s (%.2f s)%s%s%s' % (self.view, self.secs, src, extra, grey))
 
         def on_next(self, *_):
-            n = len(self.lines) if self.view == 'ALMT' else len(self.frames)
+            n = len(self.lines) if self.view == 'TEXT' else len(self.frames)
             if n:
                 self.k = (self.k + 1) % n; self.update_status(); self.area.queue_draw()
 
@@ -546,10 +557,10 @@ def run_gtk(eng, args):
             return False
 
         def on_save(self, *_):
-            if self.view == 'ALMT':
-                dlg = Gtk.FileChooserDialog(title='Save ALMT text', parent=self,
+            if self.view == 'TEXT':
+                dlg = Gtk.FileChooserDialog(title='Save TEXT almanac', parent=self,
                                             action=Gtk.FileChooserAction.SAVE)
-                dlg.set_current_name('ALMT.txt')
+                dlg.set_current_name('TEXT.txt')
             else:
                 dlg = Gtk.FileChooserDialog(title='Save PNG', parent=self, action=Gtk.FileChooserAction.SAVE)
                 dlg.set_current_name('%s.png' % self.view)
@@ -557,7 +568,7 @@ def run_gtk(eng, args):
             dlg.set_do_overwrite_confirmation(True)
             if dlg.run() == Gtk.ResponseType.OK:
                 fn = dlg.get_filename()
-                if self.view == 'ALMT':
+                if self.view == 'TEXT':
                     with open(fn, 'w', encoding='utf-8') as fh:
                         fh.write(pages_text(self.lines) + '\n')
                 elif self.view == 'ANIM':
@@ -574,7 +585,7 @@ def run_gtk(eng, args):
             cr.set_source_rgb(*[v / 255 for v in BEZEL]); cr.paint()
             cr.set_source_rgb(*[v / 255 for v in bg]); cr.rectangle(b, b, W * s, H * s); cr.fill()
             cr.set_source_rgb(*[v / 255 for v in on])
-            if self.view == 'ALMT':
+            if self.view == 'TEXT':
                 self.draw_text(cr, s, b); return
             gap = 1 if (self.lcd and s >= 4) else 0
             for (x, r) in self.frames[self.k]:
@@ -617,13 +628,13 @@ def run_gtk(eng, args):
 # ------------------------------------------------------------------ main
 def main():
     ap = argparse.ArgumentParser(description='C47_nav screens on the PC (native Python calculations).')
-    ap.add_argument('--view', choices=VIEWS, help='ALMF HALMV HORZ HORZS ALMT ALMS HALMH ANIM ALLSKY (default HALMV)')
+    ap.add_argument('--view', choices=VIEWS + list(OLD_NAMES), help='ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON (default CHART); the old names ALMF HALMV ALMT HORZ HALMH work too')
     ap.add_argument('--date', help='YYYY-MM-DD (default: today UTC)')
     ap.add_argument('--ut', help='hh:mm or hh:mm:ss UT (default: now)')
     ap.add_argument('--lat', help='e.g. "25 20.0 N" or 25.3333')
     ap.add_argument('--lon', help='e.g. "55 12.0 E" or -75.5')
     ap.add_argument('--png', help='write the screen to this PNG file (no window)')
-    ap.add_argument('--all-frames', action='store_true', help='HORZ: one PNG per object; ANIM: one PNG per frame (_0, _1, ...)')
+    ap.add_argument('--all-frames', action='store_true', help='SKY: one PNG per body name; ANIM: one PNG per frame (_0, _1, ...)')
     ap.add_argument('--frames', type=int, default=24, help='ANIM: number of frames (default 24)')
     ap.add_argument('--step', type=float, default=0.5, help='ANIM: hours between frames (default 0.5)')
     ap.add_argument('--frame-ms', type=float, default=1000, help='ANIM: time each frame is shown, ms (default 1000)')
@@ -654,7 +665,8 @@ def main():
 
     eng = Engine(None if args.series else (args.tables or c47tables.find()))
     eng.anim = {'frames': args.frames, 'step': args.step}
-    batch = bool(args.png) or (args.view == 'ALMT' and bool(args.lat)) or args.body is not None
+    args.view = OLD_NAMES.get(args.view, args.view)
+    batch = bool(args.png) or (args.view == 'TEXT' and bool(args.lat)) or args.body is not None
     if not batch:
         try:
             run_gtk(eng, args); return
@@ -669,7 +681,7 @@ def main():
         sys.exit('give --lat and --lon')
     lat = parse_angle(args.lat, 'N', 'S', 90); lon = parse_angle(args.lon, 'E', 'WO', 180)
     j = jd(y, m, d, h)
-    view = args.view or 'HALMV'
+    view = args.view or 'CHART'
     if args.body is not None:
         al = eng._al(j, lat, lon)
         codes, pages = c47screen.body_list(al)
@@ -681,7 +693,7 @@ def main():
                 write_png(args.png, *render_rgb(c47screen.body_chart(al, args.body)[0], args.scale, not args.plain, not args.no_bezel))
                 print('%s written' % args.png)
         return
-    if view == 'ALMT':
+    if view == 'TEXT':
         lines, n = eng.text(j, lat, lon)
         print(pages_text(lines))
         if args.png:

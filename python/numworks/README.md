@@ -7,14 +7,15 @@ drawn with the calculator's own `kandinsky` module, keys read with `ion`:
 
 | Script | View | C47 original |
 |---|---|---|
-| `almview.py` | ALMANAC page: date / UT / DR, GHA Aries, BODY GHA DEC HC ZN for the Sun and the brightest navigation stars higher than 10 deg, naut. twilight, rise/set, mer. pass, Sun SD, Moon phase and age | ALMF ("vintage" view) |
-| `skyview.py` | HORIZON chart: Hc up (sine scale), Zn across, celestial equator dotted, Sun and stars with their numbers; the top line shows ZN / HC of the selected body | HORZ |
+| `almview.py` | ALMANAC page: the header line (date, UT, DR) with a line under it, GHA Aries, BODY GHA DEC HC ZN for the Sun and the brightest navigation stars higher than 10 deg, naut. twilight, rise/set, mer. pass, Sun SD, Moon phase with its glyph and age | ALMF ("vintage" view) |
+| `skyview.py` | HORIZON chart: the same header line, Hc up (sine scale), Zn across, celestial equator dotted, Sun and stars with their numbers; the selected body has its name next to it (red); DAY / TWILIGHT / NIGHT at the bottom | HORZ |
 
 All the numbers come from `../nav.py` + `../navdata.py` (same methods as the C47
 programs SUNA, STAR, SUNRISE, PHAS, HCZ; `nav.almanac()` / `nav.bodies()`), the same
 files as the text menu (`nav.py`, option 5 prints the same page as text). There is no Moon
-position and no planets in `nav.py`, so the table is the Sun plus 8 stars (horizon: Sun
-plus 9 stars), chosen like the C47: brightest first, only those higher than 10 deg.
+position and no planets in `nav.py`, so both views show the Sun plus the same 7 stars
+(`nav.NBODY` = 8 bodies, as the C47 views of Oct 2026), chosen like the C47: brightest
+first, only those higher than 10 deg.
 
 Previews made on a PC (see below): `docs/NUMWORKS_alm.png`, `docs/NUMWORKS_sky.png`
 (26 Sep 2026 14:57 UT, 25 20 N 055 12 E) and `docs/NUMWORKS_sky_night.png`
@@ -44,7 +45,7 @@ Lat/Lon: `25 20` = 25 deg 20', `25.5` = decimal degrees, `-` for S / W.
 |---|---|
 | UP / DOWN | one hour later / earlier |
 | OK or EXE | switch ALMANAC <-> HORIZON |
-| LEFT / RIGHT | HORIZON: select the previous / next body for the top line (shown in red) |
+| LEFT / RIGHT | HORIZON: the previous / next body above the horizon: its name next to it, in red |
 | BACK | exit |
 
 ## Memory and size
@@ -70,8 +71,8 @@ time). On a 32 KB heap (Epsilon before 19) this is close to the limit: if you ge
 `MemoryError`, update Epsilon (19 or later) or use Upsilon, and delete other scripts
 that are imported in the same session.
 
-The small text is the 5x7 font of the C47 programs (PTXB), drawn with `fill_rect`; the
-date line and the HORIZON top line use `draw_string` (large font, 10 x 18). The view takes
+The text is the 5x7 font of the C47 programs (PTXB), drawn with `fill_rect`, and the
+Moon phase is one of eight 7x7 glyphs (`nwlib.MP`, the C47 phase glyphs at 7 rows). The view takes
 about a second to draw on the calculator (not timed on a real one).
 
 ## PC preview and check
