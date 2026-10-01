@@ -159,11 +159,6 @@ R↓
 STO 46
 R↓
 STO 48
-REM "Moon: % R18, age R19 (PHA2 reuses this SUNA)"
-XEQ "PHA2"
-STO 18
-X<>Y
-STO 19
 0
 3
 XEQ "HCZQ"
@@ -229,15 +224,6 @@ XEQ "PTXS"
 248
 RCL 12
 ABS
-XEQ "PDMS"
-REM "GHA Aries"
-198
-176
-"ARIES"
-XEQ "PTXS"
-198
-226
-RCL 48
 XEQ "PDMS"
 REM "table header"
 184
@@ -354,30 +340,6 @@ ISG 42
 GTO 17
 LBL 19
 REM "bottom block"
-"WAXING"
-STO 43
-RCL 19
-14.765
-X<Y?
-XEQ 28
-RCL 18
-99.5
-X≤Y?
-XEQ 25
-RCL 18
-0.5
-X>Y?
-XEQ 30
-24
-176
-"MOON "
-XEQ "PTXS"
-RCL 18
-XEQ "PINS"
-"% "
-XEQ "PTXS"
-RCL 43
-XEQ "PTXS"
 "S"
 STO 43
 FS? 11
@@ -388,10 +350,6 @@ XEQ 65
 388
 RCL 43
 XEQ "PTXS"
-8
-214
-"DOES NOT REPLACE THE NAUTICAL ALMANAC"
-XEQ "PTXT"
 REM "hold the screen: + back to the menu, up / down arrow one hour"
 XEQ "WPLS"
 RTN
@@ -402,19 +360,6 @@ STO 43
 RTN
 LBL 65
 "X"
-STO 43
-RTN
-LBL 25
-"FULL"
-STO 43
-RTN
-LBL 30
-"NEW"
-STO 43
-RTN
-LBL 28
-REM "text WANING"
-"WANING"
 STO 43
 RTN
 LBL 22

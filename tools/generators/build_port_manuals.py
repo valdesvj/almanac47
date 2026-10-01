@@ -159,7 +159,7 @@ def free42():
         'Tested in the Free42 core against the same screen in the C47 simulator, pixel by pixel '
         '(tests/test_f42_little.py); not yet on '
         'a real calculator.'])
-    S += [P('11. Almanac tables: TBL_1 and TBL_5', h2)] + B([
+    S += [P('11. Almanac tables: TBL_1, TBL_5 and TBL_50', h2)] + B([
         'Optional: Chebyshev coefficients fitted to JPL DE421. <b>TBL_1</b>: 1 Oct 2026 – 30 Sep 2027 (8,441 numbers, '
         'file 97 KB). <b>TBL_5</b>: 1 Oct 2026 – 30 Sep 2031 (41,882 numbers, file 481 KB).',
         'Load ONE, <b>XEQ "TBL"</b> once: it builds the matrices TSU, TVE, TMA, TJU, TSA, TMO, TAR and sets flag 10. Then '
@@ -168,7 +168,10 @@ def free42():
         '(NAVLITTLE: the Sun and Aries), and the screens show <b>T</b> instead of S. Outside the period, or after '
         '<b>CF 10</b>, the series are used. The values agree with the series to 0.1′.',
         'The tables need more memory than the C47 has: they are meant for Free42 / Plus42 on a PC or phone, or a DM42n '
-        'with enough free memory.'])
+        'with enough free memory.',
+        '<b>TBL_50</b>: 1 Jan 2000 – 31 Dec 2050 (file 4.9 MB, about 6.8 MB of matrices): Free42 / Plus42 on a PC only. '
+        'Not in the package: download TBL_50.raw from the release tbl50-2000-2050 '
+        '(github.com/valdesvj/almanac47/releases/tag/tbl50-2000-2050) or make it with tools/almanac/README.md.'])
     make(os.path.join(PDF, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
 
 

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import os, re, sys
-sys.path.insert(0,'/home/claude/C47_nav/python')
+ROOT=os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))   # the repository
+sys.path.insert(0,os.path.join(ROOT,'python'))
 from navdata import SN
-SRC='/home/claude/C47_nav/programs'
+SRC=os.path.join(ROOT,'programs')
 H={}   # headers
 A={}   # anchors: list of (anchor, occurrence, comment)
 
@@ -340,11 +341,12 @@ def process(fname):
         notes.setdefault(found,[]).append(com)
     return key,lines,notes,H.get(key,[key])
 
-os.makedirs('/home/claude/C47_nav/listings',exist_ok=True); os.makedirs('/home/claude/C47_nav/programs_rem',exist_ok=True)
+os.makedirs(os.path.join(ROOT,'listings'),exist_ok=True); os.makedirs(os.path.join(ROOT,'programs_rem'),exist_ok=True)
 # ---- speed (Sep 2026): trig functions cached, series and Moon with matrix functions
 def _drop(k, keys):
     A[k] = [a for a in A[k] if a[0] not in keys]
 _drop('SUNA', {'3\nSTO 55', '7\nSTO 55', 'LBL 12'})
+_drop('HALMV', {'XEQ "PHA2"', '198\n176', 'LBL 26', 'LBL 28'})   # gone from HALMV (no Moon phase, no GHA Aries line)
 A['SUNA'] += [('XEQ "SERT"',1,'vectors SV1 = [1, tau, tau^2, 0, 0], SV2 = [0, 0, 0, 1, tau] for the series'),
  ('LBL "SERT"',1,'SERT: build SV1 and SV2 from tau (R50)'),
  ('LBL 15',1,'per-page constants for STR2 (named variables): zeta, z, sin/cos theta, sin/cos mean and true obliquity, e, perihelion; PQK = -1 (PLAN Earth cache)')]
@@ -384,7 +386,7 @@ for f in sorted(x for x in os.listdir(SRC) if not x.startswith(("COPYING", "LICE
                 if l.startswith('LBL'): out.append(';'); 
                 out.append('; ---- '+c)
         out.append('%04d  %s'%(i+1,l))
-    open('/home/claude/C47_nav/listings/'+f[:-4]+'_doc.txt','w').write('\n'.join(out)+'\n')
+    open(os.path.join(ROOT,'listings',f[:-4]+'_doc.txt'),'w').write('\n'.join(out)+'\n')
     # REM version
     def rem(t): return 'REM "%s"'%t.replace('"',"'").replace(';',',')
     r=[]
@@ -402,5 +404,5 @@ for f in sorted(x for x in os.listdir(SRC) if not x.startswith(("COPYING", "LICE
                 continue
             for c in notes[i]: r.append(rem(c))
         r.append(l)
-    open('/home/claude/C47_nav/programs_rem/'+f,'w').write('\n'.join(r)+'\n')
+    open(os.path.join(ROOT,'programs_rem',f),'w').write('\n'.join(r)+'\n')
 print('done')

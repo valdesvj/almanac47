@@ -3,7 +3,7 @@
 Python scripts that wrote most of the calculator program files. They are kept as the
 source of the generated programs. They were run in the original work folder, so the
 input and output paths inside them (e.g. `/home/claude/ALMF.txt`) must be changed
-before running them again.
+before running them again. `annot.py` runs as is: `python3 tools/generators/annot.py`.
 
 | Script | Writes |
 |---|---|
