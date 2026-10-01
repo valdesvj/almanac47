@@ -26,8 +26,10 @@ FILES (the file name is the version: on the calculator the programs are NAV and 
                        The matrices need about 135 KB (1 year) or 670 KB (5 years): for Free42 /
                        Plus42 on a PC or phone.
   TBL_50.raw           (not in the repository: about 4.9 MB) almanac tables 1 Jan 2000 - 31 Dec
-                       2050, about 6.8 MB of matrices: Free42 / Plus42 on a PC only. Make it with
-                       the two commands under TBL_50 in tools/almanac/README.md.
+                       2050, about 6.8 MB of matrices: Free42 / Plus42 on a PC only. Download it
+                       (with its SHA-256) from the release tbl50-2000-2050:
+                       https://github.com/valdesvj/almanac47/releases/tag/tbl50-2000-2050
+                       or make it with the two commands under TBL_50 in tools/almanac/README.md.
   *.txt                the same programs as text (Free42 on a PC or phone: Paste them into
                        a program in PRGM mode)
   NAVFULL_LABELS.txt, NAVLITTLE_LABELS.txt   the label maps (every routine except NAV is

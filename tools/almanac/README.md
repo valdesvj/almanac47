@@ -18,6 +18,10 @@ versions (`build/free42/TBL_1.raw`, `TBL_5.raw`). DE421 ends in 2050.
 
 ### TBL_50: 2000-2050 for Free42 / Plus42 on a PC (not in the repository, about 18 MB)
 
+Ready-made: `TBL_50.raw` and its SHA-256 are in the release
+[tbl50-2000-2050](https://github.com/valdesvj/almanac47/releases/tag/tbl50-2000-2050).
+To make it yourself:
+
     cd tools/almanac
     uv run --no-project --with numpy --with pyerfa --with "jplephem==2.24" --with de421 \
         python c47_almanac_generator.py 2000-01-01 2051-01-01 > tables_2000-2050.csv   # about 30 min
