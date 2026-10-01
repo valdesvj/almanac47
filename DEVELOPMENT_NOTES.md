@@ -585,3 +585,15 @@ INIT with the builders as LBL 01-04.
   all), across a day, a month and a year end.
 - c47sim: datefmt 'YMD' / 'DMY' / 'MDY' for x→ⅅ, ⅅ→x and FS? / FC? DMY MDY YMD. tests/test_datefmt.py: NAVFULL with
   the three formats, the date typed in each: the message line and the ALMANAC screen.
+
+## Oct 1, 2026 - Free42: CLD at the end of NAV; TBL_50 (2000-2050)
+
+- Free42 NAV ended with CLLCD: the cleared screen stayed as a message (HP-42S / Free42 / Plus42)
+  until a key was pressed. CLD after it (NAVFULL 0, NAVLITTLE +) brings the stack back at once.
+- c47_almanac_generator.py: TT-UT1 from DT_YEARS (2000-2025, yearly, linear in between), then DT
+  = 69.2 s; October 2026 comes out the same as tables_2026-10_2031-09.csv (made with 69.2).
+- TBL_50 (build_free42.tbl50): 1 Jan 2000 - 31 Dec 2050 from tools/almanac/tables_2000-2050.csv,
+  83,832 rows (generator about 30 min), TBL_50.txt 7.0 MB, .raw 4.9 MB, about 6.8 MB of matrices.
+  Not in git (.gitignore): made on the PC. f42run: TBL ends with TBL 01-01-2000 TO 31-12-2050;
+  2027-03-15 the same screen as TBL_5; 2000, 2008, 2015, 2038, 2050 show T and agree with the
+  series to the last digit (0.1', 1 min).

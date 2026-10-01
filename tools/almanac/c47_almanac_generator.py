@@ -16,7 +16,21 @@ E = Ephemeris(de421)
 C = E.CLIGHT * 86400.0          # km/day
 AU = E.AU
 EMR = E.EMRAT
-DT = 69.2                        # TT-UT1 seconds: update for the years you generate
+DT = 69.2                        # TT-UT1 seconds from 2025 on (the future cannot be known)
+# TT-UT1 at the start of each year 2000-2025 (IERS / USNO, rounded to 0.1 s); linear in between
+DT_YEARS = {2000: 63.8, 2001: 64.1, 2002: 64.3, 2003: 64.5, 2004: 64.6, 2005: 64.7, 2006: 64.8,
+            2007: 65.1, 2008: 65.5, 2009: 65.8, 2010: 66.1, 2011: 66.3, 2012: 66.6, 2013: 66.9,
+            2014: 67.3, 2015: 67.6, 2016: 68.1, 2017: 68.6, 2018: 69.0, 2019: 69.2, 2020: 69.4,
+            2021: 69.4, 2022: 69.3, 2023: 69.2, 2024: 69.2, 2025: DT}
+
+
+def dt(jd_ut1):
+    """TT-UT1 (s) for a date: the table above for 2000-2025, DT before and after."""
+    y = 2000.0 + (jd_ut1 - 2451544.5) / 365.25
+    k = int(math.floor(y))
+    if k < 2000 or k >= 2025:
+        return DT_YEARS[2000] if k < 2000 else DT
+    return DT_YEARS[k] + (DT_YEARS[k + 1] - DT_YEARS[k]) * (y - k)
 REQ = 6378.137
 
 def _pv(name, tdb):
@@ -35,7 +49,7 @@ def body_bary(name, tdb):
 
 def apparent(name, jd_ut1):
     """returns GHA deg, Dec deg, distance km"""
-    tt = jd_ut1 + DT / 86400.0
+    tt = jd_ut1 + dt(jd_ut1) / 86400.0
     eb, ev = earth_bary(tt)
     tau = 0.0
     for _ in range(4):
@@ -58,7 +72,7 @@ def apparent(name, jd_ut1):
     return (era - ri) % 360.0, di, d
 
 def gha_aries(jd_ut1):
-    tt = jd_ut1 + DT / 86400.0
+    tt = jd_ut1 + dt(jd_ut1) / 86400.0
     return math.degrees(erfa.gst06a(2400000.5, jd_ut1 - 2400000.5, 2400000.5, tt - 2400000.5)) % 360
 
 def jd(y, m, d, h=0.0):

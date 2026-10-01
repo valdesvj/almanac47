@@ -32,6 +32,7 @@ STO "GrMod"
 7
 STO "RefLCD"
 CLST
+CLD
 RTN
 LBL 06
 1
