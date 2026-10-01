@@ -113,6 +113,17 @@ NBODY = 8        # T21: the same bodies in ALMANAC, CHART, SKY and SPLIT: the Su
                  # stars higher than 10 deg - 8 bodies, the rows of SPLIT
 
 
+def state_x(w):
+    """Column of DAY / TWILIGHT / NIGHT centred under the chart."""
+    return 200 - width(w) // 2
+
+
+def tsx(g, reg):
+    """T21: the T / S / X indicator at the right of the header (register reg)."""
+    g.a('"S"', 'STO %d' % reg, 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL %d' % reg, 'XEQ "PTXS"')
+    g.a('GTO 68', 'LBL 29', '"T"', 'STO %d' % reg, 'RTN', 'LBL 65', '"X"', 'STO %d' % reg, 'RTN', 'LBL 68')
+
+
 def first_planet(g, cnt, preg, l1, l2, l3, test, call):
     """The first planet above the horizon in the order Venus, Jupiter, Mars, Saturn (LBL 91-94 give
     its number): counter register cnt, the planet number in preg; test: from the number in X to
@@ -561,7 +572,10 @@ def sky_chart(g, HY, lbl9, lbl10, HS=100):
         for x, l in zip(xs, 'NESWN'): a(ly, x, '"%s"' % l, 'XEQ "PTXT"')
         a('GTO %02d' % lbl10, 'LBL %02d' % lbl9)
         for x, l in zip(xs, 'SWNES'): a(ly, x, '"%s"' % l, 'XEQ "PTXT"')
-        a('LBL %02d' % lbl10, HY + HS - (8 if TINY else -1), 150, '"OVER HORIZON"', 'XEQ "PTXT"', 2, 150, '"UNDER HORIZON"', 'XEQ "PTXT"')
+        if T21:         # no OVER / UNDER HORIZON: the bottom row is for DAY / TWILIGHT / NIGHT
+            a('LBL %02d' % lbl10)
+        else:
+            a('LBL %02d' % lbl10, HY + HS - (8 if TINY else -1), 150, '"OVER HORIZON"', 'XEQ "PTXT"', 2, 150, '"UNDER HORIZON"', 'XEQ "PTXT"')
         return
     for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
         a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
@@ -592,8 +606,9 @@ def hanim():
     if T21:     # the header (the time of the frame), under the line the frame and DAY / TWILIGHT / NIGHT (tinyFont, XOR)
         a('224', '0', 'CLLCDxy')
         header(g, 226, 17, 11, 12, top_x())
-        a('"NIGHT"', 'STO 43', '-12', 'RCL 27', 'X>Y?', 'XEQ 02', 'RCL 27', 'X>0?', 'XEQ 03')
-        a('RCL 13', 'X≠0?', 'XEQ 23', 'RCL 13', '1', '+', 'STO 18', 'RCL 43', 'STO 16', 'XEQ 23')
+        a('"NIGHT"', 'STO 43', state_x('NIGHT'), 'STO 24', '-12', 'RCL 27', 'X>Y?', 'XEQ 02', 'RCL 27', 'X>0?', 'XEQ 03')
+        tsx(g, 19)
+        a('RCL 13', 'X≠0?', 'XEQ 23', 'RCL 43', 'STO 16', 'RCL 24', 'STO 18', 'XEQ 23')
     else:
         a('"NIGHT"', 'STO 43', '-12', 'RCL 27', 'X>Y?', 'XEQ 02', 'RCL 27', 'X>0?', 'XEQ 03')
         a('224', '0', 'CLLCDxy')
@@ -606,11 +621,13 @@ def hanim():
     a('1', 'STO+ 13', 'RCL 14', 'RCL 13', 'X<Y?', 'GTO 01')
     a('XEQ "WPLS"', 'RTN')
     a('LBL 44', '180', 'STO 44', 'RTN')
-    a('LBL 02', '"TWILIGHT"', 'STO 43', 'RTN', 'LBL 03', '"DAY"', 'STO 43', 'RTN')
+    if T21:     # the word and its column (R24), at the bottom in font 21
+        a('LBL 02', '"TWILIGHT"', 'STO 43', state_x('TWILIGHT'), 'STO 24', 'RTN', 'LBL 03', '"DAY"', 'STO 43', state_x('DAY'), 'STO 24', 'RTN')
+    else:
+        a('LBL 02', '"TWILIGHT"', 'STO 43', 'RTN', 'LBL 03', '"DAY"', 'STO 43', 'RTN')
     if T21:
         a('LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN',
-          'LBL 23', '3', 'STO 32', 'GRMOD 32', '211', '300', 'RCL 18', 'XEQ "PTNT"', '"/24 "', 'XEQ "PTTY"', 'RCL 16', 'XEQ "PTTY"',
-          '0', 'STO 32', 'GRMOD 32', 'RTN')
+          'LBL 23', '3', 'STO 32', 'GRMOD 32', '4', 'RCL 18', 'RCL 16', 'XEQ "PTXS"', '0', 'STO 32', 'GRMOD 32', 'RTN')
     a('LBL 71', 'RCL 17', '2451545', '-', 'STO 25', '0.000800925925925926', '+', '36525', '÷', 'STO 54',
       'RCL 25', '360.98564736629', '×', '280.46061837', '+', '360', 'MOD', 'STO 80', 'RTN')
     a('LBL 72')
@@ -635,6 +652,7 @@ def allsky():
     if T21:
         header(g, 226, 10, 11, 12, top_x(), 24, 25)
         a('-221', '0', 'PIXEL')
+        tsx(g, 19)
     else:
         tx = 2 + DTW + 8
         a(227, 2, 'RCL 10', 'XEQ "PDTS"', 227, tx, 'RCL 10', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"', '" UT"', 'XEQ "PTXS"')
@@ -649,10 +667,13 @@ def allsky():
     a('1.004', 'STO 42', 'LBL 21', 'RCL 42', 'IP', 'XEQ "PLN3"', 'XEQ "HCZ"', 'XEQ 48', 'RCL 42', 'IP', '70', '+', 'STO 43', 'XEQ 16', 'ISG 42', 'GTO 21')
     a('XEQ "MOO2"', 'XEQ "HCZ"', 'XEQ 48', '62', 'STO 43', 'XEQ 16')
     a('RCL 46', 'RCL 45', 'XEQ "HCZ"', 'STO 27', 'XEQ 48', '61', 'STO 43', 'XEQ 16')
-    a('"NIGHT"', 'STO 43', '-12', 'RCL 27', 'X>Y?', 'XEQ 22', 'RCL 27', 'X>0?', 'XEQ 23', *([211, 350, 'RCL 43', 'XEQ "PTTY"'] if T21 else [227, 398 - width('TWILIGHT'), 'RCL 43', 'XEQ "PTXS"']))
+    a('"NIGHT"', 'STO 43', *([state_x('NIGHT'), 'STO 24'] if T21 else []), '-12', 'RCL 27', 'X>Y?', 'XEQ 22', 'RCL 27', 'X>0?', 'XEQ 23', *(['4', 'RCL 24', 'RCL 43', 'XEQ "PTXS"'] if T21 else [227, 398 - width('TWILIGHT'), 'RCL 43', 'XEQ "PTXS"']))
     a('XEQ "WPLS"', 'RTN')
     a('LBL 44', '180', 'STO 44', 'RTN')
-    a('LBL 22', '"TWILIGHT"', 'STO 43', 'RTN', 'LBL 23', '"DAY"', 'STO 43', 'RTN')
+    if T21:
+        a('LBL 22', '"TWILIGHT"', 'STO 43', state_x('TWILIGHT'), 'STO 24', 'RTN', 'LBL 23', '"DAY"', 'STO 43', state_x('DAY'), 'STO 24', 'RTN')
+    else:
+        a('LBL 22', '"TWILIGHT"', 'STO 43', 'RTN', 'LBL 23', '"DAY"', 'STO 43', 'RTN')
     if T21:
         a('LBL 24', '"S"', 'STO 43', 'RTN', 'LBL 25', '"W"', 'STO 43', 'RTN')
     a('LBL 48', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
