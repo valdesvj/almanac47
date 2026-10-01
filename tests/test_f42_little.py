@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
-"""Free42 NAVLITTLE (build/free42/) vs the C47 NAVLITTLE (build/dm42/) pixel by pixel:
-f42run (tools/f42, the Free42 core with the DM42 400 x 240 screen) against the C47 simulator.
+"""Free42 NAVLITTLE (build/free42/) vs the same screens on the C47 pixel by pixel: f42run
+(tools/f42, the Free42 core with the DM42 400 x 240 screen) against the C47 simulator running
+the C47 NAVLITTLE NAV (no menu) with the programs of NAVFULL_T21 and the NAVLITTLE ALMANAC view
+(build_free42.little_almf: the T21 view, Sun and stars, the Moon line of NAVLITTLE_PH).
 ALMANAC screen at the start, after UP (one hour later) and after DOWN DOWN (one hour earlier),
 then + ends.       python3 tests/test_f42_little.py   (needs tools/f42/f42run)"""
 import os, sys, subprocess, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, 'python'))
+sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'tools'), os.path.join(ROOT, 'tools', 'generators')]
 import c47sim
+import build_free42 as F, build_dm42, gennav
 from decimal import Decimal as D
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 CASES = (('2026.0926', '14.57', '25.20', '55.12'), ('2031.0315', '3.30', '-33.54', '18.25'),
@@ -39,8 +42,12 @@ def split(path):
 
 def c47_frames(date, utc, lat, lon):
     t = tempfile.mkdtemp(); files = []
-    for i, pr in enumerate(split(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'))
-                           + split(os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt'))):
+    nav = build_dm42.no_box(build_dm42.nav1_program(gennav.inputs()))
+    nav = build_dm42.seq(nav, ['XEQ 20', 'CLLCD'], ['XEQ 20', '21', 'GRFNT', 'DROP', 'CLLCD'])     # GRFNT 21 as NAVFULL_T21
+    nav = build_dm42.seq(nav, ['CLLCD', 'RCL "SSZ"'], ['20', 'GRFNT', 'DROP', 'CLLCD', 'RCL "SSZ"'])
+    t21 = [F.little_almf() if p[0] == 'LBL "ALMF"' else p
+           for p in split(os.path.join(ROOT, 'build', 'atext', 'src', 'NAVFULL_T21.txt')) if p[0] != 'LBL "NAV"']
+    for i, pr in enumerate(split(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt')) + [nav] + t21):
         f = os.path.join(t, 'p%d.txt' % i); open(f, 'w').write('\n'.join(pr) + '\n'); files.append(f)
     c = c47sim.load(files); c.flags.add(82)
     c.run('INIT', maxsteps=10 ** 7)
@@ -64,3 +71,4 @@ for case in CASES:
         if a[k] != b[k]:
             print('   frame', k, 'only Free42:', sorted(a[k] - b[k])[:8], 'only C47:', sorted(b[k] - a[k])[:8])
 print('%d differences' % bad)
+sys.exit(1 if bad else 0)
