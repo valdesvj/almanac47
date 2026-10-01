@@ -79,8 +79,9 @@ def inputs():
             'RCL "DH"', '24', '÷', 'STO+ 06'] + tail)
     body = body[:body.index('LBL 31')]                                                # month shift: not needed
     # the date in the calculator's CLK format (x→ⅅ reads it so): the system flags DMY / MDY are only
-    # tested (YMD: the default prompt); the message line shows that format
-    ask = (['"%s"' % FORMATS, 'STO 38', 'FS? DMY', 'XEQ 97', 'FS? MDY', 'XEQ 98', 'AVIEW 38']
+    # tested (YMD: the default prompt); the message line shows that format. Written FS? 'DMY': rejig
+    # (0.34) takes a system flag by name only in quotes (FS? DMY: invalid flag)
+    ask = (['"%s"' % FORMATS, 'STO 38', "FS? 'DMY'", 'XEQ 97', "FS? 'MDY'", 'XEQ 98', 'AVIEW 38']
            + ['INPUT "%s"' % v for v in ('DATE', 'UTC', 'LAT', 'LON')])
     fmt = [x for k, lab in (('DMY', 97), ('MDY', 98)) for x in
            ('LBL %d' % lab, '"%s"' % FORMATS.replace('YYYY.MMDD', DATE_FORMATS[k]), 'STO 38', 'RTN')]
