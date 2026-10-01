@@ -32,7 +32,8 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
   INIT sets flag 81 when it is done: NAV then does not look for INIT. If INIT is still
   loaded and has not run, the first NAV runs it. If NAV stops with an undefined label at
   its start: SF 81 (the matrices are there) and XEQ "NAV" again.
-  The CLK date format must be YYYY-MM-DD, as for the full version.
+  DATE is asked in the CLK date format (YYYY.MMDD, DD.MMYYYY or MM.DDYYYY, as the message line
+  shows), as in the full version.
 
 MEMORY (program sizes measured with rejig: the program bytes in the .p47 file; the .p47
 file on disk is about 3 times bigger because it stores each byte as a decimal number)

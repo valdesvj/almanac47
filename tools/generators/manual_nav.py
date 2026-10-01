@@ -51,12 +51,14 @@ S += [P('Almanac 47', title),
       'Load one NAV file and one NAVINIT file. <b>XEQ "INIT"</b> once: it builds the matrices and shows MATRICES READY. '
       'Then delete INIT (GTO "INIT", CLP): the matrices stay.',
       'Optional: load TBL, XEQ "TBL" once, delete it. The screens then show T (tables) instead of S (series).',
-      'The calculator\'s date format (CLK menu) must be <b>YYYY-MM-DD</b>: NAV reads DATE with the C47\'s own date functions.'])
+      'NAV asks DATE in the calculator\'s date format (CLK menu: YYYY-MM-DD, DD.MM.YYYY or MM/DD/YYYY) and reads it '
+      'with the C47\'s own date functions; the message line shows which.'])
 S += [P('3. Starting NAV', h2),
       P('XEQ "NAV" asks four numbers, once, with INPUT (R/S keeps the value shown). The message line shows '
-        'the formats: DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -.'),
+        'the formats: DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W - (DATE DD.MMYYYY or '
+        'DATE MM.DDYYYY when the CLK date format is D.MY or M.DY).'),
       prose_tbl([['Input', 'Meaning', 'Example'],
-                 ['DATE', 'UT date, YYYY.MMDD (the CLK date format must be YYYY-MM-DD)', '2026.0926'],
+                 ['DATE', 'UT date in the CLK date format: YYYY.MMDD, DD.MMYYYY or MM.DDYYYY', '2026.0926'],
                  ['UTC', 'UT, HH.MMSS (UT1; add DUT1 to UTC for full accuracy)', '14.57'],
                  ['LAT', 'latitude DD.MMm, south negative', '25.20 = 25° 20′ N'],
                  ['LON', 'longitude DDD.MMm, west negative', '55.12 = 55° 12′ E']],
