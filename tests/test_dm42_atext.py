@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The DM42 builds with ATEXT (build/dm42/NAVLITTLE, dev/NAV1T_DM42, dev/NAV12_DM42): the ATEXT steps
-(PTXS, and PTTY for the tinyFont of the NAV12 chart), each runs in the simulator (NAV12: menu,
+(PTXS; NAV12 also PTTY for the tinyFont of its chart), no Moon, each runs in the simulator (NAV12: menu,
 ALMANAC, CHART), and the strings given to ATEXT, put together row by row, show the page (the first
 rows of NAVLITTLE are printed).
     python3 tests/test_dm42_atext.py"""
@@ -44,7 +44,7 @@ def run(nav, keys, spy=None):
 
 
 bad = 0
-for name, keys in (('NAVLITTLE', [85]), ('dev/NAV1T_DM42', [85]), ('dev/NAV12_DM42', [72, 85, 73, 85, 82])):
+for name, keys, atx in (('NAVLITTLE', [85], 1), ('dev/NAV1T_DM42', [85], 1), ('dev/NAV12_DM42', [72, 85, 73, 85, 82], 2)):
     path = os.path.join(DM, name + '.txt')
     n = sum(1 for l in open(path, encoding='utf-8') if l.startswith('ATEXT '))
     c, texts = run(path, keys, spy=True)
@@ -52,7 +52,7 @@ for name, keys in (('NAVLITTLE', [85]), ('dev/NAV1T_DM42', [85]), ('dev/NAV12_DM
     for r, x, s in texts:
         rows.setdefault(r, []).append((x, s))
     table = [' '.join(s for x, s in sorted(v)) for r, v in sorted(rows.items(), reverse=True)]
-    ok = n == 2 and c.frames and any('FOMALHAUT' in t for t in table) and any('299.6' in t for t in table)
+    ok = n == atx and not any('MOON' in t for t in table) and c.frames and any('FOMALHAUT' in t for t in table) and any('299.6' in t for t in table)
     bad += not ok
     print('%-14s ATEXT steps %d, %d texts, %d screens, %d steps: %s' % (name, n, len(texts), len(c.frames), c.steps,
                                                                      'OK' if ok else 'FAILED'))

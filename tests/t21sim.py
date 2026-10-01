@@ -55,7 +55,19 @@ def frames(view, case, keyskip=False, maxpauses=None):
 
 
 def little_programs():
-    """The C47 reference of Free42 NAVLITTLE: the C47 NAVLITTLE (build/dm42/NAVLITTLE.txt: NAV with
-    no menu, GRFNT 21, the T21 ALMANAC view with the Sun, the stars and the Moon line). A list of
-    programs (lists of lines)."""
-    return _split(os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt'))
+    """The C47 reference of Free42 NAVLITTLE: the C47 NAVLITTLE (build_dm42: NAV with no menu,
+    GRFNT 21, the T21 ALMANAC view with the Sun and the stars) with the Moon line of Free42 in the
+    footer (moon=True; the C47 build itself has no Moon). A list of programs (lists of lines)."""
+    import io, contextlib
+    sys.path[:0] = [os.path.join(ROOT, 'tools'), os.path.join(ROOT, 'tools', 'generators'),
+                    os.path.join(ROOT, 'tools', 'generators', 'atext')]
+    import build_dm42
+    with contextlib.redirect_stdout(io.StringIO()):
+        nav, p = build_dm42.builds()['NAVLITTLE']
+    L, _ = build_dm42.assemble(nav, p, moon=True)
+    progs, cur = [], []
+    for l in L:
+        cur.append(l)
+        if l == 'END':
+            progs.append(cur); cur = []
+    return progs

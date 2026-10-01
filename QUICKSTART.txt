@@ -105,8 +105,7 @@ PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY: programs (measured with rejig before the ATEXT version; NAVFULL is smaller now, to be
-measured again) NAVFULL 41.1 KB, NAVTXT 14.8 KB; INIT while loaded
+MEMORY: programs (measured with rejig) NAVFULL 35.8 KB, NAVTXT 14.9 KB; INIT while loaded
 NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB; TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
 and ALMQ about 20 KB.
 

@@ -346,16 +346,16 @@ build_free42.py)
                      2027, the tests), TBL_OCT2026 (27 Sep - 31 Oct 2026)
   build/dm42/   old DM42 with the C47 firmware (64 KiB): Sun and 58 stars only
     NAVLITTLE.txt    NAV: straight to the ALMANAC screen, UP / DOWN one hour, + ends;
-                     the T21 ALMANAC view (Sun and stars; the Moon line from the mean lunation:
-                     age, lit part, phase glyph), no box, no ants, no cache
+                     the T21 ALMANAC view, Sun and stars only (no Moon), ATEXT in GRFNT 21 and
+                     the Sun and star glyphs; no box, no ants, no cache; 7.9 KB
     NAVINIT_LITTLE.txt  INIT: Sun series (FULL, 2000-2050), nutation, stars
     build/dm42/dev/  NAV1T_DM42, NAV12_DM42, NAVTXT_DM42, NAVINIT_DM42_5Y
   build/free42/ DM42 / DM42n with the stock firmware (Free42): .raw files and .txt listings
     NAVFULL          as the C47 NAVFULL without the tables; the screen appears complete, as on
                      the C47 (RefLCD). build/free42/dev/NAVFULL_DRAW: the screen builds up.
     NAVLITTLE        NAV straight to the ALMANAC screen in the style of Oct 2026 (as NAVFULL:
-                     header line, PTXS = the widths of GRFNT 21): Sun and stars, the Moon line
-                     of the C47 NAVLITTLE (mean lunation age, lit part, phase glyph); .raw 9.9 KB
+                     header line, PTXS = the widths of GRFNT 21): Sun and stars, and a Moon line
+                     (mean lunation age, lit part, phase glyph; not in the C47 NAVLITTLE); .raw 9.9 KB
                      Free42 has no ATEXT: its builds keep AGRAPH fonts with the same pixels.
     NAVINIT_FULL, NAVINIT_FAST, NAVINIT_LITTLE   the INITs, as above
     TBL_1, TBL_5     the almanac tables as above (.raw 97 KB and 481 KB); flag 11 of the C47
