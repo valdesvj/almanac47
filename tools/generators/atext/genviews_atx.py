@@ -329,14 +329,16 @@ def halmv():
 def horz():
     g = Gen(); a = g.a
     HS, rows = 196, (NBODY if T21 else 10)  # T21: the bodies of ALMANAC, CHART and SPLIT
+    HB = 28 if T21 else 16                  # the horizon row; T21: DAY / TWILIGHT / NIGHT under N E S W
+    HS = 212 - HB
     a('LBL "HORZ"', 'STO 92', 'R↓', 'STO 91', 'R↓', 'STO 90', 'XEQ "HCZI"', 'CLLCD')
-    a('16', '20', '376', 'XEQ "PHLS"')
-    a('18.21203', 'STO 86', 'LBL 50', 'RCL 86', 'IP', '18', 'PIXEL', 'ISG 86', 'GTO 50')
+    a(str(HB), '20', '376', 'XEQ "PHLS"')
+    a('%d.21203' % (HB + 2), 'STO 86', 'LBL 50', 'RCL 86', 'IP', '18', 'PIXEL', 'ISG 86', 'GTO 50')
     for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
-        for y in (15, 14, 13): a(y, c, 'PIXEL')
+        for y in (HB - 1, HB - 2, HB - 3): a(y, c, 'PIXEL')
     last = -99
     for v in (10, 20, 30, 45, 60, 90):
-        y = 16 + int(HS * math.sin(math.radians(v)))
+        y = HB + int(HS * math.sin(math.radians(v)))
         for x in (15, 16, 17): a(y, x, 'PIXEL')
         if SMALL:
             a(y - 2, 2, v, 'XEQ "PTNS"')
@@ -344,7 +346,7 @@ def horz():
             a(y - 6, 0, v, 'XEQ "PINS"'); last = y
     if SMALL:
         xs = (19, 112, 206, 300, 394)
-        lt = lambda x, l: a(7, x, '"%s"' % l, 'XEQ "PTXT"')
+        lt = lambda x, l: a(HB - 9, x, '"%s"' % l, 'XEQ "PTXT"')
     else:
         xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
         lt = lambda x, l: g.txt(4, x, l)
@@ -355,7 +357,7 @@ def horz():
     a('LBL 37', 'RCL 90', 'XEQ "SUNA"',
       '%d' % rows, 'ENTER', '3', 'NEWMAT', 'STO "HZT"', '0', 'STO 10',
       '0', '2', 'XEQ "HCZQ"', '0', 'STO 86', 'LBL 53', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 55', '2', 'STO+ 86', '358', 'RCL 86', 'X≤Y?', 'GTO 53',
-      'RCL 77', 'RCL 81', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 56', '0', 'XEQ 40',
+      'RCL 77', 'RCL 81', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 56', *(['XEQ 63'] if T21 else []), '0', 'XEQ 40',
       'XEQ "MOO2"', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 47',
       *(['XEQ 86'] if T21 else ['1.004', 'STO 11', 'LBL 45', 'RCL 11', 'IP', 'XEQ "PLN3"', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 48', 'ISG 11', 'GTO 45']),
       '1.058', 'STO 11', 'LBL 44', '%d' % rows, 'RCL 10', 'X≥Y?', 'GTO 42', 'RCL 11', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 36', 'XEQ "STR2"', 'XEQ 52',
@@ -434,12 +436,16 @@ def horz():
     a('LBL 55', '241', 'RCL- 99', 'STO 36', 'RCL 98', 'PIXEL', 'RCL 36', 'RCL 98', '1', '+', 'PIXEL', 'RCL 36', '1', '+', 'RCL 98', 'PIXEL', 'RCL 36', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')
     a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
     a('LBL 52', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
-      '225', 'RCL "SHC"', HS, '×', '-', 'IP', 'STO 99', 'RTN')
+      241 - HB, 'RCL "SHC"', HS, '×', '-', 'IP', 'STO 99', 'RTN')
     a('LBL 56', '241', 'RCL- 99', SO, '-', 'RCL 98', SO, '-', '"@"', 'XEQ \"%s\"' % CSYM, 'RTN')
     a('LBL 57', '241', 'RCL- 99', SO, '-', 'RCL 98', SO, '-', '"*"', 'XEQ \"%s\"' % CSYM,
       'RCL 98', LX, '+', 'STO 36', '380', 'RCL 36', 'X>Y?', 'XEQ 39',
       '241', 'RCL- 99', LO, '-', 'RCL 36', 'RCL 82', 'XEQ "%s"' % LNUM, 'RTN',
       'LBL 39', LW, 'STO- 36', 'RTN')
+    if T21:             # LBL 63: DAY / TWILIGHT / NIGHT from the Sun's Hc (R96), centred at the bottom
+        a('LBL 63', '"NIGHT"', 'STO 43', state_x('NIGHT'), 'STO 24', '-12', 'RCL 96', 'X>Y?', 'XEQ 64', 'RCL 96', 'X>0?', 'XEQ 66',
+          '4', 'RCL 24', 'RCL 43', 'XEQ "PTXS"', 'RTN',
+          'LBL 64', '"TWILIGHT"', 'STO 43', state_x('TWILIGHT'), 'STO 24', 'RTN', 'LBL 66', '"DAY"', 'STO 43', state_x('DAY'), 'STO 24', 'RTN')
     if T21:             # LBL 86: the first planet above the horizon only, as the other views
         a('LBL 86'); first_planet(g, 24, 11, 45, 87, 88, ['XEQ "PLN3"', 'XEQ 52', 'RCL 96', 'X>0?'], 'XEQ 48'); a('RTN')
         planet_numbers(g)
