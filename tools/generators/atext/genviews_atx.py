@@ -33,16 +33,27 @@ TINY = False      # True (NAVFULL_TNY, programs/atext/tiny/): those texts in the
 TINYSUB = {'XEQ "PTXT"': 'XEQ "PTTY"', 'XEQ "PTNS"': 'XEQ "PTNT"'}
 
 
+COMP = 0          # 1 (T21, NAVFULL_T21): the text in GRFNT 21, the standard font one column narrower per character
+T21 = False       # True: GRFNT 21 + the tinyFont + the glyphs of glyphs47 (big in the tables, small on the charts)
+
+
 def width(t):
-    return sum(sum(STD[code(c)][:3]) for c in t)
+    return sum(sum(STD[code(c)][:3]) - COMP for c in t)
 
 
-# a number printer: 4 places for sign and degrees, then ' mm.m' (the degrees end at place 4)
-PDM = 4 * 8 + 8 + 16 + width('.') + 8        # 69 px
-ZNW = width('000.0')
-HMW = width('00:00')
-DTW = width('00-00-0000')
-NAMEW = max(width(n) for n in __import__('c47data').STAR_NAME.values() if n)     # 102 px
+def metrics():
+    """The field widths of the number printers for the font in use (COMP)."""
+    global DIG, PDM, ZNW, HMW, DTW, NAMEW
+    DIG = width('0')
+    # a number printer: 4 places for sign and degrees, then ' mm.m' (the degrees end at place 4)
+    PDM = 4 * DIG + DIG + 2 * DIG + width('.') + DIG        # 69 px (font 20)
+    ZNW = width('000.0')
+    HMW = width('00:00')
+    DTW = width('00-00-0000')
+    NAMEW = max(width(n) for n in __import__('c47data').STAR_NAME.values() if n)     # 102 px (font 20)
+
+
+metrics()
 
 
 class Gen:
@@ -64,29 +75,29 @@ class Gen:
 def top_x():
     """The top line: date, time, UT, DR, N lat, E lon (lat and lon: printer fields)."""
     X = {'date': 2}
-    X['time'] = 2 + DTW + 8
-    X['UT'] = X['time'] + HMW + 8
-    X['DR'] = X['UT'] + width('UT') + 8
-    X['N'] = X['DR'] + width('DR') + 8
-    X['lat'] = X['N'] + width('N') + 8 - 16            # tens of degrees after N (2 blank places)
-    X['E'] = X['lat'] + PDM + 8
-    X['lon'] = X['E'] + width('W') + 8 - 8             # hundreds after E (1 blank place)
+    X['time'] = 2 + DTW + DIG
+    X['UT'] = X['time'] + HMW + DIG
+    X['DR'] = X['UT'] + width('UT') + DIG
+    X['N'] = X['DR'] + width('DR') + DIG
+    X['lat'] = X['N'] + width('N') + DIG - 2 * DIG     # tens of degrees after N (2 blank places)
+    X['E'] = X['lat'] + PDM + DIG
+    X['lon'] = X['E'] + width('W') + DIG - DIG         # hundreds after E (1 blank place)
     assert X['lon'] + PDM < 386
     return X
 
 
 def table_x():
-    X = {'num': 14, 'name': 36}                       # the symbol at 0 (AGRAPH, 11 px)
-    X['gha'] = X['name'] + NAMEW + 8 - 8               # hundreds of GHA after the longest name
+    X = {'num': 14, 'name': 36 - 2 * COMP}            # the symbol at 0 (AGRAPH, 11 px)
+    X['gha'] = X['name'] + NAMEW + DIG - DIG           # hundreds of GHA after the longest name
     X['ns'] = X['gha'] + PDM + 4
-    X['dec'] = X['ns'] + width('N') + 6 - 16
-    X['hc'] = X['dec'] + PDM + 6 - 8                   # the sign of Hc
+    X['dec'] = X['ns'] + width('N') + 6 - 2 * DIG
+    X['hc'] = X['dec'] + PDM + 6 - DIG                 # the sign of Hc
     X['zn'] = X['hc'] + PDM + 6
     assert X['zn'] + ZNW <= 398
     c = lambda a, b, t: round((a + b - width(t)) / 2)
-    X['hGHA'] = c(X['gha'] + 8, X['gha'] + PDM, 'GHA')
+    X['hGHA'] = c(X['gha'] + DIG, X['gha'] + PDM, 'GHA')
     X['hDEC'] = c(X['ns'], X['dec'] + PDM, 'DEC')
-    X['hHC'] = c(X['hc'] + 8, X['hc'] + PDM, 'HC')
+    X['hHC'] = c(X['hc'] + DIG, X['hc'] + PDM, 'HC')
     X['hZN'] = c(X['zn'], X['zn'] + ZNW, 'ZN')
     return X
 

@@ -70,6 +70,7 @@ class Calc:
         if getattr(self, 'grfnt', 20) == 10:                 # GRFNT 10: the tinyFont, 8-row lines
             from tinyfont import TINY as STD
         LH = STD[0x41][3] + STD[0x41][4] + STD[0x41][5]       # line height = the glyph box (20 or 8)
+        CP = 1 if getattr(self, 'grfnt', 20) == 21 else 0      # GRFNT 21: one column less per character (checked, FNTCHT)
         X, Y = int(self.s[0]), int(self.s[1])
         x, y = abs(X), abs(Y); x0 = x; line = y; mode = getattr(self, 'grmod', 0)
         ps = set(self.pix)
@@ -77,7 +78,7 @@ class Calc:
         while i < len(t):
             ch = t[i]; i += 1
             cb, cg, ca, ra, rg, rb, rows = STD.get(stdcode(ch), STD[0x3f])
-            adv = cb + cg + ca
+            adv = cb + cg + ca - CP
             if x > 380 and x + adv > 400:
                 x, line = x0, line - LH
             on = {(line + rb + rg - 1 - r, x + cb + c) for r, v in enumerate(rows) for c in range(cg) if v >> (cg - 1 - c) & 1}
