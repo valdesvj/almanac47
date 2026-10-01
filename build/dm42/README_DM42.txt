@@ -40,12 +40,16 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
 MEMORY (program sizes measured with rejig 0.34.1 and tools/rejig47_atext.py, Oct 2026: the
 program bytes in the .p47 file; the .p47
 file on disk is about 3 times bigger because it stores each byte as a decimal number)
-  After INIT: matrices about 11 KB (667 numbers: Sun, nutation, stars; estimate).
-                     program   with the matrices
-  NAVINIT_LITTLE      8.5 KB   ~19 KB while it runs; delete it after use
-  NAVLITTLE           7.9 KB   ~19 KB
-  How much of the 64 KiB is left for programs after the firmware's own use is not known
-  here: please report the free memory you see (and any crash) on the forum or on GitHub.
+                     program
+  NAVINIT_LITTLE      8.5 KB   delete it after use
+  NAVLITTLE           7.9 KB
+  Measured on a DM42n with the C47 firmware (262,144 bytes, Oct 2026):
+    free after a reset                                   258,548 bytes
+    INIT run and deleted, NAVLITTLE loaded               227,244 bytes
+    after running NAV                                    226,648 bytes
+  So NAVLITTLE and its matrices take about 31 KB (the matrices about 23 KB), and a run
+  about 0.6 KB more. On an old DM42 (64 KiB) about 30 KB should stay free: not tested yet,
+  please report the free memory you see (and any crash) on the forum or on GitHub.
 
 OTHER BUILDS (build/dm42/dev/, not in the release)
   NAVTXT_DM42      7.2 KB  text only: the almanac page in the registers, NAV ends in REGS
