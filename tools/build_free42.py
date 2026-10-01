@@ -416,7 +416,8 @@ def nav():
     P = seq(P, ['SSIZE#', 'STO "SSZ"', 'SSIZE8'], ['SIZE 100'])
     P = seq(P, ['XEQ 20', 'CLLCD'], ['XEQ 20', '3', 'STO "GrMod"'] + (['0', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLLCD'])
     P = seq(P, ['LBL 08', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'RTN'], ['LBL 08', 'RTN'])
-    P = seq(P, ['LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN'], ['LBL 09', 'CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'RTN'])
+    # the end (0): CLD after CLLCD, else the cleared screen stays as a message until a key
+    P = seq(P, ['LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN'], ['LBL 09', 'CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'CLD', 'RTN'])
     P = seq(P, ['PAUSE 0', 'LBL 02', 'KEY? 39', 'GTO 02'], (['XEQ "RF"'] if RLCD[0] else []) + ['LBL 02', 'GETKEY', 'XEQ "KM"', 'STO 39'])
     # TEXT: the page into R50 ... (ALMR) and drawn with the small font; + back to the menu
     i = P.index('LBL 12')
@@ -565,7 +566,7 @@ def nav_little():
     P = seq(P, ['SSIZE#', 'STO "SSZ"', 'SSIZE8'], ['SIZE 100'])
     P = seq(P, ['XEQ 20', 'CLLCD'], ['XEQ 20', '3', 'STO "GrMod"'] + (['0', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLLCD'])
     P = seq(P, ['CLLCD', 'RCL "SSZ"', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN'],
-            ['CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'RTN'])
+            ['CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'CLD', 'RTN'])
     return P
 
 
