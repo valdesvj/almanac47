@@ -285,25 +285,60 @@ def hms(t):
     return '%02d:%02d:%02d' % ((s // 3600) % 24, (s % 3600) // 60, s % 60)
 
 
+def _ask(p, parse):
+    """input() until parse(text) works: a typing slip asks again instead of
+    stopping the program with an error (the calculator apps close on an error)."""
+    while True:
+        try:
+            return parse(input(p).strip())
+        except Exception:
+            print('?')
+
+
+def _int_in(lo, hi):
+    def f(t):
+        v = int(t)
+        if not lo <= v <= hi:
+            raise ValueError
+        return v
+    return f
+
+
 def ask_date():
-    y = int(input('Year: '))
-    m = int(input('Month: '))
-    d = int(input('Day: '))
+    y = _ask('Year: ', _int_in(1900, 2100))
+    m = _ask('Month: ', _int_in(1, 12))
+    d = _ask('Day: ', _int_in(1, 31))
     return y, m, d
 
 
-def ask_ut():
-    s = input('UT hh:mm:ss: ').split(':')
+def _ut(t):
+    """'14:57', '14:57:30', '14 57' or the C47 way '14.57' / '14.5730' (hh.mmss)."""
+    s = t.replace(':', ' ').split()
+    if len(s) == 1 and '.' in s[0]:
+        h, r = s[0].split('.')
+        r = (r + '0000')[:4]
+        s = [h, r[:2], r[2:]]
     while len(s) < 3:
         s.append('0')
-    return int(s[0]) + int(s[1]) / 60.0 + float(s[2]) / 3600.0
+    h, m, x = int(s[0]), int(s[1]), float(s[2])
+    if not (0 <= h < 24 and 0 <= m < 60 and 0 <= x < 60):
+        raise ValueError
+    return h + m / 60.0 + x / 3600.0
+
+
+def ask_ut():
+    return _ask('UT hh:mm:ss: ', _ut)
+
+
+def _ang(t):
+    s = t.replace(':', ' ').split()
+    v = abs(float(s[0])) + (float(s[1]) / 60.0 if len(s) > 1 else 0.0)
+    return -v if s[0][0] == '-' else v
 
 
 def ask_ang(p):
     """'25.5' (degrees) or '25 30' (degrees minutes); '-' = S or W."""
-    s = input(p).split()
-    v = abs(float(s[0])) + (float(s[1]) / 60.0 if len(s) > 1 else 0.0)
-    return -v if s[0][0] == '-' else v
+    return _ask(p, _ang)
 
 
 def menu():

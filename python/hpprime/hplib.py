@@ -18,6 +18,11 @@ def _rgb(c):
     return 'RGB(%d,%d,%d)' % (c >> 16, c >> 8 & 255, c & 255)
 
 
+def num(v):
+    """A number from hpprime.eval: it may come as int, float or text ('2', '2.')"""
+    return int(float(v))
+
+
 def width(s, f=1):
     """Width in pixels of s in TEXTOUT_P font f (measured once per character
     on the hidden grob G9; TEXTOUT_P returns the x after the text)."""
@@ -26,7 +31,7 @@ def width(s, f=1):
         k = ch + str(f)
         if k not in _w:
             try:
-                _w[k] = int(ev('TEXTOUT_P("%s",G9,0,0,%d)' % (ch, f)))
+                _w[k] = num(ev('TEXTOUT_P("%s",G9,0,0,%d)' % (ch.replace('"', "'"), f)))
             except Exception:
                 _w[k] = 4 + 2 * f
         t += _w[k]
@@ -65,7 +70,10 @@ def box(x, y, w, h, c):
 def key():
     """Wait for UP 2, DOWN 12, LEFT 7, RIGHT 8, ENTER 30 or ESC 4 (GETKEY codes)."""
     while 1:
-        k = int(ev('GETKEY'))
+        try:
+            k = num(ev('GETKEY'))
+        except Exception:
+            k = -1
         if k in (2, 12, 7, 8, 30, 4):
             return k
         ev('WAIT(0.05)')
@@ -86,13 +94,12 @@ def run(v):
     la = nav.ask_ang('Lat (N+) d m: ')
     lo = nav.ask_ang('Lon (E+ W-) d m: ')
     ev('DIMGROB_P(G9,320,30)')
+    import almview
+    import skyview
     h = sel = 0
     try:
         while 1:
-            if v:
-                import skyview as w
-            else:
-                import almview as w
+            w = skyview if v else almview
             sel = w.draw(j0 + h / 24.0, la, lo, sel)
             k = key()
             if k == 2:
@@ -109,4 +116,11 @@ def run(v):
                 break
     except KeyboardInterrupt:
         pass
+    except Exception as e:                 # show what went wrong instead of closing
+        print('ERROR:', repr(e))
+        try:
+            import sys
+            sys.print_exception(e)
+        except Exception:
+            pass
     busy = 0

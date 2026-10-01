@@ -39,6 +39,8 @@ The six files go into one Python app:
 3. Start the app (`Apps` -> `Almanac47`). `main.py` asks in the terminal, like the `nav.py`
    menu: Year, Month, Day, UT (hh:mm or hh:mm:ss), Lat, Lon.
    Lat/Lon: `25 20` = 25 deg 20', `25.5` = decimal degrees, `-` for S / W.
+   UT: `14:57`, `14 57` or the C47 way `14.57` (hh.mm, `14.5730` with seconds).
+   A typing slip shows `?` and asks again.
    From the app's shell: `import skyview` starts on the horizon chart, `hplib.run(0)` /
    `hplib.run(1)` start again.
 
@@ -119,8 +121,13 @@ Moon 92 % waxing, age 12.8): all identical.
   Unsure: that TEXTOUT_P's return value is the end x (if not, a fixed width is used and
   the right-aligned columns may be a few pixels off), the exact pixel size of fonts 1 and 4,
   and whether ESC reaches GETKEY in every firmware (ON always stops the program).
-- If the app closes without a message, see hp-prime-kit `micropython.md`
+- An error while the views run is printed in the terminal (`ERROR: ...`) instead of
+  closing the app. If it still closes without a message, see hp-prime-kit `micropython.md`
   ("mark-debugging").
+- Oct 1, 2026: a user reported a crash. Fixed the likely causes: an input such as `14.57`
+  for UT stopped the program (now accepted, and slips ask again); the program ran inside
+  `import almview` (now `main.py` calls `hplib.run(0)`); GETKEY / TEXTOUT_P results are
+  read as numbers whether they come as int, float or text.
 
 ## Licence
 
