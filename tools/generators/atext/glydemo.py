@@ -92,8 +92,9 @@ a(['PAUSE 99'])
 a(['CLLCD'])
 text(226, 2, 'GLYPHS 12 ROWS (FONT 21) AND 7 ROWS (FONT 10)', 21)
 names = {'@': 'SUN', '(': 'MOON', '*': 'STAR', '<': 'VENUS', '>': 'MARS', '=': 'JUPITER', '?': 'SATURN'}
+BODIES = list(names)
 x = 4
-for ch in G.BIG:
+for ch in BODIES:
     sym(180, x, ch, True)
     sym(140, x, ch, False)
     text(120, x, names[ch], 10)
@@ -101,8 +102,13 @@ for ch in G.BIG:
 for i, (ch, t) in enumerate((('@', 'SUN'), ('(', 'MOON'), ('*', '37 ARCTURUS'), ('?', 'SATURN'))):
     xx = 4 + (i % 2) * 200; yy = 90 - (i // 2) * 16
     sym(yy, xx, ch, True); text(yy, xx + 14, t, 21)
-text(50, 4, 'TINY: 10 20 30 45 60 90  N E S W  51 42 37', 10)
-text(30, 4, 'A KEY: END', 10)
+text(50, 4, 'ANT', 21)
+for i, ch in enumerate('&%'):
+    sym(50, 50 + i * 24, ch, True)
+    sym(50, 110 + i * 14, ch, False)
+text(50, 150, 'TWO WALKING STEPS, 12 AND 7 ROWS', 10)
+text(30, 4, 'TINY: 10 20 30 45 60 90  N E S W  51 42 37', 10)
+text(14, 4, 'A KEY: END', 10)
 grfnt(20)
 a(['PAUSE 99', 'RTN', 'END'])
 P += G.program('PSYB', G.BIG) + G.program('PSYS', G.SMALL)
