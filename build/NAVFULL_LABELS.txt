@@ -1,10 +1,10 @@
 NAVFULL / NAVFULL_NOTBL - program labels
 ==========================================
 Label on the calculator, original name (sources, build/dev/, documentation), what it does.
-Only NAV keeps its name. FONT = a text-drawing routine (draws on the graphics screen with
-AGRAPH, one call per glyph column): Z = row of the base line (0 = bottom), Y = column,
-X = text or number; returns Y = row, X = next column. PTXS is the C47 status-bar font
-(bold capitals 12 px, glyphs from the firmware, GPL-3.0), PTXT a small 3x5 font.
+Only NAV keeps its name. TEXT = a text routine (ATEXT, GRFNT 21 or the tinyFont), SYMBOL =
+a body symbol drawn with AGRAPH (glyphs47): Z = row of the base line (0 = bottom), Y = column,
+X = text, number or symbol; returns Y = row, X = next column. Needs a C47 firmware with
+ATEXT and GRFNT. The numbers missing here belong to routines of older versions.
 
 NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
@@ -55,17 +55,14 @@ N46     PHA2    Moon phase after SUNA: illumination % and age in days
 N47     SBRT    star number by brightness rank (1st brightest ... 58th)
 N48     SNMU    star name from its number
 N49     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
-N50     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
-N51     PINS    FONT big: whole number
-N52     PF1S    FONT big: number with one decimal
-N53     PHMS    FONT big: hh:mm from hours
-N54     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
-N55     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
-N56     PZNS    FONT big: azimuth "ddd.d"
-N57     PHLS    FONT big: horizontal line (X = length in pixels)
-N58     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
-N59     PTNS    FONT small: whole number
-N60     PT1     FONT small: number with one decimal
+N50     PTXS    TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
+N51     PINS    TEXT: whole number (one ATEXT)
+N52     PF1S    TEXT: number with one decimal
+N53     PHMS    TEXT: hh:mm from hours
+N54     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
+N55     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
+N56     PZNS    TEXT: azimuth "ddd.d"
+N57     PHLS    horizontal line (X = length in pixels)
 N61     HANIM   view 6 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
 N62     ALLSKY  view 7 ALLSKY: whole sky, over the horizon above, under the horizon below
 N63     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
@@ -84,5 +81,9 @@ N75     CNTP    nautical twilight pm from the cache
 N76     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
 N77     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
 N78     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
+N79     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
+N80     PTNT    TEXT: whole number in the tinyFont
+N81     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
+N82     PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
 
-NAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (N50 is simply missing there).
+NAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (N49 is simply missing there).

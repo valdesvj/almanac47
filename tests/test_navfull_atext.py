@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""EXPERIMENTAL NAVFULL_ATX (build/atext): one ATEXT step (in PTXS), the small font only on the charts,
+"""NAVFULL (build/): the ATEXT steps (PTXS, and PTTY for the tinyFont), no AGRAPH font for the text,
 and every view runs in the simulator: menu, 1 ALMANAC, 2 CHART, 4 SKY, 5 SPLIT, 6 ANIM,
 7 ALLSKY, 8 INFO (no SMALL). The texts given to ATEXT are checked for a few values of the page.
     python3 tests/test_navfull_atext.py"""
@@ -8,7 +8,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'python'))
 import c47sim
 from decimal import Decimal as D
-NAV = os.path.join(ROOT, 'build', 'atext', 'NAVFULL_ATX.txt')
+NAV = os.path.join(ROOT, 'build', 'NAVFULL.txt')
 INIT = os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt')
 
 
@@ -46,10 +46,10 @@ L = open(NAV, encoding='utf-8').read().split('\n')
 n = sum(1 for l in L if l.startswith('ATEXT '))
 warn = sum(1 for l in L if 'DOES NOT REPLACE' in l or 'NOT FOR NAVIGATION' in l)
 print('ATEXT steps %d, warning lines %d (menu, INFO, TEXT page)' % (n, warn))
-bad = (n != 1) + (warn != 3)            # menu, INFO and the TEXT page (ALMR, in the registers)
+bad = (n != 2) + (warn != 3)            # menu, INFO and the TEXT page (ALMR, in the registers)
 # menu 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO (no SMALL): keys 72 73 74 62 63 64 52 53
-CHECK = {None: ('1 ALMANAC', '5 SPLIT', '8 INFO', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'), 73: ('BODY', 'HAMAL'),
-         62: ('SUN', '  ZN ', ' UT'), 63: ('FOMALHAUT', 'MIRFAK'), 64: ('24', 'DAY'), 52: ('NIGHT',),
+CHECK = {None: ('1 ALMANAC', '5 SPLIT', '8 INFO', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'), 73: ('BODY', 'SATURN', 'MIRFAK'),
+         62: ('NIGHT', ' UT', '90'), 63: ('FOMALHAUT', 'MIRFAK'), 64: ('18:30', '21:30', 'NIGHT'), 52: ('NIGHT',),
          53: ('ALMANAC 47 - INFO', '+ MENU')}
 NOT = {None: ('SMALL',), 73: ('ARIES', 'MOON '), 63: ('RISE', 'TWI')}
 for k, want in CHECK.items():

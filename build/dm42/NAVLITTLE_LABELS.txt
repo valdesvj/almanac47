@@ -25,13 +25,16 @@ N21     CTWP    civil twilight, evening, UT
 N22     TRAN    meridian passage of the Sun, UT
 N23     SBRT    star number by brightness rank (1st brightest ... 58th)
 N24     SNMU    star name from its number
-N25     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
-N26     PINS    FONT big: whole number
-N27     PF1S    FONT big: number with one decimal
-N28     PHMS    FONT big: hh:mm from hours
-N29     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
-N30     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
-N31     PZNS    FONT big: azimuth "ddd.d"
-N32     PHLS    FONT big: horizontal line (X = length in pixels)
+N25     PTXS    TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
+N26     PINS    TEXT: whole number (one ATEXT)
+N27     PF1S    TEXT: number with one decimal
+N28     PHMS    TEXT: hh:mm from hours
+N29     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
+N30     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
+N31     PZNS    TEXT: azimuth "ddd.d"
+N32     PHLS    horizontal line (X = length in pixels)
 N36     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N37     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
+N38     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
+N39     PTNT    TEXT: whole number in the tinyFont
+N40     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol

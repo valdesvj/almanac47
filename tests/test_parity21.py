@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """test_parity21.py - the native PC screens of the new C47 views (python/native/c47screen21.py)
-against NAVFULL_T21 run in the simulator, pixel for pixel.
+against NAVFULL (build/) run in the simulator, pixel for pixel.
     python3 tests/test_parity21.py [VIEW ...] [-n CASES]"""
 import os, sys, random, time
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

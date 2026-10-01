@@ -313,7 +313,10 @@ build_free42.py)
   tests/test_labels.py checks that both work alike. The file name is the version: the
   program on the calculator is always NAV (and INIT), so two versions can be kept.
 
-  build/        C47 / R47 / DM42n with the C47 firmware
+  build/        C47 / R47 / DM42n with the C47 firmware (with ATEXT and GRFNT). Every C47 build
+                draws the screens of Oct 2026 (programs/atext/t21/): the text with ATEXT in
+                GRFNT 21 and the tinyFont (GRFNT 10) on the charts, the body symbols from glyphs47
+                (PSYB, PSYS: the only AGRAPH font left). .p47: tools/rejig47_atext.py.
     NAVFULL.txt      NAV: all 8 views (1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM
                      7 ALLSKY 8 INFO; 9 = SNAP), the sky cache, the SINKING box, the ants (flag 47),
                      and the almanac tables (TBL) when they are loaded. Kept for calculators
@@ -343,20 +346,17 @@ build_free42.py)
                      2027, the tests), TBL_OCT2026 (27 Sep - 31 Oct 2026)
   build/dm42/   old DM42 with the C47 firmware (64 KiB): Sun and 58 stars only
     NAVLITTLE.txt    NAV: straight to the ALMANAC screen, UP / DOWN one hour, + ends;
-                     5 x 7 font, no box, no ants, no cache
+                     the T21 ALMANAC view (Sun and stars; the Moon line from the mean lunation:
+                     age, lit part, phase glyph), no box, no ants, no cache
     NAVINIT_LITTLE.txt  INIT: Sun series (FULL, 2000-2050), nutation, stars
     build/dm42/dev/  NAV1T_DM42, NAV12_DM42, NAVTXT_DM42, NAVINIT_DM42_5Y
-  build/atext/  EXPERIMENTAL: NAVFULL_ATX - NAVFULL with ATEXT for the texts and numbers; body
-                symbols AGRAPH, chart axes in the small font (README_ATX.txt, build_navfull_atext.py)
-    build/dm42/atext/  EXPERIMENTAL: NAVLITTLE_ATX, NAV1T_ATX, NAV12_ATX - all text with ATEXT
-                     (Didier's N03 trick), only the Sun and star symbols 5 x 7; needs a
-                     firmware with ATEXT (README_ATX.txt, tools/build_dm42_atext.py)
   build/free42/ DM42 / DM42n with the stock firmware (Free42): .raw files and .txt listings
     NAVFULL          as the C47 NAVFULL without the tables; the screen appears complete, as on
                      the C47 (RefLCD). build/free42/dev/NAVFULL_DRAW: the screen builds up.
     NAVLITTLE        NAV straight to the ALMANAC screen in the style of Oct 2026 (as NAVFULL:
                      header line, PTXS = the widths of GRFNT 21): Sun and stars, the Moon line
-                     of NAVLITTLE_PH (mean lunation age, lit part, phase glyph); .raw 9.9 KB
+                     of the C47 NAVLITTLE (mean lunation age, lit part, phase glyph); .raw 9.9 KB
+                     Free42 has no ATEXT: its builds keep AGRAPH fonts with the same pixels.
     NAVINIT_FULL, NAVINIT_FAST, NAVINIT_LITTLE   the INITs, as above
     TBL_1, TBL_5     the almanac tables as above (.raw 97 KB and 481 KB); flag 11 of the C47
                      programs is flag 91 here (11 is auto-execution on the HP-42S)
@@ -364,7 +364,9 @@ build_free42.py)
   Checks: tests/test_labels.py, test_navfull.py (also NAVTXT with TBL), test_notbl.py,
   test_f42_little.py (Free42 NAVLITTLE against the same view in the C47 simulator, pixel by
   pixel: start, +1 h, -1 h on 3 dates),
-  test_f42_tables.py (NAVFULL and NAVLITTLE with TBL_1 / TBL_5, Free42 against the C47).
+  test_f42_tables.py (NAVFULL and NAVLITTLE with TBL_1 / TBL_5, Free42 against the C47),
+  test_navfull_atext.py (NAVFULL: every view in the simulator, the texts given to ATEXT),
+  test_dm42_atext.py (NAVLITTLE, NAV1T_DM42, NAV12_DM42).
 
 STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
   PTXS (tools/generators/mkstd.py) is the C47's own status-bar font (standardFont, bold
@@ -541,7 +543,7 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   build/TBL_1.txt, then the old 4-month programs/TBL.txt (or TBL_5/TBL_1/TBL.txt next to c47pc.py).
   Version 1.4 (2026-10-01): the views ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON (the old
   names ALMF HALMV ALMT HORZ HALMH still work), drawn as the C47 screens of Oct 2026
-  (c47screen21.py; tests/test_parity21.py: identical to NAVFULL_T21 in the simulator). MOON
+  (c47screen21.py; tests/test_parity21.py: identical to NAVFULL in the simulator). MOON
   (the phase disc, % lit, age, HP, SD, the next four phases) is a view of the PC only.
   Version 1.5 (2026-10-01): - / + step the UT (keys or buttons next to Now UTC) by 1 s to
   999 days (1 h by default); hold the key to watch the sky move.

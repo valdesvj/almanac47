@@ -1,11 +1,12 @@
 C47_nav - QUICK START (install and run)
 =======================================
 
-You need two files. The release zip has them as .p47, ready to load (converted with rejig);
-from the repository, convert the .txt files in build/ with rejig first:
+You need a C47 firmware with ATEXT and GRFNT (the screens write their text with ATEXT) and two
+files. The release zip has them as .p47, ready to load; from the repository, convert the .txt
+files in build/ first (tools/rejig47_atext.py runs rejig and writes the ATEXT / GRFNT steps that
+rejig 0.34 does not know; a rejig that knows them converts directly):
 
-  rejig build/NAVFULL.txt      -o NAVFULL.p47
-  rejig build/NAVINIT_FAST.txt -o NAVINIT_FAST.p47
+  python3 tools/rejig47_atext.py build/NAVFULL.txt build/NAVINIT_FAST.txt
 
   NAVFULL        the programs that stay on the calculator (all views; it also reads the
                  almanac tables if you load them - TBL_1 / TBL_5, 1 and 5 years, for Free42 / Plus42 on a
@@ -89,8 +90,9 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
 
    An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
    A body below the horizon (in practice the Sun) has its Hc shown white on black.
-   NAV uses the 8-level stack while it runs (the fonts need it) and puts your stack size
-   back when you leave with 0 or TEXT.
+   NAV uses the 8-level stack while it runs (the text routines need it) and puts your stack
+   size back when you leave with 0 or TEXT. It sets the ATEXT font GRFNT 21 while it runs and
+   20 (the standard font) when you leave with 0 or TEXT; after R/S 20 GRFNT puts it back.
 
 PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
   python3 python/native/c47pc.py           a window (GTK 3): date, UT, DR, a view, Now UTC
@@ -103,7 +105,8 @@ PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY: programs (measured with rejig) NAVFULL 41.1 KB, NAVTXT 14.8 KB; INIT while loaded
+MEMORY: programs (measured with rejig before the ATEXT version; NAVFULL is smaller now, to be
+measured again) NAVFULL 41.1 KB, NAVTXT 14.8 KB; INIT while loaded
 NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB; TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
 and ALMQ about 20 KB.
 

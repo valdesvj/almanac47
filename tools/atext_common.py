@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""atext_common.py - the text routines with ATEXT for the EXPERIMENTAL builds (NAVFULL_ATX and
-the DM42 _ATX builds).
+"""atext_common.py - the text routines with ATEXT of the C47 builds (NAVFULL and the other menu builds, and
+the DM42 builds: tools/build_navfull.py, build_dm42.py).
 
 PTXS and the number printers keep the stack of the AGRAPH fonts: Z row of the base line, Y column,
 X text or number; they return Y row, X next column.

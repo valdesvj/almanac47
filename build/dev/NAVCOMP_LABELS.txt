@@ -40,17 +40,14 @@ N34     PHAS    Moon phase: SUNA, then PHA2
 N35     PHA2    Moon phase after SUNA: illumination % and age in days
 N36     SBRT    star number by brightness rank (1st brightest ... 58th)
 N37     SNMU    star name from its number
-N38     PTXS    FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text
-N39     PINS    FONT big: whole number
-N40     PF1S    FONT big: number with one decimal
-N41     PHMS    FONT big: hh:mm from hours
-N42     PDMS    FONT big: degrees and minutes "ddd mm.m" with sign
-N43     PDTS    FONT big: date "dd-mm-yyyy" from a Julian Date
-N44     PZNS    FONT big: azimuth "ddd.d"
-N45     PHLS    FONT big: horizontal line (X = length in pixels)
-N46     PTXT    FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text
-N47     PTNS    FONT small: whole number
-N48     PT1     FONT small: number with one decimal
+N38     PTXS    TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
+N39     PINS    TEXT: whole number (one ATEXT)
+N40     PF1S    TEXT: number with one decimal
+N41     PHMS    TEXT: hh:mm from hours
+N42     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
+N43     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
+N44     PZNS    TEXT: azimuth "ddd.d"
+N45     PHLS    horizontal line (X = length in pixels)
 N49     ALLSKY  view 7 ALLSKY: whole sky, over the horizon above, under the horizon below
 N50     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N51     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
@@ -68,3 +65,7 @@ N62     CNTP    nautical twilight pm from the cache
 N63     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
 N64     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
 N65     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
+N66     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
+N67     PTNT    TEXT: whole number in the tinyFont
+N68     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
+N69     PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol

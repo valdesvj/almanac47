@@ -10,8 +10,14 @@ These builds keep the Sun (FULL series, valid 2000-2050) and the 58 navigation s
                   (the SINKING box while it computes), + ends; no ants
   NAVINIT_DM42    INIT: the Sun series (VL VB VR), nutation (NU) and the stars (ST)
 
-What is left out: MOON, PLAN and PHAS (no Moon, no planets, no Moon phase), the Moon lines of
-the pages, the tables (TBL), the ants, and the sky cache (CACHE, ALMC): with one view the
+The screens are those of NAVFULL (the T21 views of programs/atext/t21/): every text with ATEXT
+in GRFNT 21 (PTXS and the number printers of atext_common), the symbols of glyphs47 (PSYB),
+no AGRAPH font. Needs a C47 firmware with ATEXT and GRFNT. The ALMANAC footer has the Moon line
+without the Moon series: its age from the mean lunation, the lit part and the phase glyph
+(moon_lines).
+
+What is left out: MOON, PLAN and PHAS (no Moon, no planets, no Moon phase), the Moon and planet
+rows of the views, the tables (TBL), the ants, and the sky cache (CACHE, ALMC): with one view the
 views call the Sun and star routines directly again (nav1_programs). NAV12 (menu 1 2 3 9,
 cache with the Moon and planets marked below the horizon) is still in the script but not
 written: about 72 KB as a .p47 file, too big for the DM42.
@@ -28,6 +34,7 @@ ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE, os.path.join(HERE, 'generators')]
 import build_navfull as B
 import gencache, gennav, navopt
+import atext_common as AC
 
 OUT = os.path.join(ROOT, 'build', 'dm42')
 DEV = os.path.join(OUT, 'dev')
@@ -152,22 +159,6 @@ def nav1_programs(p, chart=False):
     return q
 
 
-# the 5 x 7 font of the first versions (PTXB) under the names of the status-bar font (PTXS):
-# the two programs have the same routines in the same order, so the views need no change
-PTXB_NAMES = {'PTXB': 'PTXS', 'PINB': 'PINS', 'PF1': 'PF1S', 'PHM': 'PHMS', 'PDM': 'PDMS',
-              'PDAT': 'PDTS', 'PZN': 'PZNS', 'PHL': 'PHLS'}
-
-
-def ptxb_as_ptxs():
-    out = []
-    for l in B.read('PTXB'):
-        m = re.fullmatch(r'(LBL|XEQ|GTO) "(.+)"', l)
-        if m and m.group(2) in PTXB_NAMES:
-            l = '%s "%s"' % (m.group(1), PTXB_NAMES[m.group(2)])
-        out.append(l)
-    return out
-
-
 def programs():
     with contextlib.redirect_stdout(io.StringIO()):
         progs = B.build()[3]                                # the processed programs (cache swaps, ALMR, navopt)
@@ -188,18 +179,93 @@ def programs():
     return p
 
 
-def assemble(nav, p, font='PTXB'):
-    need = B.closure(p, [c for c in B.calls(nav) if c != 'INIT'])
-    assert not need & {'MOON', 'PLAN', 'PHAS'}, need
+LUN, NEW0 = '29.530588861', '2451550.09766'      # mean lunation, mean new Moon of Jan 2000 (Meeus 49.1)
+
+
+def moon_lines(MX=212, rows=(43, 29)):
+    """The Moon line without the Moon series: its age from the mean lunation (within about 14
+    hours of the true one), the lit part (1 - cos)/2, the phase glyph (PSYB '0'-'7').
+    rows: the MOON and AGE lines (the footer of the T21 ALMANAC view)."""
+    return ['RCL 10', NEW0, '-', LUN, 'MOD', 'STO 19',
+            'RCL 19', LUN, '÷', '360', '×', 'COS', '1', 'X<>Y', '-', '50', '×', 'STO 21',
+            '"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 21', '99.5', 'X≤Y?', 'XEQ 23', 'RCL 21', '0.5', 'X>Y?', 'XEQ 24',
+            str(rows[0]), str(MX), '"MOON "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'STO 25', 'R↓', 'STO 20',
+            'RCL 19', LUN, '÷', '8', '×', '0.5', '+', 'IP', '8', 'MOD', '48', '+', 'STO 23',
+            'RCL 20', 'RCL 25', 'XEQ IND 23', 'XEQ "PSYB"', '" "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"',
+            str(rows[1]), str(MX), '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"']
+
+
+def unused_locals(A, ind_targets=None):
+    """Drop the subroutines nothing calls any more (Moon and planet rows, their names and words):
+    a block LBL n ... RTN right after an RTN, whose label no XEQ / GTO uses. With an XEQ IND
+    nothing is dropped, unless ind_targets lists the labels the indirect calls can reach."""
+    while True:
+        called = {l.split()[1] for l in A if re.fullmatch(r'(XEQ|GTO) \d+', l)} | {str(n) for n in ind_targets or ()}
+        ind = ind_targets is None and any(re.fullmatch(r'(XEQ|GTO) IND \d+', l) for l in A)
+        out, i, drop = [], 0, False
+        while i < len(A):
+            m = re.fullmatch(r'LBL (\d+)', A[i])
+            if m and out and out[-1] == 'RTN' and m.group(1) not in called and not ind:
+                j = A.index('RTN', i)
+                i = j + 1; drop = True
+                continue
+            out.append(A[i]); i += 1
+        if not drop:
+            return out
+        A = out
+
+
+def little_almf():
+    """The ALMANAC view of NAVLITTLE (C47 and Free42): the T21 view with Sun and stars only, and
+    the Moon line of moon_lines() in the footer, where the T21 view has MOON / AGE."""
+    A = B.read21('ALMF')
+    A = cut(A, '"WAXING"', '"S"', moon_lines())
+    A = seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
+    A = cut(A, 'XEQ "MOO2"', '1.058')                  # the Moon and planet rows (LBL 35 / 36 go with them)
+    assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in A)
+    A = unused_locals(A, ind_targets=range(48, 56))    # XEQ IND 23: only the phase glyphs (LBL 48-55)
+    assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"', 'XEQ "PTTY"') for l in A)
+    return A
+
+
+def little_halmv():
+    """The CHART view of NAV12_DM42: the T21 view without the Moon and the planets."""
+    H = B.read21('HALMV')
+    if 'XEQ "PHA2"' in H:
+        H = seq(H, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
+    H = cut(H, 'XEQ "MOO2"', '1.058')                  # the Moon and planet rows (LBL 35 / 36 go with them)
+    assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in H)
+    H = unused_locals(H)
+    assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"') for l in H)
+    return H
+
+
+def nav21(nav):
+    """NAV of a DM42 build for the T21 views: GRFNT 21 after the inputs, 20 before it ends
+    (NAVLITTLE / NAV1T: at the + key; NAV12: LBL 08), the menu's top line at the T21 columns."""
+    if 'LBL 08' in nav:                                # NAV12: the menu NAV
+        return B.grfnt21(B.top21(nav))
+    nav = seq(nav, ['XEQ 20', 'CLLCD'], ['XEQ 20', '21', 'GRFNT', 'DROP', 'CLLCD'])
+    return seq(nav, ['CLLCD', 'RCL "SSZ"'], ['20', 'GRFNT', 'DROP', 'CLLCD', 'RCL "SSZ"'])
+
+
+def assemble(nav, p):
+    """NAV + the programs it calls, the T21 views (ALMF and HALMV without the Moon and planets),
+    the ATEXT text routines and the symbols PSYB / PSYS (only those the views draw)."""
     q = dict(p)
-    if 'PTXS' in need:
-        big = set(''.join(B.strings(nav)) + ''.join(''.join(B.strings(q[n])) for n in need if n not in ('PTXS', 'PTXT'))
-                  + '0123456789-.: %')
-        small = set(B.WARNING + 'TSX NEWZHC-.0123456789')
-        src = ptxb_as_ptxs() if font == 'PTXB' else B.read('PTXS')
-        q['PTXS'] = B.trim_font(navopt.pdts(navopt.phls(navopt.fonts(src))), big)
-        q['PTXT'] = B.trim_font(navopt.fonts(B.read('PTXT')), small)
-    return nav + [l for n in B.KEEP if n in need for l in q[n]], sorted(need)
+    if 'XEQ "ALMF"' in nav:
+        nav = nav21(nav)
+        q['ALMF'] = little_almf()
+        q['HALMV'] = little_halmv()
+        q['PTXS'] = AC.printers(navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS')))), '49', True, 21)
+        import glyphs47
+        q['PSYB'] = glyphs47.program('PSYB', glyphs47.BIG, ws=16)
+        q['PSYS'] = glyphs47.program('PSYS', glyphs47.SMALL)
+    need = B.closure(q, [c for c in B.calls(nav) if c != 'INIT'])
+    assert not need & {'MOON', 'PLAN', 'PHAS', 'PTXT'}, need
+    for f in {'PSYB', 'PSYS'} & need:                   # the symbols the views draw: Sun, star, phases
+        q[f] = B.trim_font(q[f], set(''.join(B.strings(q[n]) for n in need if n not in ('PSYB', 'PSYS'))))
+    return nav + [l for n in B.KEEP21 if n in need for l in q[n]], sorted(need)
 
 
 def nav1_program(inp):
@@ -221,11 +287,6 @@ def builds():
     # text only
     navtxt = (['LBL "NAV"', 'FS? 81', 'GTO 04', '"INIT"', 'STO 49', 'XEQ IND 49', 'SF 81', 'LBL 04']
               + ['0', 'STO "DH"', 'XEQ 20'] + gennav.text_steps(5) + ['REGS', 'RTN'] + inp + ['END'])
-    # the SINKING box centred for the 6 px characters of PTXB
-    import c47fonts2
-    std = dict(c47fonts2.STD)
-    for c in gennav.BUSY:
-        c47fonts2.STD[ord(c)] = (6,) + tuple(std[ord(c)][1:])
     # NAV12: menu 1 ALMANAC 2 CHART 3 TEXT, no ants, no sky cache (LBL 28, the sky before the
     # menu, only returns: each view computes what it shows)
     old = (gencache.NEWMAT, gennav.INFO, gennav.TITLE)

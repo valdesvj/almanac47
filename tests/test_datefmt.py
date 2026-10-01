@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """test_datefmt.py - NAV asks the date in the calculator's date format:
-C47: NAVFULL and NAVFULL_T21 (experimental, GRFNT) in the simulator set to Y.MD, D.MY and M.DY
+C47: NAVFULL in the simulator set to Y.MD, D.MY and M.DY
 (system flags DMY / MDY), the date typed in that format. The message line must show the format, and the ALMANAC screen must be the same
 as with Y.MD.
 Free42 always takes YYYY.MMDD (its NAV reads DATE with arithmetic, no date functions): NAVLITTLE
@@ -19,7 +19,7 @@ CASES = (('YMD', '2026.0926', 'DATE YYYY.MMDD'), ('DMY', '26.092026', 'DATE DD.M
 SAME = {'3.022031': '2031.0203'}                        # D.MY 3 Feb 2031 = Y.MD 2031.0203
 
 
-NAVS = (os.path.join('build', 'NAVFULL.txt'), os.path.join('build', 'atext', 'NAVFULL_T21.txt'))
+NAVS = (os.path.join('build', 'NAVFULL.txt'),)
 
 
 def run(fmt, date, nav=NAVS[0]):
