@@ -42,6 +42,10 @@ S += [PageBreak(), P('Part 2 — the programs one by one', h1),
       P('These programs give the data needed for sight reduction (GHA, SHA, declination, Hc, Zn) and for planning '
         '(sunrise, sunset, twilight, Moon phase, sky picture). They support, and do not replace, the Nautical Almanac. '
         'All results are apparent geocentric positions, as in the almanac. The time argument is UT (UT1): for a sight timed in UTC, add DUT1 (under 0.9 s).'),
+      P('The programs of this part are the single programs of the programs/ folder. Their screens draw the text with '
+        'AGRAPH fonts (PTXS, PTXT, PTXB) and run on any C47 firmware. The NAV files of part 1 use other versions of the '
+        'views (the screens of Oct 2026) that write the text with ATEXT and GRFNT; the calculations are the same. The '
+        'ALMF and HALMV pictures below are those NAV screens.'),
       P('Overview', h2),
       prose_tbl([
           ['Program', 'What it gives', 'Input', 'Output', 'Needs'],
