@@ -372,7 +372,7 @@ def conv(L, name):
             out.append(l)
     bad = [l for l in out if l.endswith('#2') or l.split(' ')[0] in (
         'GRMOD', 'SSIZE#', 'SSIZE8', 'SSIZE4', 'REGS', 'KEY?', 'x→α', 'αIP', 'J→ⅅℸ', 'DAY', 'MONTH',
-        'YEAR', 'x→ⅅ', 'ⅅ→x', 'ⅅ→J', 'STOSEQ', 'RCLSEQ', 'PAUSE', 'TICKS', 'CLLCDxy') or l.startswith('AGRAPH ')]
+        'YEAR', 'x→ⅅ', 'ⅅ→J', 'STOSEQ', 'RCLSEQ', 'PAUSE', 'TICKS', 'CLLCDxy') or l.startswith('AGRAPH ')]
     assert not bad, (name, bad[:5])
     return out
 

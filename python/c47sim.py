@@ -184,7 +184,8 @@ class Calc:
             if op == 'SSIZE#': self.push(D(8)); continue          # stack size (C47 default 8; modelled as 4 levels)
             if op in ('SSIZE4', 'SSIZE8'): continue
             # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ / ⅅ→x follow the CLK date format
-            # self.datefmt: 'YMD' (YYYY.MMDD, the default), 'DMY' (DD.MMYYYY) or 'MDY' (MM.DDYYYY)
+            # self.datefmt: 'YMD' (YYYY.MMDD, the default), 'DMY' (DD.MMYYYY) or 'MDY' (MM.DDYYYY);
+            # FS? DMY / MDY / YMD test it (the C47 system flags of the CLK date format)
             if op == 'x→ⅅ':
                 self.lastx = self.s[0]; fmt = getattr(self, 'datefmt', 'YMD')
                 if fmt == 'YMD':
@@ -343,6 +344,10 @@ class Calc:
                 continue
             if op == 'CF': self.flags.discard(int(arg)); continue
             if op == 'SF': self.flags.add(int(arg)); continue
+            if op in ('FS?', 'FC?') and arg in ('DMY', 'MDY', 'YMD'):   # the date-format system flags
+                on = getattr(self, 'datefmt', 'YMD') == arg
+                if on != (op == 'FS?'): pc += 1
+                continue
             if op == 'FS?':
                 if int(arg) not in self.flags: pc += 1
                 continue

@@ -570,10 +570,12 @@ INIT with the builders as LBL 01-04.
 ## Oct 1, 2026 - DATE in the calculator's date format (C47)
 
 - x→ⅅ reads the DATE number in the CLK date format, so a C47 set to D.MY or M.DY misread
-  2026.0926. NAV (gennav.inputs, LBL 20) now finds the format: 3 Feb 2001 (2451944 J→ⅅℸ DROP)
-  ⅅ→x IP = 2001 (Y.MD), 3 (D.MY) or 2 (M.DY), and the message line asks DATE YYYY.MMDD,
-  DD.MMYYYY or MM.DDYYYY (LBL 97 / 98). x→ⅅ then reads the number in that format, as before.
+  2026.0926. NAV (gennav.inputs, LBL 20) tests the C47 system flags of the CLK date format,
+  FS? DMY / FS? MDY (only tested, never set or cleared; YMD = the default prompt), and the message
+  line asks DATE YYYY.MMDD, DD.MMYYYY or MM.DDYYYY (LBL 97 / 98). x→ⅅ then reads the number in
+  that format, as before. 12 steps (FS? DMY checked on a C47 by the author). A first version
+  found the format with 2451944 J→ⅅℸ DROP ⅅ→x IP (22 steps).
 - Free42 has no such issue: its NAV splits DATE as YYYY.MMDD with arithmetic (no date functions),
   whatever the HP-42S / Free42 date mode (flags 31, 67); the prompt says Y.MMDD.
-- c47sim: datefmt 'YMD' / 'DMY' / 'MDY' for x→ⅅ and ⅅ→x. tests/test_datefmt.py: NAVFULL with
+- c47sim: datefmt 'YMD' / 'DMY' / 'MDY' for x→ⅅ, ⅅ→x and FS? / FC? DMY MDY YMD. tests/test_datefmt.py: NAVFULL with
   the three formats, the date typed in each: the message line and the ALMANAC screen.
