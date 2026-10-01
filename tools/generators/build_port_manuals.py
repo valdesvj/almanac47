@@ -8,10 +8,13 @@
   python3 tools/generators/build_port_manuals.py
 Screens: docs/free42/*.png (tools/generators/free42_shots.py), docs/NUMWORKS_*.png, docs/HPPRIME_*.png.
 """
-import os
+import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 DOCS = os.path.join(ROOT, 'docs')
+# the PDF: build/manuals/ (not in git) while working; docs/ only for a release:  --release
+PDF = DOCS if '--release' in sys.argv else os.path.join(ROOT, 'build', 'manuals')
+os.makedirs(PDF, exist_ok=True)
 exec(open(os.path.join(HERE, 'manual_head.py')).read())
 from reportlab.platypus import Image as RLImage
 
@@ -163,7 +166,7 @@ def free42():
         '<b>CF 10</b>, the series are used. The values agree with the series to 0.1′.',
         'The tables need more memory than the C47 has: they are meant for Free42 / Plus42 on a PC or phone, or a DM42n '
         'with enough free memory.'])
-    make(os.path.join(DOCS, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
+    make(os.path.join(PDF, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
 
 
 # ------------------------------------------------------------------ NumWorks / HP Prime
@@ -259,7 +262,7 @@ def python_port(name, key):
         'Not yet tried on a real %s. Checked on a PC (stand-in module) and in a MicroPython interpreter.' % name] +
         ([] if nw else ['Not sure on the real Prime: the exact pixel size of its fonts (columns may be a few pixels off) and '
                         'whether ESC reaches GETKEY in every firmware (ON always stops the program).']))
-    make(os.path.join(DOCS, 'Almanac47_%s_Manual.pdf' % key), '%s — user manual' % name, S)
+    make(os.path.join(PDF, 'Almanac47_%s_Manual.pdf' % key), '%s — user manual' % name, S)
 
 
 if __name__ == '__main__':

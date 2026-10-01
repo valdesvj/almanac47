@@ -1,12 +1,15 @@
-import os
+import os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 DOCS = os.path.join(ROOT, 'docs')
+# the PDF: build/manuals/ (not in git) while working; docs/ only for a release:  --release
+PDF = DOCS if '--release' in sys.argv else os.path.join(ROOT, 'build', 'manuals')
+os.makedirs(PDF, exist_ok=True)
 exec(open(os.path.join(HERE, 'manual_head.py')).read())
 import json
 from reportlab.platypus import Image as RLImage
 R = json.load(open(os.path.join(HERE, 'manual_results.json')))
-OUT = os.path.join(DOCS, 'C47_Nav_User_Manual.pdf')
+OUT = os.path.join(PDF, 'C47_Nav_User_Manual.pdf')
 def dm(x, ns=False):
     s = ''
     if ns: s = 'S ' if x < 0 else 'N '; x = abs(x)

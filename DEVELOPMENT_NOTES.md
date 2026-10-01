@@ -531,3 +531,12 @@ INIT with the builders as LBL 01-04.
   helper is left out of the Free42 file when not called).
 - Native screens (python/native/c47screen.py) follow: test_parity 0 differences. Simulator: SNAP.
 - Manuals, QUICKSTART, README, docs/free42 shots (free42_shots.py renumbered) updated.
+
+## Oct 1, 2026 - Manual PDFs only for a release
+
+- A PDF is stored whole in git at every change (no delta compression): 29 versions were 1.6 MB,
+  the biggest part of the history. build_manual.py and build_port_manuals.py now write to
+  build/manuals/ (in .gitignore) while working; `--release` writes to docs/ for a release commit:
+    python3 tools/generators/build_manual.py --release
+    python3 tools/generators/build_port_manuals.py --release
+- No rejig binary is in the repository (tools/rejig47_atext.py only); .p47 files stay ignored.
