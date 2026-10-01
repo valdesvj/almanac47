@@ -442,7 +442,7 @@ def halmh():
     T, X = top_x(), table_x()
     NX, GX, NSX, DX, HX, ZX = X['name'], X['gha'], X['ns'], X['dec'], X['hc'], X['zn']
     if T21:
-        HY, HS, TOP = 144, 72, 107    # the chart lower in height: the titles row at 121 over the 8 bodies, the line at 221
+        HY, HS, TOP = 144, 68, 107    # the chart lower in height: the titles row at 121 over the 8 bodies; 90 at 212, under the line at 221
     elif SMALL:
         HY, HS, TOP = 129, 89, 107    # as NAVFULL; 6 table rows at most: Sun, Moon, a planet, 3 stars
     else:
@@ -575,7 +575,7 @@ def sky_chart(g, HY, lbl9, lbl10, HS=100):
 
 def hanim():
     g = Gen(); a = g.a
-    HY, HS = 118, (98 if T21 else 100)              # T21: the top of the chart under the header line
+    HY, HS = 118, (94 if T21 else 100)              # T21: 90 at 212, its label under the header line (221)
     a('LBL "HANIM"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10')
     a('24', 'STO 14', '0.5', 'STO 15')
     a('RCL 11', 'STO 91', 'RCL 12', 'STO 92', 'XEQ "HCZI"')
@@ -614,7 +614,7 @@ def hanim():
     a('LBL 71', 'RCL 17', '2451545', '-', 'STO 25', '0.000800925925925926', '+', '36525', '÷', 'STO 54',
       'RCL 25', '360.98564736629', '×', '280.46061837', '+', '360', 'MOD', 'STO 80', 'RTN')
     a('LBL 72')
-    sky_chart(g, HY, 9, 10)
+    sky_chart(g, HY, 9, 10, HS)
     a('RTN')
     a('LBL 14', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL',
       'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')
@@ -626,11 +626,11 @@ def hanim():
 
 def allsky():
     g = Gen(); a = g.a
-    HY, HS = 118, (98 if T21 else 100)              # T21: the top of the chart under the header line
+    HY, HS = 118, (94 if T21 else 100)              # T21: 90 at 212, its label under the header line (221)
     a('LBL "ALLSKY"', 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10')
     a('RCL 11', 'STO 91', 'RCL 12', 'STO 92', 'XEQ "HCZI"', 'CLLCD')
     a('0', 'STO 44', 'RCL 11', 'X<0?', 'XEQ 44')
-    sky_chart(g, HY, 9, 10)
+    sky_chart(g, HY, 9, 10, HS)
     a('RCL 10', 'XEQ "SUNA"', 'STO 45', 'R↓', 'STO 46')
     if T21:
         header(g, 226, 10, 11, 12, top_x(), 24, 25)
