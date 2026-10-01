@@ -28,6 +28,8 @@ sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'python', 'nati
 from stdfont import STD, code
 OUT = os.path.join(ROOT, 'programs', 'atext')
 SYM = 'PSYM'                                  # the AGRAPH symbols
+CSYM, SO = 'PSYM', '6'                        # the symbols on the charts and their half size (T21: PSYS, 3)
+LO, LX, LNUM, LW = '6', '8', 'PINS', '36'     # a star's number on a chart: rows below, columns right, printer (T21: tinyFont)
 SMALL = True      # True (NAVFULL_ATX): chart axes, letters and the ALLSKY stars in the small font, as NAVFULL
 TINY = False      # True (NAVFULL_TNY, programs/atext/tiny/): those texts in the C47 tinyFont (GRFNT 10, ATEXT)
 TINYSUB = {'XEQ "PTXT"': 'XEQ "PTTY"', 'XEQ "PTNS"': 'XEQ "PTNT"'}
@@ -238,6 +240,7 @@ def halmv():
     ZX = 398 - ZNW
     HX = ZX - 6 - PDM                          # the Hc field (its sign at HX + 8)
     NM = X0 + 14
+    assert not T21 or NM + width('00 ') + NAMEW <= HX + DIG, 'T21: the star number and name pass the Hc'
     txt(184, NM, 'BODY'); txt(184, round(HX + 8 + (PDM - 8 - width('HC')) / 2), 'HC'); txt(184, round(ZX + (ZNW - width('ZN')) / 2), 'ZN')
     a('170', 'STO 40')
     a('RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 16')
@@ -248,24 +251,25 @@ def halmv():
     a('1.058', 'STO 42', 'LBL 17', '10', 'RCL 41', 'X≥Y?', 'GTO 19', 'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 18',
       'XEQ "STR2"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', '10', 'RCL 96', 'X≤Y?', 'GTO 18',
       'XEQ 57', 'RCL 40', X0, '"*"', 'XEQ "%s"' % SYM,
-      'RCL 82', 'XEQ "SNMU"', 'STO 43', 'RCL 40', NM, 'RCL 43', 'XEQ "PTXS"', 'XEQ 60',
+      *(['RCL 40', NM, 'RCL 82', 'XEQ "PINS"'] if T21 else []),          # T21: the star number back, then the name
+      'RCL 82', 'XEQ "SNMU"', 'STO 43', 'RCL 40', NM + (width('00 ') if T21 else 0), 'RCL 43', 'XEQ "PTXS"', 'XEQ 60',
       '1', 'STO+ 41', 'LBL 18', 'ISG 42', 'GTO 17', 'LBL 19')
     a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
     a('XEQ "WPLS"', 'RTN')
     a('LBL 29', '"T"', 'STO 43', 'RTN', 'LBL 65', '"X"', 'STO 43', 'RTN')
     a('LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
     a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')
-    a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "%s"' % SYM, 'RTN')
+    a('LBL 16', 'RCL 99', SO, '-', 'RCL 98', SO, '-', '"@"', 'XEQ \"%s\"' % CSYM, 'RTN')
     a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
     a('LBL 52', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', CW, '×', '360', '÷', '18', '+', 'IP', 'STO 98',
       'RCL "SHC"', HS, '×', HY, '+', 'IP', 'STO 99', 'RTN')
-    a('LBL 57', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"*"', 'XEQ "%s"' % SYM, 'RCL 98', '8', '+', 'STO 43', 18 + CW - 20, 'RCL 43', 'X>Y?', 'XEQ 21',
-      'RCL 99', '6', '-', 'RCL 43', 'RCL 82', 'XEQ "PINS"', 'RTN', 'LBL 21', '36', 'STO- 43', 'RTN')
+    a('LBL 57', 'RCL 99', SO, '-', 'RCL 98', SO, '-', '"*"', 'XEQ \"%s\"' % CSYM, 'RCL 98', LX, '+', 'STO 43', 18 + CW - 20, 'RCL 43', 'X>Y?', 'XEQ 21',
+      'RCL 99', LO, '-', 'RCL 43', 'RCL 82', 'XEQ "%s"' % LNUM, 'RTN', 'LBL 21', LW, 'STO- 43', 'RTN')
     a('LBL 60', 'RCL 40', HX, 'RCL 96', 'XEQ "PDMS"', 'RCL 40', ZX, 'RCL 97', 'XEQ "PZNS"', 'RCL 96', 'X<0?', 'XEQ 64', '14', 'STO- 40', 'RTN')
     hc_box(g, 64, HX + 7, PDM - 6)
-    a('LBL 61', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"("', 'XEQ "%s"' % SYM, 'RCL 40', X0, '"("', 'XEQ "%s"' % SYM,
+    a('LBL 61', 'RCL 99', SO, '-', 'RCL 98', SO, '-', '"("', 'XEQ \"%s\"' % CSYM, 'RCL 40', X0, '"("', 'XEQ "%s"' % SYM,
       'RCL 40', NM, '"MOON"', 'XEQ "PTXS"', 'XEQ 60', '1', 'STO+ 41', 'RTN')
-    a('LBL 63', 'RCL 42', 'IP', '70', '+', 'STO 43', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 43', 'XEQ "%s"' % SYM,
+    a('LBL 63', 'RCL 42', 'IP', '70', '+', 'STO 43', 'RCL 99', SO, '-', 'RCL 98', SO, '-', 'XEQ IND 43', 'XEQ \"%s\"' % CSYM,
       'RCL 40', X0, 'XEQ IND 43', 'XEQ "%s"' % SYM, 'RCL 42', 'IP', '81', '+', 'STO 43', 'RCL 40', NM, 'XEQ IND 43', 'XEQ "PTXS"',
       'XEQ 60', '1', 'STO+ 41', 'RTN')
     for lab, t in ((71, '<'), (72, '>'), (73, '='), (74, '?'), (82, 'VENUS'), (83, 'MARS'), (84, 'JUPITER'), (85, 'SATURN')):
@@ -346,8 +350,8 @@ def horz():
         a('LBL 54', 'ABS', '60', '×', '0.5', '+', 'IP', 'STO 37', '60', '÷', 'IP', 'XEQ "PINS"', '" "', 'XEQ "PTXS"',
           'RCL 37', '60', 'MOD', 'STO 37', '10', '÷', 'IP', 'XEQ "PINS"', 'RCL 37', '10', 'MOD', 'XEQ "PINS"', 'RTN')
     a('LBL 40', 'STO 13', '1', 'STO+ 10', 'INDEX "HZT"', 'RCL 10', '1', 'STOIJ', 'RCL 13', 'STOEL', 'J+', 'RCL 97', 'STOEL', 'J+', 'RCL 96', 'STOEL', 'RTN')
-    a('LBL 47', '241', 'RCL- 99', '6', '-', 'RCL 98', '6', '-', '"("', 'XEQ "%s"' % SYM, '-1', 'XEQ 40', 'RTN')
-    a('LBL 48', 'RCL 11', 'IP', '70', '+', 'STO 14', '241', 'RCL- 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 14', 'XEQ "%s"' % SYM,
+    a('LBL 47', '241', 'RCL- 99', SO, '-', 'RCL 98', SO, '-', '"("', 'XEQ \"%s\"' % CSYM, '-1', 'XEQ 40', 'RTN')
+    a('LBL 48', 'RCL 11', 'IP', '70', '+', 'STO 14', '241', 'RCL- 99', SO, '-', 'RCL 98', SO, '-', 'XEQ IND 14', 'XEQ \"%s\"' % CSYM,
       'RCL 11', 'IP', '1', '+', 'CHS', 'XEQ 40', 'RTN')
     a('LBL 43', 'XEQ 57', 'RCL 82', 'XEQ 40', 'RTN')
     for lab, s in ((71, '<'), (72, '>'), (73, '='), (74, '?')): a('LBL %d' % lab, '"%s"' % s, 'RTN')
@@ -356,11 +360,11 @@ def horz():
     a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
     a('LBL 52', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
       '225', 'RCL "SHC"', HS, '×', '-', 'IP', 'STO 99', 'RTN')
-    a('LBL 56', '241', 'RCL- 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "%s"' % SYM, 'RTN')
-    a('LBL 57', '241', 'RCL- 99', '6', '-', 'RCL 98', '6', '-', '"*"', 'XEQ "%s"' % SYM,
-      'RCL 98', '8', '+', 'STO 36', '380', 'RCL 36', 'X>Y?', 'XEQ 39',
-      '241', 'RCL- 99', '6', '-', 'RCL 36', 'RCL 82', 'XEQ "PINS"', 'RTN',
-      'LBL 39', '36', 'STO- 36', 'RTN')
+    a('LBL 56', '241', 'RCL- 99', SO, '-', 'RCL 98', SO, '-', '"@"', 'XEQ \"%s\"' % CSYM, 'RTN')
+    a('LBL 57', '241', 'RCL- 99', SO, '-', 'RCL 98', SO, '-', '"*"', 'XEQ \"%s\"' % CSYM,
+      'RCL 98', LX, '+', 'STO 36', '380', 'RCL 36', 'X>Y?', 'XEQ 39',
+      '241', 'RCL- 99', LO, '-', 'RCL 36', 'RCL 82', 'XEQ "%s"' % LNUM, 'RTN',
+      'LBL 39', LW, 'STO- 36', 'RTN')
     a('END')
     return 'HORZ', g.P
 
@@ -441,19 +445,19 @@ def halmh():
         a('LBL 25', '"FULL"', 'STO 43', 'RTN', 'LBL 33', '"NEW"', 'STO 43', 'RTN', 'LBL 28', '"WANING"', 'STO 43', 'RTN')
     a('LBL 22', '"S"', 'STO 43', 'RTN', 'LBL 27', '"W"', 'STO 43', 'RTN')
     a('LBL 15', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')
-    a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"@"', 'XEQ "%s"' % SYM, 'RTN')
+    a('LBL 16', 'RCL 99', SO, '-', 'RCL 98', SO, '-', '"@"', 'XEQ \"%s\"' % CSYM, 'RTN')
     a('LBL 51', 'XEQ "HCZR"', 'GTO 49')
     a('LBL 52', 'XEQ "HCZ"', 'LBL 49', 'RCL 97', 'RCL+ 44', '360', 'MOD', '375', '×', '360', '÷', '20', '+', 'IP', 'STO 98',
       'RCL "SHC"', HS, '×', HY, '+', 'IP', 'STO 99', 'RTN')
-    a('LBL 57', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"*"', 'XEQ "%s"' % SYM, 'RCL 98', '8', '+', 'STO 43', '380', 'RCL 43', 'X>Y?', 'XEQ 21',
-      'RCL 99', '6', '-', 'RCL 43', 'RCL 82', 'XEQ "PINS"', 'RTN', 'LBL 21', '36', 'STO- 43', 'RTN')
+    a('LBL 57', 'RCL 99', SO, '-', 'RCL 98', SO, '-', '"*"', 'XEQ \"%s\"' % CSYM, 'RCL 98', LX, '+', 'STO 43', '380', 'RCL 43', 'X>Y?', 'XEQ 21',
+      'RCL 99', LO, '-', 'RCL 43', 'RCL 82', 'XEQ "%s"' % LNUM, 'RTN', 'LBL 21', LW, 'STO- 43', 'RTN')
     a('LBL 60', 'RCL 40', GX, 'RCL 45', 'XEQ "PDMS"',
       '"N"', 'STO 43', 'RCL 46', 'X<0?', 'XEQ 22', 'RCL 40', NSX, 'RCL 43', 'XEQ "PTXS"', 'RCL 40', DX, 'RCL 46', 'ABS', 'XEQ "PDMS"',
       'RCL 40', HX, 'RCL 96', 'XEQ "PDMS"', 'RCL 40', ZX, 'RCL 97', 'XEQ "PZNS"', 'RCL 96', 'X<0?', 'XEQ 64', '14', 'STO- 40', 'RTN')
     hc_box(g, 64, HX + 7, PDM - 6)
-    a('LBL 61', 'RCL 99', '6', '-', 'RCL 98', '6', '-', '"("', 'XEQ "%s"' % SYM,
+    a('LBL 61', 'RCL 99', SO, '-', 'RCL 98', SO, '-', '"("', 'XEQ \"%s\"' % CSYM,
       'RCL 40', '0', '"("', 'XEQ "%s"' % SYM, 'RCL 40', NX, '"MOON"', 'XEQ "PTXS"', 'XEQ 60', 'RTN')
-    a('LBL 63', 'RCL 42', 'IP', '70', '+', 'STO 43', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 43', 'XEQ "%s"' % SYM,
+    a('LBL 63', 'RCL 42', 'IP', '70', '+', 'STO 43', 'RCL 99', SO, '-', 'RCL 98', SO, '-', 'XEQ IND 43', 'XEQ \"%s\"' % CSYM,
       'RCL 40', '0', 'XEQ IND 43', 'XEQ "%s"' % SYM, 'RCL 42', 'IP', '81', '+', 'STO 43', 'RCL 40', NX, 'XEQ IND 43', 'XEQ "PTXS"', 'XEQ 60', 'RTN')
     for lab, t in ((71, '<'), (72, '>'), (73, '='), (74, '?'), (82, 'VENUS'), (83, 'MARS'), (84, 'JUPITER'), (85, 'SATURN')):
         a('LBL %d' % lab, '"%s"' % t, 'RTN')
@@ -515,7 +519,7 @@ def hanim():
     a(227, 2, 'RCL 17', 'XEQ "PDTS"', 227, tx, 'RCL 17', '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"', '" UT"', 'XEQ "PTXS"')
     a(227, 200, 'RCL 13', '1', '+', 'XEQ "PINS"', '"/"', 'XEQ "PTXS"', 'RCL 14', 'XEQ "PINS"')
     a(227, 398 - width('TWILIGHT'), 'RCL 43', 'XEQ "PTXS"')
-    a('RCL 20', '6', '-', 'RCL 21', '6', '-', '"@"', 'XEQ "%s"' % SYM, 'RCL 22', '6', '-', 'RCL 23', '6', '-', '"("', 'XEQ "%s"' % SYM)
+    a('RCL 20', SO, '-', 'RCL 21', SO, '-', '"@"', 'XEQ \"%s\"' % CSYM, 'RCL 22', SO, '-', 'RCL 23', SO, '-', '"("', 'XEQ \"%s\"' % CSYM)
     a('PAUSE 10')
     a('1', 'STO+ 13', 'RCL 14', 'RCL 13', 'X<Y?', 'GTO 01')
     a('XEQ "WPLS"', 'RTN')
@@ -564,27 +568,40 @@ def allsky():
     a('LBL 14', 'RCL 99', 'RCL 98', 'PIXEL', 'RCL 99', 'RCL 98', '1', '+', 'PIXEL', 'RCL 99', '1', '+', 'RCL 98', 'PIXEL',
       'RCL 99', '1', '+', 'RCL 98', '1', '+', 'PIXEL', 'RTN')
     if SMALL:                          # a star: small star and its number (small font), as NAVFULL
-        a('LBL 15', 'RCL 99', '2', '-', 'RCL 98', '2', '-', '"*"', 'XEQ "PTXT"', 'RCL 98', '5', '+', 'STO 28', '388', 'RCL 28', 'X>Y?', 'XEQ 17',
-          'RCL 99', '2', '-', 'RCL 28', 'RCL 42', 'IP', 'XEQ "PTNS"', 'RTN', 'LBL 17', '17', 'STO- 28', 'RTN')
-    a('LBL 16', 'RCL 99', '6', '-', 'RCL 98', '6', '-', 'XEQ IND 43', 'XEQ "%s"' % SYM, 'RTN')
+        ss, st = ('3', 'XEQ "PSYS"') if T21 else ('2', 'XEQ "PTXT"')      # T21: the small star glyph
+        a('LBL 15', 'RCL 99', ss, '-', 'RCL 98', ss, '-', '"*"', st, 'RCL 98', '5', '+', 'STO 28', '388', 'RCL 28', 'X>Y?', 'XEQ 17',
+          'RCL 99', ss, '-', 'RCL 28', 'RCL 42', 'IP', 'XEQ "PTNS"', 'RTN', 'LBL 17', '17', 'STO- 28', 'RTN')
+    a('LBL 16', 'RCL 99', SO, '-', 'RCL 98', SO, '-', 'XEQ IND 43', 'XEQ \"%s\"' % CSYM, 'RTN')
     for lab, t in ((61, '@'), (62, '('), (63, '*'), (71, '<'), (72, '>'), (73, '='), (74, '?')):
         a('LBL %d' % lab, '"%s"' % t, 'RTN')
     a('END')
     return 'ALLSKY', g.P
 
 
+def mode(small=True, sub=''):
+    """'' NAVFULL_ATX, 'big' the DM42 _ATX, 'tiny' NAVFULL_TNY, 't21' NAVFULL_T21: GRFNT 21 for the
+    text, the tinyFont on the charts, the glyphs47 symbols (PSYB in the tables, PSYS on the charts)."""
+    global SMALL, TINY, T21, COMP, SYM, CSYM, SO, LO, LX, LNUM, LW
+    SMALL, TINY, T21 = small, sub in ('tiny', 't21'), sub == 't21'
+    COMP = 1 if T21 else 0
+    SYM, CSYM, SO = ('PSYB', 'PSYS', '3') if T21 else ('PSYM', 'PSYM', '6')
+    LO, LX, LNUM, LW = ('3', '5', 'PTNT', '22') if T21 else ('6', '8', 'PINS', '36')
+    metrics()
+
+
 def main():
-    global SMALL, TINY
     for small, sub, views in ((True, '', (lambda: almf(False), halmv, horz, halmh, hanim, allsky)),
                               (False, 'big', (lambda: almf(False), halmv)),
-                              (True, 'tiny', (lambda: almf(False), halmv, horz, halmh, hanim, allsky))):
-        SMALL, TINY = small, sub == 'tiny'
+                              (True, 'tiny', (lambda: almf(False), halmv, horz, halmh, hanim, allsky)),
+                              (True, 't21', (lambda: almf(False), halmv, horz, halmh, hanim, allsky))):
+        mode(small, sub)
         d = os.path.join(OUT, sub)
         os.makedirs(d, exist_ok=True)
         for f in views:
             name, P = f()
             open(os.path.join(d, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(P) + '\n')
             print('%s %d lines' % (os.path.relpath(os.path.join(d, name + '.txt'), ROOT), len(P)))
+    mode()
 
 
 if __name__ == '__main__':
