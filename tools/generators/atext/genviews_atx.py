@@ -211,7 +211,12 @@ def almf(short):
     MX = 212
     assert t2 + width('SD 00.0') < MX and MX + width('MOON 100% WANING') < 398
     a('"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 18', '99.5', 'X≤Y?', 'XEQ 23', 'RCL 18', '0.5', 'X>Y?', 'XEQ 24')
-    a(y1, MX, '"MOON "', 'XEQ "PTXS"', 'RCL 18', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"')
+    if T21:     # the phase glyph after the percent: 8 phases from the age (R19), LBL 48-55 give its code
+        a(y1, MX, '"MOON "', 'XEQ "PTXS"', 'RCL 18', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'STO 25', 'R↓', 'STO 20',
+          'RCL 19', '29.530589', '÷', '8', '×', '0.5', '+', 'IP', '8', 'MOD', '48', '+', 'STO 23',
+          'RCL 20', 'RCL 25', 'XEQ IND 23', 'XEQ "%s"' % SYM, '" "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"')
+    else:
+        a(y1, MX, '"MOON "', 'XEQ "PTXS"', 'RCL 18', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"')
     a(y2, MX, '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"')
     a(y3, MX, '"HP "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PF1S"', '" SD "', 'XEQ "PTXS"', 'RCL 22', 'XEQ "PF1S"')
     a('"S"', 'STO 43', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', 226, 388, 'RCL 43', 'XEQ "PTXS"')
@@ -231,6 +236,9 @@ def almf(short):
         a('LBL %d' % lab, '"%s"' % t, 'RTN')
     if short or T21:
         planet_numbers(g)
+    if T21:
+        for k in range(8):
+            a('LBL %d' % (48 + k), '"%d"' % k, 'RTN')
     a('END')
     return NAME, g.P
 
