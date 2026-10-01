@@ -108,6 +108,24 @@ def table_x():
     return X
 
 
+NBODY = 8        # T21: the same bodies in ALMANAC, CHART, SKY and SPLIT: the Sun, the Moon (above the
+                 # horizon), the first planet above it (Venus, Jupiter, Mars, Saturn), the brightest
+                 # stars higher than 10 deg - 8 bodies, the rows of SPLIT
+
+
+def first_planet(g, cnt, preg, l1, l2, l3, test, call):
+    """The first planet above the horizon in the order Venus, Jupiter, Mars, Saturn (LBL 91-94 give
+    its number): counter register cnt, the planet number in preg; test: from the number in X to
+    the X>0? of its Hc; call: the routine that writes it."""
+    g.a('1.004', 'STO %d' % cnt, 'LBL %d' % l1, 'RCL %d' % cnt, 'IP', '90', '+', 'STO 43', 'XEQ IND 43', 'STO %d' % preg, *test,
+        'GTO %d' % l2, 'ISG %d' % cnt, 'GTO %d' % l1, 'GTO %d' % l3, 'LBL %d' % l2, call, 'LBL %d' % l3)
+
+
+def planet_numbers(g):
+    for lab, pn in ((91, 1), (92, 3), (93, 2), (94, 4)):
+        g.a('LBL %d' % lab, str(pn), 'RTN')
+
+
 def header(g, y, jd_reg, lat_reg, lon_reg, X, n_lab=22, e_lab=27):
     g.num(y, X['date'], jd_reg, 'PDTS')
     g.a(y, X['time'], 'RCL %s' % jd_reg, '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"'); g.txt(y, X['UT'], 'UT')
@@ -139,7 +157,7 @@ def almf(short):
     g = Gen(); a, txt, num = g.a, g.txt, g.num
     T, X = top_x(), table_x()
     NAME = 'ALMS' if short else 'ALMF'
-    ROWS, TOP, PITCH = 10, 193, 14
+    ROWS, TOP, PITCH = (NBODY + 1, 193, 16) if T21 else (10, 193, 14)      # T21: ARIES + 8 bodies, 2 rows more apart
     NX, GX, NSX, DX, HX, ZX = X['name'], X['gha'], X['ns'], X['dec'], X['hc'], X['zn']
     a('LBL "%s"' % NAME, 'STO 12', 'R↓', 'STO 11', 'R↓', 'STO 10')
     for reg, lab in ((13, 'NTWA'), (14, 'RISE'), (15, 'TRAN'), (16, 'SET'), (17, 'NTWP')):
@@ -164,7 +182,10 @@ def almf(short):
           'XEQ "STR2"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ "HCZ"', '10', 'RCL 96', 'X≤Y?', 'GTO 18', *star,
           '1', 'STO+ 41', '1', 'STO+ 24', 'LBL 18', 'ISG 42', 'GTO 17', 'LBL 19')
     else:
-        a('1.004', 'STO 42', 'LBL 16', 'RCL 42', 'IP', 'XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ "HCZ"', 'RCL 96', 'X>0?', 'XEQ 63', 'ISG 42', 'GTO 16')
+        if T21:
+            first_planet(g, 24, 42, 16, 35, 36, ['XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ "HCZ"', 'RCL 96', 'X>0?'], 'XEQ 63')
+        else:
+            a('1.004', 'STO 42', 'LBL 16', 'RCL 42', 'IP', 'XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ "HCZ"', 'RCL 96', 'X>0?', 'XEQ 63', 'ISG 42', 'GTO 16')
         a('1.058', 'STO 42', 'LBL 17', ROWS, 'RCL 41', 'X≥Y?', 'GTO 19', 'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 18',
           'XEQ "STR2"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ "HCZ"', '10', 'RCL 96', 'X≤Y?', 'GTO 18', *star,
           '1', 'STO+ 41', 'LBL 18', 'ISG 42', 'GTO 17', 'LBL 19')
@@ -197,9 +218,8 @@ def almf(short):
       'RCL 40', NX, 'XEQ IND 43', 'XEQ "PTXS"', 'XEQ 60', '1', 'STO+ 41', 'RTN')
     for lab, t in ((71, '<'), (72, '>'), (73, '='), (74, '?'), (82, 'VENUS'), (83, 'MARS'), (84, 'JUPITER'), (85, 'SATURN')):
         a('LBL %d' % lab, '"%s"' % t, 'RTN')
-    if short:
-        for lab, pn in ((91, 1), (92, 3), (93, 2), (94, 4)):
-            a('LBL %d' % lab, str(pn), 'RTN')
+    if short or T21:
+        planet_numbers(g)
     a('END')
     return NAME, g.P
 
@@ -251,8 +271,11 @@ def halmv():
     a('RCL 40', X0, '"@"', 'XEQ "%s"' % SYM, 'RCL 40', NM, '"SUN"', 'XEQ "PTXS"', 'XEQ 60')
     a('1', 'STO 41')
     a('XEQ "MOO2"', 'STO 45', 'R↓', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 61')
-    a('1.004', 'STO 42', 'LBL 62', 'RCL 42', 'IP', 'XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 63', 'ISG 42', 'GTO 62')
-    a('1.058', 'STO 42', 'LBL 17', '10', 'RCL 41', 'X≥Y?', 'GTO 19', 'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 18',
+    if T21:
+        first_planet(g, 24, 42, 62, 35, 36, ['XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?'], 'XEQ 63')
+    else:
+        a('1.004', 'STO 42', 'LBL 62', 'RCL 42', 'IP', 'XEQ "PLN3"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 63', 'ISG 42', 'GTO 62')
+    a('1.058', 'STO 42', 'LBL 17', NBODY if T21 else '10', 'RCL 41', 'X≥Y?', 'GTO 19', 'RCL 42', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 18',
       'XEQ "STR2"', 'STO 45', 'X<>Y', 'STO 46', 'RCL 46', 'RCL 45', 'XEQ 52', '10', 'RCL 96', 'X≤Y?', 'GTO 18',
       'XEQ 57', 'RCL 40', X0, '"*"', 'XEQ "%s"' % SYM,
       *(['RCL 40', NM, 'RCL 82', 'XEQ "PINS"'] if T21 else []),          # T21: the star number back, then the name
@@ -278,6 +301,8 @@ def halmv():
       'XEQ 60', '1', 'STO+ 41', 'RTN')
     for lab, t in ((71, '<'), (72, '>'), (73, '='), (74, '?'), (82, 'VENUS'), (83, 'MARS'), (84, 'JUPITER'), (85, 'SATURN')):
         a('LBL %d' % lab, '"%s"' % t, 'RTN')
+    if T21:
+        planet_numbers(g)
     a('END')
     return 'HALMV', g.P
 
@@ -285,7 +310,7 @@ def halmv():
 # ---------------------------------------------------------------- HORZ (genh2.py, with the info line)
 def horz():
     g = Gen(); a = g.a
-    HS, rows = 196, (9 if T21 else 10)      # T21: the bodies of the ALMANAC view (its 10 rows less ARIES)
+    HS, rows = 196, (NBODY if T21 else 10)  # T21: the bodies of ALMANAC, CHART and SPLIT
     a('LBL "HORZ"', 'STO 92', 'R↓', 'STO 91', 'R↓', 'STO 90', 'XEQ "HCZI"', 'CLLCD')
     a('16', '20', '376', 'XEQ "PHLS"')
     a('18.21203', 'STO 86', 'LBL 50', 'RCL 86', 'IP', '18', 'PIXEL', 'ISG 86', 'GTO 50')
@@ -314,7 +339,7 @@ def horz():
       '0', '2', 'XEQ "HCZQ"', '0', 'STO 86', 'LBL 53', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 55', '2', 'STO+ 86', '358', 'RCL 86', 'X≤Y?', 'GTO 53',
       'RCL 77', 'RCL 81', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 56', '0', 'XEQ 40',
       'XEQ "MOO2"', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 47',
-      '1.004', 'STO 11', 'LBL 45', 'RCL 11', 'IP', 'XEQ "PLN3"', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 48', 'ISG 11', 'GTO 45',
+      *(['XEQ 86'] if T21 else ['1.004', 'STO 11', 'LBL 45', 'RCL 11', 'IP', 'XEQ "PLN3"', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 48', 'ISG 11', 'GTO 45']),
       '1.058', 'STO 11', 'LBL 44', '%d' % rows, 'RCL 10', 'X≥Y?', 'GTO 42', 'RCL 11', 'IP', 'XEQ "SBRT"', 'STO 82', 'XEQ "SQK"', '0.15643', 'X>Y?', 'GTO 36', 'XEQ "STR2"', 'XEQ 52',
       '10', 'RCL 96', 'X>Y?', 'XEQ 43', 'LBL 36', 'ISG 11', 'GTO 44', 'LBL 42')
     DRX = 388 - width('S 89 59  W 179 59')     # a chained text must not end after 380 (ATEXT: next line)
@@ -369,6 +394,9 @@ def horz():
       'RCL 98', LX, '+', 'STO 36', '380', 'RCL 36', 'X>Y?', 'XEQ 39',
       '241', 'RCL- 99', LO, '-', 'RCL 36', 'RCL 82', 'XEQ "%s"' % LNUM, 'RTN',
       'LBL 39', LW, 'STO- 36', 'RTN')
+    if T21:             # LBL 86: the first planet above the horizon only, as the other views
+        a('LBL 86'); first_planet(g, 24, 11, 45, 87, 88, ['XEQ "PLN3"', 'XEQ 52', 'RCL 96', 'X>0?'], 'XEQ 48'); a('RTN')
+        planet_numbers(g)
     a('END')
     return 'HORZ', g.P
 
@@ -378,7 +406,9 @@ def halmh():
     g = Gen(); a, txt, num = g.a, g.txt, g.num
     T, X = top_x(), table_x()
     NX, GX, NSX, DX, HX, ZX = X['name'], X['gha'], X['ns'], X['dec'], X['hc'], X['zn']
-    if SMALL:
+    if T21:
+        HY, HS, TOP = 144, 74, 107    # the chart 15 rows lower in height: the titles row at 121 over the 8 bodies
+    elif SMALL:
         HY, HS, TOP = 129, 89, 107    # as NAVFULL; 6 table rows at most: Sun, Moon, a planet, 3 stars
     else:
         HY, HS, TOP = 132, 86, 102    # big letters under the horizon (row 118)
@@ -413,6 +443,9 @@ def halmh():
     for x, l in zip(xs, 'SWNES'): lt(x, l)
     a('LBL 24')
     a('0', '3', 'XEQ "HCZQ"', '0', 'STO 47', 'LBL 13', 'XEQ 51', 'RCL 96', '1E-4', 'X<Y?', 'XEQ 15', '3', 'STO+ 47', '357', 'RCL 47', 'X≤Y?', 'GTO 13')
+    if T21:
+        for t, k in (('BODY', 'name'), ('GHA', 'hGHA'), ('DEC', 'hDEC'), ('HC', 'hHC'), ('ZN', 'hZN')):
+            txt(TOP + 14, X[k], t)
     a(TOP, 'STO 40')
     a('RCL 46', 'RCL 45', 'XEQ 52', 'RCL 96', 'X>0?', 'XEQ 16')
     a('RCL 40', '0', '"@"', 'XEQ "%s"' % SYM, 'RCL 40', NX, '"SUN"', 'XEQ "PTXS"', 'XEQ 60')
