@@ -147,15 +147,15 @@ def free42():
     S += [PageBreak(), P('10. NAVLITTLE: Sun and stars', h2),
           P('The ALMANAC screen of NAVFULL (the header line with a line under it, the same fonts) with the Sun and '
             'the 58 navigation stars (no Moon or planet rows), no box and no ants: for a calculator with little free '
-            'memory. The Moon line under the table gives the % lit, the phase glyph and the age from the mean lunation '
-            '(within about 14 hours of the true age). The Sun and star values are the same as in NAVFULL. If a TBL '
+            'memory. No Moon: under the table only the Sun\'s twilight, rise / set and meridian passage; the same '
+            'screen as the C47 NAVLITTLE. The Sun and star values are the same as in NAVFULL. If a TBL '
             'has been run (section 11), the Sun and GHA Aries come from the tables (T on the screen).'),
           img(F('little'), 0.6)] + B([
         'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
         'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
         'earlier (the screen stays while it computes), + ends (GrMod 0, screen and stack cleared).',
-        'Programs: NAVLITTLE about 10 KB, NAVINIT_LITTLE about 8 KB (.raw files), matrices 667 numbers.',
+        'Programs: NAVLITTLE about 9 KB, NAVINIT_LITTLE about 8 KB (.raw files), matrices 667 numbers.',
         'Tested in the Free42 core against the same screen in the C47 simulator, pixel by pixel '
         '(tests/test_f42_little.py); not yet on '
         'a real calculator.'])

@@ -641,3 +641,15 @@ INIT with the builders as LBL 01-04.
   indirect targets, no XEQ IND left); ALMR (TEXT, also NAVTXT_DM42) lost LBL 27 WANING and the
   names LBL 81-85 (little_almr: XEQ IND 23 reaches only LBL 80, the Sun). Same screens and the same
   text page as before in the simulator (3 dates). NAVINIT_LITTLE / _5Y: Sun, nutation, stars only.
+
+## Oct 1, 2026 - Free42 NAVLITTLE the same as the C47 NAVLITTLE (no Moon)
+
+- Free42 NAVLITTLE loses its Moon line (mean lunation age, lit part, phase glyph): the same ALMANAC
+  view as the C47 NAVLITTLE (build_dm42.little_almf, no Moon), PSYB only the Sun and the star
+  (build_free42.psym(..., keep='@*')). .raw 9,914 -> 9,106 bytes. Free42 NAVFULL unchanged.
+- build_dm42: moon_lines, LUN, NEW0 and the moon option removed (no build uses them).
+  tests/t21sim.little_programs() is the C47 build/dm42/NAVLITTLE.txt again; test_f42_little and
+  test_f42_tables: Free42 = C47, 0 differences.
+- C47 NAVLITTLE on a DM42n (C47 firmware, Victor): works, SNAP too; free 258,548 bytes after a
+  reset, 227,244 with NAVLITTLE and its matrices (INIT deleted), 226,648 after NAV: about 31 KB
+  in all (the matrices about 23 KB, more than the 11 KB estimate). NAVFULL works on the C47.

@@ -354,8 +354,8 @@ build_free42.py)
     NAVFULL          as the C47 NAVFULL without the tables; the screen appears complete, as on
                      the C47 (RefLCD). build/free42/dev/NAVFULL_DRAW: the screen builds up.
     NAVLITTLE        NAV straight to the ALMANAC screen in the style of Oct 2026 (as NAVFULL:
-                     header line, PTXS = the widths of GRFNT 21): Sun and stars, and a Moon line
-                     (mean lunation age, lit part, phase glyph; not in the C47 NAVLITTLE); .raw 9.9 KB
+                     header line, PTXS = the widths of GRFNT 21): the Sun and the stars, no Moon,
+                     the same screen as the C47 NAVLITTLE; .raw 8.9 KB
                      Free42 has no ATEXT: its builds keep AGRAPH fonts with the same pixels.
     NAVINIT_FULL, NAVINIT_FAST, NAVINIT_LITTLE   the INITs, as above
     TBL_1, TBL_5     the almanac tables as above (.raw 97 KB and 481 KB); flag 11 of the C47
