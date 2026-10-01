@@ -31,8 +31,10 @@ def sections(P):
     return out
 
 
-def printers(font, S):
-    """font: the AGRAPH font program (for PHLS); S: the register for the text (e.g. '49')."""
+def printers(font, S, tiny=False):
+    """font: the AGRAPH font program (for PHLS); S: the register for the text (e.g. '49').
+    tiny: also PTTY (text) and PTNT (whole number) in the C47 tinyFont: GRFNT 10, ATEXT, GRFNT 20.
+    The tinyFont has no rows under the base line, so ATEXT's Y is the row of the base line."""
     ap, xa = 'αIP %s' % S, 'x→α %s' % S
     P = ['LBL "PTXS"',
          'REM "Z row of the base line, Y column, X text -> ATEXT (the N03 trick of Didier): the row 4 lower, then back"',
@@ -76,6 +78,13 @@ def printers(font, S):
          'RCL 35', '1000', '÷', 'IP', 'XEQ 06', 'RCL 35', '10', '÷', 'IP', '100', 'MOD', 'XEQ 07',
          '"."', xa, 'RCL 35', '10', 'MOD', ap, 'GTO 02',
          'LBL 19', '0', 'STO 35', 'RTN']
+    if tiny:
+        P += ['REM "PTTY: Z row of the base line, Y column, X text -> ATEXT in the tinyFont (GRFNT 10), then GRFNT 20"',
+              'LBL "PTTY"', '⇄ zyxt', 'X<>Y',
+              'LBL 20', '10', 'GRFNT', 'DROP', 'ATEXT Z', '20', 'GRFNT', 'DROP', 'RTN',
+              'REM "PTNT: Z row, Y column, X whole number -> the tinyFont"',
+              'LBL "PTNT"', 'XEQ 05', 'RCL 34', 'ABS', '0.5', '+', 'IP', 'XEQ 08',
+              'RCL 31', 'RCL 30', 'RCL %s' % S, '⇄ zyxt', 'X<>Y', 'GTO 20']
     h = [('GTO 25' if l == 'GTO 02' else l) for l in sections(font)['PHLS']]      # the line: AGRAPH / PIXEL
     P += h + ['LBL 25', 'WSIZE 64', 'RCL 31', 'RCL 30', 'RTN']
     for d in range(10):

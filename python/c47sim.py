@@ -67,6 +67,9 @@ class Calc:
         import os, sys
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         from stdfont import STD, code as stdcode
+        if getattr(self, 'grfnt', 20) == 10:                 # GRFNT 10: the tinyFont, 8-row lines
+            from tinyfont import TINY as STD
+        LH = STD[0x41][3] + STD[0x41][4] + STD[0x41][5]       # line height = the glyph box (20 or 8)
         X, Y = int(self.s[0]), int(self.s[1])
         x, y = abs(X), abs(Y); x0 = x; line = y; mode = getattr(self, 'grmod', 0)
         ps = set(self.pix)
@@ -76,7 +79,7 @@ class Calc:
             cb, cg, ca, ra, rg, rb, rows = STD.get(stdcode(ch), STD[0x3f])
             adv = cb + cg + ca
             if x > 380 and x + adv > 400:
-                x, line = x0, line - 20
+                x, line = x0, line - LH
             on = {(line + rb + rg - 1 - r, x + cb + c) for r, v in enumerate(rows) for c in range(cg) if v >> (cg - 1 - c) & 1}
             on = {p for p in on if 0 <= p[0] < 240 and 0 <= p[1] < 400}
             if mode == 1:
@@ -86,10 +89,10 @@ class Calc:
             else: ps |= on
             x += adv
             while i < len(t) and t[i] in ('\u21b5', '\n'):   # CR / LF after a character
-                i += 1; x, line = x0, line - 20
+                i += 1; x, line = x0, line - LH
         nx, ny = x, line
         if nx > 380:
-            nx, ny = x0, ny - 20
+            nx, ny = x0, ny - LH
         if ny < 0:
             ny = 0
         self.pix = list(ps)
@@ -256,6 +259,7 @@ class Calc:
                 self.push(D(v)); self.rset(arg,k[1:]); continue
             if op == 'αSL': self.rset(arg, self.rget(arg)[int(self.s[0]):]); continue
             if op == 'REM': continue
+            if op == 'GRFNT' and not arg: self.grfnt = int(self.s[0]); continue   # font of ATEXT from X (10 tiny, 20 standard); X stays
             if op == 'SNAP': self.snaps = getattr(self, 'snaps', []) + [list(self.pix)]; continue   # a picture of the screen
             if op == 'WSIZE': self.ws=int(arg); continue
             if op == 'REGS': self.regs_opened=True; continue

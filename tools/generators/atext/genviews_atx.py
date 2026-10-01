@@ -29,6 +29,8 @@ from stdfont import STD, code
 OUT = os.path.join(ROOT, 'programs', 'atext')
 SYM = 'PSYM'                                  # the AGRAPH symbols
 SMALL = True      # True (NAVFULL_ATX): chart axes, letters and the ALLSKY stars in the small font, as NAVFULL
+TINY = False      # True (NAVFULL_TNY, programs/atext/tiny/): those texts in the C47 tinyFont (GRFNT 10, ATEXT)
+TINYSUB = {'XEQ "PTXT"': 'XEQ "PTTY"', 'XEQ "PTNS"': 'XEQ "PTNT"'}
 
 
 def width(t):
@@ -49,7 +51,8 @@ class Gen:
 
     def a(self, *xs):
         for x in xs:
-            self.P.extend(str(x).split('\n'))
+            for l in str(x).split('\n'):
+                self.P.append(TINYSUB.get(l, l) if TINY else l)
 
     def txt(self, y, x, s):
         self.a(y, x, '"%s"' % s, 'XEQ "PTXS"')
@@ -299,7 +302,7 @@ def horz():
     if SMALL:                                  # T / S and the DR position in the small font, as NAVFULL
         a('"S"', 'STO 15', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', '7', '2', 'RCL 15', 'XEQ "PTXT"')
         a('"N"', 'STO 43', 'RCL 91', 'X<0?', 'XEQ 59', '"E"', 'STO 39', 'RCL 92', 'X<0?', 'XEQ 60',
-          '215', '326', 'RCL 43', 'XEQ "PTXT"', 'RCL 91', 'XEQ 54', '"  "', 'XEQ "PTXT"', 'RCL 39', 'XEQ "PTXT"', 'RCL 92', 'XEQ 54')
+          '215', 302 if TINY else 326, 'RCL 43', 'XEQ "PTXT"', 'RCL 91', 'XEQ 54', '"  "', 'XEQ "PTXT"', 'RCL 39', 'XEQ "PTXT"', 'RCL 92', 'XEQ 54')
     else:
         a('"S"', 'STO 15', 'FS? 11', 'XEQ 29', 'FS? 12', 'XEQ 65', '4', '2', 'RCL 15', 'XEQ "PTXS"')
         a('"N"', 'STO 43', 'RCL 91', 'X<0?', 'XEQ 59', '"E"', 'STO 39', 'RCL 92', 'X<0?', 'XEQ 60',
@@ -381,7 +384,7 @@ def halmh():
         a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
     if SMALL:
         xs = (19, 112, 206, 300, 394)
-        lt = lambda x, l: a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
+        lt = lambda x, l: a(HY - (9 if TINY else 8), x, '"%s"' % l, 'XEQ "PTXT"')
     else:
         xs = [min(x + 3, 398 - width('W')) for x in (19, 112, 206, 300, 394)]
         lt = lambda x, l: txt(HY - 14, x, l)
@@ -465,10 +468,11 @@ def sky_chart(g, HY, lbl9, lbl10, HS=100):
             a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
         xs = (19, 112, 206, 300, 394)
         a('RCL 44', 'X≠0?', 'GTO %02d' % lbl9)
-        for x, l in zip(xs, 'NESWN'): a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
+        ly = HY - (10 if TINY else 8)          # tinyFont: 7 rows, 2 lower than the small font
+        for x, l in zip(xs, 'NESWN'): a(ly, x, '"%s"' % l, 'XEQ "PTXT"')
         a('GTO %02d' % lbl10, 'LBL %02d' % lbl9)
-        for x, l in zip(xs, 'SWNES'): a(HY - 8, x, '"%s"' % l, 'XEQ "PTXT"')
-        a('LBL %02d' % lbl10, HY + HS + 1, 150, '"OVER HORIZON"', 'XEQ "PTXT"', 2, 150, '"UNDER HORIZON"', 'XEQ "PTXT"')
+        for x, l in zip(xs, 'SWNES'): a(ly, x, '"%s"' % l, 'XEQ "PTXT"')
+        a('LBL %02d' % lbl10, HY + HS - (8 if TINY else -1), 150, '"OVER HORIZON"', 'XEQ "PTXT"', 2, 150, '"UNDER HORIZON"', 'XEQ "PTXT"')
         return
     for c in (20, 51, 82, 113, 145, 176, 207, 238, 270, 301, 332, 363, 395):
         a(HY - 1, c, 'PIXEL', HY - 2, c, 'PIXEL')
@@ -559,10 +563,11 @@ def allsky():
 
 
 def main():
-    global SMALL
+    global SMALL, TINY
     for small, sub, views in ((True, '', (lambda: almf(False), halmv, horz, halmh, hanim, allsky)),
-                              (False, 'big', (lambda: almf(False), halmv))):
-        SMALL = small
+                              (False, 'big', (lambda: almf(False), halmv)),
+                              (True, 'tiny', (lambda: almf(False), halmv, horz, halmh, hanim, allsky))):
+        SMALL, TINY = small, sub == 'tiny'
         d = os.path.join(OUT, sub)
         os.makedirs(d, exist_ok=True)
         for f in views:

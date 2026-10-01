@@ -32,7 +32,9 @@ SYMBOLS = '@(*<>=?'
 ATX_VIEWS = ('ALMF', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')
 
 
-LABELS = {'PTXS': 'TEXT with ATEXT (standard font; Didier\'s N03 trick) and the number printers - Z row, Y column, X text or number',
+LABELS = {'PTTY': 'text in the tinyFont (GRFNT 10) - Z row of the base line, Y column, X text',
+          'PTNT': 'whole number in the tinyFont - Z row, Y column, X number',
+          'PTXS': 'TEXT with ATEXT (standard font; Didier\'s N03 trick) and the number printers - Z row, Y column, X text or number',
          'PSYM': 'the AGRAPH symbols of the bodies - Z row, Y column, X symbol'}
 
 
@@ -65,10 +67,12 @@ def nav_atx():
     return L
 
 
-def build():
+def build(tiny=False):
+    """tiny: NAVFULL_TNY, the small AGRAPH font (PTXT, PTNS) replaced by the C47 tinyFont with
+    ATEXT (GRFNT 10: PTTY, PTNT); the views from programs/atext/tiny/."""
     progs = {n: B.read(n) for n in B.KEEP if n != 'ALMS'}
     for n in ATX_VIEWS:
-        with open(os.path.join(ROOT, 'programs', 'atext', n + '.txt'), encoding='utf-8') as fh:
+        with open(os.path.join(ROOT, 'programs', 'atext', 'tiny' if tiny else '', n + '.txt'), encoding='utf-8') as fh:
             progs[n] = [l.rstrip('\n') for l in fh if l.strip()]
     progs['ALMT'] = B.almr(progs['ALMT'])
     progs['CACHE'] = gencache.program(True)
@@ -77,30 +81,35 @@ def build():
         if n in progs:
             progs[n] = gencache.swap(progs[n])
     font = navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS'))))
-    progs['PTXS'] = AC.printers(font, '49')            # R49: free while a view draws (SBRT / SNMU use it before)
+    progs['PTXS'] = AC.printers(font, '49', tiny)            # R49: free while a view draws (SBRT / SNMU use it before)
     progs['PSYM'] = AC.symbols(font, SYMBOLS)
     # the small font: chart axes and letters, OVER / UNDER HORIZON, the ALLSKY stars, T S X, the SKY DR line
     small = set('0123456789 NESWTSX*' + 'OVER HORIZON' + 'UNDER HORIZON')
     progs['PTXT'] = B.trim_font(navopt.fonts(B.read('PTXT')), small)
+    if tiny:
+        del progs['PTXT']
     nav = nav_atx()
     keep = B.KEEP[:B.KEEP.index('PTXT') + 1] + ['PSYM'] + B.KEEP[B.KEEP.index('PTXT') + 1:]
     need = B.closure(progs, [c for c in B.calls(nav) if c != 'INIT'])
     full = nav + [l for n in keep if n in need for l in progs[n]]
+    assert not (tiny and {'PTXT', 'PTNS'} & set(B.calls(full)))
     return full, sorted(need)
 
 
-def main():
-    full, need = build()
-    B.write(os.path.join(SRC, 'NAVFULL_ATX.txt'), full)
-    m = B.fixed_map('NAVFULL_ATX', full)
-    B.write(os.path.join(OUT, 'NAVFULL_ATX.txt'), B.rename(full, m))
-    with open(os.path.join(OUT, 'NAVFULL_ATX_LABELS.txt'), 'w', encoding='utf-8') as fh:
-        fh.write('NAVFULL_ATX - program labels (NAV keeps its name; INIT: NAVINIT_FULL or NAVINIT_FAST)\n\n')
+def main(tiny=False):
+    name = 'NAVFULL_TNY' if tiny else 'NAVFULL_ATX'
+    full, need = build(tiny)
+    B.write(os.path.join(SRC, name + '.txt'), full)
+    m = B.fixed_map(name, full)
+    B.write(os.path.join(OUT, name + '.txt'), B.rename(full, m))
+    with open(os.path.join(OUT, name + '_LABELS.txt'), 'w', encoding='utf-8') as fh:
+        fh.write('%s - program labels (NAV keeps its name; INIT: NAVINIT_FULL or NAVINIT_FAST)\n\n' % name)
         fh.write('NAV     NAV     %s\n' % B.LABEL_TEXT['NAV'])
         fh.write('\n'.join('%s     %-7s %s' % (v, k, LABELS.get(k, B.LABEL_TEXT.get(k, ''))) for k, v in m.items()) + '\n')
-    print('%-12s %7d %8d   %s' % (('NAVFULL_ATX',) + B.size(full) + (' '.join(need),)))
+    print('%-12s %7d %8d   %s' % ((name,) + B.size(full) + (' '.join(need),)))
     return full
 
 
 if __name__ == '__main__':
     main()
+    main(tiny=True)
