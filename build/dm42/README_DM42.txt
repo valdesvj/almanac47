@@ -48,9 +48,9 @@ file on disk is about 3 times bigger because it stores each byte as a decimal nu
   here: please report the free memory you see (and any crash) on the forum or on GitHub.
 
 OTHER BUILDS (build/dm42/dev/, not in the release)
-  NAVTXT_DM42      7.3 KB  text only: the almanac page in the registers, NAV ends in REGS
-  NAV1T_DM42      10.3 KB  NAVLITTLE, and + ends with the text page of the hour shown
-  NAV12_DM42      13.9 KB  menu 1 ALMANAC, 2 CHART (its labels in the tinyFont), 3 TEXT
+  NAVTXT_DM42      7.2 KB  text only: the almanac page in the registers, NAV ends in REGS
+  NAV1T_DM42      10.2 KB  NAVLITTLE, and + ends with the text page of the hour shown
+  NAV12_DM42      13.5 KB  menu 1 ALMANAC, 2 CHART (its labels in the tinyFont), 3 TEXT
   NAVINIT_DM42_5Y  7.7 KB  INIT with the Sun's FAST series, valid 2026-2030 only
   build/dm42/dev/src/ has every build with the original label names.
 

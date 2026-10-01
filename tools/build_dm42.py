@@ -237,9 +237,18 @@ def little_halmv():
         H = seq(H, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
     H = cut(H, 'XEQ "MOO2"', '1.058')                  # the Moon and planet rows (LBL 35 / 36 go with them)
     assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in H)
-    H = unused_locals(H)
-    assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"') for l in H)
+    H = unused_locals(H, ind_targets=())               # the XEQ IND 43 (planet symbols, names) go with LBL 63
+    assert not any(re.fullmatch(r'(XEQ|GTO) IND .+', l) for l in H), 'an indirect call is left in HALMV'
+    assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"', '"MOON"', '"("') for l in H)
     return H
+
+
+def little_almr(A):
+    """ALMR (TEXT) without what is left of the Moon and the planets: LBL 27 (WANING) and the names
+    LBL 81-85 (XEQ IND 23 = 80 + body: only the Sun, 80, is listed)."""
+    A = unused_locals(A, ind_targets=(80,))
+    assert not any(l in ('"MOON"', '"WANING"', '"WAXING"') for l in A), 'Moon text left in ALMR'
+    return A
 
 
 def nav21(nav):
@@ -261,6 +270,8 @@ def assemble(nav, p, moon=False):
         nav = nav21(nav)
         q['ALMF'] = little_almf(moon)
         q['HALMV'] = little_halmv()
+    if 'ALMT' in q:                                     # ALMR (TEXT): no Moon or planet names
+        q['ALMT'] = little_almr(q['ALMT'])
         tiny = 'XEQ "HALMV"' in nav                     # the chart labels in the tinyFont
         q['PTXS'] = AC.printers(navopt.pdts(navopt.phls(navopt.fonts(B.read('PTXS')))), '49', tiny, 21)
         import glyphs47
