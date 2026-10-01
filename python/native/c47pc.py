@@ -37,7 +37,7 @@ import c47screen
 import c47screen21
 import c47tables
 
-VERSION = '1.4'
+VERSION = '1.5'
 VERSION_DATE = '2026-10-01'
 PROGRAM = 'C47 Nav PC'
 ABOUT = ("This program began as a set of RPN programs for the SwissMicros C47 calculator: "
@@ -97,6 +97,9 @@ OPTIONS
 
 KEYS
   Enter (in a field) = Run      Enter / Space elsewhere = R/S (next object or line)
+  - / + (not in a field) = UT back / forward by the step next to Now UTC (1 h by
+  default; s, min, h or day). Hold the key to watch the sky move; the buttons do the same.
+  Click the screen (or press Enter in a field) first, so the keys go to it.
 
 SAVE
   Save PNG saves the screen shown (TEXT: the text lines as .txt; ANIM: an animated PNG).
@@ -386,6 +389,19 @@ def run_gtk(eng, args):
             self.e_lon = self._entry(g, 6, 'Lon', args.lon or '55 12.0 E', 11)
             b_now = Gtk.Button(label='Now UTC'); b_now.connect('clicked', self.on_now)
             g.attach(b_now, 8, 0, 1, 1)
+            tb = Gtk.Box(spacing=2); g.attach(tb, 9, 0, 1, 1)
+            b_minus = Gtk.Button(label='−'); b_minus.connect('clicked', lambda w: self.step_time(-1))
+            b_plus = Gtk.Button(label='+'); b_plus.connect('clicked', lambda w: self.step_time(1))
+            self.s_dt = Gtk.SpinButton.new_with_range(1, 999, 1); self.s_dt.set_value(1)
+            self.c_dt = Gtk.ComboBoxText()
+            for u in ('s', 'min', 'h', 'day'):
+                self.c_dt.append(u, u)
+            self.c_dt.set_active_id('h')
+            for wdg in (b_minus, b_plus, self.s_dt, self.c_dt):
+                wdg.set_tooltip_text('- / + keys: UT back / forward by this step (hold the key to watch the sky move)')
+            for wdg in (b_minus, self.s_dt, self.c_dt, b_plus):
+                tb.pack_start(wdg, False, False, 0)
+            self.run_pending = False
 
             hb = Gtk.Box(spacing=4); box.pack_start(hb, False, False, 0)
             first = None; self.radios = {}
@@ -428,6 +444,9 @@ def run_gtk(eng, args):
             b = 6 * self.scale
             self.area.set_size_request(W * self.scale + 2 * b, H * self.scale + 2 * b)
             self.area.connect('draw', self.on_draw)
+            self.area.set_can_focus(True)                     # click the screen: - / + step the UT
+            self.area.add_events(Gdk.EventMask.BUTTON_PRESS_MASK)
+            self.area.connect('button-press-event', lambda w, ev: w.grab_focus())
             box.pack_start(self.area, False, False, 0)
             self.status = Gtk.Label(label='Enter date, UT and position, choose a view, press Run (or Enter).',
                                     xalign=0)
@@ -444,7 +463,8 @@ def run_gtk(eng, args):
         def _entry(self, g, col, label, text, width):
             g.attach(Gtk.Label(label=label, xalign=1), col, 0, 1, 1)
             e = Gtk.Entry(); e.set_text(text); e.set_width_chars(width)
-            e.connect('activate', self.on_run); g.attach(e, col + 1, 0, 1, 1)
+            e.connect('activate', lambda w: (self.on_run(), self.area.grab_focus()))
+            g.attach(e, col + 1, 0, 1, 1)
             return e
 
         # --- actions
@@ -459,6 +479,31 @@ def run_gtk(eng, args):
             now = datetime.datetime.now(datetime.timezone.utc)
             self.e_date.set_text(now.strftime('%Y-%m-%d')); self.e_ut.set_text(now.strftime('%H:%M'))
             self.on_run()
+
+        def step_time(self, sign):
+            """- / +: move the date and UT by the step (s, min, h or day). The screen is
+            redrawn once the pending key presses are handled, so holding the key animates."""
+            try:
+                y, m, d = parse_date(self.e_date.get_text()); h = parse_ut(self.e_ut.get_text())
+            except Exception as ex:
+                self.status.set_text('Input error: %s' % ex); return
+            unit = {'s': 1, 'min': 60, 'h': 3600, 'day': 86400}[self.c_dt.get_active_id()]
+            t = datetime.datetime(y, m, d) + datetime.timedelta(seconds=round(h * 3600) + sign * int(self.s_dt.get_value()) * unit)
+            if not 1 <= t.year <= 9999:
+                return
+            self.e_date.set_text(t.strftime('%Y-%m-%d'))
+            self.e_ut.set_text(t.strftime('%H:%M:%S' if t.second else '%H:%M'))
+            if not self.run_pending:
+                self.run_pending = True
+                GLib.idle_add(self.run_stepped)
+
+        def run_stepped(self):
+            self.run_pending = False
+            k = self.k; self.on_run()
+            n = len(self.lines) if self.view == 'TEXT' else len(self.frames)
+            if k < n:                     # stay on the same TEXT page / SKY body / ANIM frame
+                self.k = k; self.update_status(); self.area.queue_draw()
+            return False
 
         def on_view(self, radio, v):
             if radio.get_active():
@@ -555,6 +600,11 @@ def run_gtk(eng, args):
             if ev.keyval in (Gdk.KEY_space, Gdk.KEY_KP_Enter) or (
                     ev.keyval == Gdk.KEY_Return and not isinstance(self.get_focus(), Gtk.Entry)):
                 self.on_next(); return True
+            if not isinstance(self.get_focus(), Gtk.Entry):          # not while typing in a field
+                if ev.keyval in (Gdk.KEY_plus, Gdk.KEY_KP_Add, Gdk.KEY_equal):
+                    self.step_time(1); return True
+                if ev.keyval in (Gdk.KEY_minus, Gdk.KEY_KP_Subtract):
+                    self.step_time(-1); return True
             return False
 
         def on_save(self, *_):

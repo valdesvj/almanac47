@@ -543,6 +543,8 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   names ALMF HALMV ALMT HORZ HALMH still work), drawn as the C47 screens of Oct 2026
   (c47screen21.py; tests/test_parity21.py: identical to NAVFULL_T21 in the simulator). MOON
   (the phase disc, % lit, age, HP, SD, the next four phases) is a view of the PC only.
+  Version 1.5 (2026-10-01): - / + step the UT (keys or buttons next to Now UTC) by 1 s to
+  999 days (1 h by default); hold the key to watch the sky move.
 
 SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   NAV asks DATE (in the CLK date format: YYYY.MMDD, DD.MMYYYY or MM.DDYYYY, as the message line
