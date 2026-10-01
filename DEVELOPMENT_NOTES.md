@@ -635,4 +635,9 @@ INIT with the builders as LBL 01-04.
   unchanged; tests/t21sim.little_programs() builds its C47 reference with assemble(moon=True).
 - The DM42 _LABELS files describe the DM42 routines (build_dm42.LABEL_TEXT), not the NAVFULL ones.
 - Sizes measured with rejig 0.34.1 + tools/rejig47_atext.py: NAVFULL 35.8 KB (41.1 before ATEXT),
-  NAVTXT 14.9, NAV1T_DM42 10.3, NAV12_DM42 13.9, NAVTXT_DM42 7.3 KB; README_DM42, QUICKSTART.
+  NAVTXT 14.9, NAV1T_DM42 10.2, NAV12_DM42 13.5, NAVTXT_DM42 7.2 KB; README_DM42, QUICKSTART.
+- No Moon left anywhere in the C47 DM42 builds: the CHART of NAV12 lost LBL 61 (Moon symbol and
+  MOON) and the planet block LBL 63 with its XEQ IND 43 (little_halmv: unused_locals with no
+  indirect targets, no XEQ IND left); ALMR (TEXT, also NAVTXT_DM42) lost LBL 27 WANING and the
+  names LBL 81-85 (little_almr: XEQ IND 23 reaches only LBL 80, the Sun). Same screens and the same
+  text page as before in the simulator (3 dates). NAVINIT_LITTLE / _5Y: Sun, nutation, stars only.
