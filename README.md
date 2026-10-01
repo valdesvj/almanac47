@@ -24,6 +24,7 @@ version and the base for a phone app (**Almanac 47**).
 - **C47 command reference:** `docs/reference/C47_Full_index.txt` (C47 team, GFDL).
 - **Test:** `python3 tests/test_parity.py` (native Python = calculator, pixel for pixel).
 - **Notes for further work:** `DEVELOPMENT_NOTES.md`.
+- **AI assistance transparency:** `AI_ASSISTANCE.md` describes how AI was used and the validation process.
 
 Sun, Moon, planets and the 57 navigational stars (+ Polaris): GHA, Dec, Hc, Zn,
 twilight, sunrise/sunset, meridian passage, Moon phase; almanac pages and horizon
@@ -33,7 +34,7 @@ charts drawn on the calculator screen.
 
 By Victor Valdes (valdes.vj@gmail.com),
 
-Thank you To the C43/C47 firmware developers and SwissMicros, and to @tangent for rejig, which made converting the .txt programs to .p47 easy. With the C47, the sky is the limit - literally. Written with the help of AI - Claude (Anthropic), Gemini (Google) and Grok (xAI) - brainstorming with them used up most of my daily and weekly credits. I used AI responsibly, as a cooperation: the AI helps, but I checked the results, and the work - and any mistakes in it - are mine.
+Thank you To the C43/C47 firmware developers and SwissMicros, and to @tangent for rejig, which made converting the .txt programs to .p47 easy. With the C47, the sky is the limit - literally. Written with the help of AI. See `AI_ASSISTANCE.md` for the responsible-use statement.
 
 ## Licence
 
