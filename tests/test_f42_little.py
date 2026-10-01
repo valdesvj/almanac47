@@ -7,9 +7,9 @@ ALMANAC screen at the start, after UP (one hour later) and after DOWN DOWN (one 
 then + ends.       python3 tests/test_f42_little.py   (needs tools/f42/f42run)"""
 import os, sys, subprocess, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'tools'), os.path.join(ROOT, 'tools', 'generators')]
+sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'tests')]
 import c47sim
-import build_free42 as F, build_dm42, gennav
+import t21sim
 from decimal import Decimal as D
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 CASES = (('2026.0926', '14.57', '25.20', '55.12'), ('2031.0315', '3.30', '-33.54', '18.25'),
@@ -42,12 +42,7 @@ def split(path):
 
 def c47_frames(date, utc, lat, lon):
     t = tempfile.mkdtemp(); files = []
-    nav = build_dm42.no_box(build_dm42.nav1_program(gennav.inputs()))
-    nav = build_dm42.seq(nav, ['XEQ 20', 'CLLCD'], ['XEQ 20', '21', 'GRFNT', 'DROP', 'CLLCD'])     # GRFNT 21 as NAVFULL_T21
-    nav = build_dm42.seq(nav, ['CLLCD', 'RCL "SSZ"'], ['20', 'GRFNT', 'DROP', 'CLLCD', 'RCL "SSZ"'])
-    t21 = [F.little_almf() if p[0] == 'LBL "ALMF"' else p
-           for p in split(os.path.join(ROOT, 'build', 'atext', 'src', 'NAVFULL_T21.txt')) if p[0] != 'LBL "NAV"']
-    for i, pr in enumerate(split(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt')) + [nav] + t21):
+    for i, pr in enumerate(split(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt')) + t21sim.little_programs()):
         f = os.path.join(t, 'p%d.txt' % i); open(f, 'w').write('\n'.join(pr) + '\n'); files.append(f)
     c = c47sim.load(files); c.flags.add(82)
     c.run('INIT', maxsteps=10 ** 7)

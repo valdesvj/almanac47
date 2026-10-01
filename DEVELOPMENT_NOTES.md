@@ -562,3 +562,8 @@ INIT with the builders as LBL 01-04.
 - tests/test_parity21.py skips the PC-only view MOON (not in t21sim.KEYS).
 - free42_shots.py: SKY changes the name every 1 s, so the shot is filmed (0.25 s) and the second
   steady screen is kept (the first name next to its body), not a fixed delay.
+- tests/test_f42_tables.py compared Free42 with the old C47 screens (build/NAVFULL, build/dm42
+  NAVLITTLE): NAVFULL had failed since Free42 moved to the T21 screens (3 differences on main).
+  Now NAVFULL against NAVFULL_T21 and NAVLITTLE against t21sim.little_programs() (shared with
+  test_f42_little: the C47 routines of NAVLITTLE, no cache, so the Sun sets T); 0 differences.
+  Both tests exit 1 on a difference.
