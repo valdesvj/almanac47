@@ -599,3 +599,28 @@ INIT with the builders as LBL 01-04.
   Not in git (.gitignore): made on the PC. f42run: TBL ends with TBL 01-01-2000 TO 31-12-2050;
   2027-03-15 the same screen as TBL_5; 2000, 2008, 2015, 2038, 2050 show T and agree with the
   series to the last digit (0.1', 1 min).
+
+## Oct 1, 2026 - ATEXT in the firmware: every C47 build on the T21 views
+
+- ATEXT (and GRFNT) are merged into the C47 firmware: the T21 views (programs/atext/t21/) are no
+  longer experimental. build_navfull.py builds NAVFULL, dev/NAVFULL_NOTBL, NAVALL and NAVCOMP from
+  them (programs21, nav21: the top line of the menu, the SINKING box centred, GRFNT 21 after the
+  inputs and 20 at LBL 08). NAVFULL is the former NAVFULL_T21 line for line (labels from
+  tools/labels/NAVFULL.map: PTXT N58-N60 gone, new numbers for PTTY PTNT PSYB PSYS).
+- No AGRAPH font in the C47 builds: PTXS and the number printers write with ATEXT
+  (atext_common.printers, R49), PTTY / PTNT in the tinyFont; the only drawn glyphs are the body
+  symbols of glyphs47 (PSYB 12 rows, PSYS 7 rows).
+- no_tables: HANIM and ALLSKY of T21 show the T letter too; they lose it in NOTBL / NAVALL / NAVCOMP.
+- build_dm42.py: NAVLITTLE, dev/NAV1T_DM42 and dev/NAV12_DM42 with the T21 ALMANAC view
+  (little_almf: Sun and stars, the Moon line from the mean lunation, was NAVLITTLE_PH) and the T21
+  CHART without the Moon and planets (little_halmv); PSYB / PSYS trimmed to the symbols used.
+  NAVTXT and NAVTXT_DM42 draw nothing and are unchanged.
+- Removed: build_navfull_atext.py, build_dm42_atext.py, build/atext/ (NAVFULL_ATX, _TNY, _T21),
+  build/dm42/atext/ (NAVLITTLE_ATX, NAV1T_ATX, NAV12_ATX, NAVLITTLE_PH), programs/atext/ ('', big,
+  tiny; genviews_atx.py writes only t21) and their label maps.
+- Free42 unchanged (no ATEXT there: its AGRAPH fonts stay); build_free42.little_almf calls
+  build_dm42.little_almf; every file in build/free42/ came out byte for byte the same.
+- Tests: t21sim reads build/NAVFULL.txt, and its little_programs() is now the C47 NAVLITTLE build
+  itself (test_f42_little, test_f42_tables: Free42 = C47, 0 differences); test_navfull_atext and
+  test_dm42_atext check NAVFULL and the DM42 builds (2 ATEXT steps: PTXS and PTTY).
+- .p47 sizes not measured yet (no rejig here): QUICKSTART and README_DM42 say so.

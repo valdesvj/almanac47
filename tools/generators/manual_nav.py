@@ -131,12 +131,12 @@ S += [P('6. Speed and memory', h2)] + B([
 rows = [['Label', 'Name', 'What it does']]
 for l in lines('build/NAVFULL_LABELS.txt'):
     m = _re.match(r'(NAV|N\d\d)\s+(\S+)\s+(.*)$', l)
-    if m and not m.group(3).startswith('FONT'):
+    if m and not m.group(3).startswith(('FONT', 'TEXT', 'SYMBOL', 'horizontal line')):
         rows.append([m.group(1), m.group(2), m.group(3)])
 S += [PageBreak(), P('7. Program map', h2),
       P('In the NAV files every program label except NAV is renamed N01, N02 … (so the names do not clash with your own '
-        'programs). This is the map of the navigation routines in NAVFULL; the font routines (PTXS, PTXT and their number '
-        'entries, N52–N62) are left out. The numbers are fixed (tools/labels/NAVFULL.map): a new routine gets the next free '
+        'programs). This is the map of the navigation routines in NAVFULL; the text routines (PTXS with ATEXT and its number '
+        'entries, PTTY / PTNT for the tinyFont, PHLS) and the symbol routines (PSYB, PSYS) are left out. The numbers are fixed (tools/labels/NAVFULL.map): a new routine gets the next free '
         'number, so the labels stay the same from one version to the next. NAVFULL_NOTBL has the same labels without '
-        'N50 (TGET). NAVTXT and NAVLITTLE have their own numbering: see their _LABELS.txt files.'),
+        'N49 (TGET). NAVTXT and NAVLITTLE have their own numbering: see their _LABELS.txt files.'),
       prose_tbl(rows, [16 * mm, 18 * mm, 146 * mm])]

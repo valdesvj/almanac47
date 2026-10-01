@@ -1,4 +1,4 @@
-"""c47screen21.py - the new C47 screens (NAVFULL_T21, Oct 2026) rebuilt in plain Python for the
+"""c47screen21.py - the new C47 screens (NAVFULL, Oct 2026) rebuilt in plain Python for the
 native PC version: the header line (date, UT, DR, T / S) with a line under it on every view,
 the text in the C47 standard font as GRFNT 21 draws it, the chart labels in the tinyFont, the
 body symbols of glyphs47 (12 rows in the tables, 7 on the charts), the same 8 bodies on

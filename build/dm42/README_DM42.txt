@@ -13,18 +13,20 @@ are about 45 KB. NAVLITTLE keeps the Sun and the 58 navigation stars.
 The file name is the version: on the calculator the programs are called NAV and INIT, as in
 the full version.
 
-NAVLITTLE draws with the 5 x 7 font of the first versions (PTXB) instead of the status-bar
-font: about 3.4 KB less. No sky cache: the screen computes what it shows. No ants and no
-SINKING box: the screen shown stays until the next one is drawn.
+NAVLITTLE needs a C47 firmware with ATEXT and GRFNT: it draws the ALMANAC screen of NAVFULL
+(Oct 2026), every text with ATEXT in GRFNT 21; only the Sun, star and Moon phase symbols are drawn
+(glyphs47). In the footer, the Moon line without the Moon series: the age from the mean lunation
+(within about 14 hours), the lit part and the phase glyph. No sky cache: the screen computes what
+it shows. No ants and no SINKING box: the screen shown stays until the next one is drawn.
 
-Not in NAVLITTLE: the Moon, the planets, the Moon phase. It reads the almanac tables when
+Not in NAVLITTLE: the Moon, the planets, the true Moon phase (only the mean one above). It reads the almanac tables when
 they are loaded (TBL, flag 10) for the Sun and GHA Aries, but in 64 KiB only a very short
 table can fit (make one with tools/almanac/tab2c47.py START END). The Sun
 and star values are the same as in the full builds (same series): the Moon and planet places
 in the list of ten bodies are taken by the next stars.
 
 LOADING (load INIT alone first: INIT and its matrices together need the most memory)
-  The .p47 files are ready to load (converted with rejig); the .txt files are the same
+  The .p47 files are ready to load (converted with tools/rejig47_atext.py); the .txt files are the same
   programs as text.
   1. load NAVINIT_LITTLE.p47, XEQ "INIT" -> MATRICES READY: SUN STARS 2000-2050
   2. delete INIT: GTO "INIT", CLP (the matrices stay)
@@ -35,7 +37,8 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
   DATE is asked in the CLK date format (YYYY.MMDD, DD.MMYYYY or MM.DDYYYY, as the message line
   shows), as in the full version.
 
-MEMORY (program sizes measured with rejig: the program bytes in the .p47 file; the .p47
+MEMORY (measured before the ATEXT version, to be measured again. Program sizes measured with
+rejig: the program bytes in the .p47 file; the .p47
 file on disk is about 3 times bigger because it stores each byte as a decimal number)
   After INIT: matrices about 11 KB (667 numbers: Sun, nutation, stars; estimate).
                      program   with the matrices

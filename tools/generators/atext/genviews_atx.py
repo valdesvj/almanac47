@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
-"""genviews_atx.py - EXPERIMENTAL: the NAV views with ATEXT (the C47's standard font) for the texts
-and numbers; the body symbols (Sun, Moon, planets, stars) through PSYM (AGRAPH glyphs).
+"""genviews_atx.py - the NAV views of the C47 builds: every text and number with ATEXT in GRFNT 21
+(the C47 standard font, one column narrower per character), the chart axes and letters in the
+tinyFont (GRFNT 10: PTTY, PTNT), the body symbols from glyphs47 (PSYB in the tables, PSYS on the
+charts).
 
-The views are those of genf.py (ALMF, ALMS), genv.py (HALMV), genh2.py (HORZ), genhh.py (HALMH),
+The views are those of genf.py (ALMF), genv.py (HALMV), genh2.py (HORZ), genhh.py (HALMH),
 genanim.py (HANIM) and genallsky.py (ALLSKY), with the same calculation steps (the sky cache,
 gencache.swap, still finds them) and new columns and rows for the standard font. No warning line
 on the views (it stays in the menu and INFO).
 
-Two variants:
-  programs/atext/      (SMALL = True, NAVFULL_ATX) the charts as NAVFULL: axes, altitude marks,
-                       N E S W, OVER / UNDER HORIZON, the ALLSKY stars and numbers, the SKY DR
-                       line and T / S in the small font (PTXT, PTNS)
-  programs/atext/big/  (SMALL = False, the DM42 _ATX builds) ALMF and HALMV all in ATEXT: the
-                       altitude labels and letters in the standard font (the chart horizon 4 rows
-                       higher so the letters fit under it)
+Only mode 't21' is written (programs/atext/t21/); the other modes ('' small AGRAPH font, 'big',
+'tiny') were the experimental builds before ATEXT and GRFNT were in the firmware.
 
 The text routines keep their stack (Z row of the base line, Y column, X text or number; they
 return Y row, X next column); the standard font is proportional, so every column is its own call
 at a fixed x, numbers apart from letters, and a chained text must not start after x 380.
 
-  python3 genviews_atx.py      -> programs/atext/*.txt and programs/atext/big/*.txt
+  python3 genviews_atx.py      -> programs/atext/t21/*.txt
 """
 import math, os, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -717,10 +714,9 @@ def mode(small=True, sub=''):
 
 
 def main():
-    for small, sub, views in ((True, '', (lambda: almf(False), halmv, horz, halmh, hanim, allsky)),
-                              (False, 'big', (lambda: almf(False), halmv)),
-                              (True, 'tiny', (lambda: almf(False), halmv, horz, halmh, hanim, allsky)),
-                              (True, 't21', (lambda: almf(False), halmv, horz, halmh, hanim, allsky))):
+    # the views of the C47 builds (NAVFULL, NAVLITTLE ...: tools/build_navfull.py, build_dm42.py)
+    # and of Free42 (build_free42.py); the other modes are no longer built
+    for small, sub, views in ((True, 't21', (lambda: almf(False), halmv, horz, halmh, hanim, allsky)),):
         mode(small, sub)
         d = os.path.join(OUT, sub)
         os.makedirs(d, exist_ok=True)

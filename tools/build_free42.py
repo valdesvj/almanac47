@@ -525,7 +525,7 @@ def ptty():
 
 
 def t21_programs():
-    """The programs of NAVFULL with the views of NAVFULL_T21 (programs/atext/t21/, the sky cache
+    """The programs of NAVFULL with the views of the C47 NAVFULL (programs/atext/t21/, the sky cache
     swapped in) and the AGRAPH fonts: PTXS (the C47 status-bar font: the widths of GRFNT 21),
     PTTY / PTNT (tinyFont), PSYB / PSYS (glyphs47)."""
     p = programs()
@@ -571,19 +571,10 @@ def nav_little():
 
 
 def little_almf():
-    """The ALMANAC view of NAVLITTLE: the T21 view (header line with the line under it, PTXS =
-    the widths of GRFNT 21) with Sun and stars only, and the Moon line of NAVLITTLE_PH (mean
-    lunation age, lit part, phase glyph) in the footer, where the T21 view has MOON / AGE."""
-    import build_dm42 as D, build_dm42_atext as X
-    with open(os.path.join(ROOT, 'programs', 'atext', 't21', 'ALMF.txt'), encoding='utf-8') as fh:
-        A = [l.rstrip('\n') for l in fh if l.strip()]
-    A = D.cut(A, '"WAXING"', '"S"', X.moon_lines(rows=(43, 29)))
-    A = D.seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
-    A = D.cut(A, 'XEQ "MOO2"', '1.058')                # the Moon and planet rows (LBL 35 / 36 go with them)
-    assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in A)
-    A = X.unused_locals(A, ind_targets=range(48, 56))  # XEQ IND 23: only the phase glyphs (LBL 48-55)
-    assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"', 'XEQ "PTTY"') for l in A)
-    return A
+    """The ALMANAC view of NAVLITTLE: the one of the C47 NAVLITTLE (build_dm42.little_almf: the
+    T21 view with Sun and stars only and the Moon line from the mean lunation)."""
+    import build_dm42 as D
+    return D.little_almf()
 
 
 def assemble(N, p, big_src=None):
@@ -646,7 +637,7 @@ def build(rlcd=False, little=False):
         init = [l.rstrip('\n') for l in open(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'), encoding='utf-8') if l.strip()]
         B.write(os.path.join(OUT, 'NAVINIT_LITTLE.txt'), conv(init, 'INIT'))
         return L
-    full = assemble(nav_t21(), t21_programs())         # the screens of Oct 2026 (as NAVFULL_T21)
+    full = assemble(nav_t21(), t21_programs())         # the screens of Oct 2026 (as the C47 NAVFULL)
     if not rlcd:                                 # the screen builds up as it is drawn: dev/
         save('NAVFULL_DRAW', full, DEV, 'F42_NAVFULL_DRAW')
         return full

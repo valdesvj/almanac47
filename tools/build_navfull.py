@@ -1,17 +1,21 @@
 #!/usr/bin/env python3
 """build_navfull.py - the smallest set of C47 programs for the almanac screens.
 
-Writes three plain-text files (convert each with: rejig FILE.txt -o FILE.p47):
+Writes plain-text files (convert each with tools/rejig47_atext.py, or a rejig that knows ATEXT
+and GRFNT, to FILE.p47). Needs a C47 firmware with ATEXT and GRFNT.
+
+  Text on the screens: the C47's ATEXT command in GRFNT 21 (the standard font, one column
+  narrower per character) and the tinyFont (GRFNT 10) on the charts: PTXS and the number
+  printers (tools/atext_common.py). NAV sets GRFNT 21 after the inputs and 20 again on the way
+  out. The only drawn font left is the body symbols of glyphs47 (PSYB 12 rows in the tables,
+  PSYS 7 rows on the charts). The views are programs/atext/t21/ (genviews_atx.py, mode t21).
 
   Program labels: only NAV keeps its name; every other label is N01, N02 ... on the calculator
   (build/NAVFULL_LABELS.txt lists them; build/dev/ has the named versions used by the tests).
   NAVFULL.txt  everything that must stay on the calculator for ALMF, HALMV, ALMT and HORZ
                (menu NAV, the three screens, the text almanac, Sun, stars, Moon, planets, sight
                reduction, sunrise/twilight, Moon phase, star order and names,
-               the table lookup TGET and the two fonts, cut down to the
-               characters the screens really print: PTXS, the C47 status-bar
-               font, for text, numbers and the bodies; PTXT, the small font, for the
-               warning and the chart axes)
+               the table lookup TGET, the ATEXT text routines and the symbols)
   NAVFULL_NOTBL.txt  the same without the almanac tables: no TGET, no table hooks in
                SUNA/MOON/PLAN/BODY, no "T" letter (the "X" letter stays). Use it when
                memory is short and you do not load TBL. Load NAVFULL OR NAVFULL_NOTBL.
@@ -37,6 +41,8 @@ SUNSD and the font demos.
   python3 tools/build_navfull.py            -> build/NAVFULL.txt, NAVFULL_NOTBL.txt, NAVINIT_FULL.txt, NAVINIT_FAST.txt, TBL_1.txt, TBL_5.txt
 """
 import os, re, shutil, sys
+sys.path[:0] = [os.path.dirname(os.path.abspath(__file__)), os.path.join(os.path.dirname(os.path.abspath(__file__)), 'generators'),
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), 'generators', 'atext')]
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PROG = os.path.join(ROOT, 'programs')
@@ -47,6 +53,9 @@ KEEP = ['ALMF', 'HALMV', 'ALMT', 'HORZ', 'HALMH', 'STXT', 'SUNA', 'STAR', 'MOON'
 INIT = ['MATA', 'MATST', 'MATM', 'MATP']
 WARNING = 'DOES NOT REPLACE THE NAUTICAL ALMANAC'
 TXT_TABLES = True          # NAVTXT reads the almanac tables (TBL) when they are loaded
+# the C47 builds: the small AGRAPH font (PTXT) gives way to the glyphs47 symbols
+KEEP21 = KEEP[:KEEP.index('PTXT')] + ['PSYB', 'PSYS'] + KEEP[KEEP.index('PTXT') + 1:]
+T21_VIEWS = ('ALMF', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')     # programs/atext/t21/
 
 
 def read(name):
@@ -117,7 +126,7 @@ def no_tables(progs):
     p['PLAN'] = cut(s[:i] + s[j:], 'LBL "PLN3"\nFS? 10\nGTO "PLN2"\n', 'LBL "PLN3"\n')
     # BODY: Moon distance from the tables and its "T" letter
     # screens: "T" letter (FS? 11 XEQ 29, LBL 29 "T" ...)
-    for n in ('ALMF', 'ALMT', 'HALMV', 'HALMH', 'HORZ'):
+    for n in ('ALMF', 'ALMT', 'HALMV', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY'):
         p[n] = cut(p[n], 'FS? 11\nXEQ 29\n')
         p[n] = re.sub(r'LBL 29\n"T"\n(STO \d+\n)?RTN\n', '', p[n], count=1)
     s = ''.join(p.values())
@@ -199,17 +208,18 @@ LABEL_TEXT = {
  'SNMU':  'star name from its number',
  'TGET':  'almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)',
  'CWID':  'pixel width of a character in the PROMPT font (to align the BODY pages)',
- 'PTXS':  'FONT big (C47 status-bar font, 12 px, AGRAPH): draw a string - Z row, Y column, X text',
- 'PINS':  'FONT big: whole number',
- 'PF1S':  'FONT big: number with one decimal',
- 'PHMS':  'FONT big: hh:mm from hours',
- 'PDMS':  'FONT big: degrees and minutes "ddd mm.m" with sign',
- 'PZNS':  'FONT big: azimuth "ddd.d"',
- 'PDTS':  'FONT big: date "dd-mm-yyyy" from a Julian Date',
- 'PHLS':  'FONT big: horizontal line (X = length in pixels)',
- 'PTXT':  'FONT small (3x5, AGRAPH): draw a string - Z row, Y column, X text',
- 'PTNS':  'FONT small: whole number',
- 'PT1':   'FONT small: number with one decimal',
+ 'PTXS':  'TEXT: ATEXT in GRFNT 21 (Didier\'s N03 trick) - Z row of the base line, Y column, X text',
+ 'PINS':  'TEXT: whole number (one ATEXT)',
+ 'PF1S':  'TEXT: number with one decimal',
+ 'PHMS':  'TEXT: hh:mm from hours',
+ 'PDMS':  'TEXT: degrees and minutes "ddd mm.m" with sign',
+ 'PZNS':  'TEXT: azimuth "ddd.d"',
+ 'PDTS':  'TEXT: date "dd-mm-yyyy" from a Julian Date',
+ 'PTTY':  'TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text',
+ 'PTNT':  'TEXT: whole number in the tinyFont',
+ 'PHLS':  'horizontal line (X = length in pixels)',
+ 'PSYB':  'SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol',
+ 'PSYS':  'SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol',
 }
 
 
@@ -365,6 +375,66 @@ def almr(lines):
     return s.rstrip('\n').split('\n')
 
 
+def read21(name):
+    with open(os.path.join(PROG, 'atext', 't21', name + '.txt'), encoding='utf-8') as fh:
+        return [l.rstrip('\n') for l in fh if l.strip()]
+
+
+def programs21(progs):
+    """The programs of the C47 builds from the processed programs of build(): the views of
+    programs/atext/t21/ (the sky cache swapped in, not in HANIM), PTXS and the number printers with ATEXT
+    (atext_common; R49 holds the text of a number), PTTY / PTNT in the tinyFont, and the body
+    symbols PSYB / PSYS (glyphs47). No AGRAPH font: PTXT is left out, PTXS gives only PHLS."""
+    import gencache, navopt, glyphs47
+    import atext_common as AC
+    q = {n: v for n, v in progs.items() if n not in ('PTXT', 'ALMS')}
+    for n in T21_VIEWS:
+        q[n] = gencache.swap(read21(n)) if n in gencache.VIEWS else read21(n)      # HANIM computes its own times
+    q['PTXS'] = AC.printers(navopt.pdts(navopt.phls(navopt.fonts(read('PTXS')))), '49', True, 21)
+    q['PSYB'] = glyphs47.program('PSYB', glyphs47.BIG, ws=16)
+    q['PSYS'] = glyphs47.program('PSYS', glyphs47.SMALL)
+    return q
+
+
+def top21(L):
+    """The top line of a menu NAV (date, UT, DR) at the columns of the T21 header."""
+    import genviews_atx as V
+    V.mode(True, 't21')
+    T = V.top_x()
+    V.mode()
+    s = '\n' + '\n'.join(map(str, L)) + '\n'
+    for a, b in (((206, 80), (206, T['time'])), ((206, 116, '"UT"'), (206, T['UT'], '"UT"')),
+                 ((206, 150, '"DR"'), (206, T['DR'], '"DR"')), ((206, 174), (206, T['N'])), ((206, 176), (206, T['lat'])),
+                 ((206, 244), (206, T['E'])), ((206, 246), (206, T['lon']))):
+        a = '\n' + '\n'.join(map(str, a)) + '\n'; b = '\n' + '\n'.join(map(str, b)) + '\n'
+        assert a in s, a
+        s = s.replace(a, b)
+    return s.strip('\n').split('\n')
+
+
+def grfnt21(L, back='LBL 08'):
+    """GRFNT 21 for the whole run, after the inputs (XEQ 20), and 20 again on the way out (back:
+    the label or line after which NAV ends; the menu NAV: LBL 08, used by 0 END and TEXT)."""
+    L = list(L)
+    k = L.index('XEQ 20') + 1
+    L[k:k] = ['21', 'GRFNT', 'DROP']
+    k = L.index(back) + 1
+    L[k:k] = ['20', 'GRFNT', 'DROP']
+    return L
+
+
+def nav21(inp, items=None, autoinit=False):
+    """NAV (gennav) for the T21 views: the top line of the menu, the SINKING box text centred for
+    GRFNT 21, GRFNT 21 while NAV runs."""
+    import gennav, genviews_atx as V
+    L = top21(gennav.program(inp, items or gennav.ALL, autoinit))
+    k = L.index('"%s"' % gennav.BUSY)
+    V.mode(True, 't21')
+    L[k - 1] = str(110 + (180 - V.width(gennav.BUSY)) // 2)
+    V.mode()
+    return grfnt21(L)
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     progs['ALMT'] = almr(progs['ALMT'])          # TEXT view: ALMR, the page into registers (no PROMPT)
@@ -387,8 +457,15 @@ def build():
     small = set(WARNING + 'TSX NEWZHC-.0123456789' + strings(progs['ALLSKY']))
     progs['PTXS'] = trim_font(progs['PTXS'], big)
     progs['PTXT'] = trim_font(progs['PTXT'], small)
-    nav = nav_min(progs['NAV'])
-    full = nav + [l for n in KEEP for l in progs[n]]
+    nav_min(progs['NAV'])
+    # the C47 builds: the T21 views, ATEXT text, the glyphs47 symbols (progs keeps the AGRAPH
+    # programs: build_free42 / build_dm42 start from them)
+    import gennav
+    inp = gennav.inputs()
+    p21 = programs21(progs)
+    nav = nav21(inp)
+    full = nav + [l for n in KEEP21 for l in p21[n]]
+    assert not {'PTXT', 'PTNS', 'PSYM'} & set(calls(full)), 'an AGRAPH font is still called'
     import json
     period = json.load(open(os.path.join(ROOT, 'python', 'native', 'fast_series.json')))['period']
     # matrix builders, compacted: NEWMAT starts with zeros, so "0 STOEL" is dropped (J+ stays)
@@ -417,8 +494,8 @@ def build():
     old = os.path.join(OUT, 'NAVINIT.txt')
     if os.path.exists(old):
         os.remove(old)
-    nt = no_tables(progs)
-    notbl = nav + [l for n in KEEP if n != 'TGET' for l in nt[n]]
+    nt = no_tables(p21)
+    notbl = nav + [l for n in KEEP21 if n != 'TGET' for l in nt[n]]
     # build/        the files to load (short N01... labels from tools/labels/*.map)
     # build/dev/    other builds, also with short labels
     # build/dev/src/  every build with the original names (development, tests)
@@ -431,13 +508,13 @@ def build():
         fh.write('NAVFULL / NAVFULL_NOTBL - program labels\n'
                  '==========================================\n'
                  'Label on the calculator, original name (sources, build/dev/, documentation), what it does.\n'
-                 'Only NAV keeps its name. FONT = a text-drawing routine (draws on the graphics screen with\n'
-                 'AGRAPH, one call per glyph column): Z = row of the base line (0 = bottom), Y = column,\n'
-                 'X = text or number; returns Y = row, X = next column. PTXS is the C47 status-bar font\n'
-                 '(bold capitals 12 px, glyphs from the firmware, GPL-3.0), PTXT a small 3x5 font.\n\n')
+                 'Only NAV keeps its name. TEXT = a text routine (ATEXT, GRFNT 21 or the tinyFont), SYMBOL =\n'
+                 'a body symbol drawn with AGRAPH (glyphs47): Z = row of the base line (0 = bottom), Y = column,\n'
+                 'X = text, number or symbol; returns Y = row, X = next column. Needs a C47 firmware with\n'
+                 'ATEXT and GRFNT. The numbers missing here belong to routines of older versions.\n\n')
         fh.write('NAV     NAV     %s\n' % LABEL_TEXT['NAV'])
         fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in mapping.items()) + '\n')
-        fh.write('\nNAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (N50 is simply missing there).\n')
+        fh.write('\nNAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (%s is simply missing there).\n' % mapping['TGET'])
     with open(os.path.join(OUT, 'NAVINIT_LABELS.txt'), 'w', encoding='utf-8') as fh:
         fh.write(NAVINIT_TEXT % {'period': period})
     for path, L in ((os.path.join(OUT, 'NAVFULL.txt'), rename(full, mapping)),
@@ -447,20 +524,11 @@ def build():
     tables(dev)
     # ---- NAV + INIT in one file (the first NAV builds the matrices and deletes INIT), no tables:
     #      NAVALL_FAST (all views) and NAVCOMP_FAST (compact: 1 ALMANAC 2 CHART 4 SKY 9 ALLSKY)
-    sys.path.insert(0, os.path.join(ROOT, 'tools', 'generators'))
-    import gennav
-    inp = gennav.inputs()
-    nav_all = gennav.program(inp, autoinit=True)
-    nav_comp = gennav.program(inp, gennav.COMPACT, autoinit=True)
+    nav_all = nav21(inp, autoinit=True)
+    nav_comp = nav21(inp, gennav.COMPACT, autoinit=True)
     need = closure(nt, [c for c in calls(nav_comp) if c != 'INIT'])
-    raw = {n: read(n) for n in need}
-    bigc = set(strings(nav_comp) + ''.join(strings(raw[n]) for n in need if n not in ('PTXS', 'PTXT')) + '0123456789-.: %')
-    smallc = set(WARNING + 'TSX NEWZHC-.0123456789' + (strings(raw['ALLSKY']) if 'ALLSKY' in raw else ''))
-    ntc = dict(nt)
-    ntc['PTXS'] = trim_font(navopt.pdts(navopt.phls(navopt.fonts(read('PTXS')))), bigc)
-    ntc['PTXT'] = trim_font(navopt.fonts(read('PTXT')), smallc)
-    comp = nav_comp + [l for n in KEEP if n in need and n != 'TGET' for l in ntc[n]]
-    allf = nav_all + [l for n in KEEP if n != 'TGET' for l in nt[n]]
+    comp = nav_comp + [l for n in KEEP21 if n in need and n != 'TGET' for l in nt[n]]
+    allf = nav_all + [l for n in KEEP21 if n != 'TGET' for l in nt[n]]
     extra = {}
     # NAV + programs in one file, INIT in its own (NAVINIT_FAST or NAVINIT_FULL): one file of
     # 15-19 thousand lines gave "invalid data" in rejig. NAV runs INIT once and deletes it.
@@ -497,7 +565,7 @@ def build():
                  '                lettered registers, then REGS\nINIT    INIT    (NAVINIT file) builds the matrices; run by the first NAV, then delete it\n')
         fh.write('\n'.join('%s     %-7s %s' % (v, k, LABEL_TEXT.get(k, '')) for k, v in m.items()) + '\n')
     extra['NAVTXT'] = (L, sorted(needt))
-    return full, init_full, init_fast, progs, nav, notbl, extra
+    return full, init_full, init_fast, progs, nav, notbl, extra, p21
 
 
 # the almanac tables: TBL_1 (1 year) and TBL_5 (5 years) from the JPL coefficients in
@@ -527,10 +595,10 @@ def size(lines):
 
 
 if __name__ == '__main__':
-    full, init, init_fast, progs, nav, notbl, extra = build()
+    full, init, init_fast, progs, nav, notbl, extra, p21 = build()
     print('%-9s %7s %8s' % ('program', 'lines', 'bytes'))
-    for n in ['NAV'] + KEEP:
-        print('%-9s %7d %8d' % ((n,) + size(nav if n == 'NAV' else progs[n])))
+    for n in ['NAV'] + KEEP21:
+        print('%-9s %7d %8d' % ((n,) + size(nav if n == 'NAV' else p21[n])))
     print('%-9s %7d %8d   <- stays on the calculator' % (('NAVFULL',) + size(full)))
     print('%-13s %7d %8d   <- or this one: the same without the tables (TBL/TGET)' % (('NAVFULL_NOTBL',) + size(notbl)))
     print('%-12s %7d %8d   <- FULL: load, XEQ INIT, delete' % (('NAVINIT_FULL',) + size(init)))
