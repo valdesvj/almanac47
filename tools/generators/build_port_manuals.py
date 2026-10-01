@@ -115,7 +115,8 @@ def free42():
                'celestial equator dotted) and the Hc/Zn table.'), Spacer(1, 4),
           pair(F('text'), F('sky'), '<b>3 TEXT</b>: the almanac page as text, drawn with the small font; the lines are '
                'also in R50 … (Free42 has no register browser). + back to the menu.',
-               '<b>4 SKY</b>: full-screen chart; the top line names each body in turn (3 s each).'), Spacer(1, 4),
+               '<b>4 SKY</b>: full-screen chart; every second the name of the next body is shown next to it; '
+               'DAY / TWILIGHT / NIGHT at the bottom.'), Spacer(1, 4),
           pair(F('split'), F('anim'), '<b>5 SPLIT</b>: chart on top, the bodies below down to the bottom.',
                '<b>6 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).'), Spacer(1, 4),
           pair(F('allsky'), F('info'), '<b>7 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.',
@@ -144,17 +145,19 @@ def free42():
         'Built with tools/build_free42.py from the C47 programs; tested with tools/f42 (the Free42 core with the DM42 '
         'graphics, binary arithmetic). NAVFULL tested on a DM42n with the stock firmware by the author.'])
     S += [PageBreak(), P('10. NAVLITTLE: Sun and stars', h2),
-          P('The NAVLITTLE of the old DM42 with the C47 firmware, converted the same way. It keeps the Sun and the 58 '
-            'navigation stars (no Moon, no planets), draws with the 5 × 7 font of the first versions and has '
-            'no box and no ants: for a calculator with little free memory. The Sun and star values are the same as in '
-            'NAVFULL. If a TBL has been run (section 11), the Sun and GHA Aries come from the tables (T on the screen).'),
+          P('The ALMANAC screen of NAVFULL (the header line with a line under it, the same fonts) with the Sun and '
+            'the 58 navigation stars (no Moon or planet rows), no box and no ants: for a calculator with little free '
+            'memory. The Moon line under the table gives the % lit, the phase glyph and the age from the mean lunation '
+            '(within about 14 hours of the true age). The Sun and star values are the same as in NAVFULL. If a TBL '
+            'has been run (section 11), the Sun and GHA Aries come from the tables (T on the screen).'),
           img(F('little'), 0.6)] + B([
         'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
         'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
         'earlier (the screen stays while it computes), + ends (GrMod 0, screen and stack cleared).',
         'Programs: NAVLITTLE about 10 KB, NAVINIT_LITTLE about 8 KB (.raw files), matrices 667 numbers.',
-        'Tested in the Free42 core against the C47 NAVLITTLE, pixel by pixel (tests/test_f42_little.py); not yet on '
+        'Tested in the Free42 core against the same screen in the C47 simulator, pixel by pixel '
+        '(tests/test_f42_little.py); not yet on '
         'a real calculator.'])
     S += [P('11. Almanac tables: TBL_1 and TBL_5', h2)] + B([
         'Optional: Chebyshev coefficients fitted to JPL DE421. <b>TBL_1</b>: 1 Oct 2026 – 30 Sep 2027 (8,441 numbers, '
