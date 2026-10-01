@@ -62,6 +62,7 @@ OLD_INPUT = 'LBL 20|INPUT "DATE"|INPUT "UTC"|INPUT "LAT"|INPUT "LON"|RCL "DATE"|
 
 # the formats of the four inputs, in the message line while INPUT asks DATE UTC LAT LON
 FORMATS = 'DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -'
+DATE_FORMATS = {'DMY': 'DD.MMYYYY', 'MDY': 'MM.DDYYYY'}     # the C47 system flags of the CLK date format
 
 
 def inputs():
@@ -77,8 +78,13 @@ def inputs():
     body = (['RCL "DATE"', 'x→ⅅ', 'ⅅ→J', '0.5', '-', 'STO 06'] + hours + ['24', '÷', 'STO+ 06',
             'RCL "DH"', '24', '÷', 'STO+ 06'] + tail)
     body = body[:body.index('LBL 31')]                                                # month shift: not needed
-    ask = ['"%s"' % FORMATS, 'STO 38', 'AVIEW 38'] + ['INPUT "%s"' % v for v in ('DATE', 'UTC', 'LAT', 'LON')]
-    return ['LBL 20'] + ask + ['RTN', 'LBL 21'] + body
+    # the date in the calculator's CLK format (x→ⅅ reads it so): the system flags DMY / MDY are only
+    # tested (YMD: the default prompt); the message line shows that format
+    ask = (['"%s"' % FORMATS, 'STO 38', 'FS? DMY', 'XEQ 97', 'FS? MDY', 'XEQ 98', 'AVIEW 38']
+           + ['INPUT "%s"' % v for v in ('DATE', 'UTC', 'LAT', 'LON')])
+    fmt = [x for k, lab in (('DMY', 97), ('MDY', 98)) for x in
+           ('LBL %d' % lab, '"%s"' % FORMATS.replace('YYYY.MMDD', DATE_FORMATS[k]), 'STO 38', 'RTN')]
+    return ['LBL 20'] + ask + ['RTN'] + fmt + ['LBL 21'] + body
 
 
 LETTERED = 'IJKMNPQRSEFGHOUVW'

@@ -43,8 +43,9 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
    says which is which). Start everything from NAV:
    XEQ "NAV"  -> NAV asks (once) DATE, UTC, LAT, LON with INPUT; the message line shows the
    formats: DATE YYYY.MMDD  UT HH.MMSS  LAT DD.MMm  LON DDD.MMm  S W -
-     DATE  e.g. 2026.0927  (read with the calculator's date functions x→ⅅ ⅅ→J:
-                            the date format in CLK must be YYYY-MM-DD)
+     DATE  e.g. 2026.0927  in the calculator's CLK date format, as the message line shows it:
+                           YYYY.MMDD (Y.MD), DD.MMYYYY (D.MY: 27.092026) or MM.DDYYYY
+                           (M.DY: 9.272026); NAV reads it with x→ⅅ ⅅ→J
      UTC   e.g. 18.30
      LAT   e.g. 25.12   (25 deg 12 min N; minus = S)
      LON   e.g. 55.18   (55 deg 18 min E; minus = W)

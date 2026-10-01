@@ -567,3 +567,21 @@ INIT with the builders as LBL 01-04.
   Now NAVFULL against NAVFULL_T21 and NAVLITTLE against t21sim.little_programs() (shared with
   test_f42_little: the C47 routines of NAVLITTLE, no cache, so the Sun sets T); 0 differences.
   Both tests exit 1 on a difference.
+## Oct 1, 2026 - DATE in the calculator's date format (C47)
+
+- x→ⅅ reads the DATE number in the CLK date format, so a C47 set to D.MY or M.DY misread
+  2026.0926. NAV (gennav.inputs, LBL 20) tests the C47 system flags of the CLK date format,
+  FS? DMY / FS? MDY (only tested, never set or cleared; YMD = the default prompt), and the message
+  line asks DATE YYYY.MMDD, DD.MMYYYY or MM.DDYYYY (LBL 97 / 98). x→ⅅ then reads the number in
+  that format, as before. 12 steps (FS? DMY checked on a C47 by the author). A first version
+  found the format with 2451944 J→ⅅℸ DROP ⅅ→x IP (22 steps).
+- Free42 keeps YYYY.MMDD (its prompt Y.MMDD unchanged): it has no date type (a date is a plain
+  number, read by DATE+ / DDAYS with flags 31 / 67) and its NAV splits DATE with arithmetic, so the
+  calculator's date mode does not matter. tests/test_datefmt.py checks it: the calculator set to
+  YMD / DMY / MDY (the commands; SF / CF 31 67 is a Restricted Operation), DATE 2026.0926, the same
+  screen. (A version that asked in the calculator's format was tried and taken back.)
+- tests/test_hours.py: UP / DOWN give the screen of NAV started at that hour (C47 NAVLITTLE in the
+  sim, Free42 NAVLITTLE and NAVFULL ALMANAC), the three calculator formats (Free42: DATE YYYY.MMDD in
+  all), across a day, a month and a year end.
+- c47sim: datefmt 'YMD' / 'DMY' / 'MDY' for x→ⅅ, ⅅ→x and FS? / FC? DMY MDY YMD. tests/test_datefmt.py: NAVFULL with
+  the three formats, the date typed in each: the message line and the ALMANAC screen.

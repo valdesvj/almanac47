@@ -545,7 +545,8 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   (the phase disc, % lit, age, HP, SD, the next four phases) is a view of the PC only.
 
 SEPTEMBER 29, 2026 - NAV AS IT IS NOW
-  NAV asks DATE (YYYY.MMDD, read with x→ⅅ ⅅ→J: date format YYYY-MM-DD), UTC, LAT, LON once,
+  NAV asks DATE (in the CLK date format: YYYY.MMDD, DD.MMYYYY or MM.DDYYYY, as the message line
+  shows; read with x→ⅅ ⅅ→J), UTC, LAT, LON once,
   computes the sky (matrix ALMC; the charts' equator in ALMQ) and shows a graphic menu (KEY?):
   1-8 a view, 9 SNAP, + back to the menu, up / down arrow one hour later / earlier, 0 end.
   Views only draw from the cache; a new hour computes again. Faster drawing in the NAV files

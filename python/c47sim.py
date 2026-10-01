@@ -183,10 +183,22 @@ class Calc:
             if op == 'CLSTK': self.s = [D(0)] * 4; continue
             if op == 'SSIZE#': self.push(D(8)); continue          # stack size (C47 default 8; modelled as 4 levels)
             if op in ('SSIZE4', 'SSIZE8'): continue
-            # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ reads YYYY.MMDD (date format Y.MD)
+            # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ / ⅅ→x follow the CLK date format
+            # self.datefmt: 'YMD' (YYYY.MMDD, the default), 'DMY' (DD.MMYYYY) or 'MDY' (MM.DDYYYY);
+            # FS? DMY / MDY / YMD test it (the C47 system flags of the CLK date format)
             if op == 'x→ⅅ':
-                v = int((self.s[0] * 10000).to_integral_value()); self.lastx = self.s[0]
-                self.s[0] = ('D', v // 10000, v // 100 % 100, v % 100); continue
+                self.lastx = self.s[0]; fmt = getattr(self, 'datefmt', 'YMD')
+                if fmt == 'YMD':
+                    v = int((self.s[0] * 10000).to_integral_value()); self.s[0] = ('D', v // 10000, v // 100 % 100, v % 100)
+                else:
+                    v = int((self.s[0] * 1000000).to_integral_value()); a, b, y = v // 1000000, v // 10000 % 100, v % 10000
+                    self.s[0] = ('D', y, b, a) if fmt == 'DMY' else ('D', y, a, b)
+                continue
+            if op == 'ⅅ→x':
+                _, y, m, d = self.s[0]; fmt = getattr(self, 'datefmt', 'YMD')
+                self.s[0] = (D(y) + D(m) / 100 + D(d) / 10000 if fmt == 'YMD' else
+                             D(d) + D(m) / 100 + D(y) / 1000000 if fmt == 'DMY' else D(m) + D(d) / 100 + D(y) / 1000000)
+                continue
             if op == 'ⅅ→J':
                 _, y, m, d = self.s[0]; a = (14 - m) // 12; yy = y + 4800 - a; mm = m + 12 * a - 3
                 self.s[0] = D(d + (153 * mm + 2) // 5 + 365 * yy + yy // 4 - yy // 100 + yy // 400 - 32045); continue
@@ -332,6 +344,10 @@ class Calc:
                 continue
             if op == 'CF': self.flags.discard(int(arg)); continue
             if op == 'SF': self.flags.add(int(arg)); continue
+            if op in ('FS?', 'FC?') and arg in ('DMY', 'MDY', 'YMD'):   # the date-format system flags
+                on = getattr(self, 'datefmt', 'YMD') == arg
+                if on != (op == 'FS?'): pc += 1
+                continue
             if op == 'FS?':
                 if int(arg) not in self.flags: pc += 1
                 continue
