@@ -95,6 +95,10 @@ def table_x():
     X['dec'] = X['ns'] + width('N') + 6 - 2 * DIG
     X['hc'] = X['dec'] + PDM + 6 - DIG                 # the sign of Hc
     X['zn'] = X['hc'] + PDM + 6
+    if T21:     # font 21 is narrower: the room left at the right goes between the columns
+        e = (398 - X['zn'] - ZNW) // 4
+        for k, n in (('gha', 1), ('ns', 2), ('dec', 2), ('hc', 3), ('zn', 4)):
+            X[k] += n * e
     assert X['zn'] + ZNW <= 398
     c = lambda a, b, t: round((a + b - width(t)) / 2)
     X['hGHA'] = c(X['gha'] + DIG, X['gha'] + PDM, 'GHA')
@@ -281,7 +285,7 @@ def halmv():
 # ---------------------------------------------------------------- HORZ (genh2.py, with the info line)
 def horz():
     g = Gen(); a = g.a
-    HS, rows = 196, 10
+    HS, rows = 196, (9 if T21 else 10)      # T21: the bodies of the ALMANAC view (its 10 rows less ARIES)
     a('LBL "HORZ"', 'STO 92', 'R↓', 'STO 91', 'R↓', 'STO 90', 'XEQ "HCZI"', 'CLLCD')
     a('16', '20', '376', 'XEQ "PHLS"')
     a('18.21203', 'STO 86', 'LBL 50', 'RCL 86', 'IP', '18', 'PIXEL', 'ISG 86', 'GTO 50')
