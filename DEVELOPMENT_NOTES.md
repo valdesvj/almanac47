@@ -540,3 +540,30 @@ INIT with the builders as LBL 01-04.
     python3 tools/generators/build_manual.py --release
     python3 tools/generators/build_port_manuals.py --release
 - No rejig binary is in the repository (tools/rejig47_atext.py only); .p47 files stay ignored.
+
+## Oct 1, 2026 - Free42: the T21 screens with AGRAPH fonts; NAVLITTLE in the same style
+
+- The C47 views of Oct 2026 (programs/atext/t21/, NAVFULL_T21) write with ATEXT in GRFNT 21, a
+  firmware font Free42 does not have. tools/build_free42.py keeps the T21 view programs and
+  gives them AGRAPH fonts with the same names: PTXS = the C47 status-bar font with the advance
+  widths of GRFNT 21 (one column less per character than GRFNT 20), PTTY / PTNT = the tinyFont
+  (GRFNT 10), PSYB / PSYS = the glyphs47 symbols (12 / 7 rows; PSYB has the Moon phases '0'-'7').
+  Every font is trimmed to the characters the build uses. Result: Free42 NAVFULL draws the same
+  pixels as NAVFULL_T21 in the C47 simulator.
+- PTXS holds the rows from the base line up; GRFNT 21 draws '%' and 'Q' one row lower. The Free42
+  PTXS takes those two glyphs from the standard font with the row below (descenders(), YOFF -1):
+  the "100%" of the ALMANAC Moon line was 3 pixels short before.
+- Free42 NAVLITTLE (build_free42.little_almf): the T21 ALMANAC view without the Moon and planet
+  rows (PHA2, MOO2 ... 1.058 cut, unused local labels dropped; the indirect XEQ only reaches the
+  phase glyphs 48-55), and the Moon line of NAVLITTLE_PH (build_dm42_atext.moon_lines at rows
+  43 / 29: mean lunation age, lit part, phase glyph). .raw 9,234 -> 9,913 bytes.
+- tests/test_f42_little.py: the C47 reference is the C47 NAVLITTLE NAV (with 21 GRFNT as
+  NAVFULL_T21) plus the NAVFULL_T21 programs and the same ALMF; start, +1 h, -1 h on 3 dates.
+- tests/test_parity21.py skips the PC-only view MOON (not in t21sim.KEYS).
+- free42_shots.py: SKY changes the name every 1 s, so the shot is filmed (0.25 s) and the second
+  steady screen is kept (the first name next to its body), not a fixed delay.
+- tests/test_f42_tables.py compared Free42 with the old C47 screens (build/NAVFULL, build/dm42
+  NAVLITTLE): NAVFULL had failed since Free42 moved to the T21 screens (3 differences on main).
+  Now NAVFULL against NAVFULL_T21 and NAVLITTLE against t21sim.little_programs() (shared with
+  test_f42_little: the C47 routines of NAVLITTLE, no cache, so the Sun sets T); 0 differences.
+  Both tests exit 1 on a difference.

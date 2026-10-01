@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """The almanac tables (TBL_1, TBL_5) on Free42 against the C47, pixel by pixel:
 f42run (tools/f42: the Free42 core with the DM42 screen) against the C47 simulator.
-NAVFULL: the ALMANAC view (1 on the menu); NAVLITTLE: its ALMANAC screen. With the tables
+NAVFULL: the ALMANAC view (1 on the menu) against NAVFULL_T21; NAVLITTLE: its ALMANAC screen
+against t21sim.little_programs() (the screens of Oct 2026, as Free42 draws them). With the tables
 the screens show T (flag 10 set by TBL).     python3 tests/test_f42_tables.py"""
 import os, sys, subprocess, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(ROOT, 'python'))
+sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'tests')]
 import c47sim
+import t21sim
 from decimal import Decimal as D
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 CASES = (('TBL_1', '2027.0315', '3.30', '-33.54', '18.25'), ('TBL_1', '2026.1203', '21.45', '25.20', '55.12'),
@@ -37,7 +39,7 @@ def split(path):
 
 def c47(nav, init, tbl, date, utc, lat, lon, full):
     t = tempfile.mkdtemp(); files = []
-    for i, pr in enumerate(split(init) + split(tbl) + split(nav)):
+    for i, pr in enumerate(split(init) + split(tbl) + (split(nav) if full else t21sim.little_programs())):
         f = os.path.join(t, 'p%d.txt' % i); open(f, 'w').write('\n'.join(pr) + '\n'); files.append(f)
     c = c47sim.load(files); c.flags.add(82)
     c.run('INIT', maxsteps=10 ** 7); c.flags.add(81); c.run('TBL', maxsteps=10 ** 8)
@@ -55,7 +57,7 @@ for tbl, date, utc, lat, lon in CASES:
     for name, init, full in (('NAVFULL', 'NAVINIT_FAST', True), ('NAVLITTLE', 'NAVINIT_LITTLE', False)):
         a = f42(name, init, tbl, date, utc, lat, lon, full)
         cinit = os.path.join(ROOT, 'build', init + '.txt') if full else os.path.join(ROOT, 'build', 'dm42', init + '.txt')
-        cnav = os.path.join(ROOT, 'build', 'NAVFULL.txt') if full else os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt')
+        cnav = os.path.join(ROOT, 'build', 'atext', 'NAVFULL_T21.txt') if full else None
         b, f10 = c47(cnav, cinit, os.path.join(ROOT, 'build', tbl + '.txt'), date, utc, lat, lon, full)
         same = a == b
         bad += not same
@@ -63,3 +65,4 @@ for tbl, date, utc, lat, lon in CASES:
         if not same:
             print('   only Free42', sorted(a - b)[:8], 'only C47', sorted(b - a)[:8])
 print('%d differences' % bad)
+sys.exit(1 if bad else 0)

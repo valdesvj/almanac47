@@ -7,3 +7,6 @@ __pycache__/
 
 # manuals rebuilt while working (docs/ only with --release)
 build/manuals/
+
+# headless Free42 test binary (sh tools/f42/setup.sh)
+tools/f42/f42run

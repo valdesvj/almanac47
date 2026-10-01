@@ -216,7 +216,7 @@ STO 29
 RCL 10
 XEQ "N30"
 226
-80
+79
 RCL 10
 0.5
 +
@@ -226,11 +226,11 @@ MOD
 ×
 XEQ "N28"
 226
-116
+118
 XSTR "UT"
 XEQ "N25"
 226
-150
+143
 XSTR "DR"
 XEQ "N25"
 XSTR "N"
@@ -239,11 +239,11 @@ RCL 11
 X<0?
 XEQ 22
 226
-174
+168
 RCL 43
 XEQ "N25"
 226
-176
+171
 RCL 11
 ABS
 XEQ "N29"
@@ -253,11 +253,11 @@ RCL 12
 X<0?
 XEQ 27
 226
-244
+238
 RCL 43
 XEQ "N25"
 226
-246
+249
 RCL 12
 ABS
 XEQ "N29"
@@ -265,44 +265,44 @@ XEQ "N29"
 0
 XEQ "N38"
 207
-36
+34
 XSTR "BODY"
 XEQ "N25"
 207
-154
+158
 XSTR "GHA"
 XEQ "N25"
 207
-224
+232
 XSTR "DEC"
 XEQ "N25"
 207
-292
+312
 XSTR "HC"
 XEQ "N25"
 207
-344
+372
 XSTR "ZN"
 XEQ "N25"
 193
-36
+34
 XSTR "ARIES"
 XEQ "N25"
 193
-128
+138
 RCL 48
 XEQ "N29"
-179
+177
 STO 40
 RCL 46
 RCL 45
 XEQ "N12"
 RCL 40
-1
+0
 XSTR "@"
-XEQ "N25"
+XEQ "N48"
 RCL 40
-36
+34
 XSTR "SUN"
 XEQ "N25"
 XEQ 60
@@ -311,7 +311,7 @@ STO 41
 1.058
 STO 42
 LBL 17
-10
+9
 RCL 41
 X≥Y?
 GTO 19
@@ -335,18 +335,18 @@ RCL 96
 X≤Y?
 GTO 18
 RCL 40
-1
+0
 XSTR "*"
-XEQ "N25"
+XEQ "N48"
 RCL 40
-17
+14
 RCL 82
 XEQ "N26"
 RCL 82
 XEQ "N24"
 STO 43
 RCL 40
-36
+34
 RCL 43
 XEQ "N25"
 XEQ 60
@@ -356,54 +356,118 @@ LBL 18
 ISG 42
 GTO 17
 LBL 19
--61
+-57
 0
 XEQ "N38"
-47
+43
 2
 XSTR "NAUT TWI"
 XEQ "N25"
-47
-80
+43
+83
 RCL 13
 XEQ "N28"
-47
-118
+43
+123
 RCL 17
 XEQ "N28"
-33
+29
 2
 XSTR "RISE/SET"
 XEQ "N25"
-33
-80
+29
+83
 RCL 14
 XEQ "N28"
-33
-118
+29
+123
 RCL 16
 XEQ "N28"
-19
+15
 2
 XSTR "MER PASS"
 XEQ "N25"
-19
-80
+15
+83
 RCL 15
 XEQ "N28"
-19
-122
+15
+123
 XSTR "SD "
 XEQ "N25"
 RCL 29
 XEQ "N27"
-47
-196
-XSTR "NO MOON - NO PLANETS"
+RCL 10
+2451550.09766
+-
+29.530588861
+MOD
+STO 19
+RCL 19
+29.530588861
+÷
+360
+×
+COS
+1
+X<>Y
+-
+50
+×
+STO 21
+XSTR "WAXING"
+STO 43
+RCL 19
+14.765
+X<Y?
+XEQ 28
+RCL 21
+99.5
+X≤Y?
+XEQ 23
+RCL 21
+0.5
+X>Y?
+XEQ 24
+43
+212
+XSTR "MOON "
 XEQ "N25"
-33
-196
-XSTR "DM42 BETA"
+RCL 21
+XEQ "N26"
+XSTR "% "
+XEQ "N25"
+STO 25
+R↓
+STO 20
+RCL 19
+29.530588861
+÷
+8
+×
+0.5
++
+IP
+8
+MOD
+48
++
+STO 23
+RCL 20
+RCL 25
+XEQ IND 23
+XEQ "N48"
+XSTR " "
+XEQ "N25"
+RCL 43
+XEQ "N25"
+29
+212
+XSTR "AGE "
+XEQ "N25"
+RCL 19
+XEQ "N27"
+XSTR " DAYS"
 XEQ "N25"
 XSTR "S"
 STO 43
@@ -457,7 +521,7 @@ STO 43
 RTN
 LBL 60
 RCL 40
-128
+138
 RCL 45
 XEQ "N29"
 XSTR "N"
@@ -466,26 +530,26 @@ RCL 46
 X<0?
 XEQ 22
 RCL 40
-196
+214
 RCL 43
 XEQ "N25"
 RCL 40
-198
+216
 RCL 46
 ABS
 XEQ "N29"
 RCL 40
-262
+287
 RCL 96
 XEQ "N29"
 RCL 40
-338
+365
 RCL 97
 XEQ "N31"
 RCL 96
 X<0?
 XEQ 64
-14
+16
 STO- 40
 RTN
 LBL 64
@@ -493,9 +557,9 @@ RCL 40
 1
 -
 STO "BY"
-268
+294
 STO "BX"
-55
+54
 STO "BW"
 14
 STO "BH"
@@ -505,65 +569,29 @@ XEQ "N44"
 CF 34
 CF 35
 RTN
-LBL 61
-RCL 40
-1
-XSTR "("
-XEQ "N25"
-RCL 40
-36
-XSTR "MOON"
-XEQ "N25"
-XEQ 60
-1
-STO+ 41
+LBL 48
+XSTR "0"
 RTN
-LBL 63
-RCL 42
-IP
-70
-+
-STO 43
-RCL 40
-1
-XEQ IND 43
-XEQ "N25"
-RCL 42
-IP
-81
-+
-STO 43
-RCL 40
-36
-XEQ IND 43
-XEQ "N25"
-XEQ 60
-1
-STO+ 41
+LBL 49
+XSTR "1"
 RTN
-LBL 71
-XSTR "<"
+LBL 50
+XSTR "2"
 RTN
-LBL 72
-XSTR ">"
+LBL 51
+XSTR "3"
 RTN
-LBL 73
-XSTR "="
+LBL 52
+XSTR "4"
 RTN
-LBL 74
-XSTR "?"
+LBL 53
+XSTR "5"
 RTN
-LBL 82
-XSTR "VENUS"
+LBL 54
+XSTR "6"
 RTN
-LBL 83
-XSTR "MARS"
-RTN
-LBL 84
-XSTR "JUPITER"
-RTN
-LBL 85
-XSTR "SATURN"
+LBL 55
+XSTR "7"
 RTN
 END
 LBL "N02"
@@ -2058,7 +2086,7 @@ R↓
 STO 30
 R↓
 STO 31
-232
+228
 RCL 31
 -
 STO "FT"
@@ -2080,7 +2108,7 @@ RCL 31
 RCL 30
 RTN
 LBL 32
-6
+7
 STO+ 30
 RTN
 LBL 03
@@ -2098,7 +2126,7 @@ R↓
 STO 30
 R↓
 STO 31
-232
+228
 RCL 31
 -
 STO "FT"
@@ -2241,14 +2269,14 @@ RCL 36
 99
 X<Y?
 GTO 15
-6
+7
 STO+ 30
 LBL 15
 RCL 36
 9
 X<Y?
 GTO 16
-6
+7
 STO+ 30
 LBL 16
 RCL 34
@@ -2463,773 +2491,680 @@ RCL 31
 RCL 30
 RTN
 LBL 37
-CLA
-├"€8c€4c€20€90€88"
+"€0e€1b€11€1b€8e€e0€78€1e€06€00€00"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€00€00€01€01"
+"€00€00€18€1e€07€01€1c€36"
+34
+XTOA
+├"€36€1c"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+12
 STO+ 30
 RTN
 LBL 45
-"€20€20€20€20€20"
+CLA
+├"€c0€c0€c0€c0€c0€c0"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 46
-CLA
-├"€80€80"
-RCL "FT"
-RCL 30
-2
-+
-AGRAPH
-"€01€01"
+"€1c€1c€1c"
 RCL "FB"
 RCL 30
-2
+1
 +
 AGRAPH
-6
+4
 STO+ 30
 RTN
 LBL 47
-CLA
-├"€80€40€20€10€08"
+"€00€00€c0€f0€3e"
+├"€0e"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-6
+"€1c€1f€03€00€00€00"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+7
 STO+ 30
 RTN
 LBL 48
 CLA
-├"€f8€44€24€14€f8"
+├"€fc€fe€06€06€fe€fc"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€0f€1f€18€18€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 49
-"€08€fc€00"
+"€08€0c€fe€fe"
 RCL "FT"
 RCL 30
 2
 +
 AGRAPH
-"€01€01€01"
+"€00€00€1f€1f"
 RCL "FB"
 RCL 30
 2
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 50
-"€08€84€44€24€18"
+"€0c€0e€06€86€fe€7c"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€01€01"
+"€1c€1e€1f€19€18€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 51
-CLA
-├"€84€04€14€2c€c4"
+"€0c€06€c6€c6€fe€3c"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€0c€18€18€18€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 52
-"€60€50€48€fc€40"
+CLA
+├"€fe€fe€80€80€f8€f8"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€00€00€01€00"
+"€01€01€01€01€1f€1f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 53
-CLA
-├"€9c€14€14€14€e4"
+"€7e€7e€66€66€e6€c6"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€0c€18€18€18€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 54
 CLA
-├"€f0€28€24€24€c0"
+├"€fc€fe€66€66€e6€c4"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€0f€1f€18€18€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 55
-"€04€c4€24€14€0c"
+"€06€06€c6€f6€3e"
+├"€0e"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€00€00€00"
+"€00€1e€1f€01€00€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 56
-CLA
-├"€d8€24€24€24€d8"
+"€3c"
+├"€fe€c6€c6€fe€3c"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€0f€1f€18€18€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 57
-"€18€24€24€a4€78"
+CLA
+├"€fc€fe€86€86€fe€fc"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€00€00"
+"€08€19€19€19€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+7
 STO+ 30
 RTN
 LBL 58
 CLA
-├"€d8€d8"
-RCL "FT"
-RCL 30
-2
-+
-AGRAPH
-6
-STO+ 30
-RTN
-LBL 65
-CLA
-├"€f8€24€24€24€f8"
+├"€e0€e0€e0"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€1c€1c€1c"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+4
+STO+ 30
+RTN
+LBL 65
+"€00€80€f0€7c"
+├"€0e€7c"
+├"€f0€80€00"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€1c€1f€07€06€06€06€07€1f€1c"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+10
 STO+ 30
 RTN
 LBL 66
 CLA
-├"€fc€24€24€24€d8"
+├"€fe€f6€c6€c6€c6€ee€fc€38"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€01€00"
+"€1f€1b€18€18€18€1d€0f€07"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 67
 CLA
-├"€f8€04€04€04€88"
+├"€f8€fc€0e€06€06€06€0e€0c"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€07€0f€1c€18€18€18€1c€0c"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 68
 CLA
-├"€fc€04€04€88€70"
+├"€fe€f6€06€06€06€1c€fc€f0"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€00€00"
+"€1f€1b€18€18€18€0e€0f€03"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 69
 CLA
-├"€fc€24€24€24€04"
+├"€fe€fe€c6€c6€c6€c6€c6€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€01€01"
+"€1f€1f€18€18€18€18€18€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 70
 CLA
-├"€fc€24€24€24€04"
+├"€fe€fe€c6€c6€c6€c6€c6€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€00"
+"€1f€1f€00€00€00€00€00€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 71
 CLA
-├"€f8€04€24€24€e8"
+├"€f8€fc€0e€06€c6€c6€ce€cc"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€01"
+"€07€0f€1c€18€18€18€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 72
 CLA
-├"€fc€20€20€20€fc"
+├"€fe€fe€c0€c0€c0€c0€fe€fe"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€1f€1f€00€00€00€00€1f€1f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 73
-"€04€fc€04"
-RCL "FT"
-RCL 30
-2
-+
-AGRAPH
-"€01€01€01"
-RCL "FB"
-RCL 30
-2
-+
-AGRAPH
-6
-STO+ 30
-RTN
-LBL 74
-CLA
-├"€80€00€04€fc€04"
+"€06€fe€fe€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€00€00"
+"€18€1f€1f€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+5
 STO+ 30
 RTN
 LBL 75
 CLA
-├"€fc€20€50€88€04"
+├"€fe€fe€c0€e0€f0€38€1c€0e€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€1f€1f€00€01€03€07€0e€1c€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+10
 STO+ 30
 RTN
 LBL 76
 CLA
-├"€fc€00€00€00€00"
+├"€fe€fe€00€00€00€00€00"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€01€01"
+"€1f€1f€18€18€18€18€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+8
 STO+ 30
 RTN
 LBL 77
 CLA
-├"€fc€08€30€08€fc"
+├"€fe€fe€1c€38€f0€f0€38€1c€fe€fe"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€1f€1f€00€00€00€00€00€00€1f€1f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+11
 STO+ 30
 RTN
 LBL 78
 CLA
-├"€fc€10€20€40€fc"
+├"€fe€fe€1e€78€e0€80€00€fe€fe"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€1f€1f€00€00€01€07€1e€1f€1f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+10
 STO+ 30
 RTN
 LBL 79
 CLA
-├"€f8€04€04€04€f8"
+├"€f8€fc€0e€06€06€0e€fc€f8"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€07€0f€1c€18€18€1c€0f€07"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 80
 CLA
-├"€fc€24€24€24€18"
+├"€fe€f6€86€86€86€ce€fc€78"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€00"
+"€1f€1f€01€01€01€01€00€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 82
 CLA
-├"€fc€24€64€a4€18"
+├"€fe€f6€86€86€86€ce€fc€78"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€1f€1f€01€03€07€0f€1c€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 83
-"€18€24€24€24€c4"
+"€3c"
+├"€7e€66€c6€c6€86€8e€0c"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€01€00"
+"€0c€1c€18€18€18€19€1f€0f"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 84
-"€04€04€fc€04€04"
+"€06€06€06€fe€fe€06€06€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€00€01€00€00"
+"€00€00€00€1f€1f€00€00€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 85
 CLA
-├"€fc€00€00€00€fc"
+├"€fe€fe€00€00€00€00€fe€fe"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€01€01€00"
+"€07€0f€1c€18€18€1c€0f€07"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 86
-"€7c"
-├"€80€00€80€7c"
+"€1e€fe€e0€00€00€e0€fe€1e"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€00€01€00€00"
+"€00€00€07€1f€1f€07€00€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 87
 CLA
-├"€fc€00€e0€00€fc"
+├"€fe€fe€00€80€f0€f0€80€00€fe€fe"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€00€01€00"
+"€07€1f€1e€07€01€01€07€1e€1f€07"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+11
 STO+ 30
 RTN
 LBL 88
-CLA
-├"€8c€50€20€50€8c"
+"€06€1e€f8€e0€e0€f8€1e€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€00€00€00€01"
+"€18€1e€07€01€01€07€1e€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 89
-"€1c€20€c0€20€1c"
+"€06€1e€78€e0€e0€78€1e€06"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€00€01€00€00"
+"€00€00€00€1f€1f€00€00€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
+9
 STO+ 30
 RTN
 LBL 90
-CLA
-├"€84€44€24€14€0c"
+"€06€06€86€c6€e6€76€3e"
+├"€1e"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€01€01€01€01€01"
+"€1e€1f€1b€19€18€18€18€18"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-6
-STO+ 30
-RTN
-LBL 42
-"€10€b0€f0€7c"
-├"€f0€b0€10"
-RCL "FT"
-RCL 30
-1
-+
-AGRAPH
-"€00€01€00€00€00€01€00"
-RCL "FB"
-RCL 30
-1
-+
-AGRAPH
-12
+9
 STO+ 30
 RTN
 LBL 64
 CLA
-├"€f8€04€02€01€21"
-├"€71€21"
-├"€01€02€04€f8"
+├"€f0€f0€f8€0c€06€42€e2€e2€42€06€0c€f8€f0"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€01€02€04€04€04€04€04€02€01€00"
+"€01€01€03€06€1c€18€18€18€18€1c€06€03€01"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-12
+15
 STO+ 30
 RTN
-LBL 40
-"€70€f8€8c€04€04"
+LBL 42
+"€30€30€70€70€f0€f0€fe€f0€f0€70€70€30"
 RCL "FT"
 RCL 30
 1
 +
 AGRAPH
-"€00€00€01€01€01"
+"€00€00€1e€1e€07€07€01€07€07€1e€1e€00"
 RCL "FB"
 RCL 30
 1
 +
 AGRAPH
-12
-STO+ 30
-RTN
-LBL 60
-CLA
-├"€98€a4€e4€a4€98"
-RCL "FT"
-RCL 30
-2
-+
-AGRAPH
-"€00€00€01€00€00"
-RCL "FB"
-RCL 30
-2
-+
-AGRAPH
-12
-STO+ 30
-RTN
-LBL 62
-CLA
-├"€c0€20€20€24€d4€0c€1c"
-RCL "FT"
-RCL 30
-1
-+
-AGRAPH
-"€00€01€01€01€00€00€00"
-RCL "FB"
-RCL 30
-1
-+
-AGRAPH
-12
-STO+ 30
-RTN
-LBL 61
-"€48€44€64€58€40€f8€40"
-RCL "FT"
-RCL 30
-1
-+
-AGRAPH
-"€00€00€00€00€00€01€00"
-RCL "FB"
-RCL 30
-1
-+
-AGRAPH
-12
-STO+ 30
-RTN
-LBL 63
-"€08€fc€48€28€20€c0"
-RCL "FT"
-RCL 30
-1
-+
-AGRAPH
-"€00€00€00€00€01€00"
-RCL "FB"
-RCL 30
-1
-+
-AGRAPH
-12
+14
 STO+ 30
 RTN
 END
@@ -3256,6 +3191,203 @@ RCL 39
 X=Y?
 PRLCD
 GTO 01
+END
+LBL "N48"
+STO 33
+R↓
+STO 30
+R↓
+STO 31
+229
+RCL 31
+-
+STO "FT"
+8
++
+STO "FB"
+LBL 01
+RCL 33
+LENGTH
+X=0?
+GTO 02
+HEAD 33
+C→N
+STO 32
+XEQ IND 32
+GTO 01
+LBL 02
+RCL 31
+RCL 30
+RTN
+LBL 64
+CLA
+├"€f0€fc€0e€06€63€f3€f3€63€06€0e€fc€f0"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€00€03€07€06€0c€0c€0c€0c€06€07€03€00"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 42
+"€10€30€30€f0€fc€ff€ff€fc€f0€30€30€10"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€00€0c€0f€07€03€01€01€03€07€0f€0c€00"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 48
+CLA
+├"€f8€0c€06€03€01€01€01€01€03€06€0c€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€06€0c€08€08€08€08€0c€06€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 49
+CLA
+├"€f8€0c€06€03€01€01€01€01€0f€fe€fc€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€06€0c€08€08€08€08€0f€07€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 50
+CLA
+├"€f8€0c€06€03€01€01€ff€ff€ff€fe€fc€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€06€0c€08€08€0f€0f€0f€07€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 51
+CLA
+├"€f8€0c€06€fb€ff€ff€ff€ff€ff€fe€fc€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€06€0d€0f€0f€0f€0f€0f€07€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 52
+CLA
+├"€f8€fc€fe€ff€ff€ff€ff€ff€ff€fe€fc€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€07€0f€0f€0f€0f€0f€0f€07€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 53
+CLA
+├"€f8€fc€fe€ff€ff€ff€ff€ff€fb€06€0c€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€07€0f€0f€0f€0f€0f€0d€06€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 54
+CLA
+├"€f8€fc€fe€ff€ff€ff€01€01€03€06€0c€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€07€0f€0f€0f€08€08€0c€06€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
+LBL 55
+CLA
+├"€f8€fc€fe€0f€01€01€01€01€03€06€0c€f8"
+RCL "FT"
+RCL 30
+1
++
+AGRAPH
+"€01€03€07€0f€08€08€08€08€0c€06€03€01"
+RCL "FB"
+RCL 30
+1
++
+AGRAPH
+14
+STO+ 30
+RTN
 END
 LBL "N37"
 RTN

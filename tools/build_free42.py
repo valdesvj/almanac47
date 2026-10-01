@@ -219,10 +219,35 @@ EXTRA = {'PTXT': {19: ({0: 8, 1: 20, 2: 8}, 4), ord("'"): ({0: 24}, 2),
                   ord('%'): ({0: 18, 1: 4, 2: 9}, 4)}}
 
 
+def descenders(g):
+    """The PTXS glyphs that GRFNT 21 draws one row below the base line ('%' and 'Q'; PTXS has
+    the rows from the base line up only): their columns from the standard font, YOFF -1."""
+    sys.path.insert(0, os.path.join(ROOT, 'python'))
+    from stdfont import STD
+    out = {}
+    for c, (cols, adv) in g.items():
+        if c not in STD:
+            continue
+        cb, cg, ca, ra, rg, rb, rows = STD[c]
+        px = {(cb + x, rb + rg - 5 - r) for r, v in enumerate(rows) for x in range(cg) if v >> (cg - 1 - x) & 1}
+        low = min((y for x, y in px), default=0)
+        if low < 0 and {(x, y) for x, y in px if y >= 0} == {(x, b) for x, p in cols.items() for b in range(16) if p >> b & 1}:
+            new = {}
+            for x, y in px:
+                new[x] = new.get(x, 0) | 1 << (y - low)
+            out[c] = (new, adv, low)
+    return out
+
+
 def font(name, keep, src=None):
+    t21 = name == 'PTXS' and not src                    # the PTXS of the T21 views: GRFNT 21 widths
     src = B.trim_font(src, keep) if src else B.read(name)       # PTXB: only the glyphs used ('@' is 12 px high)
     YOFF.clear()
     g = glyph_columns(src)
+    if t21:
+        for c, (cols, adv, low) in descenders(g).items():
+            g[c] = (cols, adv)
+            YOFF[c] = low
     sh = -min(YOFF.values(), default=0)                 # rows below the base line: patterns shifted up
     if sh:
         g = {c: ({x: p << (sh + YOFF.get(c, 0)) for x, p in cols.items()}, adv) for c, (cols, adv) in g.items()}
@@ -544,6 +569,22 @@ def nav_little():
     return P
 
 
+def little_almf():
+    """The ALMANAC view of NAVLITTLE: the T21 view (header line with the line under it, PTXS =
+    the widths of GRFNT 21) with Sun and stars only, and the Moon line of NAVLITTLE_PH (mean
+    lunation age, lit part, phase glyph) in the footer, where the T21 view has MOON / AGE."""
+    import build_dm42 as D, build_dm42_atext as X
+    with open(os.path.join(ROOT, 'programs', 'atext', 't21', 'ALMF.txt'), encoding='utf-8') as fh:
+        A = [l.rstrip('\n') for l in fh if l.strip()]
+    A = D.cut(A, '"WAXING"', '"S"', X.moon_lines(rows=(43, 29)))
+    A = D.seq(A, ['XEQ "PHA2"', 'STO 18', 'X<>Y', 'STO 19'], [])
+    A = D.cut(A, 'XEQ "MOO2"', '1.058')                # the Moon and planet rows (LBL 35 / 36 go with them)
+    assert not any(re.fullmatch(r'(XEQ|GTO) 3[56]', l) for l in A)
+    A = X.unused_locals(A, ind_targets=range(48, 56))  # XEQ IND 23: only the phase glyphs (LBL 48-55)
+    assert not any(l in ('XEQ "MOO2"', 'XEQ "PLN3"', 'XEQ "PHA2"', 'XEQ "PTXT"', 'XEQ "PTTY"') for l in A)
+    return A
+
+
 def assemble(N, p, big_src=None):
     """NAV N + the programs it needs (converted) + F42; returns (long names, short names, map)."""
     keep = list(B.KEEP) + ['PTTY', 'PSYB', 'PSYS']
@@ -593,8 +634,10 @@ def build(rlcd=False, little=False):
     RLCD[0] = rlcd
     WAITS.clear()
     if little:
-        import build_dm42 as D
-        L = assemble(nav_little(), little_programs(), D.ptxb_as_ptxs())
+        p = little_programs()
+        p['ALMF'] = little_almf()                  # the T21 ALMANAC view, Sun, stars and the Moon line
+        p['PSYB'] = psym('PSYB', True)             # the Sun, the star and the phase glyphs (font() keeps those used)
+        L = assemble(nav_little(), p)
         m = save('NAVLITTLE', L, OUT, 'F42_NAVLITTLE')
         with open(os.path.join(OUT, 'NAVLITTLE_LABELS.txt'), 'w', encoding='utf-8') as fh:
             fh.write('NAVLITTLE (Free42) - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)\n\n')

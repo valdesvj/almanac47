@@ -10,8 +10,10 @@ User manual: docs/Almanac47_Free42_Manual.pdf
 FILES (the file name is the version: on the calculator the programs are NAV and INIT)
   NAVFULL.raw          NAV: all 9 views (as the C47 NAVFULL, without the almanac tables)
   NAVLITTLE.raw        NAV: Sun and 58 stars only, straight to the ALMANAC screen, UP / DOWN
-                       one hour, + ends; the 5 x 7 font, no box, no ants (as the NAVLITTLE of
-                       the old DM42 with the C47 firmware). For little memory.
+                       one hour, + ends; no box, no ants. The ALMANAC screen as in NAVFULL
+                       (header line with a line under it, the same fonts) with Sun and stars,
+                       and the Moon line: % lit, the phase glyph and the age, from the mean
+                       lunation (within about 14 hours of the true age). For little memory.
   NAVINIT_FULL.raw     INIT for NAVFULL: the series matrices, valid 2000-2050
   NAVINIT_FAST.raw     INIT for NAVFULL: fitted series 2026-2030 (smaller, faster)
   NAVINIT_LITTLE.raw   INIT for NAVLITTLE: Sun, nutation and stars, valid 2000-2050
@@ -67,8 +69,10 @@ WHAT IS DIFFERENT FROM THE C47 VERSION (inside the programs, not on the screen)
     KQ, W1 / W10, TK, XSTR, APPEND, HEAD). No C47 date functions: the date is computed.
   - NAVFULL tested by the author on a DM42n (SwissMicros firmware DM42-3.26, Free42 3.3.10).
     NAVLITTLE is new: tested in the Free42 3.3.10 core (SwissMicros source) with the DM42
-    graphics code (binary arithmetic), where its screens are the same as the C47 NAVLITTLE
+    graphics code (binary arithmetic), where its screens are the same as the C47 simulator
     pixel by pixel (tests/test_f42_little.py); not yet on a real calculator.
+  - The texts: PTXS, an AGRAPH font with the glyphs and widths of the C47 font 21 (GRFNT 21);
+    the symbols and Moon phases: PSYB / PSYS; the small texts: PTTY (the C47 tinyFont).
 
 Built with: python3 tools/build_free42.py
 Copyright 2026 Victor Valdes. GNU GPL v3 or later. It supports, and does not replace,

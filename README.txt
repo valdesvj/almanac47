@@ -354,13 +354,16 @@ build_free42.py)
   build/free42/ DM42 / DM42n with the stock firmware (Free42): .raw files and .txt listings
     NAVFULL          as the C47 NAVFULL without the tables; the screen appears complete, as on
                      the C47 (RefLCD). build/free42/dev/NAVFULL_DRAW: the screen builds up.
-    NAVLITTLE        as the DM42 NAVLITTLE (Sun and stars, 5 x 7 font), screen as on the C47
+    NAVLITTLE        NAV straight to the ALMANAC screen in the style of Oct 2026 (as NAVFULL:
+                     header line, PTXS = the widths of GRFNT 21): Sun and stars, the Moon line
+                     of NAVLITTLE_PH (mean lunation age, lit part, phase glyph); .raw 9.9 KB
     NAVINIT_FULL, NAVINIT_FAST, NAVINIT_LITTLE   the INITs, as above
     TBL_1, TBL_5     the almanac tables as above (.raw 97 KB and 481 KB); flag 11 of the C47
                      programs is flag 91 here (11 is auto-execution on the HP-42S)
   Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
   Checks: tests/test_labels.py, test_navfull.py (also NAVTXT with TBL), test_notbl.py,
-  test_f42_little.py (Free42 NAVLITTLE against the C47 NAVLITTLE, pixel by pixel),
+  test_f42_little.py (Free42 NAVLITTLE against the same view in the C47 simulator, pixel by
+  pixel: start, +1 h, -1 h on 3 dates),
   test_f42_tables.py (NAVFULL and NAVLITTLE with TBL_1 / TBL_5, Free42 against the C47).
 
 STATUS-BAR FONT AND SINE ALTITUDE SCALE (Sep 2026)
@@ -520,8 +523,9 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   programs and no simulator. Files: c47pc.py (window / PNG / text), c47astro.py
   (Sun, stars, Moon, planets, rise/set/twilight, Moon phase, Hc/Zn - same methods
   and coefficients as SUNA STAR MOON PLAN SUNRISE PHAS CHZ), c47screen.py (the
-  ALMF HALMV HORZ HORZS layouts and the ALMT lines), c47font.py (PTXB/PTXT fonts),
-  c47data.py (coefficient tables). Copy the five files anywhere and run:
+  ALMF HALMV HORZ HORZS layouts and the ALMT lines), c47screen21.py (the screens of Oct
+  2026), c47font.py c47fonts2.py c47fonts21.py (fonts), c47data.py (coefficient tables),
+  c47tables.py, jplcheck.py. Copy the files of python/native/ anywhere and run:
      python3 c47pc.py                                   (GTK 3 window)
      python3 c47pc.py --view ALMF --date 2026-09-25 --ut 18:30 --lat "25 20 N" --lon "55 12 E" --png almf.png
      python3 c47pc.py --view ALMT --date ... --lat ... --lon ...   (text lines)
@@ -535,6 +539,10 @@ PC VERSION, NATIVE PYTHON - python/native/c47pc.py
   Almanac tables: box "Almanac tables" (TBL.txt), --tables FILE, --series.
   Sep 30, 2026: the default tables are build/TBL_5.txt (1 Oct 2026 - 30 Sep 2031), then
   build/TBL_1.txt, then the old 4-month programs/TBL.txt (or TBL_5/TBL_1/TBL.txt next to c47pc.py).
+  Version 1.4 (2026-10-01): the views ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON (the old
+  names ALMF HALMV ALMT HORZ HALMH still work), drawn as the C47 screens of Oct 2026
+  (c47screen21.py; tests/test_parity21.py: identical to NAVFULL_T21 in the simulator). MOON
+  (the phase disc, % lit, age, HP, SD, the next four phases) is a view of the PC only.
 
 SEPTEMBER 29, 2026 - NAV AS IT IS NOW
   NAV asks DATE (YYYY.MMDD, read with x→ⅅ ⅅ→J: date format YYYY-MM-DD), UTC, LAT, LON once,

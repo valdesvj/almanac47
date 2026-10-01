@@ -51,12 +51,13 @@ def no_moon(A, name):
     return A[:i] + A[j:]
 
 
-def unused_locals(A):
+def unused_locals(A, ind_targets=None):
     """Drop the subroutines nothing calls any more (Moon and planet rows, their names and words):
-    a block LBL n ... RTN right after an RTN, whose label no XEQ / GTO uses."""
+    a block LBL n ... RTN right after an RTN, whose label no XEQ / GTO uses. With an XEQ IND
+    nothing is dropped, unless ind_targets lists the labels the indirect calls can reach."""
     while True:
-        called = {l.split()[1] for l in A if re.fullmatch(r'(XEQ|GTO) \d+', l)}
-        ind = any(re.fullmatch(r'(XEQ|GTO) IND \d+', l) for l in A)
+        called = {l.split()[1] for l in A if re.fullmatch(r'(XEQ|GTO) \d+', l)} | {str(n) for n in ind_targets or ()}
+        ind = ind_targets is None and any(re.fullmatch(r'(XEQ|GTO) IND \d+', l) for l in A)
         out, i, drop = [], 0, False
         while i < len(A):
             m = re.fullmatch(r'LBL (\d+)', A[i])
@@ -73,16 +74,17 @@ def unused_locals(A):
 LUN, NEW0 = '29.530588861', '2451550.09766'      # mean lunation, mean new Moon of Jan 2000 (Meeus 49.1)
 
 
-def moon_lines(MX=212):
+def moon_lines(MX=212, rows=(47, 33)):
     """EXPERIMENTAL (NAVLITTLE_PH): the Moon line without the Moon: its age from the mean lunation
-    (within about 14 hours of the true one), the lit part (1 - cos)/2, the phase glyph (PSYB)."""
+    (within about 14 hours of the true one), the lit part (1 - cos)/2, the phase glyph (PSYB).
+    rows: the MOON and AGE lines (47 33 standard font; the T21 footer of Free42 NAVLITTLE: 43 29)."""
     return ['RCL 10', NEW0, '-', LUN, 'MOD', 'STO 19',
             'RCL 19', LUN, '÷', '360', '×', 'COS', '1', 'X<>Y', '-', '50', '×', 'STO 21',
             '"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 21', '99.5', 'X≤Y?', 'XEQ 23', 'RCL 21', '0.5', 'X>Y?', 'XEQ 24',
-            '47', str(MX), '"MOON "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'STO 25', 'R↓', 'STO 20',
+            str(rows[0]), str(MX), '"MOON "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'STO 25', 'R↓', 'STO 20',
             'RCL 19', LUN, '÷', '8', '×', '0.5', '+', 'IP', '8', 'MOD', '48', '+', 'STO 23',
             'RCL 20', 'RCL 25', 'XEQ IND 23', 'XEQ "PSYB"', '" "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"',
-            '33', str(MX), '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"']
+            str(rows[1]), str(MX), '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"']
 
 
 def views(moon=False):
