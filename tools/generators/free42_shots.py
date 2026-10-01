@@ -22,6 +22,18 @@ def png(pbm, dst):
     im.resize((800, 480), Image.NEAREST).save(dst)
 
 
+def still(t, prefix, n):
+    """The n-th steady screen of a film (a capture every 0.25 s): a capture the next one repeats.
+    SKY: 0 = drawn, no name yet; 1 = the first name (the name changes every 1 s)."""
+    fs = sorted((f for f in os.listdir(t) if f.startswith(prefix + '_')), key=lambda f: int(f[len(prefix) + 1:-4]))
+    data = [open(os.path.join(t, f)).read() for f in fs]
+    found = []
+    for k in range(len(data) - 1):
+        if data[k] == data[k + 1] and (not found or data[found[-1]] != data[k]):
+            found.append(k)
+    return os.path.join(t, fs[found[n]]) if len(found) > n else None
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     t = tempfile.mkdtemp()
@@ -29,9 +41,12 @@ def main():
            'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20', 'num 55.12', 'shot %s/v0.pbm' % t]
     for v in (1, 2, 3, 5, 7, 8):
         cmd += ['key %d' % KEY[v], 'shot %s/v%d.pbm' % (t, v), 'key 37']
-    cmd += ['qkey 37 3500 %s/v4.pbm' % t, 'key 24']                  # SKY: the name line changes every 3 s
+    cmd += ['film %s/s' % t, 'qkey 37 4000', 'key 24', 'stopfilm']   # SKY: the name line changes every 1 s
     cmd += ['film %s/a' % t, 'key 26', 'stopfilm', 'shot %s/v6.pbm' % t, 'key 37']
     subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=300)
+    sky = still(t, 's', 1)
+    if sky:
+        os.replace(sky, '%s/v4.pbm' % t)
     for v, n in NAMES.items():
         if os.path.exists('%s/v%d.pbm' % (t, v)):
             png('%s/v%d.pbm' % (t, v), os.path.join(OUT, 'F42_%s.png' % n))
@@ -43,7 +58,7 @@ def main():
     fs = sorted((f for f in os.listdir(t) if f.startswith('b_')), key=lambda f: int(f[2:-4]))
     if fs:
         png(os.path.join(t, fs[len(fs) // 2]), os.path.join(OUT, 'F42_box_ants.png'))
-    # NAVLITTLE: the ALMANAC screen with the 5 x 7 font, Sun and stars only
+    # NAVLITTLE: the ALMANAC screen (T21 style), Sun and stars, the Moon line with the phase glyph
     cmd = ['paste %s/build/free42/NAVINIT_LITTLE.txt' % ROOT, 'paste %s/build/free42/NAVLITTLE.txt' % ROOT,
            'xeq INIT', 'xeq NAV', 'num 2026.0926', 'num 14.57', 'num 25.20', 'num 55.12', 'shot %s/l.pbm' % t]
     subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=300)
