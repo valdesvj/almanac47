@@ -103,10 +103,9 @@ for i, (ch, t) in enumerate((('@', 'SUN'), ('(', 'MOON'), ('*', '37 ARCTURUS'), 
     xx = 4 + (i % 2) * 200; yy = 90 - (i // 2) * 16
     sym(yy, xx, ch, True); text(yy, xx + 14, t, 21)
 text(50, 4, 'ANT', 21)
-for i, ch in enumerate('&%'):
-    sym(50, 50 + i * 24, ch, True)
-    sym(50, 110 + i * 14, ch, False)
-text(50, 150, 'TWO WALKING STEPS, 12 AND 7 ROWS', 10)
+sym(50, 50, '&', True)
+sym(50, 70, '&', False)
+text(50, 90, 'THE A OF THE STANDARD AND TINY FONTS, INVERTED', 10)
 text(30, 4, 'TINY: 10 20 30 45 60 90  N E S W  51 42 37', 10)
 text(14, 4, 'A KEY: END', 10)
 grfnt(20)
