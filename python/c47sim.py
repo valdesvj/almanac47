@@ -344,8 +344,8 @@ class Calc:
                 continue
             if op == 'CF': self.flags.discard(int(arg)); continue
             if op == 'SF': self.flags.add(int(arg)); continue
-            if op in ('FS?', 'FC?') and arg in ('DMY', 'MDY', 'YMD'):   # the date-format system flags
-                on = getattr(self, 'datefmt', 'YMD') == arg
+            if op in ('FS?', 'FC?') and arg.strip("'") in ('DMY', 'MDY', 'YMD'):   # the date-format system flags
+                on = getattr(self, 'datefmt', 'YMD') == arg.strip("'")
                 if on != (op == 'FS?'): pc += 1
                 continue
             if op == 'FS?':

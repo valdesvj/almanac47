@@ -573,7 +573,9 @@ INIT with the builders as LBL 01-04.
   2026.0926. NAV (gennav.inputs, LBL 20) tests the C47 system flags of the CLK date format,
   FS? DMY / FS? MDY (only tested, never set or cleared; YMD = the default prompt), and the message
   line asks DATE YYYY.MMDD, DD.MMYYYY or MM.DDYYYY (LBL 97 / 98). x→ⅅ then reads the number in
-  that format, as before. 12 steps (FS? DMY checked on a C47 by the author). A first version
+  that format, as before. 12 steps (FS? DMY checked on a C47 by the author). In the listings it is
+  FS? 'DMY' / FS? 'MDY': rejig 0.34.1 takes a system flag by name only in quotes (FS? DMY: invalid
+  flag; FS? 'XYZ' becomes FS? →'XYZ', indirect). A first version
   found the format with 2451944 J→ⅅℸ DROP ⅅ→x IP (22 steps).
 - Free42 keeps YYYY.MMDD (its prompt Y.MMDD unchanged): it has no date type (a date is a plain
   number, read by DATE+ / DDAYS with flags 31 / 67) and its NAV splits DATE with arithmetic, so the
