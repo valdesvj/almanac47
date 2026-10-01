@@ -296,6 +296,10 @@ S += [P('Using the results for Hc and Zn', h1)] + B([
 S += [P('Python and NumWorks version', h2),
       P('nav.py + navdata.py contain the same methods (SUNA, STAR, SUNRISE, PHAS) for a computer or a NumWorks. The menu asks for year, month, day and UT (hh:mm:ss) and computes the JD itself. '
         'Results are identical to the C47 programs (for example Sun 23 Sep 2026 12h: GHA 1° 54.4′, Dec S 0° 11.6′).')]
+S += [P('PC version (c47pc 1.5)', h2),
+      P('python/native/c47pc.py shows the same screens in a window on the PC (GTK 3), with its own calculations and no calculator programs, '
+        'identical pixel for pixel to the C47. − / + step the UT (keys or the buttons next to Now UTC) by 1 s to 999 days (1 h by default); '
+        'hold the key to watch the sky move. It also writes a screen to PNG (--png) or the ALMT lines as text.')]
 S += [P('Register map', h2),
       prose_tbl([['Program', 'Registers'], ['SUNA', '50–55, 60–67, 70–81'], ['STAR', '56–59, 68–69, 82–89'], ['SUNRISE, HORZ', '90–99'],
                  ['PHAS', '41–48'], ['SNAM', '49'], ['ALM', '01–09, 10–33, 40–41'], ['CHZ', '91–92, 94–97'], ['PTXS / PTXT', '30–36'],
