@@ -24,6 +24,7 @@ import build_dm42 as D
 import navopt
 import atext_common as AC
 import genviews_atx as V
+import glyphs47
 
 OUT = os.path.join(ROOT, 'build', 'dm42', 'atext')
 SRC = os.path.join(OUT, 'src')
@@ -69,12 +70,31 @@ def unused_locals(A):
         A = out
 
 
-def views():
-    """ALMF and HALMV in ATEXT for the DM42 (no Moon, no planets)."""
+LUN, NEW0 = '29.530588861', '2451550.09766'      # mean lunation, mean new Moon of Jan 2000 (Meeus 49.1)
+
+
+def moon_lines(MX=212):
+    """EXPERIMENTAL (NAVLITTLE_PH): the Moon line without the Moon: its age from the mean lunation
+    (within about 14 hours of the true one), the lit part (1 - cos)/2, the phase glyph (PSYB)."""
+    return ['RCL 10', NEW0, '-', LUN, 'MOD', 'STO 19',
+            'RCL 19', LUN, '÷', '360', '×', 'COS', '1', 'X<>Y', '-', '50', '×', 'STO 21',
+            '"WAXING"', 'STO 43', 'RCL 19', '14.765', 'X<Y?', 'XEQ 28', 'RCL 21', '99.5', 'X≤Y?', 'XEQ 23', 'RCL 21', '0.5', 'X>Y?', 'XEQ 24',
+            '47', str(MX), '"MOON "', 'XEQ "PTXS"', 'RCL 21', 'XEQ "PINS"', '"% "', 'XEQ "PTXS"', 'STO 25', 'R↓', 'STO 20',
+            'RCL 19', LUN, '÷', '8', '×', '0.5', '+', 'IP', '8', 'MOD', '48', '+', 'STO 23',
+            'RCL 20', 'RCL 25', 'XEQ IND 23', 'XEQ "PSYB"', '" "', 'XEQ "PTXS"', 'RCL 43', 'XEQ "PTXS"',
+            '33', str(MX), '"AGE "', 'XEQ "PTXS"', 'RCL 19', 'XEQ "PF1S"', '" DAYS"', 'XEQ "PTXS"']
+
+
+def views(moon=False):
+    """ALMF and HALMV in ATEXT for the DM42 (no Moon, no planets); moon: the Moon line of
+    moon_lines() instead of the note NO MOON - NO PLANETS."""
     A = read_big('ALMF')
     note_x = 398 - V.width('NO MOON - NO PLANETS')
-    A = D.cut(A, '"WAXING"', '"S"', ['47', str(note_x), '"NO MOON - NO PLANETS"', 'XEQ "PTXS"',
-                                     '33', str(note_x), '"DM42 BETA"', 'XEQ "PTXS"'])
+    A = D.cut(A, '"WAXING"', '"S"', moon_lines() if moon else ['47', str(note_x), '"NO MOON - NO PLANETS"', 'XEQ "PTXS"',
+                                                                '33', str(note_x), '"DM42 BETA"', 'XEQ "PTXS"'])
+    if moon:
+        k = A.index('END')
+        A[k:k] = [x for d in range(8) for x in ('LBL %d' % (48 + d), '"%d"' % d, 'RTN')]
     A = unused_locals(no_moon(A, 'ALMF'))
     H = read_big('HALMV')
     H = unused_locals(no_moon(H, 'HALMV'))
@@ -101,7 +121,8 @@ def assemble(nav, p):
     font = navopt.pdts(navopt.phls(navopt.fonts(D.ptxb_as_ptxs())))
     q['PTXS'] = AC.printers(font, S)
     q['PSYM'] = AC.symbols(font, '@*')                        # the Sun and a star, 5 x 7 glyphs
-    keep = B.KEEP[:B.KEEP.index('PTXT')] + ['PSYM'] + B.KEEP[B.KEEP.index('PTXT') + 1:]
+    q['PSYB'] = glyphs47.program('PSYB', glyphs47.PHASES, ws=16)   # NAVLITTLE_PH: the Moon phases
+    keep = B.KEEP[:B.KEEP.index('PTXT')] + ['PSYM', 'PSYB'] + B.KEEP[B.KEEP.index('PTXT') + 1:]
     need = B.closure(q, [c for c in B.calls(nav) if c != 'INIT'])
     assert 'PTXT' not in need, 'the small font is still called'
     return nav + [l for n in keep if n in need for l in q[n]], sorted(need)
@@ -111,15 +132,16 @@ def main():
     A, H = views()
     builds = D.builds()
     res = {}
-    for name in ('NAVLITTLE', 'NAV1T_DM42', 'NAV12_DM42'):
-        nav, p = builds[name]
+    AM, _ = views(moon=True)
+    for name in ('NAVLITTLE', 'NAV1T_DM42', 'NAV12_DM42', 'NAVLITTLE_PH'):
+        nav, p = builds[name.replace('_PH', '')]
         p = dict(p)
-        p['ALMF'] = A
+        p['ALMF'] = AM if name.endswith('_PH') else A
         if name == 'NAV12_DM42':
             p['HALMV'] = H
             nav = nav_menu(nav)
         L, need = assemble(nav, p)
-        atx = name.replace('_DM42', '') + '_ATX'
+        atx = name if name.endswith('_PH') else name.replace('_DM42', '') + '_ATX'
         B.write(os.path.join(SRC, atx + '.txt'), L)
         m = B.fixed_map(atx, L, keep=('NAV', 'INIT'))
         B.write(os.path.join(OUT, atx + '.txt'), B.rename_keep(L, m, ('NAV', 'INIT')))
