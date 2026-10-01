@@ -336,10 +336,6 @@ XEQ 65
 388
 RCL 43
 XEQ "PTXS"
-1
-126
-"DOES NOT REPLACE THE NAUTICAL ALMANAC"
-XEQ "PTXT"
 REM "hold the screen: + back to the menu, up / down arrow one hour"
 XEQ "WPLS"
 RTN
