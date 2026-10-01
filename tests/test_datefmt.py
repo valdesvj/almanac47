@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
-"""test_datefmt.py - NAV asks the date in the calculator's CLK date format (x→ⅅ reads it so):
-NAVFULL in the simulator set to Y.MD, D.MY and M.DY, the date typed in that format. The message
-line must show the format, and the ALMANAC screen must be the same as with Y.MD.
+"""test_datefmt.py - NAV asks the date in the calculator's date format:
+C47: NAVFULL in the simulator set to Y.MD, D.MY and M.DY (system flags DMY / MDY), the date typed
+in that format. The message line must show the format, and the ALMANAC screen must be the same
+as with Y.MD.
+Free42: NAVLITTLE in tools/f42/f42run with flags 67 / 31 (Y.MD / D.MY / M.DY): the hint and the
+ALMANAC screen (skipped without f42run).
     python3 tests/test_datefmt.py"""
-import os, sys, tempfile
+import os, sys, tempfile, subprocess
 from decimal import Decimal as D
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'tests')]
@@ -45,5 +48,31 @@ for fmt, date, want in CASES:
     ok = msg.startswith(want) and almanac == ref[key]
     bad += not ok
     print('%s %-10s message %-16r screen = Y.MD %s: %s' % (fmt, date, msg[:16], key, 'OK' if ok else 'DIFFERENT'))
+
+F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
+F42CASES = (('YMD', 'YMD', '2026.0926', 'Y.MMDD'), ('DMY', 'DMY', '26.092026', 'D.MMYYYY'),     # SF / CF 31 67:
+            ('MDY', 'MDY', '9.262026', 'M.DDYYYY'))       # Restricted Operation; the commands set the flags
+
+
+def f42(flags, date):
+    t = tempfile.mkdtemp()
+    open(os.path.join(t, 'fl.txt'), 'w').write('LBL "FL"\n%s\nEND\n' % flags.replace('|', '\n'))
+    cmd = ['paste %s/build/free42/NAVINIT_LITTLE.txt' % ROOT, 'paste %s/build/free42/NAVLITTLE.txt' % ROOT,
+           'paste %s/fl.txt' % t, 'xeq FL', 'xeq INIT', 'xeq NAV', 'msg', 'num ' + date, 'num 14.57', 'num 25.20',
+           'num 55.12', 'shot %s/s.pbm' % t]
+    r = subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=600)
+    return r.stdout, open('%s/s.pbm' % t).read()
+
+
+if os.path.exists(F42):
+    ref = None
+    for fmt, flags, date, hint in F42CASES:
+        out, scr = f42(flags, date)
+        ref = ref or scr
+        ok = scr == ref
+        bad += not ok
+        print('Free42 %s %-10s screen = Y.MD: %s' % (fmt, date, 'OK' if ok else 'DIFFERENT'))
+else:
+    print('no tools/f42/f42run: Free42 skipped')
 print('%d different' % bad)
 sys.exit(1 if bad else 0)

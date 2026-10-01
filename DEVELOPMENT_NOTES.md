@@ -575,7 +575,13 @@ INIT with the builders as LBL 01-04.
   line asks DATE YYYY.MMDD, DD.MMYYYY or MM.DDYYYY (LBL 97 / 98). x→ⅅ then reads the number in
   that format, as before. 12 steps (FS? DMY checked on a C47 by the author). A first version
   found the format with 2451944 J→ⅅℸ DROP ⅅ→x IP (22 steps).
-- Free42 has no such issue: its NAV splits DATE as YYYY.MMDD with arithmetic (no date functions),
-  whatever the HP-42S / Free42 date mode (flags 31, 67); the prompt says Y.MMDD.
+- Free42 (build_free42.inputs): the same, with the HP-42S / Free42 flags, only tested: 67 set = YMD,
+  else 31 set = DMY, else MDY (the default of the DM42). The hint "D.MMYYYY H.MMSS" ... is a
+  string on the stack (XSTR), shown by INPUT as Y: "..." (18 characters fit; the old
+  "Y.MMDD H.MMSS D.MMm" lost its last letter). LBL 93 turns DATE into YYYY.MMDD for the
+  arithmetic; DATE keeps the number as typed. A program cannot SF / CF 31 or 67 (Restricted
+  Operation): the commands YMD / DMY / MDY set them (the tests use them).
+- tests/test_hours.py: UP / DOWN give the screen of NAV started at that hour (C47 NAVLITTLE in the
+  sim, Free42 NAVLITTLE and NAVFULL ALMANAC), the three formats, across a day, month and year end.
 - c47sim: datefmt 'YMD' / 'DMY' / 'MDY' for x→ⅅ, ⅅ→x and FS? / FC? DMY MDY YMD. tests/test_datefmt.py: NAVFULL with
   the three formats, the date typed in each: the message line and the ALMANAC screen.
