@@ -91,6 +91,14 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
    NAV uses the 8-level stack while it runs (the fonts need it) and puts your stack size
    back when you leave with 0 or TEXT.
 
+PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.4
+  python3 python/native/c47pc.py           a window (GTK 3): date, UT, DR, a view, Now UTC
+  python3 python/native/c47pc.py --view ALMANAC --date 2026-09-26 --ut 14:57 \
+          --lat "25 20 N" --lon "55 12 E" --png almanac.png      (PNG only: Python 3 alone)
+  Views: ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON - the C47 screens of Oct 2026 (header
+  line, Moon phase glyph), the same pixels as the calculator programs; MOON (the phases, the
+  next new / first quarter / full / last quarter) is on the PC only. --help lists the options.
+
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 

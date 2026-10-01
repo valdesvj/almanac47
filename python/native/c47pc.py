@@ -20,8 +20,9 @@ Two ways to use it
 
 Times are UT (UT1), as on the calculator. Latitude N+ / longitude E+, or
 written with N S E W ("25 20.0 N", "55 12 E", "25.3333", "-75.5").
-Files needed (same folder): c47pc.py c47astro.py c47screen.py c47font.py c47data.py
-                            c47tables.py, jplcheck.py; optional TBL_5.txt / TBL_1.txt (almanac tables)
+Files needed (same folder): c47pc.py c47astro.py c47screen.py c47screen21.py c47font.py
+                            c47fonts2.py c47fonts21.py c47data.py c47tables.py jplcheck.py;
+                            optional TBL_5.txt / TBL_1.txt (almanac tables)
 PNG and text need Python 3 only; the window needs PyGObject + cairo + GTK 3
 (Arch: pacman -S python-gobject python-cairo gtk3
  Debian/Ubuntu: apt install python3-gi python3-gi-cairo gir1.2-gtk-3.0).

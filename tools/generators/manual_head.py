@@ -1,4 +1,4 @@
-import json, math
+import json, math, os
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.platypus import (BaseDocTemplate, PageTemplate, Frame, Paragraph, Spacer, Table, TableStyle,
                                 PageBreak, NextPageTemplate, KeepTogether, Preformatted)
@@ -8,7 +8,8 @@ from reportlab.lib.units import mm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
-F = '/usr/share/fonts/truetype/dejavu/'
+F = next((d for d in ('/usr/share/fonts/truetype/dejavu/', '/usr/share/fonts/TTF/')    # Debian / Arch
+          if os.path.exists(d + 'DejaVuSans.ttf')), '/usr/share/fonts/truetype/dejavu/')
 pdfmetrics.registerFont(TTFont('DV', F + 'DejaVuSans.ttf'))
 pdfmetrics.registerFont(TTFont('DVB', F + 'DejaVuSans-Bold.ttf'))
 pdfmetrics.registerFont(TTFont('DVM', F + 'DejaVuSansMono.ttf'))
