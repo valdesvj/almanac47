@@ -21,7 +21,7 @@ views call the Sun and star routines directly again (nav1_programs). NAV12 (menu
 cache with the Moon and planets marked below the horizon) is still in the script but not
 written: about 72 KB as a .p47 file, too big for the DM42.
 
-Load INIT first on its own: XEQ "INIT", delete it (GTO "INIT", CLP), then load NAV.
+Load INIT first on its own: XEQ "INIT", delete it (GTO "INIT", DELP), then load NAV.
 (If INIT is still there, the first NAV runs it: flag 81.)
 
   python3 tools/build_dm42.py      -> build/dm42/*.txt (+ build/dm42/dev/ with the original names)
