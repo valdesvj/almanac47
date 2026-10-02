@@ -327,7 +327,7 @@ build_free42.py)
                      the page comes from the tables (T after ARIES), else from the series (S).
     NAVINIT_FULL.txt INIT: VSOP87 series, valid 2000-2050 (MATA MATST MATM MATP as LBL 01-04)
     NAVINIT_FAST.txt INIT: fitted series, valid 2026-2030 (MATN MATST MATM MATF), smaller
-                     Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", CLP); the
+                     Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", DELP); the
                      matrices stay. Zero elements are not stored: a new matrix starts with zeros.
     TBL_1.txt        almanac tables, 1 year (1 Oct 2026 - 30 Sep 2027): 8,441 numbers
     TBL_5.txt        almanac tables, 5 years (1 Oct 2026 - 30 Sep 2031): 41,882 numbers

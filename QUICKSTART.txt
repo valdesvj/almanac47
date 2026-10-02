@@ -35,7 +35,7 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
 
 3. DELETE THE INIT PROGRAM (frees memory - the matrices stay)
    NAVINIT is one program, INIT (the matrix builders are numbered labels inside it).
-   Delete it: GTO "INIT", then CLP.
+   Delete it: GTO "INIT", then DELP.
    Do not use CLPALL: it would delete NAV and the views as well.
    (Run INIT again only for a new period: load NAVINIT again, XEQ "INIT", delete it again.)
 

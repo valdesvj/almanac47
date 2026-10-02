@@ -52,7 +52,7 @@ S += [P('Almanac 47', title),
       'The file name is the version: on the calculator the programs are always NAV and INIT. Other builds '
       '(NAVFULL_NOTBL, NAVALL, NAVCOMP) are in build/dev/.',
       'Load one NAV file and one NAVINIT file. <b>XEQ "INIT"</b> once: it builds the matrices and shows MATRICES READY. '
-      'Then delete INIT (GTO "INIT", CLP): the matrices stay.',
+      'Then delete INIT (GTO "INIT", DELP): the matrices stay.',
       'Optional: load TBL, XEQ "TBL" once, delete it. The screens then show T (tables) instead of S (series).',
       'NAV asks DATE in the calculator\'s date format (CLK menu: YYYY-MM-DD, DD.MM.YYYY or MM/DD/YYYY) and reads it '
       'with the C47\'s own date functions; the message line shows which.'])

@@ -23,7 +23,7 @@ and GRFNT, to FILE.p47). Needs a C47 firmware with ATEXT and GRFNT.
                2000-2050) - the builders are LBL 01-04 inside INIT
   NAVINIT_FAST.txt  one program INIT: MATN MATST MATM MATF (fitted series for a few years:
                faster, smaller). Load ONE of them, XEQ "INIT" once, then delete INIT
-               (GTO "INIT", CLP) - the matrices it built stay. Zero elements are not stored (NEWMAT
+               (GTO "INIT", DELP) - the matrices it built stay. Zero elements are not stored (NEWMAT
                starts with zeros).
   TBL_1.txt, TBL_5.txt  almanac tables for 1 and 5 years (from 1 Oct 2026): load ONE, XEQ "TBL"
                once, then delete (build/dev/TBL_4M.txt: the 4-month table of the tests)
@@ -226,7 +226,7 @@ LABEL_TEXT = {
 NAVINIT_TEXT = """NAVINIT_FULL / NAVINIT_FAST - labels
 =====================================
 Each file is ONE program, INIT. XEQ "INIT" builds the matrices the navigation programs read,
-then shows MATRICES READY. After that delete it (GTO "INIT", CLP): the matrices stay.
+then shows MATRICES READY. After that delete it (GTO "INIT", DELP): the matrices stay.
 No font routines in these files.
 
 NAVINIT_FULL (VSOP87 series, valid 2000-2050, about 5,700 numbers)
@@ -474,7 +474,7 @@ def build():
     matn = ['LBL "MATN"'] + mata[k:]                  # NU only, for FAST (MATF builds VL VB VR)
     def init_prog(title, names, bodies, valid):
         """ONE program with one name, INIT: the matrix builders become LBL 01-04 inside it,
-        so after XEQ "INIT" only INIT has to be deleted (CLP)."""
+        so after XEQ "INIT" only INIT has to be deleted (DELP)."""
         out = (['LBL "INIT"'] + ['XEQ %02d' % (k + 1) for k in range(len(names))] + gencache.NEWMAT
                + ['"%s"' % valid, 'STO "VAL"', '"MATRICES READY: %s"' % title, 'RTN'])      # VAL: shown by the NAV menu
         for k, (n, b) in enumerate(zip(names, bodies)):
