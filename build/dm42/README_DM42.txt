@@ -29,7 +29,7 @@ LOADING (load INIT alone first: INIT and its matrices together need the most mem
   The .p47 files are ready to load (converted with tools/rejig47_atext.py); the .txt files are the same
   programs as text.
   1. load NAVINIT_LITTLE.p47, XEQ "INIT" -> MATRICES READY: SUN STARS 2000-2050
-  2. delete INIT: GTO "INIT", CLP (the matrices stay)
+  2. delete INIT: GTO "INIT", DELP (the matrices stay)
   3. load NAVLITTLE.p47, XEQ "NAV"
   INIT sets flag 81 when it is done: NAV then does not look for INIT. If INIT is still
   loaded and has not run, the first NAV runs it. If NAV stops with an undefined label at
