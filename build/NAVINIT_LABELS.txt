@@ -1,7 +1,7 @@
 NAVINIT_FULL / NAVINIT_FAST - labels
 =====================================
 Each file is ONE program, INIT. XEQ "INIT" builds the matrices the navigation programs read,
-then shows MATRICES READY. After that delete it (GTO "INIT", CLP): the matrices stay.
+then shows MATRICES READY. After that delete it (GTO "INIT", DELP): the matrices stay.
 No font routines in these files.
 
 NAVINIT_FULL (VSOP87 series, valid 2000-2050, about 5,700 numbers)
