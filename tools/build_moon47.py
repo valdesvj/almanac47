@@ -330,6 +330,230 @@ def build_f42():
     check_labels(P)
     return P
 
+# ---------------------------------------------------------------------- NumWorks and HP Prime (Python)
+def core_source():
+    """The calculation of python/moon47.py (TERMS ... page), as it is: the same formulas on every calculator."""
+    src = open(os.path.join(ROOT, 'python', 'moon47.py'), encoding='utf-8').read()
+    return src[src.index('# D, M, M\', F, longitude'):src.index('def main():')].rstrip() + '\n'
+
+
+NW_SCREEN = r"""
+
+# ---------------------------------------------------------------------- the page on the NumWorks (320 x 222)
+from kandinsky import fill_rect, color
+from ion import keydown, KEY_OK, KEY_EXE, KEY_BACK
+from time import sleep
+
+BK = color(0, 0, 0)
+WH = color(255, 255, 255)
+GR = color(140, 140, 140)
+# 5x7 font of the C47 programs (nwlib.py) with ( and ); 7 column bytes per character, bit 6 = top row
+C = " %'-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ()"
+F = (@@FONT@@
+     + b'\x00\x1c"A\x00\x00\x00' + b'\x00A"\x1c\x00\x00\x00')
+# the eight Moon phases, 7x7 (0 new ... 4 full ... 7 waning crescent; waxing lit on the right)
+MP = @@PHASES@@
+
+
+def cols(b, i, w, x, y, c=BK):
+    for k in range(w):
+        v = b[i + k]
+        r = 0
+        while r < 7:
+            if v >> (6 - r) & 1:
+                t = r
+                while r < 7 and v >> (6 - r) & 1:
+                    r += 1
+                fill_rect(x + k, y + t, 1, r - t, c)
+            r += 1
+
+
+def text(s, x, y, c=BK):
+    for ch in s:
+        i = C.find(ch)
+        if i > 0:
+            cols(F, 7 * i, 5, x, y, c)
+        x += 6
+    return x
+
+
+def draw(j, south):
+    p = page(j, south)
+    fill_rect(0, 0, 320, 222, WH)
+    d, m, y, h = from_julian(j + 0.5 / 1440)
+    text('%02d-%02d-%04d %02d:%02d UT' % (d, m, y, int(h), int(h * 60) % 60), 0, 2)
+    fill_rect(0, 12, 320, 1, BK)
+    cx, cy, r = 66, 118, 56
+    for dx in range(-r, r + 1):
+        for a, b in disc_runs(r, p['age'], south, dx):
+            if a == 0:
+                fill_rect(cx + dx, cy - b, 1, 2 * b + 1, BK)
+            else:
+                fill_rect(cx + dx, cy - b, 1, b - a + 1, BK)
+                fill_rect(cx + dx, cy + a, 1, b - a + 1, BK)
+    X = 136
+    text(NAMES[p['index']], X, 20)
+    text('LIT %d%%   AGE %.1f DAYS' % (int(p['lit'] + 0.5), p['age']), X, 34)
+    text("HP %.1f'  SD %.1f'" % (p['hp'], p['sd']), X, 46)
+    fill_rect(X, 60, 180, 1, BK)
+    text('NEXT PHASES (UT)', X, 66)
+    yy = 80
+    for t, name in p['next']:
+        d, m, y, h = from_julian(t + 0.5 / 1440)
+        text(name, X, yy)
+        text('%02d-%02d %02d:%02d' % (d, m, int(h), int(h * 60) % 60), X + 90, yy)
+        yy += 12
+    for k in range(8):
+        x = X + 22 * k
+        if k == p['index']:
+            fill_rect(x - 2, 144, 11, 11, BK)
+        cols(MP, 7 * k, 7, x, 146, WH if k == p['index'] else BK)
+    text('AS SEEN FROM THE SOUTH' if south else 'AS SEEN FROM THE NORTH', X, 166)
+    text('OK NORTH/SOUTH   BACK EXIT', X, 200, GR)
+
+
+def ask():
+    # the NumWorks has no clock: the date and the time UT
+    y = int(input('Year? '))
+    m = int(input('Month? '))
+    d = int(input('Day? '))
+    u = input('UT hh:mm? ').replace(':', ' ').replace('.', ' ').split()
+    return julian(y, m, d, int(u[0]) + (int(u[1]) if len(u) > 1 else 0) / 60.0)
+
+
+def key():
+    while 1:
+        for k in (KEY_OK, KEY_EXE, KEY_BACK):
+            if keydown(k):
+                while keydown(k):
+                    sleep(0.02)
+                return k
+        sleep(0.03)
+
+
+def run():
+    j = ask()
+    south = False
+    while 1:
+        draw(j, south)
+        if key() == KEY_BACK:
+            break
+        south = not south
+
+
+run()
+"""
+
+HP_SCREEN = r"""
+
+# ---------------------------------------------------------------------- the page on the HP Prime (320 x 240)
+from hpprime import eval as ev, fillrect
+
+TZ = 0          # hours between the calculator's clock and UT (4 for UT+4, -5 for UT-5); 0 if the clock is on UT
+BK = 0x000000
+WH = 0xFFFFFF
+GR = 0x8C8C8C
+# the eight Moon phases, 7x7 (0 new ... 4 full ... 7 waning crescent; waxing lit on the right), bit 6 = top row
+MP = @@PHASES@@
+
+
+def text(s, x, y, c=BK):
+    return int(float(ev('TEXTOUT_P("%s",G0,%d,%d,1,RGB(%d,%d,%d))' % (s, x, y, c >> 16, c >> 8 & 255, c & 255))))
+
+
+def cols(b, i, w, x, y, c=BK):
+    for k in range(w):
+        v = b[i + k]
+        for r in range(7):
+            if v >> (6 - r) & 1:
+                fillrect(0, x + k, y + r, 1, 1, c, c)
+
+
+def now():
+    # the calculator's clock (local time) minus TZ: the JD (UT)
+    d = float(ev('Date'))
+    t = float(ev('Time'))
+    y = int(d)
+    m = int(round((d - y) * 100, 6))
+    dd = int(round((d - y) * 10000 - m * 100))
+    h = int(t)
+    mi = int(round((t - h) * 100, 6))
+    s = round(((t - h) * 100 - mi) * 100)
+    return julian(y, m, dd, h + mi / 60.0 + s / 3600.0 - TZ)
+
+
+def draw(j, south):
+    p = page(j, south)
+    fillrect(0, 0, 0, 320, 240, WH, WH)
+    d, m, y, h = from_julian(j + 0.5 / 1440)
+    text('%02d-%02d-%04d %02d:%02d UT' % (d, m, y, int(h), int(h * 60) % 60), 0, 2)
+    fillrect(0, 0, 14, 320, 1, BK, BK)
+    cx, cy, r = 66, 124, 58
+    for dx in range(-r, r + 1):
+        for a, b in disc_runs(r, p['age'], south, dx):
+            if a == 0:
+                fillrect(0, cx + dx, cy - b, 1, 2 * b + 1, BK, BK)
+            else:
+                fillrect(0, cx + dx, cy - b, 1, b - a + 1, BK, BK)
+                fillrect(0, cx + dx, cy + a, 1, b - a + 1, BK, BK)
+    X = 136
+    text(NAMES[p['index']], X, 22)
+    text('LIT %d%%   AGE %.1f DAYS' % (int(p['lit'] + 0.5), p['age']), X, 38)
+    text("HP %.1f'  SD %.1f'" % (p['hp'], p['sd']), X, 52)
+    fillrect(0, X, 68, 180, 1, BK, BK)
+    text('NEXT PHASES (UT)', X, 74)
+    yy = 90
+    for t, name in p['next']:
+        d, m, y, h = from_julian(t + 0.5 / 1440)
+        text(name, X, yy)
+        text('%02d-%02d %02d:%02d' % (d, m, int(h), int(h * 60) % 60), X + 104, yy)
+        yy += 14
+    for k in range(8):
+        x = X + 22 * k
+        if k == p['index']:
+            fillrect(0, x - 2, 158, 11, 11, BK, BK)
+        cols(MP, 7 * k, 7, x, 160, WH if k == p['index'] else BK)
+    text('AS SEEN FROM THE SOUTH' if south else 'AS SEEN FROM THE NORTH', X, 180)
+    text('ENTER NORTH/SOUTH   ESC EXIT', X, 216, GR)
+
+
+def run():
+    j = now()
+    south = False
+    while 1:
+        draw(j, south)
+        k = int(float(ev('GETKEY')))
+        while k < 0:
+            k = int(float(ev('GETKEY')))
+        if k == 4:                               # Esc
+            break
+        if k == 30:                              # Enter
+            south = not south
+
+
+run()
+"""
+
+
+def python_ports():
+    """python/numworks/moon47.py and python/hpprime/moon47.py: the calculation of python/moon47.py and the page."""
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'numworks'))
+    src = open(os.path.join(ROOT, 'python', 'numworks', 'nwlib.py'), encoding='utf-8').read()
+    font = src[src.index("F = b'") + 4:src.index('\n', src.index("F = b'"))]
+    phases = src[src.index("MP = b'") + 5:src.index('\n', src.index("MP = b'"))]
+    assert src[src.index('C = "') + 5:src.index('"', src.index('C = "') + 5)] == ' %\'-./0123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZ*@'
+    head = ('# moon47.py - MOON47, the Moon phase page, standalone (generated by tools/build_moon47.py from\n'
+            '# python/moon47.py: the same formulas as MOON47 on the C47 and Free42). Almanac 47.\n'
+            '# Copyright 2026 Victor Valdes. GPL-3.0-or-later. Supports, does not replace, the Nautical Almanac.\n'
+            'import math\n\n')
+    core = core_source()
+    nw = head + core + NW_SCREEN.replace('@@FONT@@', '%s[:7 * 43]' % font).replace('@@PHASES@@', phases)
+    hp = head + core + HP_SCREEN.replace('@@PHASES@@', phases)
+    for d, txt in (('numworks', nw), ('hpprime', hp)):
+        f = os.path.join(ROOT, 'python', d, 'moon47.py')
+        open(f, 'w', encoding='utf-8').write(txt)
+        print('%s: %d bytes' % (os.path.relpath(f, ROOT), len(txt.encode('utf-8'))))
+
 
 def main():
     plain, with_rem = build()
@@ -346,6 +570,7 @@ def main():
     out = os.path.join(ROOT, 'build', 'free42', 'MOON47.txt')
     open(out, 'w', encoding='utf-8').write('\n'.join(f42) + '\n')
     print('%s: %d steps' % (os.path.relpath(out, ROOT), sum(1 for l in f42 if l != 'END')))
+    python_ports()
     run = os.path.join(HERE, 'f42', 'f42run')
     if os.path.exists(run):
         raw = out[:-4] + '.raw'
