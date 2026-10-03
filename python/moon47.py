@@ -9,8 +9,8 @@ HP Prime): every one uses these formulas, these 20 terms and these steps.
   0 for the 7 longitude-only rows). E^|M| for the terms with M.
   Elongation (Moon - Sun longitude) = D + sum(longitude terms) - the Sun's equation of the centre
   + 20.5" (the Sun's aberration). Distance = 385000.56 km + sum(distance terms).
-  Phases: Newton steps on the elongation (0 new, 90 first quarter, 180 full, 270 last quarter),
-  12.190749 deg a day. Age: the time since the last new Moon.
+  Phases: the secant method on the elongation (0 new, 90 first quarter, 180 full, 270 last quarter),
+  from the guess of the mean rate (12.190749 deg a day), three steps. Age: the time since the last new Moon.
   % lit: the phase angle from the elongation, the Moon's latitude (5.128 deg sin F) and the two distances.
   HP = asin(6378.14 km / distance), SD = 358473400 / distance (arcmin, as NAV).
 Accuracy against the full series of NAV (Meeus 47 + DE421 corrections), 2000-2050: phase times and age
@@ -100,11 +100,17 @@ def moon(j):
 
 
 def phase_time(j, target):
-    """JD of the first time at or after about j when the elongation is target (deg)."""
-    t = j + ((target - moon(j)[0]) % 360.0) / RATE
-    for _ in range(5):
-        t += ((target - moon(t)[0] + 180.0) % 360.0 - 180.0) / RATE
-    return t
+    """JD of the first time at or after about j when the elongation is target (deg): the secant method,
+    from j and the mean rate's guess, three steps (within 0.01 minute of the converged time)."""
+    d = (target - moon(j)[0]) % 360.0
+    t0, f0 = j, -d
+    t1 = j + d / RATE
+    for _ in range(3):
+        f1 = (moon(t1)[0] - target + 180.0) % 360.0 - 180.0
+        if f1 == f0:
+            break
+        t0, t1, f0 = t1, t1 - f1 * (t1 - t0) / (f1 - f0), f1
+    return t1
 
 
 def disc_runs(r, age, south, dx):
