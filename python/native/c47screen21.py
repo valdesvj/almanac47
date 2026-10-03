@@ -451,28 +451,21 @@ import moon47 as M47
 
 
 def moon_disc(sc, cx, cy, r, age, south=False):
-    """The Moon as a disc of radius r: the lit part filled, the dark part as its outline;
-    waxing lit on the right (northern view), mirrored for the south."""
-    th = math.radians(age / LUN * 360.0)
-    ct = math.cos(th)
-    for y in range(-r, r + 1):
-        w = math.sqrt(max(r * r - y * y, 0))
-        for x in range(-r, r + 1):
-            d = math.hypot(x, y)
-            if d > r + 0.3:
-                continue
-            xx = -x if south else x
-            lit = xx > w * ct if age <= LUN / 2 else xx < -w * ct
-            if lit or d > r - 1.2:
-                sc.pixel(cy + y, cx + x)
+    """The Moon as a disc of radius r, column by column as AGRAPH draws it (moon47.disc_runs)."""
+    for dx in range(-r, r + 1):
+        for a, b in M47.disc_runs(r, age, south, dx):
+            for y in range(a, b + 1):
+                sc.pixel(cy + y, cx + dx); sc.pixel(cy - y, cx + dx)
 
 
-def moon47_screen(j, lat, lon, source=''):
+def moon47_screen(j, south=False):
     """MOON47: the phase as a disc, its name, % lit, age, Moon HP and SD, the next four phases
     and the eight phase glyphs with today's one inverted. j: JD (UT)."""
-    p = M47.page(j, lat)
+    p = M47.page(j, south)
     sc = Screen(F21)
-    header(sc, None, j=j, lat=lat, lon=lon, source=source)
+    T = top_x()
+    sc.pdat(226, T['date'], j); sc.phm(226, T['time'], ut_hours(j)); sc.text(226, T['UT'], 'UT')
+    sc.pixel(-221, 0)
     moon_disc(sc, 80, 120, 62, p['age'], p['south'])
     sc.text(200, 168, PHASE_NAMES[p['index']])
     x = sc.text(183, 168, 'LIT '); x = sc.pinb(183, x, p['lit']); x = sc.text(183, x, '%   AGE ')
@@ -498,8 +491,8 @@ def moon47_screen(j, lat, lon, source=''):
 
 
 def moon_view(al):
-    """MOON (native view): the MOON47 page for the NAV date and DR."""
-    return moon47_screen(al.j, al.lat, al.lon, al.source)
+    """MOON (native view): the MOON47 page for the NAV date; the southern view for a south DR."""
+    return moon47_screen(al.j, al.lat < 0)
 
 
 VIEWS = {'ALMANAC': almanac, 'CHART': chart, 'SKY': sky_frames, 'SPLIT': split, 'ANIM': anim, 'ALLSKY': allsky,

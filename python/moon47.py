@@ -16,7 +16,10 @@ HP Prime): every one uses these formulas, these 20 terms and these steps.
 Accuracy against the full series of NAV (Meeus 47 + DE421 corrections), 2000-2050: phase times and age
 within 4 minutes (median under 1), HP within 0.03', SD within 0.01', lit within 0.1 %.
 
-  python3 python/moon47.py --date 2026-10-03 --ut 12:00 --lat 40 --lon 10 [--png FILE]
+  python3 python/moon47.py [--date 2026-10-03 --ut 12:00] [--south] [--png FILE]
+  The phase does not depend on the place: MOON47 takes the date and time from the clock (UT; on the
+  calculators the clock is local time, minus the variable TZ if it exists) and asks nothing. The latitude
+  only turns the picture: northern view, or the southern one (the +/- key on the calculators).
 """
 import math
 
@@ -104,7 +107,28 @@ def phase_time(j, target):
     return t
 
 
-def page(j, lat=0.0):
+def disc_runs(r, age, south, dx):
+    """The disc, one column at a time (what AGRAPH draws): for column dx (-r..r) the runs (a, b) of rows,
+    a <= |y| <= b above and below the centre. The lit part is filled, the dark part is the outline;
+    waxing lit on the right (northern view), mirrored for the south. Same pixels as the test
+    'lit or outline' of every pixel (x right of the terminator x = w cos(age), w the half width)."""
+    ct = cosd(age / LUN * 360.0) or 1e-30
+    v = (-dx if south else dx) * (1 if age <= LUN / 2 else -1)
+    ymax = math.floor(math.sqrt((r + 0.3) ** 2 - dx * dx))
+    qi = (r - 1.2) ** 2 - dx * dx
+    out = [(0 if qi < 0 else math.floor(math.sqrt(qi)) + 1, ymax)]          # the outline
+    q = r * r - (v / ct) ** 2
+    if ct >= 0:
+        if v > 0:
+            out.append((0 if q < 0 else math.floor(math.sqrt(q)) + 1, ymax))
+    elif v >= 0:
+        out.append((0, ymax))
+    elif q > 0:
+        out.append((0, min(ymax, math.floor(math.sqrt(q)))))
+    return [(a, b) for a, b in out if a <= b]
+
+
+def page(j, south=False):
     """Everything MOON47 shows, at JD j (UT)."""
     e, dist, beta, M = moon(j)
     psi = math.degrees(math.acos(cosd(beta) * cosd(e)))                       # Sun-Moon angle
@@ -123,30 +147,32 @@ def page(j, lat=0.0):
     nxt.sort()
     return {'jd': j, 'lit': (1.0 + cosd(i)) * 50.0, 'age': age,
             'hp': math.degrees(math.asin(6378.14 / dist)) * 60.0, 'sd': 358473400.0 / dist / 60.0,
-            'index': int(age / LUN * 8 + 0.5) % 8, 'next': nxt, 'south': lat < 0, 'elongation': e}
+            'index': int(age / LUN * 8 + 0.5) % 8, 'next': nxt, 'south': south, 'elongation': e}
 
 
 def main():
     import argparse, datetime, os, sys
-    ap = argparse.ArgumentParser(description='MOON47: the Moon phase page (standalone).')
-    ap.add_argument('--date', help='YYYY-MM-DD (default: today UTC)')
-    ap.add_argument('--ut', default='12:00', help='HH:MM UT (default 12:00)')
-    ap.add_argument('--lat', type=float, default=0.0, help='latitude, N + (only for the north / south view)')
-    ap.add_argument('--lon', type=float, default=0.0, help='longitude, E + (only for the header)')
+    ap = argparse.ArgumentParser(description='MOON47: the Moon phase page (standalone), now from the clock (UT).')
+    ap.add_argument('--date', help='YYYY-MM-DD UT instead of the clock')
+    ap.add_argument('--ut', default='12:00', help='HH:MM UT with --date (default 12:00)')
+    ap.add_argument('--south', action='store_true', help='the view from the south (the +/- key on the calculators)')
     ap.add_argument('--png', help='write the C47 screen to this PNG file')
     a = ap.parse_args()
-    y, m, d = map(int, (a.date or datetime.datetime.utcnow().strftime('%Y-%m-%d')).split('-'))
-    hh, mm = map(int, a.ut.split(':'))
-    p = page(julian(y, m, d, hh + mm / 60.0), a.lat)
+    if a.date:
+        y, m, d = map(int, a.date.split('-')); hh, mm = map(int, a.ut.split(':')); ut = hh + mm / 60.0
+    else:
+        now = datetime.datetime.now(datetime.timezone.utc)
+        y, m, d, ut = now.year, now.month, now.day, now.hour + now.minute / 60.0 + now.second / 3600.0
+    j = julian(y, m, d, ut)
+    p = page(j, a.south)
     print('%s  lit %.0f %%  age %.1f days  HP %.1f\'  SD %.1f\'' % (NAMES[p['index']], p['lit'], p['age'], p['hp'], p['sd']))
     for t, name in p['next']:
-        dd, mo, yy, ut = from_julian(t + 0.5 / 1440)
-        print('  %-14s %02d-%02d-%04d %02d:%02d UT' % (name, dd, mo, yy, int(ut), int(ut * 60) % 60))
+        dd, mo, yy, h = from_julian(t + 0.5 / 1440)
+        print('  %-14s %02d-%02d-%04d %02d:%02d UT' % (name, dd, mo, yy, int(h), int(h * 60) % 60))
     if a.png:
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'native'))
         import c47screen21, c47pc
-        rows = c47screen21.moon47_screen(julian(y, m, d, hh + mm / 60.0), a.lat, a.lon)[0]
-        c47pc.write_png(a.png, *c47pc.render_rgb(rows))
+        c47pc.write_png(a.png, *c47pc.render_rgb(c47screen21.moon47_screen(j, a.south)[0]))
         print(a.png, 'written')
 
 
