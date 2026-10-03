@@ -82,10 +82,11 @@ VIEWS (as on the C47, NAV menu; the old names ALMF HALMV HORZ HALMH ALMT still w
            animated PNG.
   ALLSKY   whole sky: horizon across the middle; Sun, Moon, planets and all 58 stars;
            DAY / TWILIGHT / NIGHT
-  MOON     (PC only) the phase as a disc (as seen from the north, or from the south
-           when the DR is south), its name, % lit, age, HP, SD, the next new Moon,
-           first quarter, full Moon and last quarter (UT, within about half an hour),
-           and the eight phase glyphs with today's one inverted
+  MOON     the page of the standalone program MOON47 (python/moon47.py; on the calculators
+           MOON47): the phase as a disc (as seen from the north, or from the south when the
+           DR is south), its name, % lit, age, HP, SD, the next new Moon, first quarter,
+           full Moon and last quarter (UT, within 4 minutes), and the eight phase glyphs
+           with today's one inverted
 
 MARKS
   Hc white on black (ALMANAC, CHART, SPLIT) or line starting with "* " (TEXT):
@@ -144,7 +145,7 @@ VIEW_TEXT = {'ALMANAC': 'full-page almanac (1 on the C47 menu)', 'CHART': 'chart
              'SPLIT': 'chart on top, GHA Dec Hc Zn below (5)',
              'ANIM': 'the Sun and the Moon moving on the whole-sky chart (6)',
              'ALLSKY': 'whole sky: over the horizon above, under it below, every body (7)',
-             'MOON': 'the Moon phase, the next phases (PC only)'}
+             'MOON': 'the Moon phase, the next phases (MOON47)'}
 
 # LCD look (SwissMicros memory LCD: pale grey glass, near-black pixels)
 LCD_BG = (0xD9, 0xDC, 0xD2)

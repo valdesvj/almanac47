@@ -18,6 +18,12 @@ version and the base for a phone app (**Almanac 47**).
   master on or after 30 Sep 2026 (ATEXT and GRFNT); no released firmware has them yet. For the
   public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
   release. The Free42 builds (`build/free42/`) run on the stock DM42 / DM42n firmware.
+- **MOON47, the Moon phase on its own:** one program, no NAV and no INIT: the phase as a disc, % lit,
+  age, HP, SD and the next four phases (UT), from the clock. `build/MOON47` (C47 / R47),
+  `build/dm42/MOON47` (DM42 with the C47 firmware), `build/free42/MOON47.raw` (Free42),
+  `python/numworks/moon47.py`, `python/hpprime/moon47.py`; the PC: `python3 python/moon47.py`.
+  The same formulas everywhere (`tools/build_moon47.py` writes them all from `python/moon47.py`):
+  phases within 4 minutes, HP 0.03'. Each manual has a MOON47 section.
 - **Calculator files:** `build/` (C47 / R47 with a firmware that has ATEXT and GRFNT: NAVFULL,
   NAVTXT, NAVINIT_FULL / _FAST, TBL; the text written with ATEXT, only the body symbols drawn),
   `build/dm42/` (C47 on the old DM42: NAVLITTLE, Sun and stars), `build/free42/` (DM42 /

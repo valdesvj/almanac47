@@ -327,6 +327,11 @@ class Calc:
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue
+            if op == 'RCL' and getattr(self, 'ign1er', False):
+                try:
+                    self.rget(self.regkey(arg))
+                except (KeyError, IndexError):
+                    self.ign1er = False; continue                 # the error is ignored: nothing recalled
             if op == 'RCL':
                 k = self.regkey(arg)
                 if isinstance(k, str) and k in self.mats and k not in self.reg:
@@ -342,6 +347,24 @@ class Calc:
                 cnt -= inc; self.rset(k, D(cnt) + frac)
                 if cnt <= fin: pc += 1
                 continue
+            if op in ('SF', 'CF') and arg.strip("'") == 'IGN1ER':   # ignore the next error (the C47 clears it on an error)
+                self.ign1er = op == 'SF'; continue
+            if op == 'SSIZE8' or op == 'SSIZE4': continue           # stack size: modelled as 4 levels
+            if op == 'Date→ⅅ' or op == 'Time→ℸ':                    # the clock: self.clock, a JD of the local time
+                j = D(str(getattr(self, 'clock'))) + D('0.5'); n = int(j // 1); fr = j - n
+                if op == 'Time→ℸ':
+                    self.push(('T', fr * 24)); continue
+                a = n + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
+                dd = (4 * c + 3) // 1461; e = c - 1461 * dd // 4; mm = (5 * e + 2) // 153
+                self.push(('D', 100 * b + dd - 4800 + mm // 10, mm + 3 - 12 * (mm // 10), e - (153 * mm + 2) // 5 + 1)); continue
+            if op == 'ⅅℸ→J':                                         # Y date, X time -> JD
+                dt, tm = (self.s[1], self.s[0]) if self.s[0][0] == 'T' else (self.s[0], self.s[1])
+                _, y, m, d = dt; a = (14 - m) // 12; yy = y + 4800 - a; mm = m + 12 * a - 3
+                jdn = d + (153 * mm + 2) // 5 + 365 * yy + yy // 4 - yy // 100 + yy // 400 - 32045
+                self.lastx = self.s[0]; self.s = [D(jdn) + tm[1] / 24 - D('0.5'), self.s[2], self.s[3], self.s[3]]; continue
+            if op == 'SQRT': self.unary(lambda x: x.sqrt()); continue
+            if op == '2ˣ': self.unary(lambda x: D(2) ** int(x) if x == int(x) else D(2 ** f(x))); continue
+            if op == 'SINT': self.unary(lambda x: D(int(x))); continue   # real -> short integer (the bits stay)
             if op == 'CF': self.flags.discard(int(arg)); continue
             if op == 'SF': self.flags.add(int(arg)); continue
             if op in ('FS?', 'FC?') and arg.strip("'") in ('DMY', 'MDY', 'YMD'):   # the date-format system flags

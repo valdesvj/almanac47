@@ -135,4 +135,12 @@ Moon 92 % waxing, age 12.8): all identical.
 Copyright 2026 Victor Valdes. GPL-3.0-or-later (see `LICENSE` and `NOTICE` at the top of
 the repository).
 
+## MOON47: the Moon phase on its own
+
+`moon47.py` (one file, no `nav.py`): the Moon's phase page; make a new Python app (e.g. `Moon47`) with `moon47.py` as its `main.py`. It reads the Prime's clock; set `TZ = 0` at the top to your offset from UT (4 for UT+4).
+The phase as a disc, % lit, age, HP, SD, the next four phases (UT) and the eight phase symbols.
+Keys: Enter: the view from the south and back; Esc: exit. Written by `tools/build_moon47.py` from `python/moon47.py` (the same formulas as MOON47 on the
+C47 and Free42; phases within 4 minutes, HP 0.03'). Preview: `docs/HPPRIME_moon47.png`; checked on a PC with
+`python3 tests/test_moon47_py.py`.
+
 **Supports, does not replace, the Nautical Almanac.**

@@ -15,6 +15,7 @@ img = Image.new('RGB', (W, H), (255, 255, 255))
 _d = ImageDraw.Draw(img)
 log = []                      # (text, x, y, font) of every TEXTOUT_P on G0
 script = []
+clock = {'Date': 2026.1003, 'Time': 12.0}
 KEYS = {'UP': 2, 'DOWN': 12, 'LEFT': 7, 'RIGHT': 8, 'ENTER': 30, 'ESC': 4}
 _fonts = {}
 _TX = re.compile(r'TEXTOUT_P\("(.*)",G(\d),(-?\d+),(-?\d+),(\d)(?:,RGB\((\d+),(\d+),(\d+)\))?\)$')
@@ -90,4 +91,6 @@ def eval(s):
         return KEYS[k] if k in KEYS else int(k)
     if s.startswith('WAIT(') or s.startswith('DIMGROB_P('):
         return 0
+    if s in ('Date', 'Time'):                 # the clock: date (YYYY.MMDD) and time (HH.MMSS) set by the caller
+        return clock[s]
     raise ValueError('PPL not emulated: ' + s)

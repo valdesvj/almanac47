@@ -442,69 +442,40 @@ def allsky(al):
     return [sc.rows()]
 
 
-# ---------------------------------------------------------------- MOON (native only)
-QUARTERS = ((0.0, 'NEW MOON'), (90.0, 'FIRST QUARTER'), (180.0, 'FULL MOON'), (270.0, 'LAST QUARTER'))
-
-
-def elongation(j):
-    """The Moon's phase angle 0 - 360 (0 new, 90 first quarter, 180 full, 270 last quarter):
-    180 - i, i the phase angle of PHAS (c47astro.phase: D, M, M' with the main terms)."""
-    D, M, Mp = A.Sun(j).args[:3]
-    i = (180 - D - 6.289 * A.dsin(Mp) + 2.1 * A.dsin(M) - 1.274 * A.dsin(2 * D - Mp)
-         - 0.658 * A.dsin(2 * D) - 0.214 * A.dsin(2 * Mp) - 0.11 * A.dsin(D))
-    return (180.0 - i) % 360.0
-
-
-def next_phases(j):
-    """The next new Moon, first quarter, full Moon and last quarter after JD j: (JD, name),
-    in time order (Newton steps on the phase angle, 12.19 deg a day)."""
-    out = []
-    e0 = elongation(j)
-    for target, name in QUARTERS:
-        t = j + ((target - e0) % 360.0) / 12.190749
-        for _ in range(6):
-            d = (target - elongation(t) + 180.0) % 360.0 - 180.0
-            t += d / 12.190749
-        if t < j:
-            t += LUN
-        out.append((t, name))
-    return sorted(out)
+# ---------------------------------------------------------------- MOON = MOON47
+# The page of the standalone program MOON47; its numbers come from python/moon47.py (the formulas of
+# every calculator version), not from the NAV tables.
+import os as _os, sys as _sys
+_sys.path.insert(0, _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..'))
+import moon47 as M47
 
 
 def moon_disc(sc, cx, cy, r, age, south=False):
-    """The Moon as a disc of radius r: the lit part filled, the dark part as its outline;
-    waxing lit on the right (northern view), mirrored for the south."""
-    th = math.radians(age / LUN * 360.0)
-    ct = math.cos(th)
-    for y in range(-r, r + 1):
-        w = math.sqrt(max(r * r - y * y, 0))
-        for x in range(-r, r + 1):
-            d = math.hypot(x, y)
-            if d > r + 0.3:
-                continue
-            xx = -x if south else x
-            lit = xx > w * ct if age <= LUN / 2 else xx < -w * ct
-            if lit or d > r - 1.2:
-                sc.pixel(cy + y, cx + x)
+    """The Moon as a disc of radius r, column by column as AGRAPH draws it (moon47.disc_runs)."""
+    for dx in range(-r, r + 1):
+        for a, b in M47.disc_runs(r, age, south, dx):
+            for y in range(a, b + 1):
+                sc.pixel(cy + y, cx + dx); sc.pixel(cy - y, cx + dx)
 
 
-def moon_view(al):
-    """MOON: the phase as a disc, its name, % lit, age, Moon HP and SD, the next four phases
-    and the eight phase glyphs with today's one inverted."""
+def moon47_screen(j, south=False):
+    """MOON47: the phase as a disc, its name, % lit, age, Moon HP and SD, the next four phases
+    and the eight phase glyphs with today's one inverted. j: JD (UT)."""
+    p = M47.page(j, south)
     sc = Screen(F21)
-    header(sc, al)
-    south = al.lat < 0
-    moon_disc(sc, 80, 120, 62, al.age, south)
-    p = phase_index(al.age)
-    sc.text(200, 168, PHASE_NAMES[p])
-    x = sc.text(183, 168, 'LIT '); x = sc.pinb(183, x, al.illum); x = sc.text(183, x, '%   AGE ')
-    x = sc.pf1(183, x, al.age); sc.text(183, x, ' DAYS')
-    x = sc.text(166, 168, 'HP '); x = sc.pf1(166, x, al.moon[2]); x = sc.text(166, x, "'  SD ")
-    x = sc.pf1(166, x, al.moon[3]); sc.text(166, x, "'")
+    T = top_x()
+    sc.pdat(226, T['date'], j); sc.phm(226, T['time'], ut_hours(j)); sc.text(226, T['UT'], 'UT')
+    sc.pixel(-221, 0)
+    moon_disc(sc, 80, 120, 62, p['age'], p['south'])
+    sc.text(200, 168, PHASE_NAMES[p['index']])
+    x = sc.text(183, 168, 'LIT '); x = sc.pinb(183, x, p['lit']); x = sc.text(183, x, '%   AGE ')
+    x = sc.pf1(183, x, p['age']); sc.text(183, x, ' DAYS')
+    x = sc.text(166, 168, 'HP '); x = sc.pf1(166, x, p['hp']); x = sc.text(166, x, "'  SD ")
+    x = sc.pf1(166, x, p['sd']); sc.text(166, x, "'")
     sc.hline(156, 168, 230)
     sc.text(139, 168, 'NEXT PHASES (UT)')
     y = 121
-    for t, name in next_phases(al.j):
+    for t, name in p['next']:
         d, m, yr = jd_to_date(t)
         sc.text(y, 168, name)
         x = sc.text(y, 300, '%02d-%02d ' % (d, m))
@@ -513,10 +484,15 @@ def moon_view(al):
     for k in range(8):
         x = 168 + k * 29
         sc.glyph(SYMB, str(k), 26, x)
-        if k == p:
+        if k == p['index']:
             sc.xor_box(23, x - 3, 18, 18)
-    sc.text(6, 168, 'AS SEEN FROM THE SOUTH' if south else 'AS SEEN FROM THE NORTH')
+    sc.text(6, 168, 'AS SEEN FROM THE SOUTH' if p['south'] else 'AS SEEN FROM THE NORTH')
     return [sc.rows()]
+
+
+def moon_view(al):
+    """MOON (native view): the MOON47 page for the NAV date; the southern view for a south DR."""
+    return moon47_screen(al.j, al.lat < 0)
 
 
 VIEWS = {'ALMANAC': almanac, 'CHART': chart, 'SKY': sky_frames, 'SPLIT': split, 'ANIM': anim, 'ALLSKY': allsky,

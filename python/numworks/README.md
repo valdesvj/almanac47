@@ -105,4 +105,12 @@ rise/set, mer pass, SD, Moon 92 % waxing, age 12.8): all identical.
 Copyright 2026 Victor Valdes. GPL-3.0-or-later (see `LICENSE` and `NOTICE` at the top of
 the repository).
 
+## MOON47: the Moon phase on its own
+
+`moon47.py` (one file, no `nav.py`): the Moon's phase page; copy `moon47.py` to the calculator and run it. The NumWorks has no clock: it asks year, month, day and UT.
+The phase as a disc, % lit, age, HP, SD, the next four phases (UT) and the eight phase symbols.
+Keys: OK / EXE: the view from the south and back; BACK: exit. Written by `tools/build_moon47.py` from `python/moon47.py` (the same formulas as MOON47 on the
+C47 and Free42; phases within 4 minutes, HP 0.03'). Preview: `docs/NUMWORKS_moon47.png`; checked on a PC with
+`python3 tests/test_moon47_py.py`.
+
 **Supports, does not replace, the Nautical Almanac.**
