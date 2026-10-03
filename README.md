@@ -14,6 +14,10 @@ version and the base for a phone app (**Almanac 47**).
   ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON, drawn as the C47 screens of Oct 2026 (MOON,
   the Moon phases, is on the PC only).
 - **PC, reference viewer:** `python/c47view.py` runs the real calculator programs.
+- **Firmware:** the C47 builds (`build/`, `build/dm42/`) need a C47 / R47 firmware built from
+  master on or after 30 Sep 2026 (ATEXT and GRFNT); no released firmware has them yet. For the
+  public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
+  release. The Free42 builds (`build/free42/`) run on the stock DM42 / DM42n firmware.
 - **Calculator files:** `build/` (C47 / R47 with a firmware that has ATEXT and GRFNT: NAVFULL,
   NAVTXT, NAVINIT_FULL / _FAST, TBL; the text written with ATEXT, only the body symbols drawn),
   `build/dm42/` (C47 on the old DM42: NAVLITTLE, Sun and stars), `build/free42/` (DM42 /

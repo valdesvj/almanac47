@@ -317,6 +317,11 @@ build_free42.py)
                 draws the screens of Oct 2026 (programs/atext/t21/): the text with ATEXT in
                 GRFNT 21 and the tinyFont (GRFNT 10) on the charts, the body symbols from glyphs47
                 (PSYB, PSYS: the only AGRAPH font left). .p47: tools/rejig47_atext.py.
+                FIRMWARE: these builds and build/dm42/ need a C47 / R47 firmware built from
+                master on or after 30 Sep 2026 (ATEXT 29 Sep, GRFNT 30 Sep); no released
+                firmware has them yet. On the public firmware 00.109.04.00b0 they stop with
+                "Non-programmable command": use Almanac47_C47_R47_fw0400b0_v1.1.0.zip (v1.1.0
+                release). build/free42/ runs on the stock DM42 / DM42n firmware.
     NAVFULL.txt      NAV: all 8 views (1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM
                      7 ALLSKY 8 INFO; 9 = SNAP), the sky cache, the SINKING box, the ants (flag 47),
                      and the almanac tables (TBL) when they are loaded. Kept for calculators
