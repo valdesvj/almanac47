@@ -392,7 +392,22 @@ class Calc:
                     self.J = 1; self.I += 1
                     if self.I > len(m): self.I = 1; self.flags.add(77)
                 continue
-            raise ValueError('unknown op: ' + ln)
+            raise ValueError(unknown(ln))
+
+
+def unknown(ln):
+    """The error for a step c47sim does not run: is it a C47 command at all (table of the firmware on master)?"""
+    try:
+        import os, sys
+        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'tools'))
+        import c47ref
+        names = c47ref.program_names(c47ref.load())
+        op = next((ln[:k] for k in range(len(ln), 0, -1) if ln[:k] in names and (k == len(ln) or ln[k] == ' ')), None)
+    except (OSError, ImportError):
+        return 'unknown op: ' + ln
+    if op:
+        return 'unknown op: %s (C47 item %s %s: not modelled in c47sim yet)' % (ln, names[op]['opcode'], names[op]['catalog_name'])
+    return 'unknown op: %s (not a name in docs/reference/C47_items_master.tsv; tools/c47check.py checks a listing with rejig)' % ln
 
 
 def load(files):
