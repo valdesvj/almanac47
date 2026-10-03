@@ -2,7 +2,9 @@ C47_nav - QUICK START (install and run)
 =======================================
 
 You need a C47 firmware with ATEXT and GRFNT (the screens write their text with ATEXT) and two
-files. The release zip has them as .p47, ready to load; from the repository, convert the .txt
+files. FIRMWARE: a C47 / R47 firmware built from master on or after 30 Sep 2026 (ATEXT came on
+29 Sep, GRFNT on 30 Sep); no released firmware has them yet. On the public firmware 00.109.04.00b0
+use Almanac47_C47_R47_fw0400b0_v1.1.0.zip from the v1.1.0 release. The release zip has them as .p47, ready to load; from the repository, convert the .txt
 files in build/ first (tools/rejig47_atext.py runs rejig and writes the ATEXT / GRFNT steps that
 rejig 0.34 does not know; a rejig that knows them converts directly):
 
