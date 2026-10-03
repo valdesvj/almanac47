@@ -12,7 +12,7 @@ there first). The second line of the file names the commit it was made from.
   Data parsed from GPL-3.0-only source.
 
 Keep it current:
-  git -C ~/opt/c43 pull                    the firmware source (C43_DIR=... for another clone)
+  (pull the clone ~/opt/c43 first)         the firmware source (C43_DIR=... for another clone)
   python3 tools/c47ref.py                  rewrites the table, prints what changed
   python3 tools/c47check.py                every C47 listing: rejig reads it, each command must exist on
                                            master and be allowed in programs; renamed commands as notes

@@ -12,5 +12,8 @@
   must match it pixel for pixel.
 - Ask before anything that can't be undone.
 - C47 commands come from the firmware on master, not from the web reference (it follows releases only):
-  git -C ~/opt/c43 pull, then python3 tools/c47ref.py (docs/reference/C47_items_master.tsv) and
-  python3 tests/test_c47ref.py. Use the latest rejig in ~/.local/bin.
+  python3 tools/c47ref.py (docs/reference/C47_items_master.tsv), then python3 tests/test_c47ref.py.
+- ~/opt/c43 (C47 firmware, git) and ~/opt/rpn (rejig, fossil): only read their files. Update them
+  (git pull / fossil update) only when Victor asks to check them; never branch, build or write there.
+  rejig is built from a copy outside ~/opt/rpn and installed in ~/.local/bin (old: rejig-0.34.1).
+- Pull requests only for almanac47.
