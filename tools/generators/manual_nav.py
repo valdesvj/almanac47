@@ -144,3 +144,27 @@ S += [PageBreak(), P('7. Program map', h2),
         'number, so the labels stay the same from one version to the next. NAVFULL_NOTBL has the same labels without '
         'N49 (TGET). NAVTXT and NAVLITTLE have their own numbering: see their _LABELS.txt files.'),
       prose_tbl(rows, [16 * mm, 18 * mm, 146 * mm])]
+
+# ---- MOON47: the Moon phase on its own
+S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
+      P('MOON47 is a separate program: the Moon\'s phase page of the PC version on the calculator, without NAV, INIT or '
+        'the tables. Load build/MOON47 (convert it with rejig) and <b>XEQ "MOON47"</b>. It asks nothing: the phase does '
+        'not depend on where you are, so it takes the date and time from the C47\'s clock.'),
+      pair('MOON47.png', 'MOON47_south.png', '3 Oct 2026 12:00 UT, as seen from the north',
+           'the same after +/-: as seen from the south')] + B([
+      '<b>The page:</b> the Moon as a disc (the lit part filled), the phase name, % lit, age in days, HP and SD, the '
+      'next new Moon, first quarter, full Moon and last quarter (date and time UT), and the eight phase symbols with '
+      'today\'s one inverted.',
+      '<b>Keys:</b> +/- turns the picture to the view from the south and back (the latitude only turns the picture); '
+      'any other key ends.',
+      '<b>The clock is local time.</b> If it is not set to UT, store your offset once in the variable TZ, in hours: '
+      '<b>4 STO "TZ"</b> for UT+4, <b>-5 STO "TZ"</b> for UT−5. Without TZ the clock is taken as UT: the phase times '
+      'stay right, the age and % lit are then a few hours off (% lit changes at most 0.45 % an hour).',
+      '<b>Accuracy</b> against the full series of NAV, 2000–2050: phase times and age within 4 minutes (most within 1), '
+      'HP 0.03′, SD 0.01′, % lit 0.03 %. It uses the 20 largest terms of the Moon (Meeus, ch. 47), the phases by the '
+      'secant method; tests/test_moon47.py checks it.',
+      '<b>Memory:</b> about 5.5 KB (the program and its own copies of the text and symbol routines, M7TX and M7SY, so '
+      'it does not need NAVFULL and does not clash with it). It takes registers R00–R61 and leaves your stack size as '
+      'it was. Needs a firmware with ATEXT and GRFNT, like NAV.',
+      'The same program runs on the old DM42 with the C47 firmware (build/dm42/MOON47). Free42 (build/free42/MOON47.raw), '
+      'the NumWorks and the HP Prime have their own MOON47 with the same page: see their manuals.'])

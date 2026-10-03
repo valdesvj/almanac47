@@ -79,6 +79,12 @@ WHAT IS DIFFERENT FROM THE C47 VERSION (inside the programs, not on the screen)
   - The texts: PTXS, an AGRAPH font with the glyphs and widths of the C47 font 21 (GRFNT 21);
     the symbols and Moon phases: PSYB / PSYS; the small texts: PTTY (the C47 tinyFont).
 
+MOON47.raw / MOON47.txt: MOON47, the Moon phase page on its own (no NAV, no INIT, about 6.5 KB). XEQ "MOON47":
+it reads the DM42's clock (any date format), minus TZ hours if the variable TZ exists (4 STO "TZ" for UT+4);
+the phase as a disc, % lit, age, HP, SD, the next four phases (UT); +/- north / south view, other keys end.
+The same screen as the C47 MOON47, pixel for pixel (tests/test_moon47_f42.py). Built with
+python3 tools/build_moon47.py.
+
 Built with: python3 tools/build_free42.py
 Copyright 2026 Victor Valdes. GNU GPL v3 or later. It supports, and does not replace,
 the Nautical Almanac: always cross-check the values.

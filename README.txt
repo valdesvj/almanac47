@@ -322,6 +322,13 @@ build_free42.py)
                 firmware has them yet. On the public firmware 00.109.04.00b0 they stop with
                 "Non-programmable command": use Almanac47_C47_R47_fw0400b0_v1.1.0.zip (v1.1.0
                 release). build/free42/ runs on the stock DM42 / DM42n firmware.
+    MOON47.txt       MOON47: the Moon phase on its own (no NAV, no INIT, about 5.5 KB): the date and time
+                     from the clock (minus TZ hours if the variable TZ exists), the phase as a disc, % lit,
+                     age, HP, SD, the next four phases (UT), the 8 phase symbols; +/- north / south view,
+                     other keys end. Same page in build/dm42/, build/free42/ (.raw), python/numworks/,
+                     python/hpprime/ and on the PC (python/moon47.py; the MOON view of python/native).
+                     All written by tools/build_moon47.py from python/moon47.py (20 terms of Meeus 47,
+                     phases within 4 minutes, HP 0.03'); tests/test_moon47*.py.
     NAVFULL.txt      NAV: all 8 views (1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM
                      7 ALLSKY 8 INFO; 9 = SNAP), the sky cache, the SINKING box, the ants (flag 47),
                      and the almanac tables (TBL) when they are loaded. Kept for calculators

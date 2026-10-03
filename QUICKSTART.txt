@@ -111,4 +111,8 @@ MEMORY: programs (measured with rejig) NAVFULL 35.8 KB, NAVTXT 14.9 KB; INIT whi
 NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB; TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
 and ALMQ about 20 KB.
 
+MOON47 (the Moon phase on its own, no NAV and no INIT): load build/MOON47 (rejig it to .p47), XEQ "MOON47".
+It asks nothing (the clock; if the clock is not on UT: 4 STO "TZ" for UT+4). +/- turns the picture to
+the view from the south, any other key ends. Free42: build/free42/MOON47.raw, the same keys.
+
 DOES NOT REPLACE THE NAUTICAL ALMANAC.

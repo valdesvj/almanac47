@@ -53,6 +53,20 @@ def inputs_note():
               '<b>Signs:</b> latitude N +, S −; longitude E +, W −.'])
 
 
+
+def moon47(n, where, start, keys, extra):
+    """The MOON47 section of the port manuals: n section number."""
+    return [PageBreak(), P('%d. MOON47: the Moon phase' % n, h2),
+            P('MOON47 is a separate program, the Moon\'s phase page without NAV, INIT or the tables: %s. %s' % (where, start))
+            ] + extra[0] + B([
+        '<b>The page:</b> the Moon as a disc (the lit part filled), the phase name, % lit, age in days, HP and SD, the next '
+        'new Moon, first quarter, full Moon and last quarter (date and time UT), and the eight phase symbols with today\'s '
+        'one inverted. The phase does not depend on where you are; the latitude only turns the picture.',
+        keys] + extra[1] + [
+        '<b>Accuracy</b> against the full series of NAV, 2000–2050: phase times and age within 4 minutes (most within 1), '
+        'HP 0.03′, SD 0.01′, % lit 0.03 %: the 20 largest terms of the Moon (Meeus, ch. 47), the same formulas as MOON47 '
+        'on the C47 (python/moon47.py; tests/test_moon47.py).'])
+
 # ------------------------------------------------------------------ Free42 (DM42 / DM42n)
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
@@ -172,6 +186,16 @@ def free42():
         '<b>TBL_50</b>: 1 Jan 2000 – 31 Dec 2050 (file 4.9 MB, about 6.8 MB of matrices): Free42 / Plus42 on a PC only. '
         'Not in the package: download TBL_50.raw from the release tbl50-2000-2050 '
         '(github.com/valdesvj/almanac47/releases/tag/tbl50-2000-2050) or make it with tools/almanac/README.md.'])
+    S += moon47(12, 'build/free42/MOON47.raw (about 6.5 KB)', 'Load it and <b>XEQ "MOON47"</b>: it asks nothing and '
+                'takes the date and time from the DM42\'s clock (any date format: YMD, DMY or MDY).',
+                '<b>Keys:</b> +/- turns the picture to the view from the south and back; any other key ends.',
+                ([pair(os.path.join(DOCS, 'MOON47.png'), os.path.join(DOCS, 'MOON47_south.png'),
+                       '3 Oct 2026 12:00 UT, from the north', 'after +/-: from the south')],
+                 ['<b>The clock is local time.</b> If it is not on UT, store your offset once in the variable TZ, in '
+                  'hours: <b>4 STO "TZ"</b> for UT+4. Without TZ the clock is taken as UT: the phase times stay right, the '
+                  'age and % lit are then a few hours off.',
+                  'The same screen as MOON47 on the C47, pixel for pixel (tests/test_moon47_f42.py in the Free42 core). '
+                  'It sets SIZE 100 and uses R00–R61; GrMod 3 while it runs, RefLCD so the page appears at once.']))
     make(os.path.join(PDF, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
 
 
@@ -268,6 +292,19 @@ def python_port(name, key):
         'Not yet tried on a real %s. Checked on a PC (stand-in module) and in a MicroPython interpreter.' % name] +
         ([] if nw else ['Not sure on the real Prime: the exact pixel size of its fonts (columns may be a few pixels off) and '
                         'whether ESC reaches GETKEY in every firmware (ON always stops the program).']))
+    pic = os.path.join(DOCS, '%s_moon47.png' % key.upper())
+    S += moon47(10, 'python/%s/moon47.py (about %d KB, one file)' % ('numworks' if nw else 'hpprime', 10 if nw else 9),
+                ('Copy it to the calculator as moon47.py and run it. The NumWorks has no clock: it asks year, month, day '
+                 'and UT.' if nw else
+                 'Make a new Python app (e.g. Moon47) and put this file in it as its main.py. It asks nothing: it takes the '
+                 'date and time from the Prime\'s clock.'),
+                ('<b>Keys:</b> OK or EXE turns the picture to the view from the south and back; BACK ends.' if nw else
+                 '<b>Keys:</b> Enter turns the picture to the view from the south and back; Esc ends.'),
+                ([pair(pic, pic.replace('.png', '_south.png'), '3 Oct 2026 12:00 UT, from the north',
+                       'after %s: from the south' % ('OK' if nw else 'Enter'), ratio=0.7)],
+                 [] if nw else ['<b>The clock is local time.</b> If it is not on UT, set the line TZ = 0 at the top of '
+                                'main.py to your offset in hours (4 for UT+4). With TZ = 0 the clock is taken as UT: the '
+                                'phase times stay right, the age and % lit are then a few hours off.']))
     make(os.path.join(PDF, 'Almanac47_%s_Manual.pdf' % key), '%s — user manual' % name, S)
 
 

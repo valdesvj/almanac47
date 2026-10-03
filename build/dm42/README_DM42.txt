@@ -61,4 +61,8 @@ OTHER BUILDS (build/dm42/dev/, not in the release)
 For the DM42 / DM42n with the stock firmware (Free42): build/free42/NAVLITTLE, the same screen
 (no ATEXT there: its own AGRAPH fonts with the same pixels).
 
+MOON47 (the Moon phase on its own): MOON47.txt here is the C47 program (build/MOON47.txt), about 5.5 KB:
+no INIT, the clock (minus TZ hours if the variable TZ exists), +/- north / south view, other keys end.
+Built with python3 tools/build_moon47.py.
+
 Built with: python3 tools/build_dm42.py
