@@ -55,6 +55,9 @@ void shell_get_time_date(uint4 *time, uint4 *date, int *weekday) {
     long s = tv.tv_sec % 86400;
     if (time) *time = (s / 3600) * 1000000 + (s / 60 % 60) * 10000 + (s % 60) * 100 + tv.tv_usec / 10000;
     if (date) *date = 20260926;
+    const char *et = getenv("F42_TIME"), *ed = getenv("F42_DATE");   // a fixed clock for the tests: HHMMSScc, YYYYMMDD
+    if (time && et) *time = (uint4) atol(et);
+    if (date && ed) *date = (uint4) atol(ed);
     if (weekday) *weekday = 6;
 }
 void shell_message(const char *m) { fprintf(stderr, "MSG %s\n", m); }

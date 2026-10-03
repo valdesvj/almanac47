@@ -26,7 +26,7 @@ sys.path[:0] = [HERE, os.path.join(HERE, 'generators', 'atext'), os.path.join(HE
 import moon47 as M47                                                        # noqa: E402
 
 LUN, RATE = '29.530589', '12.190749'
-RENAME = {'PTXS': 'M7TX', 'PINS': 'M7IN', 'PF1S': 'M7F1', 'PHMS': 'M7HM', 'PDMS': 'M7DM', 'PDTS': 'M7DT',
+RENAME = {'PX': 'M7PX', 'FBX': 'M7BX', 'PTXS': 'M7TX', 'PINS': 'M7IN', 'PF1S': 'M7F1', 'PHMS': 'M7HM', 'PDMS': 'M7DM', 'PDTS': 'M7DT',
           'PZNS': 'M7ZN', 'PHLS': 'M7HL', 'PTTY': 'M7TY', 'PTNT': 'M7NT', 'PSYB': 'M7SY'}
 TX, IN, F1, HM, DT, HL, SY = (('XEQ "%s"' % RENAME[n]) for n in ('PTXS', 'PINS', 'PF1S', 'PHMS', 'PDTS', 'PHLS', 'PSYB'))
 
@@ -43,20 +43,50 @@ def terms():
     return out
 
 
-def main_program():
+def clock(f42):
+    """X: the JD (UT) of now: the clock (local time) minus TZ hours if the variable TZ exists."""
+    if not f42:
+        tz = ['0', 'STO 03', "SF 'IGN1ER'", 'RCL "TZ"', 'STO 03', "CF 'IGN1ER'"]
+        return tz + ['Date→ⅅ', 'Time→ℸ', 'ⅅℸ→J', 'RCL 03', '24', '÷', '-']
+    # Free42: DATE in the format of flags 67 (YMD: Y.MMDD), 31 (DMY: D.MMYYYY) or neither (MDY: M.DDYYYY),
+    # TIME HH.MMSS; the JD with the Gregorian arithmetic (Meeus 7.1); flag 25 ignores the missing TZ
+    tz = ['0', 'STO 03', 'SF 25', 'RCL "TZ"', 'STO 03', 'CF 25']
+    return tz + ['DATE', 'FS? 67', 'GTO 07', 'FS? 31', 'GTO 08',
+                 'ENTER', 'IP', 'STO 41', '-', '100', '×', 'ENTER', 'IP', 'STO 42', '-', '10000', '×', 'GTO 09',
+                 'LBL 08', 'ENTER', 'IP', 'STO 42', '-', '100', '×', 'ENTER', 'IP', 'STO 41', '-', '10000', '×', 'GTO 09',
+                 'LBL 07', 'ENTER', 'IP', 'X<>Y', 'FP', '100', '×', 'ENTER', 'IP', 'STO 41', '-', '100', '×', 'STO 42',
+                 'R↓',
+                 'LBL 09', '0.5', '+', 'IP', 'STO 43',                         # R43 year, R41 month, R42 day
+                 'RCL 41', '3', 'X>Y?', 'XEQ 10',
+                 'RCL 43', '100', '÷', 'IP', 'STO 44', '4', '÷', 'IP', 'RCL 44', '-', '2', '+',
+                 'RCL 43', '4716', '+', '365.25', '×', 'IP', '+',
+                 'RCL 41', '1', '+', '30.6001', '×', 'IP', '+', 'RCL 42', '+', '1524.5', '-',
+                 'TIME', '→HR', 'RCL 03', '-', '24', '÷', '+']
+
+
+def main_program(f42=False):
+    # the minute mark ': ATEXT on the C47; on Free42 two boxes (LBL 47), because with it and the descenders of
+    # ( and ) the AGRAPH font would be 17 rows high (two bands of 8). Same pixels: the standard font's '
+    AP = ['XEQ 47'] if f42 else ['"\'"', TX]
     P = ['LBL "MOON47"',
-         'REM "MOON47: the Moon phase now (clock, minus TZ hours if TZ exists); +/- north / south view; other keys end"',
-         'SSIZE#', 'STO 29', 'SSIZE8', 'DEG', 'WSIZE 64',
-         '0', 'STO 03', "SF 'IGN1ER'", 'RCL "TZ"', 'STO 03', "CF 'IGN1ER'",
-         '0', 'STO 28',
-         'Date→ⅅ', 'Time→ℸ', 'ⅅℸ→J', 'RCL 03', '24', '÷', '-', 'STO 06',
-         '21', 'GRFNT', 'DROP', 'XEQ 29',
-         'LBL 01', 'CLLCD', 'XEQ 30', 'PAUSE 0',
-         'LBL 02', 'KEY? 39', 'GTO 02',
-         'RCL 39', '43', 'X=Y?', 'GTO 04',
-         'CLLCD', '20', 'GRFNT', 'DROP', 'RCL 29', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN',
-         'LBL 04', '1', 'RCL 28', '-', 'STO 28', 'GTO 01',
-         # ---------------------------------------------------------------- the page
+         'REM "MOON47: the Moon phase now (clock, minus TZ hours if TZ exists); +/- north / south view; other keys end"']
+    P += (['SIZE 100', 'DEG'] if f42 else ['SSIZE#', 'STO 29', 'SSIZE8', 'DEG', 'WSIZE 64'])
+    P += clock(f42) + ['STO 06', '0', 'STO 28']
+    P += (['3', 'STO "GrMod"', '0', 'STO "RefLCD"', 'XEQ 29'] if f42 else ['21', 'GRFNT', 'DROP', 'XEQ 29'])
+    P += ['LBL 01', 'CLLCD', 'XEQ 30'] + (['-1', 'STO "RefLCD"'] if f42 else ['PAUSE 0'])
+    P += (['LBL 02', 'GETKEY', '15', 'X=Y?', 'GTO 04'] if f42 else       # Free42: GETKEY waits; +/- is 15
+          ['LBL 02', 'KEY? 39', 'GTO 02', 'RCL 39', '43', 'X=Y?', 'GTO 04'])
+    P += (['CLLCD', '0', 'STO "GrMod"', '7', 'STO "RefLCD"', 'CLST', 'CLD', 'RTN'] if f42 else
+          ['CLLCD', '20', 'GRFNT', 'DROP', 'RCL 29', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN'])
+    P += ['LBL 04', '1', 'RCL 28', '-', 'STO 28', 'GTO 01']
+    if f42:
+        P += ['LBL 10', '12', 'STO+ 41', '1', 'STO- 43', 'RTN',
+              'REM "LBL 47: Y row of the base line, X column -> the minute mark (2 x 5 + 1 x 1 pixels); Y row, X next column"',
+              'LBL 47', 'STO "AX"', 'STO "BX"', 'X<>Y', 'STO "AY"', '10', '+', 'STO "BY"', '2', 'STO "BW"', '5', 'STO "BH"',
+              'XEQ "M7BX"', 'RCL "AX"', 'STO "BX"', 'RCL "AY"', '9', '+', 'STO "BY"', '1', 'STO "BW"', 'STO "BH"',
+              'XEQ "M7BX"', 'RCL "AY"', 'RCL "AX"', '7', '+', 'RTN']
+    P += [
+         # ---------------------------------------------------------------- the numbers
          'REM "LBL 29: the numbers of the page (once); LBL 30 draws it (again after +/-)"',
          'LBL 29',
          'RCL 06', 'XEQ 41', 'STO 15',
@@ -73,8 +103,8 @@ def main_program():
          'RCL 06', 'RCL 23', '-', 'STO 24',
          LUN, '÷', '8', '×', '0.5', '+', 'IP', '8', 'MOD', 'STO 25',
          'XEQ 75', 'RTN',
+         # ---------------------------------------------------------------- the page
          'LBL 30',
-         # header
          '226', '2', 'RCL 06', DT,
          '226', '79', 'RCL 06', '0.5', '+', '1', 'MOD', '24', '×', HM,
          '226', '118', '"UT"', TX,
@@ -82,7 +112,7 @@ def main_program():
          'XEQ 70',
          '200', '168', 'RCL 25', '60', '+', 'STO 37', 'DROP', 'XEQ IND 37', TX,
          '183', '168', '"LIT "', TX, 'RCL 18', IN, '"%   AGE "', TX, 'RCL 24', F1, '" DAYS"', TX,
-         '166', '168', '"HP "', TX, 'RCL 19', F1, '"\'  SD "', TX, 'RCL 20', F1, '"\'"', TX,
+         '166', '168', '"HP "', TX, 'RCL 19', F1] + AP + ['"  SD "', TX, 'RCL 20', F1] + AP + [
          '156', '168', '230', HL,
          '139', '168', '"NEXT PHASES (UT)"', TX,
          'XEQ 45', 'XEQ 85',
@@ -145,45 +175,59 @@ def main_program():
          '120', 'RCL 44', '+', '120', 'RCL 45', '+', 'XEQ 81',
          '120', 'RCL 45', '-', '120', 'RCL 44', '-', 'XEQ 81', 'RTN',
          'LBL 79', '120', 'RCL 45', '-', '120', 'RCL 45', '+',
-         'REM "LBL 81: Y first row, X last row -> AGRAPH up to 60 rows at a time"',
-         'LBL 81', 'STO 47', 'R↓', 'STO 46',
-         'LBL 82', 'RCL 47', 'RCL 46', '-', '1', '+', '60', 'X>Y?', 'X<>Y', 'STO 39',
-         '2ˣ', '1', '-', 'SINT', 'STO 48', 'RCL 46', 'RCL 40', '80', '+', 'AGRAPH 48', 'DROP', 'DROP',
-         'RCL 39', 'STO+ 46', 'RCL 46', 'RCL 47', 'X≥Y?', 'GTO 82', 'RTN',
+         'REM "LBL 81: Y first row, X last row: a run of column 80 + R40"',
+         'LBL 81', 'STO 47', 'R↓', 'STO 46']
+    if f42:                       # a box one column wide (M7BX: the FBX of build_free42, OR mode)
+        P += ['RCL 46', 'STO "BY"', 'RCL 40', '80', '+', 'STO "BX"', '1', 'STO "BW"',
+              'RCL 47', 'RCL 46', '-', '1', '+', 'STO "BH"', 'XEQ "M7BX"', 'RTN']
+    else:                         # AGRAPH, up to 60 rows at a time
+        P += ['LBL 82', 'RCL 47', 'RCL 46', '-', '1', '+', '60', 'X>Y?', 'X<>Y', 'STO 39',
+              '2ˣ', '1', '-', 'SINT', 'STO 48', 'RCL 46', 'RCL 40', '80', '+', 'AGRAPH 48', 'DROP', 'DROP',
+              'RCL 39', 'STO+ 46', 'RCL 46', 'RCL 47', 'X≥Y?', 'GTO 82', 'RTN']
+    P += [
          # ---------------------------------------------------------------- the next phases
-         'REM "LBL 75: the next four phases (UT): the next quarter after the elongation, then the others"',
+         'REM "LBL 75: the next four phases (UT) into R54-R57, their quarter into R58-R61"',
          'LBL 75', 'RCL 15', '90', '÷', 'IP', '1', '+', 'STO 38', '0', 'STO 05',
          'LBL 83', 'RCL 38', 'RCL 05', '+', '4', 'MOD', 'STO 37',
          'RCL 06', 'RCL 37', '90', '×', 'XEQ 42', 'STO 44',
          'RCL 06', 'X<>Y', 'X<Y?', 'XEQ 84',
          'RCL 05', '54', '+', 'STO 39', 'RCL 44', 'STO IND 39', '4', 'STO+ 39', 'RCL 37', 'STO IND 39',
          '1', 'STO+ 05', '4', 'RCL 05', 'X<Y?', 'GTO 83', 'RTN',
-         'REM "LBL 45: the four phases from R54-R61: name, date and time UT"',
+         'LBL 84', 'RCL 44', LUN, '+', '2', '-', 'RCL 37', '90', '×', 'XEQ 42', 'STO 44', 'RTN',
+         'REM "LBL 45: the four phases: name, day-month (Meeus 7, from the JD) and time UT"',
          'LBL 45', '0', 'STO 05',
          'LBL 46', 'RCL 05', '54', '+', 'STO 39', 'RCL IND 39', 'STO 44', '4', 'STO+ 39', 'RCL IND 39', 'STO 37',
          '121', 'RCL 05', '16', '×', '-', 'STO 43',
          'RCL 43', '168', 'RCL 37', '2', '×', '60', '+', 'STO 42', 'DROP', 'XEQ IND 42', TX,
-         'RCL 44', 'J→ⅅℸ', 'R↓', 'STO 40', 'DAY', 'XEQ 88', '"-"', '+', 'RCL 40', 'MONTH', 'XEQ 88', '+', '" "', '+',
-         'STO 41', 'RCL 43', '300', 'RCL 41', TX,
+         'RCL 44', '0.5', '+', 'IP', 'STO 40', '1867216.25', '-', '36524.25', '÷', 'IP', 'STO 41',
+         '4', '÷', 'IP', 'RCL 41', 'X<>Y', '-', 'RCL 40', '+', '1525', '+', 'STO 42',
+         '122.1', '-', '365.25', '÷', 'IP', '365.25', '×', 'IP', 'STO 45',
+         'RCL 42', 'X<>Y', '-', '30.6001', '÷', 'IP', 'STO 41',
+         'RCL 42', 'RCL 45', '-', 'RCL 41', '30.6001', '×', 'IP', '-', 'STO 46',
+         'RCL 41', '1', '-', 'STO 47', '12', 'X<Y?', 'STO- 47',
+         'RCL 43', '300', 'RCL 46', 'XEQ 88', '"-"', TX, 'RCL 47', 'XEQ 88', '" "', TX,
          'RCL 44', '0.5', '+', '1', 'MOD', '24', '×', HM,
          '1', 'STO+ 05', '4', 'RCL 05', 'X<Y?', 'GTO 46', 'RTN',
-         'LBL 84', 'RCL 44', LUN, '+', '2', '-', 'RCL 37', '90', '×', 'XEQ 42', 'STO 44', 'RTN',
-         'REM "LBL 88: X 0-99 -> two digits as text"',
-         'LBL 88', 'STO 45', '10', '÷', 'IP', '90', '+', 'STO 46', 'DROP',
-         'RCL 45', '10', 'MOD', '90', '+', 'STO 45', 'DROP', 'XEQ IND 46', 'XEQ IND 45', '+', 'RTN',
+         'REM "LBL 88: Z row, Y column, X 0-99 -> two digits (a 0 first under 10)"',
+         'LBL 88', 'STO 48', 'DROP', 'RCL 48', '10', 'X≤Y?', 'GTO 39', 'DROP', 'DROP', '"0"', TX, 'GTO 40',
+         'LBL 39', 'DROP', 'DROP', 'LBL 40', 'RCL 48', IN, 'RTN',
          # ---------------------------------------------------------------- the eight symbols
          'REM "LBL 85: the eight phase symbols, today\'s one inverted (XOR box 18 x 18)"',
          'LBL 85', '0', 'STO 05',
          'LBL 86', '26', 'RCL 05', '29', '×', '168', '+', 'RCL 05', '90', '+', 'STO 46', 'DROP', 'XEQ IND 46', SY,
          'RCL 05', 'RCL 25', 'X=Y?', 'XEQ 87',
-         '1', 'STO+ 05', '8', 'RCL 05', 'X<Y?', 'GTO 86', 'RTN',
-         'LBL 87', '3', 'STO 46', 'GRMOD 46', '111111111111111111#2', 'STO 46',
-         '23', 'RCL 05', '29', '×', '165', '+', '18', 'STO 47', 'R↓',
-         'LBL 89', 'AGRAPH 46', 'DSE 47', 'GTO 89', 'DROP', 'DROP', '0', 'STO 46', 'GRMOD 46', 'RTN']
-    # the texts: the phase names (60-67) and the digits (90-99)
+         '1', 'STO+ 05', '8', 'RCL 05', 'X<Y?', 'GTO 86', 'RTN']
+    if f42:
+        P += ['LBL 87', '23', 'STO "BY"', 'RCL 05', '29', '×', '165', '+', 'STO "BX"', '18', 'STO "BW"', 'STO "BH"',
+              'SF 34', 'SF 35', 'XEQ "M7BX"', 'CF 34', 'CF 35', 'RTN']
+    else:
+        P += ['LBL 87', '3', 'STO 46', 'GRMOD 46', '111111111111111111#2', 'STO 46',
+              '23', 'RCL 05', '29', '×', '165', '+', '18', 'STO 47', 'R↓',
+              'LBL 89', 'AGRAPH 46', 'DSE 47', 'GTO 89', 'DROP', 'DROP', '0', 'STO 46', 'GRMOD 46', 'RTN']
+    # the texts: the phase names (60-67) and the symbols "0" - "7" (90-97)
     for k, name in enumerate(M47.NAMES):
         P += ['LBL %d' % (60 + k), '"%s"' % name, 'RTN']
-    for k in range(10):
+    for k in range(8):
         P += ['LBL %d' % (90 + k), '"%d"' % k, 'RTN']
     return P + ['END']
 
@@ -230,16 +274,83 @@ def build():
     return [l for l in P if not l.startswith('REM ')] , P
 
 
+def lib_section(L, name):
+    """The routine LBL "name" of build_free42.lib() up to the next global label, as one program."""
+    i = L.index('LBL "%s"' % name)
+    j = next((k for k in range(i + 1, len(L)) if L[k].startswith('LBL "')), len(L))
+    return [l for l in L[i:j] if l != 'END'] + ['END']
+
+
+def ptxs_with(F, keep, cs):
+    """build_free42.font('PTXS') with the glyphs of cs from the C47 standard font, given to the font builder as
+    if PTXS had them: NAV never writes ' ( ) as text, and in PTXS ( is the Moon's symbol. The builder then
+    places their rows under the base line itself (as '%' and 'Q'). Only for MOON47: build_free42 is unchanged."""
+    from stdfont import STD
+    gc, rd = F.glyph_columns, F.B.read
+
+    def columns(lines):
+        g = gc(lines)
+        for c in cs:
+            cb, cg, ca, ra, rg, rb, rows = STD[ord(c)]
+            cols = {}
+            for r, v in enumerate(rows):
+                y = rb + rg - 5 - r
+                for x in range(cg):
+                    if y >= 0 and v >> (cg - 1 - x) & 1:
+                        cols[cb + x] = cols.get(cb + x, 0) | 1 << y
+            g[ord(c)] = (cols, cb + cg + ca - 1)
+        return g
+
+    def read(name):
+        L = rd(name)
+        if name == 'PTXS':
+            e = L.index('END')
+            L = L[:e] + [x for c in cs if 'LBL %d' % ord(c) not in L for x in ('LBL %d' % ord(c), 'RTN')] + L[e:]
+        return L
+    F.glyph_columns, F.B.read = columns, read
+    try:
+        return F.font('PTXS', keep)[0]
+    finally:
+        F.glyph_columns, F.B.read = gc, rd
+
+
+def build_f42():
+    """MOON47 for Free42 (DM42 / DM42n stock firmware): the main program with f42=True, converted as NAVFULL
+    (build_free42.conv), the AGRAPH font of the T21 views (PTXS with the widths of GRFNT 21 and its number
+    printers), the phase symbols, PX and FBX. GETKEY waits for the key: +/- (15) switches the view."""
+    import build_free42 as F
+    main = [l for l in main_program(f42=True) if not l.startswith('REM ')]
+    chars = set(''.join(re.findall(r'^"([^"]*)"$', '\n'.join(main), re.M))) | set('0123456789-.: %\'')
+    P = F.conv(main, 'MOON47')
+    P += F.conv(ptxs_with(F, chars - {"'"}, "()"), 'PTXS')
+    P += F.conv(F.font('PSYB', chars, F.psym('PSYB', True, '01234567'))[0], 'PSYB')
+    lib = F.lib()
+    P += lib_section(lib, 'PX') + lib_section(lib, 'FBX')
+    P = rename(P)
+    check_labels(P)
+    return P
+
+
 def main():
     plain, with_rem = build()
     out = os.path.join(ROOT, 'build', 'MOON47.txt')
-    open(out, 'w', encoding='utf-8').write('\n'.join(plain) + '\n')
-    print('%s: %d steps' % (os.path.relpath(out, ROOT), sum(1 for l in plain if l != 'END')))
+    for f in (out, os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt')):     # the DM42 runs the same C47 firmware
+        open(f, 'w', encoding='utf-8').write('\n'.join(plain) + '\n')
+    print('%s (and build/dm42/): %d steps' % (os.path.relpath(out, ROOT), sum(1 for l in plain if l != 'END')))
     r = os.environ.get('REJIG') or shutil.which('rejig')
     if r:
-        p47 = out[:-4] + '.p47'
-        subprocess.run([r, out, '-o', p47], check=True)
-        print('%s: %d bytes' % (os.path.relpath(p47, ROOT), os.path.getsize(p47)))
+        for f in (out, os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt')):
+            subprocess.run([r, f, '-o', f[:-4] + '.p47'], check=True)
+        print('%s: %d bytes' % (os.path.relpath(out[:-4] + '.p47', ROOT), os.path.getsize(out[:-4] + '.p47')))
+    f42 = build_f42()
+    out = os.path.join(ROOT, 'build', 'free42', 'MOON47.txt')
+    open(out, 'w', encoding='utf-8').write('\n'.join(f42) + '\n')
+    print('%s: %d steps' % (os.path.relpath(out, ROOT), sum(1 for l in f42 if l != 'END')))
+    run = os.path.join(HERE, 'f42', 'f42run')
+    if os.path.exists(run):
+        raw = out[:-4] + '.raw'
+        r = subprocess.run([run], input='paste %s\nexport %s\n' % (out, raw), text=True, capture_output=True)
+        print('%s: %d bytes' % (os.path.relpath(raw, ROOT), os.path.getsize(raw)) if os.path.exists(raw) else r.stdout[-300:])
 
 
 if __name__ == '__main__':
