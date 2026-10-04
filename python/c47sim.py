@@ -120,6 +120,7 @@ class Calc:
             if n > maxsteps: raise RuntimeError('too many steps')
             ln = self.lines[pc]; pc += 1
             op, _, arg = ln.partition(' '); arg = arg.strip().strip('"')
+            if getattr(self, 'count', None) is not None: self.count(op, self.s[0])     # tests: what runs (test_navopt)
             if re.fullmatch(r'[01]+#2', ln):
                 v=int(ln[:-2],2)
                 if v >= 1<<(getattr(self,'ws',64)-1): raise ValueError('OUT OF RANGE literal %s ws %d'%(ln,self.ws))
@@ -320,6 +321,9 @@ class Calc:
             if op == '→POL':
                 x, y = f(self.s[0]), f(self.s[1])
                 self.s[0] = D(math.hypot(x, y)); self.s[1] = self.ang_out(math.atan2(y, x)); self.lift = True; continue
+            if op == '→REC':                       # Y angle, X radius -> Y = r sin, X = r cos (C47 →RECT, Free42 →REC)
+                r, t = self.s[0], self.s[1]
+                self.s[0] = r * self.trig(math.cos, t); self.s[1] = r * self.trig(math.sin, t); self.lift = True; continue
             if op == 'STO' and isinstance(self.s[0], Mat):
                 self.mats[arg] = [list(r) for r in self.s[0].rows]; continue
             if op == 'STO' and isinstance(self.s[0], tuple) and self.s[0][0] == 'MAT':

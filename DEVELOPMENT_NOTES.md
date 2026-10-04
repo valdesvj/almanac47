@@ -653,3 +653,34 @@ INIT with the builders as LBL 01-04.
 - C47 NAVLITTLE on a DM42n (C47 firmware, Victor): works, SNAP too; free 258,548 bytes after a
   reset, 227,244 with NAVLITTLE and its matrices (INIT deleted), 226,648 after NAV: about 31 KB
   in all (the matrices about 23 KB, more than the 11 KB estimate). NAVFULL works on the C47.
+
+## Oct 4, 2026 - DEV: the engine with Horner and n-vectors (NAVFULL_OPT, MOON47_OPT)
+
+A first dev version, C47 and Free42 only: `python3 tools/build_navopt.py` (build/dev/opt/), checked by
+`python3 tests/test_navopt.py [N] [--f42]`. programs/, build/ and the matrices (INIT) are unchanged:
+tools/navopt_engine.py rewrites SUNA, STAR, MOON, PLAN and CHZ by exact blocks (the build fails if
+programs/ changes there) and the release pipelines run on them (outputs and label maps in a temp folder).
+
+- Horner: every polynomial as c_n, RCL× T, c_n-1, + ... (GMST in d, the obliquity, ε0, e, ϖ, the
+  precession angles, SUNF, the Moon arguments were Horner already). The nutation loop (10 rows, about
+  420 steps) is two matrix products as the Moon series: NU × [D M M' F Ω 0 0 0 0] -> SIN / COS, DOT with
+  NU × [0 0 0 0 0 1 T 0 0] and [.. 0 1 T] (vectors NV NW). MOON47: the Sun's equation of the centre by
+  Clenshaw (Horner for a sine series), the Sun's distance as a polynomial in cos M, E^|m| as weights.
+- n-vectors: a rotation of the frame is →POL in one coordinate plane, + the angle, →REC (the C47
+  computes sin and cos in one call: C47_WP34S_Cvt2RadSinCosTan). Ecliptic -> equator (SUNA, MOO2, PLN2,
+  SUNF, MOOQ, PLNQ), precession ζ θ z and the ecliptic of date and back (STR2), L B R -> x y z (PLN2),
+  the orbit -> ecliptic (mean elements). The cache keeps θ and ε0 (STH, SE0) instead of six sines and
+  cosines (SSTH SCTH SSE0 SCE0 SSEP SCEP). PLN2 takes e and ϖ from SUNA (SEK, SPI).
+- HCZ: the body's n-vector in the meridian frame (two →REC), turned by the latitude (→POL, -φ, →REC):
+  U = sin Hc, N; E = -cos δ sin LHA; Zn = -atan2(y, N) mod 360. 27 steps instead of 42, R93 R99 not used.
+  HCZ0, HCZQ, HCZI, DHA the same way.
+- The simulator has →REC now (python/c47sim.py) and an optional count hook for the tests.
+- Results: the same numbers (C47 simulator: 1e-12' in the routines; Free42: the 12 digits of ALL), 63
+  views pixel for pixel (FULL, FAST, tables), Free42 menu views 1 2 3 5 7, MOON47 C47 and Free42.
+- Steps run: SUNA -57 %, STR2 -33 %, MOO2 -38 %, PLAN -42 %, PLN3 -29 %, PHAS -46 %, HCZ -36 %,
+  trig functions -14 % (FULL) / -19 % (FAST); the views -1 to -9 % (drawing dominates; the sky is cached).
+  Engine 2,123 -> 1,796 steps; NAVFULL 36,627 -> 35,882 bytes, Free42 .raw 35,457 -> 34,689. Engine
+  registers 69 -> 60 (R55 R57 R64 R65 R68 R71 R72 R79 R99 free there; NAVFULL still uses all 100).
+  MOON47: -32 % steps run, but +59 steps, +268 bytes and 4 matrices while it runs (0 at the end).
+- To do before a release: time on the real C47 (TICKS# around XEQ "SUNA" / "STR2" / "HCZ", release
+  and dev), the views on the calculator, then fold it into programs/ (and programs_rem/, listings/).
