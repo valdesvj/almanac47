@@ -684,5 +684,15 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   MOON47: -32 % steps run, but +59 steps, +268 bytes and 4 matrices while it runs (0 at the end).
   MOON47_OPT creates TZ = 0 at the start when the variable is not there (STO "TZ" after the read that
   ignores a missing TZ: an existing TZ is kept); checked in the simulator and in f42run.
+- Oct 4 (Victor): the dev NAV has no TEXT (ALMR, which wrote the page into R50 ... as strings, and the
+  STXT routines SDAT SDM SEW SF1 SHM SINT SNS SZN are gone); the menu is numbered again: 1 ALMANAC
+  2 CHART 3 SKY 4 SPLIT 5 ANIM 6 ALLSKY 7 INFO 0 END (gennav ITEMS / VIEWS / ALL / COMPACT set by
+  build_navopt; build_free42.nav() skips its TEXT block when the menu has none: release output unchanged).
+  NAVFULL_OPT 32,927 bytes (36,627 release), Free42 .raw 30,521 (35,457). NAV and MOON47 end with a
+  clear stack (CLSTK / CLST, checked in the simulator and f42run); build/dev/opt/NAVINIT_FULL / _FAST
+  (and free42/) leave only the message MATRICES READY: ... with the validity (CLSTK before it).
+- Patched C47 PC simulator (key release does not repaint a running program's screen): built from a copy
+  of ~/opt/c43 master b8707a818 in ~/c47sim-patched/src47 (+ ~/sim-keyrelease-running.patch), run with
+  ~/c47sim-patched/c47-patched.sh. Not in the repository.
 - To do before a release: time on the real C47 (TICKS# around XEQ "SUNA" / "STR2" / "HCZ", release
   and dev), the views on the calculator, then fold it into programs/ (and programs_rem/, listings/).

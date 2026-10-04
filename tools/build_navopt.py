@@ -15,7 +15,7 @@ NAVINIT_FAST of the release (C47: build/, Free42: build/free42/).
 
   python3 tools/build_navopt.py          then python3 tests/test_navopt.py (parity and statistics)
 """
-import contextlib, io, os, shutil, subprocess, sys, tempfile
+import contextlib, io, os, re, shutil, subprocess, sys, tempfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -23,7 +23,11 @@ sys.path[:0] = [HERE, os.path.join(HERE, 'generators'), os.path.join(HERE, 'gene
                 os.path.join(ROOT, 'python'), os.path.join(ROOT, 'python', 'native')]
 import build_navfull as B                                                   # noqa: E402
 import navopt_engine as E                                                   # noqa: E402
-import gencache                                                             # noqa: E402
+import gencache, gennav                                                     # noqa: E402
+
+# the NAV menu without TEXT, numbered again: 1 ALMANAC 2 CHART 3 SKY 4 SPLIT 5 ANIM 6 ALLSKY 7 INFO, 0 END
+NOTEXT = {'ITEMS': [i for i in gennav.ITEMS if i != 'TEXT'], 'VIEWS': [v for v in gennav.VIEWS if v != 'ALMT'],
+          'ALL': list(range(1, len(gennav.ITEMS))), 'COMPACT': [1, 2, 3, 6, 7]}
 
 OUT = os.path.join(ROOT, 'build', 'dev', 'opt')
 F42RUN = os.path.join(ROOT, 'tools', 'f42', 'f42run')
@@ -34,16 +38,41 @@ def optimized(on=True):
     """B.read gives the optimized engine, the cache keeps θ and ε0, outputs and label maps in a temp folder
     (on=False: the release programs, the same way: the reference of the tests)."""
     read, out, labels, regs = B.read, B.OUT, B.LABELS, gencache.SUNREGS
+    menu = {k: getattr(gennav, k) for k in NOTEXT}
     opt = E.programs(read) if on else {}
     tmp = tempfile.mkdtemp()
     shutil.copytree(labels, os.path.join(tmp, 'labels'))
     B.read = lambda name: list(opt[name]) if name in opt else read(name)
     B.OUT, B.LABELS = os.path.join(tmp, 'build'), os.path.join(tmp, 'labels')
     gencache.SUNREGS = E.SUNREGS if on else regs
+    for k, v in (NOTEXT if on else menu).items():
+        setattr(gennav, k, v)
     try:
         yield tmp
     finally:
         B.read, B.OUT, B.LABELS, gencache.SUNREGS = read, out, labels, regs
+        for k, v in menu.items():
+            setattr(gennav, k, v)
+
+
+def prune(L):
+    """Only the programs NAV reaches (XEQ / GTO "name"): without TEXT, ALMR and its text routines go."""
+    progs, cur = [], []
+    for l in L:
+        cur.append(l)
+        if l == 'END':
+            progs.append(cur); cur = []
+    P = {next(re.fullmatch(r'LBL "(.+)"', l).group(1) for l in p if l.startswith('LBL "')): p for p in progs}
+    need = B.closure({n: p for n, p in P.items()}, ['NAV'])
+    return [l for n, p in P.items() if n in need for l in p]
+
+
+def init_clean(L):
+    """NAVINIT: only the message on the stack at the end (MATRICES READY: ...), nothing else."""
+    i = next(k for k in range(len(L)) if L[k] == 'STO "VAL"')
+    j = L.index('RTN', i)
+    assert L[i + 1].startswith('"MATRICES READY')
+    return L[:i - 1] + ['CLSTK', L[i - 1], 'STO "VAL"', 'CLSTK', L[i + 1]] + L[j:]
 
 
 def p47(path):
@@ -75,7 +104,21 @@ def c47(on=True):
     with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
         full = B.build()[0]
         short = open(os.path.join(tmp, 'build', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
+        if on:                                     # without TEXT: the programs NAV still reaches
+            full = prune(full)
+            short = B.rename(full, B.fixed_map('NAVFULL', full))
     return full, [l for l in short if l]
+
+
+def inits():
+    """The release NAVINIT_FULL / _FAST (C47 and Free42) with only the message left on the stack."""
+    import build_free42 as F
+    out = {}
+    for kind in ('FULL', 'FAST'):
+        L = [l for l in open(os.path.join(ROOT, 'build', 'NAVINIT_%s.txt' % kind), encoding='utf-8').read().split('\n') if l]
+        out[kind] = init_clean(L)
+        out['F42_' + kind] = F.conv(out[kind], 'INIT')
+    return out
 
 
 def free42(on=True):
@@ -110,10 +153,12 @@ def main():
     B.write(os.path.join(OUT, 'free42', 'NAVFULL_OPT.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'src', 'NAVFULL_OPT.txt'), named)
     moon47()
-    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt'):
+    for k, L in inits().items():
+        B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', 'NAVINIT_%s.txt' % k.replace('F42_', '')), L)
+    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt'):
         n = p47(os.path.join(OUT, f))
         print('%-28s %s' % ('build/dev/opt/' + f, '.p47 %d bytes' % n if n else '(no rejig: no .p47)'))
-    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt'):
+    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt'):
         n = raw(os.path.join(OUT, 'free42', f))
         print('%-28s %s' % ('build/dev/opt/free42/' + f, '.raw %d bytes' % n if n else '(no f42run: no .raw)'))
 

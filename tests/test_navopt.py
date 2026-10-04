@@ -21,7 +21,7 @@ import c47sim                                                        # noqa: E40
 import build_navopt as N                                             # noqa: E402
 
 ENGINE = ('SUNA', 'STAR', 'MOON', 'PLAN', 'CHZ')
-VIEWS = ('ALMF', 'HALMV', 'ALMR', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')
+VIEWS = ('ALMF', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')     # TEXT (ALMR) is not in the dev menu
 TRIG = {'SIN', 'COS', 'TAN', 'ASIN', 'ACOS', '→POL', '→REC'}
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 
@@ -233,19 +233,21 @@ def stats():
 
 
 # ---------------------------------------------------------------- Free42 (tools/f42/f42run)
-KEY = {1: 29, 2: 30, 3: 31, 5: 25, 7: 19}            # menu keys: ALMANAC CHART TEXT SPLIT ALLSKY
+KEY = {1: 29, 2: 30, 5: 25, 7: 19}                    # release menu keys: ALMANAC CHART SPLIT ALLSKY
+KEY_DEV = {1: 29, 2: 30, 5: 24, 7: 26}                # the same views in the dev menu: 1 2 4 6
 
 
-def f42_views(nav, date, utc, lat, lon):
+def f42_views(nav, date, utc, lat, lon, keys=KEY):
     t = tempfile.mkdtemp()
     with open(os.path.join(t, 'nav.txt'), 'w', encoding='utf-8') as fh:
         fh.write('\n'.join(nav) + '\n')
     cmd = ['paste %s/build/free42/NAVINIT_FULL.txt' % ROOT, 'paste %s/nav.txt' % t, 'xeq INIT', 'xeq NAV',
            'num ' + date, 'num ' + utc, 'num ' + lat, 'num ' + lon]
-    for v, k in KEY.items():
+    for v, k in keys.items():
         cmd += ['key %d' % k, 'shot %s/v%d.pbm' % (t, v), 'key 37']
-    subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=3600)
-    out = {}
+    cmd += ['key 34', 'stack']                                      # 0: NAV ends
+    r = subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=3600)
+    out = {'stack': [l[3:] for l in r.stdout.split('\n') if re.fullmatch(r'[XYZT]: .*', l)]}
     for v in KEY:
         rows = open('%s/v%d.pbm' % (t, v)).read().split('\n')[2:242]
         out[v] = frozenset((x, y) for y, r in enumerate(rows) for x, c in enumerate(r) if c == '1')
@@ -287,15 +289,17 @@ def free42(n, seed=42):
     ref, opt = N.free42(False), N.free42(True)
     rnd = random.Random(seed)
     bad = 0
-    print('\n== Free42 (f42run, binary doubles): NAV menu views 1 2 3 5 7, pixel for pixel')
+    print('\n== Free42 (f42run, binary doubles): NAV menu views 1 2 5 7, pixel for pixel')
     for k in range(n):
         d0 = datetime.date(2026, 1, 1) + datetime.timedelta(days=rnd.randint(0, 9000))
         date, utc = '%04d.%02d%02d' % (d0.year, d0.month, d0.day), '%02d.%02d' % (rnd.randint(0, 23), rnd.randint(0, 59))
         lat, lon = '%.2f' % rnd.uniform(-65, 65), '%.2f' % rnd.uniform(-179, 179)
-        a, b = f42_views(ref[0], date, utc, lat, lon), f42_views(opt[0], date, utc, lat, lon)
+        a, b = f42_views(ref[0], date, utc, lat, lon), f42_views(opt[0], date, utc, lat, lon, KEY_DEV)
         diff = {v: len(a[v] ^ b[v]) for v in KEY}
-        bad += any(diff.values())
-        print('  %s %s %6s %7s  %s  %s' % (date, utc, lat, lon, diff, 'OK' if not any(diff.values()) else 'DIFFERENT'))
+        clear = b['stack'] == ['0.0000'] * 4
+        bad += any(diff.values()) or not clear
+        print('  %s %s %6s %7s  %s  %s; stack after NAV (dev) %s' % (date, utc, lat, lon, diff,
+              'OK' if not any(diff.values()) else 'DIFFERENT', 'clear' if clear else b['stack']))
     calls = []
     for k in range(n):
         j = 2451545 + rnd.uniform(0, 18000); la, lo = rnd.uniform(-70, 70), rnd.uniform(-180, 180)
@@ -340,6 +344,8 @@ def moon47(n=4):
             T47.PROG = paths[tag]
             frames, c = T47.run(j)
             res.append(frames); steps[i] += c.steps
+            if tag == 'opt' and not all(x == 0 for x in c.s):
+                print('  MOON47_OPT: stack not clear at the end: %s' % c.s); bad += 1
         diff = [len(a ^ b) for a, b in zip(*res)]
         bad += any(diff) or len(res[0]) != len(res[1])
         print('  JD %.4f  diff %s  %s' % (j, diff, 'OK' if not any(diff) else 'DIFFERENT'))
@@ -356,6 +362,38 @@ def moon47(n=4):
         open(fa, 'w', encoding='utf-8').write('\n'.join(M.build_f42()) + '\n')
         open(fb, 'w', encoding='utf-8').write('\n'.join(moon47_opt.build(M)[1]) + '\n')
         print('  Free42 .raw %d -> %d bytes (%+d)' % (N.raw(fa), N.raw(fb), N.raw(fb) - N.raw(fa)))
+    return bad
+
+
+def nav_menu():
+    """The dev NAV in the simulator: the menu without 3 TEXT, key 3 does nothing, 1 ALMANAC the same screen
+    as the release, 0 ends; NAVINIT (dev) leaves only its message on the stack."""
+    bad = 0
+    shots = []
+    for L, keys in ((REF[0], [72, 85, 82]), (OPT[0], [72, 85, 82])):   # 1 ALMANAC, + menu, 0 end
+        c = load(L)
+        for k, v in (('DATE', '2026.1004'), ('UTC', '9.30'), ('LAT', '25.20'), ('LON', '55.12')):
+            c.reg[k] = D(v)
+        c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []
+        c.keys = keys
+        c.run('NAV', maxsteps=10 ** 8)
+        shots.append([frozenset(f) for f in c.frames])
+        stack = [x for x in c.s]
+    print('\n== NAV menu (C47 simulator): release %d frames, dev %d frames (menu, view, menu)' % (len(shots[0]), len(shots[1])))
+    same_view = len(shots[1]) == len(shots[0]) and shots[1][1] == shots[0][1]
+    print('  dev: menu 1-7 without TEXT; 1 ALMANAC the same screen as the release: %s'
+          % ('OK' if same_view else 'DIFFERENT'))
+    bad += not same_view
+    clear = all(x == 0 for x in stack)
+    bad += not clear
+    print('  dev: stack after NAV (0 END) %s' % ('clear' if clear else stack))
+    for kind in ('FULL', 'FAST'):
+        L = [l for l in open(os.path.join(ROOT, 'build', 'dev', 'opt', 'NAVINIT_%s.txt' % kind), encoding='utf-8').read().split('\n') if l]
+        t = tempfile.mkdtemp(); f = os.path.join(t, 'i.txt'); open(f, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+        c = c47sim.load([f]); c.s = [D(7), D(8), D(9), D(10)]; c.run('INIT', maxsteps=10 ** 7)
+        ok = isinstance(c.s[0], str) and c.s[0].startswith('MATRICES READY') and all(x == 0 for x in c.s[1:])
+        bad += not ok
+        print('  NAVINIT_%s (dev): stack after INIT %s  %s' % (kind, [str(x) for x in c.s], 'OK' if ok else 'NOT CLEAN'))
     return bad
 
 
@@ -388,6 +426,7 @@ def main():
             g = agg[v]
             print('  %-7s %14d %8d %+4.0f %%  %12d %8d %+4.0f %%' % (v, g[0], g[1], 100.0 * (g[1] - g[0]) / g[0], g[2], g[3],
                                                              100.0 * (g[3] - g[2]) / max(g[2], 1)))
+    bad += nav_menu()
     t = stats()
     if os.path.exists(F42):
         fr, fo = N.free42(False)[0], N.free42(True)[0]
