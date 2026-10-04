@@ -435,6 +435,13 @@ def nav21(inp, items=None, autoinit=False):
     return grfnt21(L)
 
 
+def keywait(L):
+    """The C47 builds read the keys in a PAUSE (LBL n / PAUSE 50 / KEY? r / GTO n; the SKY line PAUSE n + KEY?):
+    tools/keywait_patch.py. The same in the PC simulator and on the calculator. Free42 keeps GETKEY."""
+    import keywait_patch
+    return keywait_patch.patch(L)[0]
+
+
 def build():
     progs = {n: read(n) for n in KEEP + INIT + ['NAV']}
     progs['ALMT'] = almr(progs['ALMT'])          # TEXT view: ALMR, the page into registers (no PROMPT)
@@ -464,7 +471,7 @@ def build():
     inp = gennav.inputs()
     p21 = programs21(progs)
     nav = nav21(inp)
-    full = nav + [l for n in KEEP21 for l in p21[n]]
+    full = keywait(nav + [l for n in KEEP21 for l in p21[n]])
     assert not {'PTXT', 'PTNS', 'PSYM'} & set(calls(full)), 'an AGRAPH font is still called'
     import json
     period = json.load(open(os.path.join(ROOT, 'python', 'native', 'fast_series.json')))['period']
@@ -495,7 +502,7 @@ def build():
     if os.path.exists(old):
         os.remove(old)
     nt = no_tables(p21)
-    notbl = nav + [l for n in KEEP21 if n != 'TGET' for l in nt[n]]
+    notbl = keywait(nav + [l for n in KEEP21 if n != 'TGET' for l in nt[n]])
     # build/        the files to load (short N01... labels from tools/labels/*.map)
     # build/dev/    other builds, also with short labels
     # build/dev/src/  every build with the original names (development, tests)
@@ -527,8 +534,8 @@ def build():
     nav_all = nav21(inp, autoinit=True)
     nav_comp = nav21(inp, gennav.COMPACT, autoinit=True)
     need = closure(nt, [c for c in calls(nav_comp) if c != 'INIT'])
-    comp = nav_comp + [l for n in KEEP21 if n in need and n != 'TGET' for l in nt[n]]
-    allf = nav_all + [l for n in KEEP21 if n != 'TGET' for l in nt[n]]
+    comp = keywait(nav_comp + [l for n in KEEP21 if n in need and n != 'TGET' for l in nt[n]])
+    allf = keywait(nav_all + [l for n in KEEP21 if n != 'TGET' for l in nt[n]])
     extra = {}
     # NAV + programs in one file, INIT in its own (NAVINIT_FAST or NAVINIT_FULL): one file of
     # 15-19 thousand lines gave "invalid data" in rejig. NAV runs INIT once and deletes it.

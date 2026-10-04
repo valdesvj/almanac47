@@ -17,8 +17,9 @@ import sys
 DEAD = ['LBL 46', 'TICKS', 'RCL 38', 'X>Y?', 'GTO 41', 'GTO 62']
 
 
-def patch(L):
-    """(new lines, number of key waits changed, SKY loops changed)."""
+def patch(L, wait='50'):
+    """(new lines, number of key waits changed, SKY loops changed). wait: the PAUSE of the key waits; a wait
+    that already has a PAUSE (LBL n / PAUSE m / KEY? r / GTO n) gets this value too."""
     sky = dead = 0
     out, i = [], 0
     while i < len(L):
@@ -41,9 +42,14 @@ def patch(L):
         if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
             if out and out[-1] == 'PAUSE 0':                     # PAUSE 50 shows the screen itself
                 out.pop()
-            out += [L[i], 'PAUSE 50', L[i + 1], L[i + 2]]
+            out += [L[i], 'PAUSE ' + wait, L[i + 1], L[i + 2]]
             waits += 1
             i += 3
+            continue
+        if (re.fullmatch(r'LBL \d+', L[i]) and i + 3 < len(L) and re.fullmatch(r'PAUSE \d+', L[i + 1])
+                and L[i + 2].startswith('KEY? ') and L[i + 3] == 'GTO ' + L[i][4:]):      # already in a PAUSE
+            out += [L[i], 'PAUSE ' + wait, L[i + 2], L[i + 3]]
+            i += 4
             continue
         out.append(L[i])
         i += 1

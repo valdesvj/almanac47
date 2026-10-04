@@ -328,6 +328,7 @@ def main():
     # dev/src/ has every build with the original names; short labels from tools/labels/*.map
     for name, (nav, progs) in builds().items():
         L, need = assemble(nav, progs)
+        L = B.keywait(L)                                   # keys read in a PAUSE (tools/keywait_patch.py)
         B.write(os.path.join(SRC, name + '.txt'), L)
         m = B.fixed_map(name, L, keep=('NAV', 'INIT'))
         d = OUT if name == 'NAVLITTLE' else DEV

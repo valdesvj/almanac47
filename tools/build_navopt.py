@@ -58,32 +58,10 @@ def optimized(on=True):
 
 
 def keywait(L, wait='50'):
-    """Every tight key wait LBL n / KEY? r / GTO n becomes LBL n / PAUSE 50 / KEY? r / GTO n. A key pressed during a
-    PAUSE ends it only after its release (the C47: pauseKeyExit waits for the release; the PC simulator:
-    PGM_KEY_PRESSED_WHILE_PAUSED until the release, and that release does not repaint the screen), and KEY? then
-    reads it. In a bare KEY? loop the simulator repaints the stack over the drawing when the key is released.
-    Not PAUSE 99: on the calculator its end sets the screen back to the normal display (SCRUPD_AUTO, refresh 1201)."""
-    # SKY (HORZ): one body's line a second, keys read in between (TICKS + KEY? busy loop) -> PAUSE 10, KEY?;
-    # no key: the next body (LBL 62), as when the second is over
-    sky_old = ['PAUSE 0', 'TICKS', '10', '+', 'STO 38', 'LBL 41', 'KEY? 39', 'GTO 46']
-    k = [n for n in range(len(L)) if L[n:n + len(sky_old)] == sky_old]
-    assert len(k) == 1, 'keywait: the SKY loop changed'
-    L = L[:k[0]] + ['PAUSE 10', 'KEY? 39', 'GTO 62'] + L[k[0] + len(sky_old):]
-    dead = ['LBL 46', 'TICKS', 'RCL 38', 'X>Y?', 'GTO 41', 'GTO 62']           # its end-of-second test: not reached now
-    k = [n for n in range(len(L)) if L[n:n + len(dead)] == dead]
-    assert len(k) == 1
-    L = L[:k[0]] + L[k[0] + len(dead):]
-    out, i = [], 0
-    while i < len(L):
-        if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
-            if out and out[-1] == 'PAUSE 0':           # PAUSE 50 shows the screen itself (lcd_refresh at its start)
-                out.pop()
-            out += [L[i], 'PAUSE ' + wait, L[i + 1], L[i + 2]]
-            i += 3
-            continue
-        out.append(L[i])
-        i += 1
-    return out
+    """The key waits in a PAUSE with the value wait (the release builds have PAUSE 50 already:
+    tools/keywait_patch.py; wait 0 / 1: the comparison builds NAVFULL_OPT_PAUSE0 / _PAUSE1)."""
+    import keywait_patch
+    return keywait_patch.patch(L, wait)[0]
 
 
 def prune(L):
