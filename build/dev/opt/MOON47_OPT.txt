@@ -10,6 +10,7 @@ SF 'IGN1ER'
 RCL "TZ"
 STO 03
 CF 'IGN1ER'
+STO "TZ"
 Date→ⅅ
 Time→ℸ
 ⅅℸ→J

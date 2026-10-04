@@ -682,5 +682,7 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   Engine 2,123 -> 1,796 steps; NAVFULL 36,627 -> 35,882 bytes, Free42 .raw 35,457 -> 34,689. Engine
   registers 69 -> 60 (R55 R57 R64 R65 R68 R71 R72 R79 R99 free there; NAVFULL still uses all 100).
   MOON47: -32 % steps run, but +59 steps, +268 bytes and 4 matrices while it runs (0 at the end).
+  MOON47_OPT creates TZ = 0 at the start when the variable is not there (STO "TZ" after the read that
+  ignores a missing TZ: an existing TZ is kept); checked in the simulator and in f42run.
 - To do before a release: time on the real C47 (TICKS# around XEQ "SUNA" / "STR2" / "HCZ", release
   and dev), the views on the calculator, then fold it into programs/ (and programs_rem/, listings/).

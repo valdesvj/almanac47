@@ -11,6 +11,8 @@
                  three SIN), the distance as a polynomial in cos M (one COS instead of two).
   n-vectors      R sin ψ and R cos ψ with one →REC.
 At the end the four matrices become 0 (STO): their memory is free again.
+  TZ             at the start: if the variable TZ is not there, MOON47 creates it with 0 (after the read
+                 that ignores the missing variable, STO "TZ" stores what was read, or 0).
 """
 
 
@@ -82,6 +84,8 @@ def transform(P, f42):
     P = P[:a] + l50_new() + P[b:]
     P = cut(P, L29_OLD, L29_NEW)
     P = cut(P, ['STO 06', '0', 'STO 28'], ['STO 06', '0', 'STO 28', 'XEQ 51'])
+    tz = ['RCL "TZ"', 'STO 03', 'CF 25' if f42 else "CF 'IGN1ER'"]
+    P = cut(P, tz, tz + ['STO "TZ"'])                  # TZ, or 0 when it was not there: now it is
     end = 'CLST' if f42 else 'CLSTK'
     assert P.count(end) == 1
     k = P.index(end)
