@@ -12,6 +12,8 @@ NAVINIT_FAST of the release (C47: build/, Free42: build/free42/).
   build/dev/opt/src/NAVFULL_OPT.txt                the same with the original program names (tests)
   build/dev/opt/free42/NAVFULL_OPT.txt (.raw)      Free42 (DM42 / DM42n stock firmware)
   build/dev/opt/MOON47_OPT.txt (.p47), free42/MOON47_OPT.txt (.raw)
+  build/dev/opt/NAVINIT_FULL / _FAST, TBL_1 / TBL_5 (and free42/): the release ones, only their message left
+                                                   on the stack at the end
 
   python3 tools/build_navopt.py          then python3 tests/test_navopt.py (parity and statistics)
 """
@@ -145,6 +147,25 @@ def moon47():
     B.write(os.path.join(OUT, 'free42', 'MOON47_OPT.txt'), f42)
 
 
+def tbl_clean(L, clear):
+    """TBL: only the message (TBL dd-mm-yyyy TO dd-mm-yyyy) left on the stack: clear before it."""
+    i = L.index('SF 10')
+    assert L[i + 1].startswith(('"TBL ', 'XSTR "TBL ')) and L[i + 2] == 'RTN'
+    return L[:i + 1] + [clear] + L[i + 1:]
+
+
+def tbls():
+    """TBL_1 / TBL_5 of the release (C47 build/, Free42 build/free42/) with a clean stack at the end."""
+    out = {}
+    for name in ('TBL_1', 'TBL_5'):
+        for d, key, clear in (('', name, 'CLSTK'), ('free42', 'F42_' + name, 'CLST')):
+            src = os.path.join(ROOT, 'build', d, name + '.txt')
+            if os.path.exists(src):
+                L = [l for l in open(src, encoding='utf-8').read().split('\n') if l]
+                out[key] = tbl_clean(L, clear)
+    return out
+
+
 def main():
     full, short = c47()
     B.write(os.path.join(OUT, 'src', 'NAVFULL_OPT.txt'), full)
@@ -155,10 +176,12 @@ def main():
     moon47()
     for k, L in inits().items():
         B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', 'NAVINIT_%s.txt' % k.replace('F42_', '')), L)
-    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt'):
+    for k, L in tbls().items():
+        B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', k.replace('F42_', '') + '.txt'), L)
+    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt'):
         n = p47(os.path.join(OUT, f))
         print('%-28s %s' % ('build/dev/opt/' + f, '.p47 %d bytes' % n if n else '(no rejig: no .p47)'))
-    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt'):
+    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt'):
         n = raw(os.path.join(OUT, 'free42', f))
         print('%-28s %s' % ('build/dev/opt/free42/' + f, '.raw %d bytes' % n if n else '(no f42run: no .raw)'))
 

@@ -691,6 +691,8 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   NAVFULL_OPT 32,927 bytes (36,627 release), Free42 .raw 30,521 (35,457). NAV and MOON47 end with a
   clear stack (CLSTK / CLST, checked in the simulator and f42run); build/dev/opt/NAVINIT_FULL / _FAST
   (and free42/) leave only the message MATRICES READY: ... with the validity (CLSTK before it).
+  build/dev/opt/TBL_1 / TBL_5 (and free42/) the same: only TBL dd-mm-yyyy TO dd-mm-yyyy is left (TBL_50,
+  PC only, not made here).
 - Patched C47 PC simulator (key release does not repaint a running program's screen): built from a copy
   of ~/opt/c43 master b8707a818 in ~/c47sim-patched/src47 (+ ~/sim-keyrelease-running.patch), run with
   ~/c47sim-patched/c47-patched.sh. Not in the repository.

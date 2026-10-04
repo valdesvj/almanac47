@@ -394,6 +394,14 @@ def nav_menu():
         ok = isinstance(c.s[0], str) and c.s[0].startswith('MATRICES READY') and all(x == 0 for x in c.s[1:])
         bad += not ok
         print('  NAVINIT_%s (dev): stack after INIT %s  %s' % (kind, [str(x) for x in c.s], 'OK' if ok else 'NOT CLEAN'))
+    for name in ('TBL_1', 'TBL_5'):
+        path = os.path.join(ROOT, 'build', 'dev', 'opt', name + '.txt')
+        if not os.path.exists(path):
+            continue
+        c = c47sim.load([path]); c.s = [D(7), D(8), D(9), D(10)]; c.run('TBL', maxsteps=10 ** 8)
+        ok = isinstance(c.s[0], str) and c.s[0].startswith('TBL ') and all(x == 0 for x in c.s[1:]) and 10 in c.flags
+        bad += not ok
+        print('  %s (dev): stack after TBL %s  %s' % (name, [str(x) for x in c.s], 'OK' if ok else 'NOT CLEAN'))
     return bad
 
 
