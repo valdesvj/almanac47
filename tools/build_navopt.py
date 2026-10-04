@@ -128,7 +128,7 @@ def raw(path):
 
 def c47(on=True, wait='50'):
     """NAVFULL (named labels, short labels); on=False: the release one. wait: the PAUSE of the key waits
-    (NAVFULL_OPT_PAUSE0: PAUSE 0, to compare on the calculator and in the simulator)."""
+    (NAVFULL_OPT_PAUSE0 / _PAUSE1: PAUSE 0 / PAUSE 1, to compare on the calculator and in the simulator)."""
     with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
         full = B.build()[0]
         short = open(os.path.join(tmp, 'build', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
@@ -196,7 +196,8 @@ def main():
     full, short = c47()
     B.write(os.path.join(OUT, 'src', 'NAVFULL_OPT.txt'), full)
     B.write(os.path.join(OUT, 'NAVFULL_OPT.txt'), short)
-    B.write(os.path.join(OUT, 'NAVFULL_OPT_PAUSE0.txt'), c47(True, '0')[1])        # the key waits with PAUSE 0
+    for w in ('0', '1'):                           # to compare: the key waits with PAUSE 0 / PAUSE 1
+        B.write(os.path.join(OUT, 'NAVFULL_OPT_PAUSE%s.txt' % w), c47(True, w)[1])
     short, named = free42()
     B.write(os.path.join(OUT, 'free42', 'NAVFULL_OPT.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'src', 'NAVFULL_OPT.txt'), named)
@@ -205,7 +206,7 @@ def main():
         B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', 'NAVINIT_%s.txt' % k.replace('F42_', '')), L)
     for k, L in tbls().items():
         B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', k.replace('F42_', '') + '.txt'), L)
-    for f in ('NAVFULL_OPT.txt', 'NAVFULL_OPT_PAUSE0.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt',
+    for f in ('NAVFULL_OPT.txt', 'NAVFULL_OPT_PAUSE0.txt', 'NAVFULL_OPT_PAUSE1.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt',
               'TBL_1.txt', 'TBL_5.txt'):
         n = p47(os.path.join(OUT, f))
         print('%-28s %s' % ('build/dev/opt/' + f, '.p47 %d bytes' % n if n else '(no rejig: no .p47)'))
