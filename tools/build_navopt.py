@@ -72,6 +72,8 @@ def keywait(L):
     out, i = [], 0
     while i < len(L):
         if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
+            if out and out[-1] == 'PAUSE 0':           # PAUSE 50 shows the screen itself (lcd_refresh at its start)
+                out.pop()
             out += [L[i], 'PAUSE 50', L[i + 1], L[i + 2]]
             i += 3
             continue

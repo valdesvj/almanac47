@@ -88,7 +88,7 @@ def transform(P, f42):
     tz = ['RCL "TZ"', 'STO 03', 'CF 25' if f42 else "CF 'IGN1ER'"]
     P = cut(P, tz, tz + ['STO "TZ"'])                  # TZ, or 0 when it was not there: now it is
     if not f42:                                     # the C47: the key read in a PAUSE (tools/build_navopt.keywait)
-        P = cut(P, ['LBL 02', 'KEY? 39', 'GTO 02'], ['LBL 02', 'PAUSE 50', 'KEY? 39', 'GTO 02'])
+        P = cut(P, ['PAUSE 0', 'LBL 02', 'KEY? 39', 'GTO 02'], ['LBL 02', 'PAUSE 50', 'KEY? 39', 'GTO 02'])
     end = 'CLST' if f42 else 'CLSTK'
     assert P.count(end) == 1
     k = P.index(end)
