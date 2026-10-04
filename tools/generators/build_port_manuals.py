@@ -193,7 +193,8 @@ def free42():
                        '3 Oct 2026 12:00 UT, from the north', 'after +/-: from the south')],
                  ['<b>The clock is local time.</b> If it is not on UT, store your offset once in the variable TZ, in '
                   'hours: <b>4 STO "TZ"</b> for UT+4. Without TZ the clock is taken as UT: the phase times stay right, the '
-                  'age and % lit are then a few hours off.',
+                  'age and % lit are then a few hours off. The top line shows the clock: the time UT and TZ=0, or with '
+                  'TZ the local time LT and your offset (TZ=+4, TZ=-5, TZ=+5:30).',
                   'The same screen as MOON47 on the C47, pixel for pixel (tests/test_moon47_f42.py in the Free42 core). '
                   'It sets SIZE 100 and uses R00–R61; GrMod 3 while it runs, RefLCD so the page appears at once.']))
     make(os.path.join(PDF, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
@@ -300,11 +301,13 @@ def python_port(name, key):
                  'date and time from the Prime\'s clock.'),
                 ('<b>Keys:</b> OK or EXE turns the picture to the view from the south and back; BACK ends.' if nw else
                  '<b>Keys:</b> Enter turns the picture to the view from the south and back; Esc ends.'),
-                ([pair(pic, pic.replace('.png', '_south.png'), '3 Oct 2026 12:00 UT, from the north',
+                ([pair(pic, pic.replace('.png', '_south.png'),
+                       '3 Oct 2026 12:00 UT' + ('' if nw else ' (16:00 LT, TZ=+4)') + ', from the north',
                        'after %s: from the south' % ('OK' if nw else 'Enter'), ratio=0.7)],
                  [] if nw else ['<b>The clock is local time.</b> If it is not on UT, set the line TZ = 0 at the top of '
                                 'main.py to your offset in hours (4 for UT+4). With TZ = 0 the clock is taken as UT: the '
-                                'phase times stay right, the age and % lit are then a few hours off.']))
+                                'phase times stay right, the age and % lit are then a few hours off. The top line '
+                                'shows the clock: the time UT and TZ=0, or the local time LT and TZ (TZ=+4).']))
     make(os.path.join(PDF, 'Almanac47_%s_Manual.pdf' % key), '%s — user manual' % name, S)
 
 

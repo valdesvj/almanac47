@@ -71,15 +71,16 @@ def main():
         miss = [w for w in want if w not in got]
         bad += bool(miss)
         print('NumWorks %s %s: %s' % (date, ut, 'OK' if not miss else 'MISSING %s' % miss))
-    for date, time, tz in ((2026.1003, 16.0, 4), (2027.0121, 22.30, -5), (2049.0316, 21.51, 0)):
+    for date, time, tz in ((2026.1003, 16.0, 4), (2027.0121, 22.30, -5), (2049.0316, 21.51, 0), (2028.0606, 1.42, 5.5)):
         y = int(date); m = int(round((date - y) * 100)); d = int(round((date - y) * 10000 - m * 100))
         h = int(time); mi = int(round((time - h) * 100))
         j = M47.julian(y, m, d, h + mi / 60.0 - tz)
-        want = expected(j, False) + expected(j, True)
+        want = expected(j, False) + expected(j, True) + [
+            '%02d-%02d-%04d %02d:%02d %s TZ=%s' % (d, m, y, h, mi, 'LT' if tz else 'UT', M47.tz_text(tz))]
         got = hpprime(date, time, tz, png if tz == 4 else None)
         miss = [w for w in want if w not in got]
         bad += bool(miss)
-        print('HP Prime %s %05.2f TZ %+d: %s' % (date, time, tz, 'OK' if not miss else 'MISSING %s' % miss))
+        print('HP Prime %s %05.2f TZ %+g: %s' % (date, time, tz, 'OK' if not miss else 'MISSING %s' % miss))
     print('%d failed' % bad)
     sys.exit(1 if bad else 0)
 

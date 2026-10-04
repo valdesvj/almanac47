@@ -93,6 +93,22 @@ def phase_time(j, target):
     return t1
 
 
+def tz_text(tz):
+    """The offset of the header: 0, +4, -5, +5:30 (hours, minutes)."""
+    if tz == 0:
+        return '0'
+    a = abs(tz); h = int(a); m = int(a * 60 - h * 60 + 0.5)
+    if m == 60:
+        h, m = h + 1, 0
+    return ('+' if tz > 0 else '-') + str(h) + (':%02d' % m if m else '')
+
+
+def header_text(j, tz):
+    """The top line: the clock's date and time (UT when TZ = 0, else LT = UT + TZ) and TZ."""
+    d, m, y, h = from_julian(j + tz / 24.0 + 0.5 / 1440)
+    return '%02d-%02d-%04d %02d:%02d %s TZ=%s' % (d, m, y, int(h), int(h * 60) % 60, 'LT' if tz else 'UT', tz_text(tz))
+
+
 def disc_runs(r, age, south, dx):
     """The disc, one column at a time (what AGRAPH draws): for column dx (-r..r) the runs (a, b) of rows,
     a <= |y| <= b above and below the centre. The lit part is filled, the dark part is the outline;
