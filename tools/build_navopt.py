@@ -57,7 +57,7 @@ def optimized(on=True):
             setattr(gennav, k, v)
 
 
-def keywait(L):
+def keywait(L, wait='50'):
     """Every tight key wait LBL n / KEY? r / GTO n becomes LBL n / PAUSE 50 / KEY? r / GTO n. A key pressed during a
     PAUSE ends it only after its release (the C47: pauseKeyExit waits for the release; the PC simulator:
     PGM_KEY_PRESSED_WHILE_PAUSED until the release, and that release does not repaint the screen), and KEY? then
@@ -74,7 +74,7 @@ def keywait(L):
         if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
             if out and out[-1] == 'PAUSE 0':           # PAUSE 50 shows the screen itself (lcd_refresh at its start)
                 out.pop()
-            out += [L[i], 'PAUSE 50', L[i + 1], L[i + 2]]
+            out += [L[i], 'PAUSE ' + wait, L[i + 1], L[i + 2]]
             i += 3
             continue
         out.append(L[i])
@@ -126,13 +126,14 @@ def raw(path):
     return os.path.getsize(path[:-4] + '.raw')
 
 
-def c47(on=True):
-    """NAVFULL (named labels, short labels); on=False: the release one."""
+def c47(on=True, wait='50'):
+    """NAVFULL (named labels, short labels); on=False: the release one. wait: the PAUSE of the key waits
+    (NAVFULL_OPT_PAUSE0: PAUSE 0, to compare on the calculator and in the simulator)."""
     with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
         full = B.build()[0]
         short = open(os.path.join(tmp, 'build', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
         if on:                                     # without TEXT: the programs NAV still reaches; keys read in a PAUSE
-            full = keywait(prune(full))
+            full = keywait(prune(full), wait)
             short = B.rename(full, B.fixed_map('NAVFULL', full))
     return full, [l for l in short if l]
 
@@ -195,6 +196,7 @@ def main():
     full, short = c47()
     B.write(os.path.join(OUT, 'src', 'NAVFULL_OPT.txt'), full)
     B.write(os.path.join(OUT, 'NAVFULL_OPT.txt'), short)
+    B.write(os.path.join(OUT, 'NAVFULL_OPT_PAUSE0.txt'), c47(True, '0')[1])        # the key waits with PAUSE 0
     short, named = free42()
     B.write(os.path.join(OUT, 'free42', 'NAVFULL_OPT.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'src', 'NAVFULL_OPT.txt'), named)
@@ -203,7 +205,8 @@ def main():
         B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', 'NAVINIT_%s.txt' % k.replace('F42_', '')), L)
     for k, L in tbls().items():
         B.write(os.path.join(OUT, 'free42' if k.startswith('F42_') else '', k.replace('F42_', '') + '.txt'), L)
-    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt'):
+    for f in ('NAVFULL_OPT.txt', 'NAVFULL_OPT_PAUSE0.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt',
+              'TBL_1.txt', 'TBL_5.txt'):
         n = p47(os.path.join(OUT, f))
         print('%-28s %s' % ('build/dev/opt/' + f, '.p47 %d bytes' % n if n else '(no rejig: no .p47)'))
     for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt', 'TBL_50.txt'):
