@@ -26,11 +26,31 @@ B = N.B
 OUT = os.path.join(ROOT, 'build')
 
 
-def labels_file(path, full, short, title):
+# what the routines do in v2.0.0 where it differs from build_navfull.LABEL_TEXT (the menu numbers, the registers)
+V2_TEXT = {
+ 'NAV':    'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; your registers '
+           'R00-R45 saved at the start and given back at 0 (the only named program; INFO page inside)',
+ 'ALMF':   'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
+ 'HALMH':  'view 2 SPLIT: horizon chart on top, the bodies below (8 rows)',
+ 'HORZ':   'view 3 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)',
+ 'HANIM':  'view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
+ 'ALLSKY': 'view 5 ALLSKY: whole sky, over the horizon above, under the horizon below',
+}
+HEADER = ('Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.\n'
+          'Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the\n'
+          'base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.\n'
+          'The numbers missing here belong to routines of older versions.\n\n')
+
+
+def labels_file(path, full, short, title, text=None):
+    """NAME_LABELS.txt: label, routine name and what it does (build_navfull.LABEL_TEXT, then V2_TEXT, then text)."""
+    t = dict(B.LABEL_TEXT)
+    t.update(V2_TEXT)
+    t.update(text or {})
     m = [(b[5:-1], a[5:-1]) for a, b in zip(full, short) if a.startswith('LBL "')]
     with open(path, 'w', encoding='utf-8') as fh:
-        fh.write('%s - program labels (NAV keeps its name)\n\n' % title)
-        fh.write('\n'.join('%s  %s' % (s, l) for s, l in m) + '\n')
+        fh.write('%s - program labels\n%s\n%s' % (title, '=' * (len(title) + 17), HEADER))
+        fh.write('\n'.join('%-7s %-7s %s' % (s, l, t.get(l, '')) for s, l in m) + '\n')
 
 
 def c47():
@@ -60,7 +80,9 @@ def dm42():
         short = B.rename_keep(L, m, ('NAV', 'INIT'))
         init = N.init_clean(D.init_dm42())
     B.write(os.path.join(OUT, 'dm42', 'NAVLITTLE.txt'), short)
-    labels_file(os.path.join(OUT, 'dm42', 'NAVLITTLE_LABELS.txt'), L, short, 'NAVLITTLE v2.0.0 (DM42 with the C47 firmware)')
+    little = dict(D.LABEL_TEXT, NAV='no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends; '
+                  'your registers R00-R29 saved at the start and given back at the end')
+    labels_file(os.path.join(OUT, 'dm42', 'NAVLITTLE_LABELS.txt'), L, short, 'NAVLITTLE v2.0.0 (DM42 with the C47 firmware)', little)
     B.write(os.path.join(OUT, 'dm42', 'NAVINIT_LITTLE.txt'), init)
     return L
 
@@ -98,12 +120,17 @@ def free42():
     short, named = N.free42(True, post=post, menu=menu)
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
-    labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.0.0 (Free42)')
+    labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.0.0 (Free42)',
+                {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R45 saved at the start',
+                                                                                     'REGS and SIZE saved in NBAK')})
     kfull = info['k']
     short, named, init = N.free42(True, post=post, menu=menu, little=True)
     B.write(os.path.join(OUT, 'free42', 'NAVLITTLE.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVLITTLE.txt'), named)
-    labels_file(os.path.join(OUT, 'free42', 'NAVLITTLE_LABELS.txt'), named, short, 'NAVLITTLE v2.0.0 (Free42)')
+    import build_dm42 as D
+    labels_file(os.path.join(OUT, 'free42', 'NAVLITTLE_LABELS.txt'), named, short, 'NAVLITTLE v2.0.0 (Free42)',
+                dict(D.LABEL_TEXT, NAV='no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, '
+                     '+ ends; REGS and SIZE saved in NBAK and given back'))
     B.write(os.path.join(OUT, 'free42', 'NAVINIT_LITTLE.txt'), init)
     for k, L in N.inits().items():
         if k.startswith('F42_'):

@@ -71,11 +71,11 @@ def moon47(n, where, start, keys, extra):
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
     S = [P('Almanac 47 for Free42', title),
-         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual', sub), Spacer(1, 6),
-         P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 9 views — '
+         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.0.0', sub), Spacer(1, 6),
+         P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 5 views and INFO — '
            'converted to Free42 3.3 with the DM42 graphics extension (the whole 400 × 240 screen). The menu, the screens '
            'and the values are the same as on the C47: in the Free42 core (SwissMicros source, release 3.3.10) each '
-           'screen was compared pixel by pixel with the C47 version, and the text page line by line.'),
+           'screen was compared pixel by pixel with the C47 version.'),
          P(WARN), P(LIC, small),
          P('1. What you need', h2)] + B([
         'A <b>DM42n</b> (recommended) or DM42 with the SwissMicros stock firmware (DM42 3.26 = Free42 3.3.10 or later). '
@@ -85,7 +85,7 @@ def free42():
         'corner of each screen. Use the calculator for the views.'])
     S += [P('2. Files (build/free42)', h2),
           prose_tbl([['File', 'What it is'],
-                     ['NAVFULL.raw', 'the program NAV and its routines: all 9 views; the screen appears complete, '
+                     ['NAVFULL.raw', 'the program NAV and its routines: all the views; the screen appears complete, '
                                      'at once, as on the C47'],
                      ['NAVINIT_FULL.raw', 'INIT for NAVFULL: the series matrices, valid 2000–2050'],
                      ['NAVINIT_FAST.raw', 'INIT for NAVFULL: fitted series for 2026–2030 (smaller, faster)'],
@@ -93,7 +93,7 @@ def free42():
                      ['NAVINIT_LITTLE.raw', 'INIT for NAVLITTLE: Sun, nutation and stars, valid 2000–2050'],
                      ['TBL_1.raw, TBL_5.raw', 'optional almanac tables (JPL) for 1 or 5 years from 1 Oct 2026 (section 11)'],
                      ['*.txt', 'the same programs as text (Free42 on a PC: Paste in PRGM mode)'],
-                     ['dev/NAVFULL_DRAW.raw', 'NAVFULL with the Free42 screen update: each screen builds up as it is drawn']],
+                     ['MOON47.raw', 'the Moon phase on its own (section 12)']],
                     [45 * mm, 135 * mm]),
           P('3. Loading and first start', h2)] + B([
         'Connect the calculator by USB (it appears as a disk) and copy the .raw files into the PROGRAMS folder.',
@@ -103,7 +103,8 @@ def free42():
         'matrices stay.',
         'Load NAVFULL.raw and <b>XEQ "NAV"</b>.'])
     S += [P('4. Starting NAV', h2),
-          P('NAV asks four numbers with INPUT (R/S keeps the value shown); the formats are in the message line first:'),
+          P('NAV asks four numbers with INPUT (R/S keeps the value shown). At each prompt the stack is clear and Y '
+            'shows the format of that input (DATE Y.MMDD, UT H.MMSS, LAT D.MMm  S -, LON D.MMm  W -):'),
           prose_tbl([['Input', 'Meaning', 'Example'],
                      ['DATE', 'UT date, YYYY.MMDD', '2026.0926'],
                      ['UTC', 'UT, HH.MMSS', '14.57'],
@@ -115,26 +116,23 @@ def free42():
           img(F('menu'), 0.6),
           P('5. Keys', h2),
           prose_tbl([['Key', 'On the menu', 'On a view'],
-                     ['1 – 8', 'the item is highlighted and its view is drawn', '—'],
-                     ['9', 'PRLCD: the screen to the printer (a screenshot)', 'PRLCD'],
+                     ['1 – 6', 'the item is highlighted and its view is drawn (6: INFO)', '—'],
+                     ['9', 'SNAP: here PRLCD, the screen to the printer (a screenshot)', 'PRLCD'],
                      ['+', '—', 'back to the menu'],
                      ['▲ / ▼', 'one hour later / earlier', 'the same view one hour later / earlier'],
-                     ['0', 'end of NAV (screen and stack cleared)', '—'],
+                     ['0', 'end of NAV: your registers and SIZE back, screen and stack cleared', '—'],
                      ['R/S, EXIT', 'stop the program', 'stop the program']],
                     [26 * mm, 77 * mm, 77 * mm]),
           PageBreak(), P('6. The views', h2),
           P('26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E, as drawn by Free42.', small),
-          pair(F('almanac'), F('chart'), '<b>1 ALMANAC</b>: GHA, Dec, Hc, Zn of 10 bodies; twilight, rise/set, mer. pass, '
-               'Moon phase, HP, SD. A negative Hc is white on black.', '<b>2 CHART</b>: the sky (Hc up, Zn across, the '
-               'celestial equator dotted) and the Hc/Zn table.'), Spacer(1, 4),
-          pair(F('text'), F('sky'), '<b>3 TEXT</b>: the almanac page as text, drawn with the small font; the lines are '
-               'also in R50 … (Free42 has no register browser). + back to the menu.',
-               '<b>4 SKY</b>: full-screen chart; every second the name of the next body is shown next to it; '
-               'DAY / TWILIGHT / NIGHT at the bottom.'), Spacer(1, 4),
-          pair(F('split'), F('anim'), '<b>5 SPLIT</b>: chart on top, the bodies below down to the bottom.',
-               '<b>6 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).'), Spacer(1, 4),
-          pair(F('allsky'), F('info'), '<b>7 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.',
-               '<b>8 INFO</b>: repository, licence, no warranty, cross-check (the warning is on the menu and INFO only).'),
+          pair(F('almanac'), F('split'), '<b>1 ALMANAC</b>: GHA, Dec, Hc, Zn of 10 bodies; twilight, rise/set, mer. pass, '
+               'Moon phase, HP, SD. A negative Hc is white on black.', '<b>2 SPLIT</b>: chart on top (Hc up, Zn across, '
+               'the celestial equator dotted), the bodies below down to the bottom.'), Spacer(1, 4),
+          pair(F('sky'), F('anim'), '<b>3 SKY</b>: full-screen chart; every second the name of the next body is shown next '
+               'to it; DAY / TWILIGHT / NIGHT at the bottom.',
+               '<b>4 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).'), Spacer(1, 4),
+          pair(F('allsky'), F('info'), '<b>5 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.',
+               '<b>6 INFO</b>: repository, licence, no warranty, cross-check (the warning is on the menu and INFO only).'),
           Spacer(1, 4),
           img(F('box_ants'), 0.3),
           P('The SINKING....ABOUT box while the calculator works, with the ants (flag 97, below).', small),
@@ -146,7 +144,7 @@ def free42():
           P('<b>NAVFULL</b> and <b>NAVLITTLE</b> do it the C47 way with the DM42 variable RefLCD: 0 STO "RefLCD" (no LCD update '
             'while NAV computes and draws), −1 STO "RefLCD" (one update) where the C47 program shows its screen, and '
             '7 (normal) when NAV ends. If you stop it with R/S or EXIT and the screen stays frozen, key '
-            '<b>7 STO "RefLCD"</b>. dev/NAVFULL_DRAW keeps the Free42 way.'),
+            '<b>7 STO "RefLCD"</b>.'),
           P('8. The ants', h2),
           P('The ants live in NAV as on the C47, but they wait for <b>flag 97</b> (the HP-42S flag 47 is a system flag): '
             'SF 97 and press a view number, + or an arrow.'),
@@ -155,7 +153,13 @@ def free42():
         'the C47 drawing modes (OR, set, clear, XOR = GRMOD 0–3) are the HP-42S AGRAPH flags 34 and 35.',
         'PIXEL goes through a routine that converts the C47 coordinates (row 0 at the bottom) to the DM42 ones (row 1 at the top).',
         'Keys (GETKEY / GETKEYA) are translated to the C47 key codes; pauses use TIME; strings use XSTR, APPEND, HEAD; '
-        'the date is computed (Free42 has no C47 date functions). NAV sets SIZE 100 (R00–R99).',
+        'the date is computed (Free42 has no C47 date functions).',
+        '<b>Your registers are kept</b> (v2.0.0): NAV stores REGS (all your registers, and so your SIZE) in the '
+        'variable NBAK, runs with SIZE 46 (NAVLITTLE: 30), and stores NBAK back into REGS when you leave (0; '
+        'NAVLITTLE: +). If you stop NAV with R/S or EXIT: RCL "NBAK" STO "REGS" gives them back by hand.',
+        'v2.0.0 is faster and smaller (NAVFULL.raw 28.4 KB, was 35.5 KB) with the same screens: Horner, n-vectors, '
+        'counted loops on ISG, the registers renumbered (docs/OPTIMIZATIONS.md). The ↑ ↓ ± of the menu are drawn by '
+        'the font program from the C47 standard font.',
         'Built with tools/build_free42.py from the C47 programs; tested with tools/f42 (the Free42 core with the DM42 '
         'graphics, binary arithmetic). NAVFULL tested on a DM42n with the stock firmware by the author.'])
     S += [PageBreak(), P('10. NAVLITTLE: Sun and stars', h2),
@@ -169,7 +173,7 @@ def free42():
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
         'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
         'earlier (the screen stays while it computes), + ends (GrMod 0, screen and stack cleared).',
-        'Programs: NAVLITTLE about 9 KB, NAVINIT_LITTLE about 8 KB (.raw files), matrices 667 numbers.',
+        'Programs: NAVLITTLE 8.7 KB, NAVINIT_LITTLE 8 KB (.raw files), matrices 667 numbers.',
         'Tested in the Free42 core against the same screen in the C47 simulator, pixel by pixel '
         '(tests/test_f42_little.py); not yet on '
         'a real calculator.'])
@@ -196,7 +200,8 @@ def free42():
                   'age and % lit are then a few hours off. The top line shows the clock: the time UT and TZ=0, or with '
                   'TZ the local time LT and your offset (TZ=+4, TZ=-5, TZ=+5:30).',
                   'The same screen as MOON47 on the C47, pixel for pixel (tests/test_moon47_f42.py in the Free42 core). '
-                  'It sets SIZE 100 and uses R00–R61; GrMod 3 while it runs, RefLCD so the page appears at once.']))
+                  'It sets SIZE 100 and uses R00–R61; GrMod 3 while it runs, RefLCD so the page appears at once.',
+                  'Without the variable TZ the clock is taken as UT (flag 25 ignores the missing TZ).']))
     make(os.path.join(PDF, 'Almanac47_Free42_Manual.pdf'), 'Free42 (DM42 / DM42n) — user manual', S)
 
 

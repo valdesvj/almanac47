@@ -3,7 +3,7 @@
 run in the C47 simulator (python/c47sim.py): the screens of Oct 2026, text with ATEXT in GRFNT 21.
 
   NAV_menu.png, NAV_info.png, NAV_busy_box.png      800 x 480, grey (2 x)
-  ALMF_preview.png HALMV_preview.png HORZ_axes_night.png HALMH_preview.png
+  ALMF_preview.png HALMH_preview.png HORZ_axes_night.png
   ANIM_preview.png ALLSKY_preview.png                1200 x 720, black on white (3 x)
 
   python3 tools/generators/nav_shots.py
@@ -23,8 +23,9 @@ INIT = os.path.join(ROOT, 'build', 'NAVINIT_FULL.txt')
 MENU_CASE = ('2026.0926', '14.57', '25.20', '55.12')        # the menu, INFO and the box
 VIEW_CASE = ('2026.0923', '23.30', '10.00', '-75.30')       # the views
 # view: its menu key; the frames are the menu, the view, the menu again
-VIEWS = {'ALMF_preview': 72, 'HALMV_preview': 73, 'HORZ_axes_night': 62, 'HALMH_preview': 63,
-         'ANIM_preview': 64, 'ALLSKY_preview': 52}
+# v2.0.0 menu: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO (CHART is gone: HALMV_preview stays as it was)
+VIEWS = {'ALMF_preview': 72, 'HALMH_preview': 73, 'HORZ_axes_night': 74, 'ANIM_preview': 62, 'ALLSKY_preview': 63}
+INFO_KEY = 64
 
 
 def split(path):
@@ -75,11 +76,11 @@ def main():
     grey = dict(scale=2, on=20, off=220, mode='L')
     view = dict(scale=3, on=(0, 0, 0), off=(255, 255, 255), mode='RGB')
     save(run(MENU_CASE, [82])[0], 'NAV_menu', **grey)
-    save(run(MENU_CASE, [53, 85, 82])[1], 'NAV_info', **grey)
+    save(run(MENU_CASE, [INFO_KEY, 85, 82])[1], 'NAV_info', **grey)
     fr = run(MENU_CASE, [gennav.DOWN, 82], box=True)   # the box at the start, the menu, the box over it (DOWN), ...
     save(fr[2], 'NAV_busy_box', **grey)
     for name, key in VIEWS.items():
-        if key == 62:                                  # SKY: the chart, then the first name next to its body
+        if key == 74:                                  # SKY: the chart, then the first name next to its body
             save(run(VIEW_CASE, [key], maxpauses=3, keyskip=True)[2], name, **view)
         else:
             save(run(VIEW_CASE, [key, 85, 82])[1], name, **view)

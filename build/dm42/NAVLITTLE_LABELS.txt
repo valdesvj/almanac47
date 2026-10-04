@@ -1,38 +1,43 @@
-NAVLITTLE v2.0.0 (DM42 with the C47 firmware) - program labels (NAV keeps its name)
+NAVLITTLE v2.0.0 (DM42 with the C47 firmware) - program labels
+==============================================================
+Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.
+Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the
+base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.
+The numbers missing here belong to routines of older versions.
 
-NAV  NAV
-N01  ALMF
-N02  SUNA
-N03  SUNG
-N04  SUNF
-N05  SER
-N06  SERT
-N07  NUT
-N08  STAR
-N09  STR2
-N10  SQK
-N11  CHZ
-N12  HCZ
-N13  HCZ0
-N14  HCZI
-N15  DHA
-N16  RISE
-N17  SET
-N18  NTWA
-N19  NTWP
-N20  CTWA
-N21  CTWP
-N22  TRAN
-N23  SBRT
-N24  SNMU
-N37  TGET
-N25  PTXS
-N26  PINS
-N27  PF1S
-N28  PHMS
-N29  PDMS
-N30  PDTS
-N31  PZNS
-N32  PHLS
-N40  PSYB
-N36  WPLS
+NAV     NAV     no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends; your registers R00-R29 saved at the start and given back at the end
+N01     ALMF    ALMANAC: GHA ARIES, GHA, Dec, Hc, Zn of the Sun and the stars; twilight, rise/set, meridian passage
+N02     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+N03     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+N04     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
+N05     SER     sum of one series matrix with the matrix functions (COS, DOT)
+N06     SERT    the time vectors SV1 SV2 used by SER
+N07     NUT     nutation in longitude and obliquity (matrix NU)
+N08     STAR    star: SUNA, then STR2
+N09     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
+N10     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
+N11     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
+N12     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
+N13     HCZ0    sight reduction for Dec 0 (equator points)
+N14     HCZI    keeps sin/cos of the latitude for HCZ
+N15     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
+N16     RISE    sunrise time UT (SUNRISE program)
+N17     SET     sunset time UT
+N18     NTWA    nautical twilight, morning, UT
+N19     NTWP    nautical twilight, evening, UT
+N20     CTWA    civil twilight, morning, UT
+N21     CTWP    civil twilight, evening, UT
+N22     TRAN    meridian passage of the Sun, UT
+N23     SBRT    star number by brightness rank (1st brightest ... 58th)
+N24     SNMU    star name from its number
+N37     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
+N25     PTXS    TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
+N26     PINS    TEXT: whole number (one ATEXT)
+N27     PF1S    TEXT: number with one decimal
+N28     PHMS    TEXT: hh:mm from hours
+N29     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
+N30     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
+N31     PZNS    TEXT: azimuth "ddd.d"
+N32     PHLS    horizontal line (X = length in pixels)
+N40     PSYB    SYMBOL of the Sun and the star, 12 rows (glyphs47, AGRAPH) - Z row, Y column, X symbol
+N36     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
