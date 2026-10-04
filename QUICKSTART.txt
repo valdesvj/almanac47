@@ -16,15 +16,9 @@ rejig 0.34 does not know; a rejig that knows them converts directly):
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
-TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
-  XEQ "NAV" asks DATE UTC LAT LON and writes the almanac page into R50 ... R76, and lines
-  1-26 also into the stack and the lettered registers in the order REGS shows them: X Y Z T
-  A B C D, L, I J K M N P Q R S E F G H O U V W (A-D need the 8-level stack). The program
-  ends by opening the register browser (REGS). The first NAV runs INIT (takes a while) and
-  sets flag 81; later runs go straight on. Then delete INIT: GTO "INIT", DELP (the matrices
-  stay). New INIT later: CF 81 first. With TBL run (flag 10) and the date inside the table
-  period, the page comes from the tables (T after ARIES).
-  Other builds (NAVFULL_NOTBL, NAVALL, NAVCOMP) are in build/dev/.
+v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT SKY ANIM ALLSKY INFO.
+  NAV keeps your numbered registers: it saves R00-R45 when it starts (in its own local registers) and
+  gives them back when you leave with 0. Other builds are in build/dev/.
 
 1. LOAD THE PROGRAMS (two files: NAVFULL + NAVINIT_FAST)
    Copy both .p47 files to the calculator (USB disk) and load them as you load any
@@ -52,9 +46,12 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
      UTC   e.g. 18.30
      LAT   e.g. 25.12   (25 deg 12 min N; minus = S)
      LON   e.g. 55.18   (55 deg 18 min E; minus = W)
-   (R/S keeps the value shown.) While the sky is computed a box in the middle of the screen
+   (R/S keeps the value shown.) At each prompt the stack is clear and Y shows the format of that
+   input only (DATE YYYY.MMDD / UT HH.MMSS / LAT DD.MMm  S - / LON DDD.MMm  W -).
+   While the sky is computed a box in the middle of the screen
    says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
-     1 ALMANAC  2 CHART  3 TEXT  4 SKY  5 SPLIT  6 ANIM  7 ALLSKY  8 INFO  0 END   (9 SNAP)
+     1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  9 SNAP  0 END
+     KEY A NUMBER    + MENU    ↑↓ ±1 HOUR
    The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
    the date, time and DR position in use.
    Press the number key (no R/S): the item is highlighted and the view is drawn.
@@ -69,32 +66,30 @@ TEXT ONLY: NAVTXT (+ NAVINIT_FAST)
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
    the views then only draw. After a number the item is highlighted and the SINKING box shows
    until the view is drawn (also after + and the arrows).
-   (Something lives in NAV at the step after LBL 48 - line 431 of NAVFULL. It is 0.
+   (Something lives in NAV at the step after LBL 48. It is 0.
    Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
-   (7 ANIM computes its own times, as before.)
-   4 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
-   (do not use R/S: it stops the program). 3 TEXT: the almanac page as text, the same as
-   NAVTXT: lines in R50-R76, lines 1-26 also in the stack and lettered registers (REGS order);
-   NAV ends and opens the register browser (REGS). XEQ "NAV" again for the menu. 0 on the menu ends NAV
-   and clears the screen and the stack. New date or position: XEQ "NAV" again.
+   (4 ANIM computes its own times, as before.)
+   3 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
+   (do not use R/S: it stops the program). 0 on the menu ends NAV, gives your registers back and
+   clears the screen and the stack. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
                 meridian passage, Moon
-     2 CHART    horizon chart left, the bodies' HC ZN right (no ARIES, no Moon line)
-     3 TEXT     the almanac as text in the registers, shown with REGS (NAV ends)
-     4 SKY      horizon chart, the top line names each body in turn (3 s each)
-     5 SPLIT    horizon chart on top, the bodies below down to the bottom (8 rows)
-     6 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
-     7 ALLSKY   the whole sky: over the horizon above, under the horizon below
-     8 INFO     the repository, the licence, no warranty, cross-check with the almanac
+     2 SPLIT    horizon chart on top, the bodies below down to the bottom (8 rows)
+     3 SKY      horizon chart, the top line names each body in turn (3 s each)
+     4 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
+     5 ALLSKY   the whole sky: over the horizon above, under the horizon below
+     6 INFO     the repository, the licence, no warranty, cross-check with the almanac
+     9 SNAP     a screenshot (on the menu and on every view)
    The warning (cross-check with the almanac) is shown on the menu and on INFO only.
 
    An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
    A body below the horizon (in practice the Sun) has its Hc shown white on black.
    NAV uses the 8-level stack while it runs (the text routines need it) and puts your stack
-   size back when you leave with 0 or TEXT. It sets the ATEXT font GRFNT 21 while it runs and
-   20 (the standard font) when you leave with 0 or TEXT; after R/S 20 GRFNT puts it back.
+   size back when you leave with 0. It sets the ATEXT font GRFNT 21 while it runs and
+   20 (the standard font) when you leave with 0; after R/S 20 GRFNT puts it back.
+   If you stop NAV with R/S or EXIT, your registers R00-R45 keep NAV's values (only 0 gives them back).
 
 PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
   python3 python/native/c47pc.py           a window (GTK 3): date, UT, DR, a view, Now UTC
@@ -107,8 +102,8 @@ PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY: programs (measured with rejig) NAVFULL 35.8 KB, NAVTXT 14.9 KB; INIT while loaded
-NAVINIT_FAST 27.9 KB, NAVINIT_FULL 56.5 KB; TBL 39.0 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
+MEMORY: programs (measured with rejig, v2.0.0) NAVFULL 31.1 KB; INIT while loaded
+NAVINIT_FAST 28.6 KB, NAVINIT_FULL 57.8 KB; TBL_1 114 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
 and ALMQ about 20 KB.
 
 MOON47 (the Moon phase on its own, no NAV and no INIT): load build/MOON47 (rejig it to .p47), XEQ "MOON47".

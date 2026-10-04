@@ -5,7 +5,10 @@ version and the base for a phone app (**Almanac 47**).
 
 - **Install and run:** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
-  graphic menu of 9 views (keys 1-9, + back, arrows one hour).
+  graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 9 SNAP, 0 END (+ back,
+  ↑↓ ±1 hour). v2.0.0: your numbered registers are saved when NAV starts and given back when it ends.
+- **v2.0.0, what changed inside:** `docs/OPTIMIZATIONS.md` (Horner, n-vectors, the loops on ISG,
+  the registers renumbered from 100 to 46 and kept; Free42 SIZE and REGS kept).
 - **Text on the graphics screen:** `programs/FONTS.txt` - PTXT (3x5), PTXB (5x7) and
   PTXS (the C47 status-bar font), with number printers; usable on their own.
 - **Calculator programs:** `programs/` (start with `NAV`), commented versions in
@@ -25,7 +28,8 @@ version and the base for a phone app (**Almanac 47**).
   The same formulas everywhere (`tools/build_moon47.py` writes them all from `python/moon47.py`):
   phases within 4 minutes, HP 0.03'. Each manual has a MOON47 section.
 - **Calculator files:** `build/` (C47 / R47 with a firmware that has ATEXT and GRFNT: NAVFULL,
-  NAVTXT, NAVINIT_FULL / _FAST, TBL; the text written with ATEXT, only the body symbols drawn),
+  NAVINIT_FULL / _FAST, TBL; the text written with ATEXT, only the body symbols drawn; NAVTXT is
+  not in v2.0.0),
   `build/dm42/` (C47 on the old DM42: NAVLITTLE, Sun and stars), `build/free42/` (DM42 /
   DM42n stock Free42 firmware: NAVFULL, NAVLITTLE and their INITs, the screens of Oct 2026 with
   AGRAPH fonts); other builds in the

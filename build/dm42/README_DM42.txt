@@ -42,7 +42,7 @@ program bytes in the .p47 file; the .p47
 file on disk is about 3 times bigger because it stores each byte as a decimal number)
                      program
   NAVINIT_LITTLE      8.5 KB   delete it after use
-  NAVLITTLE           7.9 KB
+  NAVLITTLE           7.9 KB  (v2.0.0: the faster engine; your registers R00-R29 saved while NAV runs)
   Measured on a DM42n with the C47 firmware (262,144 bytes, Oct 2026):
     free after a reset                                   258,548 bytes
     INIT run and deleted, NAVLITTLE loaded               227,244 bytes
