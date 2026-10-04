@@ -57,6 +57,23 @@ def optimized(on=True):
             setattr(gennav, k, v)
 
 
+def keywait(L):
+    """Every tight key wait LBL n / KEY? r / GTO n becomes LBL n / PAUSE 50 / KEY? r / GTO n. A key pressed during a
+    PAUSE ends it only after its release (the C47: pauseKeyExit waits for the release; the PC simulator:
+    PGM_KEY_PRESSED_WHILE_PAUSED until the release, and that release does not repaint the screen), and KEY? then
+    reads it. In a bare KEY? loop the simulator repaints the stack over the drawing when the key is released.
+    Not PAUSE 99: on the calculator its end sets the screen back to the normal display (SCRUPD_AUTO, refresh 1201)."""
+    out, i = [], 0
+    while i < len(L):
+        if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
+            out += [L[i], 'PAUSE 50', L[i + 1], L[i + 2]]
+            i += 3
+            continue
+        out.append(L[i])
+        i += 1
+    return out
+
+
 def prune(L):
     """Only the programs NAV reaches (XEQ / GTO "name"): without TEXT, ALMR and its text routines go."""
     progs, cur = [], []
@@ -106,8 +123,8 @@ def c47(on=True):
     with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
         full = B.build()[0]
         short = open(os.path.join(tmp, 'build', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
-        if on:                                     # without TEXT: the programs NAV still reaches
-            full = prune(full)
+        if on:                                     # without TEXT: the programs NAV still reaches; keys read in a PAUSE
+            full = keywait(prune(full))
             short = B.rename(full, B.fixed_map('NAVFULL', full))
     return full, [l for l in short if l]
 
@@ -157,7 +174,7 @@ def tbl_clean(L, clear):
 def tbls():
     """TBL_1 / TBL_5 of the release (C47 build/, Free42 build/free42/) with a clean stack at the end."""
     out = {}
-    for name in ('TBL_1', 'TBL_5'):
+    for name in ('TBL_1', 'TBL_5', 'TBL_50'):            # TBL_50: Free42 on a PC only (not in git)
         for d, key, clear in (('', name, 'CLSTK'), ('free42', 'F42_' + name, 'CLST')):
             src = os.path.join(ROOT, 'build', d, name + '.txt')
             if os.path.exists(src):
@@ -181,7 +198,7 @@ def main():
     for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt'):
         n = p47(os.path.join(OUT, f))
         print('%-28s %s' % ('build/dev/opt/' + f, '.p47 %d bytes' % n if n else '(no rejig: no .p47)'))
-    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt'):
+    for f in ('NAVFULL_OPT.txt', 'MOON47_OPT.txt', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', 'TBL_5.txt', 'TBL_50.txt'):
         n = raw(os.path.join(OUT, 'free42', f))
         print('%-28s %s' % ('build/dev/opt/free42/' + f, '.raw %d bytes' % n if n else '(no f42run: no .raw)'))
 

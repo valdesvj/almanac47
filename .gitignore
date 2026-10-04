@@ -14,3 +14,4 @@ tools/f42/f42run
 # TBL_50 (2000-2050, about 18 MB): made on the PC, see tools/almanac/README.md
 tools/almanac/tables_2000-2050.csv
 build/free42/TBL_50.*
+build/dev/opt/free42/TBL_50.*

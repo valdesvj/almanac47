@@ -11,6 +11,7 @@
                  three SIN), the distance as a polynomial in cos M (one COS instead of two).
   n-vectors      R sin ψ and R cos ψ with one →REC.
 At the end the four matrices become 0 (STO): their memory is free again.
+  keys (C47)     PAUSE 50 + KEY? instead of a bare KEY? loop: the PC simulator does not repaint the stack on the release.
   TZ             at the start: if the variable TZ is not there, MOON47 creates it with 0 (after the read
                  that ignores the missing variable, STO "TZ" stores what was read, or 0).
 """
@@ -86,6 +87,8 @@ def transform(P, f42):
     P = cut(P, ['STO 06', '0', 'STO 28'], ['STO 06', '0', 'STO 28', 'XEQ 51'])
     tz = ['RCL "TZ"', 'STO 03', 'CF 25' if f42 else "CF 'IGN1ER'"]
     P = cut(P, tz, tz + ['STO "TZ"'])                  # TZ, or 0 when it was not there: now it is
+    if not f42:                                     # the C47: the key read in a PAUSE (tools/build_navopt.keywait)
+        P = cut(P, ['LBL 02', 'KEY? 39', 'GTO 02'], ['LBL 02', 'PAUSE 50', 'KEY? 39', 'GTO 02'])
     end = 'CLST' if f42 else 'CLSTK'
     assert P.count(end) == 1
     k = P.index(end)

@@ -696,5 +696,11 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
 - Patched C47 PC simulator (key release does not repaint a running program's screen): built from a copy
   of ~/opt/c43 master b8707a818 in ~/c47sim-patched/src47 (+ ~/sim-keyrelease-running.patch), run with
   ~/c47sim-patched/c47-patched.sh. Not in the repository.
+- Key wait (C47 dev NAV, WPLS and MOON47): LBL n / PAUSE 50 / KEY? r / GTO n instead of a bare KEY? loop, so the
+  unpatched PC simulator no longer paints the stack over a screen when a key is released (see
+  tests/calc_keywait/README.txt and the test programs KTK / KTP there). Tested in the unpatched simulator with
+  real key presses (headless sway + Xwayland + xdotool): the same screens as the patched simulator. Not PAUSE 99
+  (its end repaints the normal screen on the calculator). python/c47sim.py: PAUSE n followed by KEY? is the key
+  wait (no frame of its own). build/dev/opt/free42/TBL_50 (CLST before the message) is made but not in git.
 - To do before a release: time on the real C47 (TICKS# around XEQ "SUNA" / "STR2" / "HCZ", release
   and dev), the views on the calculator, then fold it into programs/ (and programs_rem/, listings/).
