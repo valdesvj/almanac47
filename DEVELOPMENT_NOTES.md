@@ -653,3 +653,55 @@ INIT with the builders as LBL 01-04.
 - C47 NAVLITTLE on a DM42n (C47 firmware, Victor): works, SNAP too; free 258,548 bytes after a
   reset, 227,244 with NAVLITTLE and its matrices (INIT deleted), 226,648 after NAV: about 31 KB
   in all (the matrices about 23 KB, more than the 11 KB estimate). NAVFULL works on the C47.
+
+## Oct 4, 2026 - DEV: the engine with Horner and n-vectors (NAVFULL_OPT, MOON47_OPT)
+
+A first dev version, C47 and Free42 only: `python3 tools/build_navopt.py` (build/dev/opt/), checked by
+`python3 tests/test_navopt.py [N] [--f42]`. programs/, build/ and the matrices (INIT) are unchanged:
+tools/navopt_engine.py rewrites SUNA, STAR, MOON, PLAN and CHZ by exact blocks (the build fails if
+programs/ changes there) and the release pipelines run on them (outputs and label maps in a temp folder).
+
+- Horner: every polynomial as c_n, RCL× T, c_n-1, + ... (GMST in d, the obliquity, ε0, e, ϖ, the
+  precession angles, SUNF, the Moon arguments were Horner already). The nutation loop (10 rows, about
+  420 steps) is two matrix products as the Moon series: NU × [D M M' F Ω 0 0 0 0] -> SIN / COS, DOT with
+  NU × [0 0 0 0 0 1 T 0 0] and [.. 0 1 T] (vectors NV NW). MOON47: the Sun's equation of the centre by
+  Clenshaw (Horner for a sine series), the Sun's distance as a polynomial in cos M, E^|m| as weights.
+- n-vectors: a rotation of the frame is →POL in one coordinate plane, + the angle, →REC (the C47
+  computes sin and cos in one call: C47_WP34S_Cvt2RadSinCosTan). Ecliptic -> equator (SUNA, MOO2, PLN2,
+  SUNF, MOOQ, PLNQ), precession ζ θ z and the ecliptic of date and back (STR2), L B R -> x y z (PLN2),
+  the orbit -> ecliptic (mean elements). The cache keeps θ and ε0 (STH, SE0) instead of six sines and
+  cosines (SSTH SCTH SSE0 SCE0 SSEP SCEP). PLN2 takes e and ϖ from SUNA (SEK, SPI).
+- HCZ: the body's n-vector in the meridian frame (two →REC), turned by the latitude (→POL, -φ, →REC):
+  U = sin Hc, N; E = -cos δ sin LHA; Zn = -atan2(y, N) mod 360. 27 steps instead of 42, R93 R99 not used.
+  HCZ0, HCZQ, HCZI, DHA the same way.
+- The simulator has →REC now (python/c47sim.py) and an optional count hook for the tests.
+- Results: the same numbers (C47 simulator: 1e-12' in the routines; Free42: the 12 digits of ALL), 63
+  views pixel for pixel (FULL, FAST, tables), Free42 menu views 1 2 3 5 7, MOON47 C47 and Free42.
+- Steps run: SUNA -57 %, STR2 -33 %, MOO2 -38 %, PLAN -42 %, PLN3 -29 %, PHAS -46 %, HCZ -36 %,
+  trig functions -14 % (FULL) / -19 % (FAST); the views -1 to -9 % (drawing dominates; the sky is cached).
+  Engine 2,123 -> 1,796 steps; NAVFULL 36,627 -> 35,882 bytes, Free42 .raw 35,457 -> 34,689. Engine
+  registers 69 -> 60 (R55 R57 R64 R65 R68 R71 R72 R79 R99 free there; NAVFULL still uses all 100).
+  MOON47: -32 % steps run, but +59 steps, +268 bytes and 4 matrices while it runs (0 at the end).
+  MOON47_OPT creates TZ = 0 at the start when the variable is not there (STO "TZ" after the read that
+  ignores a missing TZ: an existing TZ is kept); checked in the simulator and in f42run.
+- Oct 4 (Victor): the dev NAV has no TEXT (ALMR, which wrote the page into R50 ... as strings, and the
+  STXT routines SDAT SDM SEW SF1 SHM SINT SNS SZN are gone); the menu is numbered again: 1 ALMANAC
+  2 CHART 3 SKY 4 SPLIT 5 ANIM 6 ALLSKY 7 INFO 0 END (gennav ITEMS / VIEWS / ALL / COMPACT set by
+  build_navopt; build_free42.nav() skips its TEXT block when the menu has none: release output unchanged).
+  NAVFULL_OPT 32,927 bytes (36,627 release), Free42 .raw 30,521 (35,457). NAV and MOON47 end with a
+  clear stack (CLSTK / CLST, checked in the simulator and f42run); build/dev/opt/NAVINIT_FULL / _FAST
+  (and free42/) leave only the message MATRICES READY: ... with the validity (CLSTK before it).
+  build/dev/opt/TBL_1 / TBL_5 (and free42/) the same: only TBL dd-mm-yyyy TO dd-mm-yyyy is left (TBL_50,
+  PC only, not made here).
+- Patched C47 PC simulator (key release does not repaint a running program's screen): built from a copy
+  of ~/opt/c43 master b8707a818 in ~/c47sim-patched/src47 (+ ~/sim-keyrelease-running.patch), run with
+  ~/c47sim-patched/c47-patched.sh. Not in the repository.
+- Key wait (C47 dev NAV, WPLS and MOON47): LBL n / PAUSE 50 / KEY? r / GTO n instead of a bare KEY? loop, so the
+  unpatched PC simulator no longer paints the stack over a screen when a key is released (see
+  tests/calc_keywait/README.txt and the test programs KTK / KTP there). SKY (HORZ) reads keys between its info lines:
+  the TICKS + KEY? busy second is now PAUSE 10 + KEY? (no key: the next body), the same 1 s per line. Tested in the unpatched simulator with
+  real key presses (headless sway + Xwayland + xdotool): the same screens as the patched simulator. Not PAUSE 99
+  (its end repaints the normal screen on the calculator). python/c47sim.py: PAUSE n followed by KEY? is the key
+  wait (no frame of its own). build/dev/opt/free42/TBL_50 (CLST before the message) is made but not in git.
+- To do before a release: time on the real C47 (TICKS# around XEQ "SUNA" / "STR2" / "HCZ", release
+  and dev), the views on the calculator, then fold it into programs/ (and programs_rem/, listings/).

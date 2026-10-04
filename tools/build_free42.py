@@ -420,11 +420,12 @@ def nav():
     P = seq(P, ['LBL 09', 'CLLCD', 'XEQ 08', 'CLSTK', 'RTN'], ['LBL 09', 'CLLCD', '0', 'STO "GrMod"'] + (['7', 'STO "RefLCD"'] if RLCD[0] else []) + ['CLST', 'CLD', 'RTN'])
     P = seq(P, ['PAUSE 0', 'LBL 02', 'KEY? 39', 'GTO 02'], (['XEQ "RF"'] if RLCD[0] else []) + ['LBL 02', 'GETKEY', 'XEQ "KM"', 'STO 39'])
     # TEXT: the page into R50 ... (ALMR) and drawn with the small font; + back to the menu
-    i = P.index('LBL 12')
-    j = P.index('REGS', i)
-    assert P[j + 1] == 'RTN'
-    P = P[:i] + ['LBL 12', '50.078', 'STO 49', 'LBL 24', '" "', 'STO IND 49', 'ISG 49', 'GTO 24',
-                 'XEQ 21', 'XEQ "ALMR"', 'XEQ "TPG"', 'XEQ "WPLS"', 'GTO 05'] + P[j + 2:]
+    if 'REGS' in P:                                       # (a menu without TEXT: nothing to do)
+        i = P.index('LBL 12')
+        j = P.index('REGS', i)
+        assert P[j + 1] == 'RTN'
+        P = P[:i] + ['LBL 12', '50.078', 'STO 49', 'LBL 24', '" "', 'STO IND 49', 'ISG 49', 'GTO 24',
+                     'XEQ 21', 'XEQ "ALMR"', 'XEQ "TPG"', 'XEQ "WPLS"', 'GTO 05'] + P[j + 2:]
     # LBL 41: the highlighted menu item (XOR box 170 x 16)
     i = P.index('LBL 41')
     j = P.index('RTN', i)
