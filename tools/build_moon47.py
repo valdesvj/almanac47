@@ -3,7 +3,7 @@
 
 Writes build/MOON47.txt (and build/MOON47.p47 with rejig, if it is on the PATH). Three programs in one file:
   MOON47  the page: no inputs and no INIT tables, the date and time from the calculator's clock (local time;
-          minus the variable TZ, in hours, if it exists: 4 STO "TZ" for UT+4). Every number comes from the
+          minus the variable TZ, in hours: 4 STO "TZ" for UT+4; without TZ MOON47 creates it with 0). Every number comes from the
           20 terms of python/moon47.py, the same steps. The +/- key switches the northern / southern view,
           any other key ends.
   M7TX    the ATEXT text and number printers of NAV (tools/atext_common.py), under their own names
@@ -46,7 +46,9 @@ def terms():
 def clock(f42):
     """X: the JD (UT) of now: the clock (local time) minus TZ hours if the variable TZ exists."""
     if not f42:
-        tz = ['0', 'STO 03', "SF 'IGN1ER'", 'RCL "TZ"', 'STO 03', "CF 'IGN1ER'"]
+        # 0 STO+ "TZ": STO+ creates a missing variable with 0 (an existing TZ gets + 0), so RCL "TZ" always
+        # works. The C47 stops on RCL of a missing variable even with IGN1ER set (firmware _executeOp).
+        tz = ['0', 'STO+ "TZ"', 'RCL "TZ"', 'STO 03']
         return tz + ['Date→ⅅ', 'Time→ℸ', 'ⅅℸ→J', 'RCL 03', '24', '÷', '-']
     # Free42: DATE in the format of flags 67 (YMD: Y.MMDD), 31 (DMY: D.MMYYYY) or neither (MDY: M.DDYYYY),
     # TIME HH.MMSS; the JD with the Gregorian arithmetic (Meeus 7.1); flag 25 ignores the missing TZ

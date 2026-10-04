@@ -5,11 +5,9 @@ SSIZE8
 DEG
 WSIZE 64
 0
-STO 03
-SF 'IGN1ER'
+STO+ "TZ"
 RCL "TZ"
 STO 03
-CF 'IGN1ER'
 Date→ⅅ
 Time→ℸ
 ⅅℸ→J
