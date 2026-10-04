@@ -35,8 +35,8 @@ OUT = os.path.join(ROOT, 'build', 'dev', 'opt')
 F42RUN = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 
 
-# the dev C47 menus (not Free42: its AGRAPH fonts): 9 SNAP shown in the menu, the hint with the arrow keys
-C47_MENU = {'EXTRA': [(9, 'SNAP')], 'HINT': 'KEY A NUMBER    + MENU    ↑↓ ±1 HOUR'}
+# the dev C47 menus (not Free42: its AGRAPH fonts): 9 SNAP is a key, not a view: in the hint line with the arrow keys
+C47_MENU = {'EXTRA': [], 'HINT': 'KEY A NUMBER   + MENU   ↑↓ ±1 HOUR   9 SNAP'}
 
 # the dev menu with SPLIT as 2 and no CHART: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO, 0 END
 SPLIT2 = {'ITEMS': ['ALMANAC', 'SPLIT', 'SKY', 'ANIM', 'ALLSKY', 'INFO'],

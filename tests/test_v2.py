@@ -20,7 +20,7 @@ import c47sim                                                        # noqa: E40
 import test_navopt as T                                              # noqa: E402
 
 F42 = os.path.join(ROOT, 'tools', 'f42', 'f42run')
-REF = 'main'          # the release build before v2.0.0 (v1.1.0 with the ATEXT fonts and the PAUSE key waits)
+REF = '89404df'       # main before v2.0.0 (#50: v1.1.0 with the ATEXT fonts and the PAUSE key waits); main is v2.0.0 since #51
 INPUTS = (('DATE', '2026.1004'), ('UTC', '9.30'), ('LAT', '25.20'), ('LON', '55.12'))
 # C47 key codes of the digits (row * 10 + column) and of + / 0 / arrows
 K = {1: 72, 2: 73, 3: 74, 4: 62, 5: 63, 6: 64, 7: 52, 8: 53, 9: 54, 0: 82, '+': 85, 'up': 51, 'down': 61}
@@ -111,6 +111,9 @@ def dm42_vs_v110():
     return bad
 
 
+# the menu key line (rows from the top) and the x where its last word starts: 9 SNAP on the C47, 9 PRLCD on Free42
+HINT_ROWS, HINT_X = range(190, 206), 324
+HINT_WORD = frozenset((x, y) for x in range(HINT_X, 400) for y in HINT_ROWS)
 F42KEY = {1: 29, 2: 30, 3: 31, 4: 24, 5: 25, 6: 26, 0: 34, '+': 37}
 
 
@@ -145,7 +148,11 @@ def f42_vs_c47():
             fkeys += [F42KEY[p], F42KEY['+']]; ckeys += [K[p], K['+']]
         f, _ = f42_shots(nav, init, inp, fkeys)
         c, kept, clear = session(c47, ckeys + [K[0]], 'FULL', False, inp)
-        diffs = [len(a ^ b) for a, b in zip(f, c)]
+        # the menus (every other screen) differ only in the last word of the key line: 9 PRLCD / 9 SNAP
+        diffs = [len(a ^ b) if i % 2 else len({(x, y) for x, y in a ^ b if not (y in HINT_ROWS and x >= HINT_X)})
+                 for i, (a, b) in enumerate(zip(f, c))]
+        word = len(f[0] & HINT_WORD) > 0 and len(c[0] & HINT_WORD) > 0 and f[0] & HINT_WORD != c[0] & HINT_WORD
+        diffs[0] += not word
         ok = len(f) == len(c) - 1 or len(f) <= len(c)
         ok = ok and not any(diffs)
         bad += not ok

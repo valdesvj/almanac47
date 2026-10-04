@@ -50,8 +50,8 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
    input only (DATE YYYY.MMDD / UT HH.MMSS / LAT DD.MMm  S - / LON DDD.MMm  W -).
    While the sky is computed a box in the middle of the screen
    says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
-     1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  9 SNAP  0 END
-     KEY A NUMBER    + MENU    ↑↓ ±1 HOUR
+     1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  0 END
+     KEY A NUMBER   + MENU   ↑↓ ±1 HOUR   9 SNAP      (Free42: 9 PRLCD)
    The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
    the date, time and DR position in use.
    Press the number key (no R/S): the item is highlighted and the view is drawn.

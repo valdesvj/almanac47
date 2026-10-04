@@ -4,7 +4,7 @@ tools/navhopt.py, tools/regalloc.py; docs/OPTIMIZATIONS.md):
 
   build/NAVFULL.txt (.p47)        C47 / R47: the engine with Horner and n-vectors, the loops on ISG, the registers
                                   renumbered (R00-R45) and saved in local registers while NAV runs; menu 1 ALMANAC
-                                  2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 9 SNAP 0 END, ↑↓ ±1 HOUR; clean input prompts
+                                  2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts
   build/NAVINIT_FULL / _FAST, TBL_1 / TBL_5 (.p47)   the matrices and tables, only their message left on the stack
   build/dm42/NAVLITTLE.txt (.p47) DM42 with the C47 firmware: the same engine, prompts and register save
   build/free42/NAVFULL / NAVLITTLE / NAVINIT_* / TBL_* (.txt, .raw)   Free42 (DM42 stock firmware): the same
@@ -88,8 +88,9 @@ def dm42():
 
 
 # Free42: the C47 menu; its PTXS has no ↑ ↓ ±: the strings use [ _ ` and PTXS gets those three glyphs from the
-# C47 standardFont (the same columns and widths as GRFNT 21: the screens match the C47 ones); ↑ [ 91, ↓ _ 95, ± ` 96
-F42_HINT = 'KEY A NUMBER    + MENU    [_ `1 HOUR'
+# C47 standardFont (the same columns and widths as GRFNT 21: the screens match the C47 ones); ↑ [ 91, ↓ _ 95, ± ` 96;
+# key 9 prints the screen (PRLCD) where the C47 has SNAP
+F42_HINT = 'KEY A NUMBER   + MENU   [_ `1 HOUR   9 PRLCD'
 
 
 def f42_glyphs():

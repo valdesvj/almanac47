@@ -112,7 +112,8 @@ def free42():
                      ['LON', 'longitude DDD.MMm, west negative', '55.12 = 55° 12′ E']],
                     [22 * mm, 110 * mm, 48 * mm])] + inputs_note() + [
           P('Then NAV switches to the 400 × 240 graphics mode (GrMod 3), computes the sky (the SINKING....ABOUT box '
-            'shows meanwhile) and draws the menu. 0 on the menu ends NAV and sets the normal screen again (GrMod 0).'),
+            'shows meanwhile) and draws the menu. 0 on the menu ends NAV and sets the normal screen again (GrMod 0). '
+            'Under the items, the keys: + MENU, ↑↓ ±1 HOUR and 9 PRLCD (SNAP on the C47).'),
           img(F('menu'), 0.6),
           P('5. Keys', h2),
           prose_tbl([['Key', 'On the menu', 'On a view'],
