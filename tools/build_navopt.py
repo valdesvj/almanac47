@@ -35,25 +35,34 @@ OUT = os.path.join(ROOT, 'build', 'dev', 'opt')
 F42RUN = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 
 
+# the dev C47 menus (not Free42: its AGRAPH fonts): 9 SNAP shown in the menu, the hint with the arrow keys
+C47_MENU = {'EXTRA': [(9, 'SNAP')], 'HINT': 'KEY A NUMBER    + MENU    ↑↓ ±1 HOUR'}
+
+# the dev menu with SPLIT as 2 and no CHART: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO, 0 END
+SPLIT2 = {'ITEMS': ['ALMANAC', 'SPLIT', 'SKY', 'ANIM', 'ALLSKY', 'INFO'],
+          'VIEWS': ['ALMF', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY', None],
+          'ALL': list(range(1, 7)), 'COMPACT': [1, 2, 3, 5, 6]}
+
+
 @contextlib.contextmanager
-def optimized(on=True):
+def optimized(on=True, menu=None):
     """B.read gives the optimized engine, the cache keeps θ and ε0, outputs and label maps in a temp folder
     (on=False: the release programs, the same way: the reference of the tests)."""
     read, out, labels, regs = B.read, B.OUT, B.LABELS, gencache.SUNREGS
-    menu = {k: getattr(gennav, k) for k in NOTEXT}
+    saved = {k: getattr(gennav, k) for k in list(NOTEXT) + list(C47_MENU)}
     opt = E.programs(read) if on else {}
     tmp = tempfile.mkdtemp()
     shutil.copytree(labels, os.path.join(tmp, 'labels'))
     B.read = lambda name: list(opt[name]) if name in opt else read(name)
     B.OUT, B.LABELS = os.path.join(tmp, 'build'), os.path.join(tmp, 'labels')
     gencache.SUNREGS = E.SUNREGS if on else regs
-    for k, v in (NOTEXT if on else menu).items():
+    for k, v in ((menu or NOTEXT) if on else saved).items():
         setattr(gennav, k, v)
     try:
         yield tmp
     finally:
         B.read, B.OUT, B.LABELS, gencache.SUNREGS = read, out, labels, regs
-        for k, v in menu.items():
+        for k, v in saved.items():
             setattr(gennav, k, v)
 
 
@@ -108,11 +117,12 @@ def raw(path):
     return os.path.getsize(path[:-4] + '.raw')
 
 
-def c47(on=True, wait='50', post=None):
+def c47(on=True, wait='50', post=None, menu=None):
     """NAVFULL (named labels, short labels); on=False: the release one. wait: the PAUSE of the key waits
     (NAVFULL_OPT_PAUSE0 / _PAUSE1: PAUSE 0 / PAUSE 1, to compare on the calculator and in the simulator).
-    post: one more rewrite of the named listing (tools/build_navhopt.py: the loops on ISG)."""
-    with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
+    post: one more rewrite of the named listing (tools/build_navhopt.py: the loops on ISG).
+    menu: another dev menu (SPLIT2: SPLIT as item 2, no CHART); default NOTEXT."""
+    with optimized(on, dict(menu or NOTEXT, **C47_MENU) if on else None) as tmp, contextlib.redirect_stdout(io.StringIO()):
         full = B.build()[0]
         short = open(os.path.join(tmp, 'build', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
         if on:                                     # without TEXT: the programs NAV still reaches; keys read in a PAUSE

@@ -5,6 +5,11 @@ against NAVFULL_OPT and MOON47_OPT (tools/build_navopt.py), both built now.
   C47 (python/c47sim.py)   every view (ALMF HALMV HORZ HALMH HANIM ALLSKY) pixel for pixel, with the FULL and
                            the FAST series and with the tables (TBL_4M); the NAV menu (frames, stack at the end);
                            MOON47 north and south; steps run.
+  MOONFAST_R31 / _LOCR (R31: registers renumbered into R00-R30, saved and restored; LOCR: no global
+                           register, all local): the page against HOPT, every register R00-R99 as before.
+  NAVFULL_RSAVE / _LOCR (registers renumbered R00-R45, saved and restored / values in local registers per
+                           level, R00-R32 saved and restored): every view against HOPT (FULL, FAST, tables), the
+                           NAV menu with R00-R99 set to marks: the same frames, every register as before.
   Free42 (tools/f42/f42run, --f42)  the views through the NAV menu and MOON47, pixel for pixel.
   Statistics: program steps, bytes (.p47 / .raw), registers and variables, steps run.
 
@@ -89,6 +94,105 @@ def moon(opt, hopt, n):
     return bad, steps, paths
 
 
+def moon_regs(hopt, n):
+    """MOONFAST_R31 / _LOCR in the simulator against MOONFAST_HOPT: the frames, and R00-R99 (set to marks
+    before) the same after the run; the stack clear; LocR calls."""
+    import test_moon47_c47 as T47, moon47 as M47, c47sim, t21sim
+    bad = 0
+    print('\n== MOONFAST_R31 / _LOCR (C47 simulator): the page against HOPT, the registers kept')
+    t = tempfile.mkdtemp()
+    progs = {'HOPT': hopt}
+    for name, local in (('R31', False), ('LOCR', True)):
+        progs[name], k, nloc = H.moon_regs(local)
+        print('  %-5s %s, local registers %d in %d routines'
+              % (name, 'globals R00-R%02d, saved and restored' % (k - 1) if k else 'no global register',
+                 sum(nloc.values()), len(nloc)))
+    rnd = random.Random(472); steps = collections.Counter(); locr = collections.Counter()
+    for _ in range(n):
+        j = M47.julian(rnd.randint(2000, 2050), rnd.randint(1, 12), rnd.randint(1, 28), rnd.uniform(0, 24))
+        res = {}
+        for tag, L in progs.items():
+            path = os.path.join(t, tag + '.txt'); open(path, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+            files = []
+            for i, pr in enumerate(t21sim._split(path)):
+                f = os.path.join(t, '%s_%d.txt' % (tag, i)); open(f, 'w').write('\n'.join(pr) + '\n'); files.append(f)
+            c = c47sim.load(files); c.clock = j
+            marks = {'%02d' % r: D(1000 + r) + D('0.125') for r in range(100)}
+            for r, v in marks.items():
+                c.rset(r, v)
+            c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = [43, 82]
+            c.count = lambda op, x: locr.update([tag]) if op == 'LocR' else None
+            c.run('MOON47', maxsteps=10 ** 8)
+            res[tag] = [{(x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400} for f in c.frames]
+            steps[tag] += c.steps
+            if tag != 'HOPT':
+                changed = [r for r in marks if c.rget(r) != marks[r]]
+                clear = all(x == 0 for x in c.s)
+                bad += bool(changed) or not clear
+                if changed or not clear:
+                    print('  %s: registers changed %s, stack %s' % (tag, changed, 'clear' if clear else c.s))
+        for tag in ('R31', 'LOCR'):
+            diff = [len(a ^ b) for a, b in zip(res['HOPT'], res[tag])]
+            same = not any(diff) and len(res['HOPT']) == len(res[tag])
+            bad += not same
+            print('  JD %.4f %-4s diff %s  %s' % (j, tag, diff, 'OK, registers R00-R99 kept' if same else 'DIFFERENT'))
+    for tag in ('R31', 'LOCR'):
+        a, b = steps['HOPT'], steps[tag]
+        print('  steps run %-4s %d -> %d (%+.1f %%); LocR run %d times' % (tag, a, b, 100.0 * (b - a) / a, locr[tag]))
+    return bad
+
+
+def nav_regs(hopt, n):
+    """NAVFULL_RSAVE and NAVFULL_LOCR against HOPT: the views pixel for pixel (steps, LocR run), and NAV
+    (1 ALMANAC, + menu, 0 end) with every register R00-R99 set to a mark before: the same frames, every
+    register as before, the stack clear."""
+    import datetime
+    bad = 0
+    var = {'RSAVE': H.c47_rsave()[0], 'LOCR': H.c47_locr()[0]}
+    print('\n== NAVFULL_RSAVE / _LOCR (C47 simulator) against HOPT')
+    for tag, L in var.items():
+        diff, steps, locr = 0, [0, 0], 0
+        for init, tables in (('FULL', False), ('FAST', False), ('FULL', True)):
+            o, p = T.load(hopt, init, tables), T.load(L, init, tables)
+            cnt = collections.Counter()
+            p.count = lambda op, x: cnt.update(['LocR']) if op == 'LocR' else None
+            rnd = random.Random(12)
+            for k in range(n):
+                if tables:
+                    d0 = datetime.date(2026, 9, 27) + datetime.timedelta(days=rnd.randint(0, 120))
+                elif init == 'FAST':
+                    d0 = datetime.date(2026, 1, 1) + datetime.timedelta(days=rnd.randint(0, 700))
+                else:
+                    d0 = datetime.date(rnd.randint(2000, 2050), 1, 1) + datetime.timedelta(days=rnd.randint(0, 364))
+                j = (d0 - datetime.date(2000, 1, 1)).days + 2451544.5 + rnd.randint(0, 95) / 96
+                la, lo = round(rnd.uniform(-72, 72), 2), round(rnd.uniform(-180, 180), 2)
+                for v in T.VIEWS:
+                    a, b = T.view(o, v, j, la, lo), T.view(p, v, j, la, lo)
+                    if not (a[0] == b[0] and a[1] == b[1]):
+                        diff += 1
+                        print('  %s DIFFERENT %s %s %s %.2f %.2f: %d pixels' % (tag, init, tables, d0, la, lo, len(a[0] ^ b[0])))
+                    steps[0] += a[3]; steps[1] += b[3]
+            locr += cnt['LocR']
+        out = []
+        for LL in (hopt, L):
+            c = T.load(LL)
+            for k, v in (('DATE', '2026.1004'), ('UTC', '9.30'), ('LAT', '25.20'), ('LON', '55.12')):
+                c.reg[k] = D(v)
+            marks = {'%02d' % r: D(2000 + r) + D('0.25') for r in range(100)}
+            for r, v in marks.items():
+                c.rset(r, v)
+            c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = [72, 85, 82]
+            c.run('NAV', maxsteps=10 ** 8)
+            out.append(([frozenset(f) for f in c.frames], [r for r in marks if c.rget(r) != marks[r]], all(x == 0 for x in c.s)))
+        same, changed, clear = out[0][0] == out[1][0], out[1][1], out[1][2]
+        bad += diff + (not same) + bool(changed) + (not clear)
+        print('  %-5s views: %d screens, %d different; steps %+.1f %%; LocR run %d (%.0f per view)'
+              % (tag, 3 * n * len(T.VIEWS), diff, 100.0 * (steps[1] - steps[0]) / steps[0], locr, locr / (3.0 * n * len(T.VIEWS))))
+        print('  %-5s NAV menu: frames %s; registers R00-R99 %s; stack %s' % (tag, 'the same' if same else 'DIFFERENT',
+              'all as before' if not changed else 'CHANGED %s' % changed, 'clear' if clear else 'NOT CLEAR'))
+    return bad
+
+
 def count(L):
     return sum(1 for l in L if not l.startswith('LBL ') and l != 'END')
 
@@ -167,6 +271,8 @@ def main():
     mbad, msteps, mpaths = moon(mo, mh, n)
     bad += mbad
     stats(opt, hopt, mo, mh, rows, msteps, mpaths)
+    bad += moon_regs(mh, n)
+    bad += nav_regs(hopt, n)
     if '--f42' in sys.argv:
         bad += free42(max(2, n // 2))
     print('\n%d differences' % bad)

@@ -11,8 +11,9 @@
                  three SIN), the distance as a polynomial in cos M (one COS instead of two).
   n-vectors      R sin ψ and R cos ψ with one →REC.
 At the end the four matrices become 0 (STO): their memory is free again.
-  TZ             at the start: if the variable TZ is not there, MOON47 creates it with 0 (after the read
-                 that ignores the missing variable, STO "TZ" stores what was read, or 0).
+  TZ             at the start: if the variable TZ is not there, MOON47 creates it with 0. C47: 0 STO+ "TZ"
+                 (STO+ creates a missing variable with 0; an existing TZ gets + 0), then RCL "TZ"; the C47 stops
+                 on RCL of a missing variable even with IGN1ER set. Free42: RCL with flag 25, then STO "TZ".
 """
 
 
@@ -84,8 +85,12 @@ def transform(P, f42):
     P = P[:a] + l50_new() + P[b:]
     P = cut(P, L29_OLD, L29_NEW)
     P = cut(P, ['STO 06', '0', 'STO 28'], ['STO 06', '0', 'STO 28', 'XEQ 51'])
-    tz = ['RCL "TZ"', 'STO 03', 'CF 25' if f42 else "CF 'IGN1ER'"]
-    P = cut(P, tz, tz + ['STO "TZ"'])                  # TZ, or 0 when it was not there: now it is
+    if f42:                                            # Free42: flag 25 ignores the error of RCL; STO creates TZ
+        tz = ['RCL "TZ"', 'STO 03', 'CF 25']
+        P = cut(P, tz, tz + ['STO "TZ"'])              # TZ, or 0 when it was not there: now it is
+    else:                                              # C47: RCL of a missing variable stops the program even with
+        P = cut(P, ['0', 'STO 03', "SF 'IGN1ER'", 'RCL "TZ"', 'STO 03', "CF 'IGN1ER'"],    # IGN1ER (firmware
+                ['0', 'STO+ "TZ"', 'RCL "TZ"', 'STO 03'])   # _executeOp); STO+ creates a missing TZ with 0, else adds 0
     end = 'CLST' if f42 else 'CLSTK'
     assert P.count(end) == 1
     k = P.index(end)
