@@ -63,6 +63,12 @@ def keywait(L):
     PGM_KEY_PRESSED_WHILE_PAUSED until the release, and that release does not repaint the screen), and KEY? then
     reads it. In a bare KEY? loop the simulator repaints the stack over the drawing when the key is released.
     Not PAUSE 99: on the calculator its end sets the screen back to the normal display (SCRUPD_AUTO, refresh 1201)."""
+    # SKY (HORZ): one body's line a second, keys read in between (TICKS + KEY? busy loop) -> PAUSE 10, KEY?;
+    # no key: the next body (LBL 62), as when the second is over
+    sky_old = ['PAUSE 0', 'TICKS', '10', '+', 'STO 38', 'LBL 41', 'KEY? 39', 'GTO 46']
+    k = [n for n in range(len(L)) if L[n:n + len(sky_old)] == sky_old]
+    assert len(k) == 1, 'keywait: the SKY loop changed'
+    L = L[:k[0]] + ['PAUSE 10', 'KEY? 39', 'GTO 62'] + L[k[0] + len(sky_old):]
     out, i = [], 0
     while i < len(L):
         if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
