@@ -69,6 +69,10 @@ def keywait(L, wait='50'):
     k = [n for n in range(len(L)) if L[n:n + len(sky_old)] == sky_old]
     assert len(k) == 1, 'keywait: the SKY loop changed'
     L = L[:k[0]] + ['PAUSE 10', 'KEY? 39', 'GTO 62'] + L[k[0] + len(sky_old):]
+    dead = ['LBL 46', 'TICKS', 'RCL 38', 'X>Y?', 'GTO 41', 'GTO 62']           # its end-of-second test: not reached now
+    k = [n for n in range(len(L)) if L[n:n + len(dead)] == dead]
+    assert len(k) == 1
+    L = L[:k[0]] + L[k[0] + len(dead):]
     out, i = [], 0
     while i < len(L):
         if re.fullmatch(r'LBL \d+', L[i]) and i + 2 < len(L) and L[i + 1].startswith('KEY? ') and L[i + 2] == 'GTO ' + L[i][4:]:
