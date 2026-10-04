@@ -8,7 +8,8 @@ import c47sim
 
 NAV = os.path.join(ROOT, 'build', 'NAVFULL.txt')
 INIT = os.path.join(ROOT, 'build', 'NAVINIT_FULL.txt')      # the full series, as the native default
-KEYS = {'ALMANAC': 72, 'CHART': 73, 'SKY': 62, 'SPLIT': 63, 'ANIM': 64, 'ALLSKY': 52}
+# the v2.0.0 menu: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY (CHART and TEXT are PC-only views now, like MOON)
+KEYS = {'ALMANAC': 72, 'SPLIT': 73, 'SKY': 74, 'ANIM': 62, 'ALLSKY': 63}
 
 
 def _split(path):

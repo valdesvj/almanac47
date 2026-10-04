@@ -13,7 +13,7 @@ from c47view import jd
 args = [a for a in sys.argv[1:] if not a.startswith('-')]
 n = int(sys.argv[sys.argv.index('-n') + 1]) if '-n' in sys.argv else 3
 views = [a for a in args if a in N.VIEWS] or list(N.VIEWS)
-skip = [v for v in views if v not in t21sim.KEYS]          # PC-only views (MOON): no C47 reference
+skip = [v for v in views if v not in t21sim.KEYS]          # PC-only views (MOON; CHART and TEXT since v2.0.0)
 if skip:
     print('skipped (no C47 view): %s' % ' '.join(skip))
 views = [v for v in views if v in t21sim.KEYS]

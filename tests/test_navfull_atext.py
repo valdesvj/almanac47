@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """NAVFULL (build/): the ATEXT steps (PTXS, and PTTY for the tinyFont), no AGRAPH font for the text,
-and every view runs in the simulator: menu, 1 ALMANAC, 2 CHART, 4 SKY, 5 SPLIT, 6 ANIM,
-7 ALLSKY, 8 INFO (no SMALL). The texts given to ATEXT are checked for a few values of the page.
+and every view runs in the simulator: menu, 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY,
+6 INFO, 9 SNAP (v2.0.0: no CHART, no TEXT). The texts given to ATEXT are checked for a few values of the page.
     python3 tests/test_navfull_atext.py"""
 import os, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,20 +45,20 @@ def run(keys):
 L = open(NAV, encoding='utf-8').read().split('\n')
 n = sum(1 for l in L if l.startswith('ATEXT '))
 warn = sum(1 for l in L if 'DOES NOT REPLACE' in l or 'NOT FOR NAVIGATION' in l)
-print('ATEXT steps %d, warning lines %d (menu, INFO, TEXT page)' % (n, warn))
-bad = (n != 2) + (warn != 3)            # menu, INFO and the TEXT page (ALMR, in the registers)
-# menu 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO (no SMALL): keys 72 73 74 62 63 64 52 53
-CHECK = {None: ('1 ALMANAC', '5 SPLIT', '8 INFO', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'), 73: ('BODY', 'SATURN', 'MIRFAK'),
-         62: ('NIGHT', ' UT', '90'), 63: ('FOMALHAUT', 'MIRFAK'), 64: ('18:30', '21:30', 'NIGHT'), 52: ('NIGHT',),
-         53: ('ALMANAC 47 - INFO', '+ MENU')}
-NOT = {None: ('SMALL',), 73: ('ARIES', 'MOON '), 63: ('RISE', 'TWI')}
+print('ATEXT steps %d, warning lines %d (menu, INFO)' % (n, warn))
+bad = (n != 2) + (warn != 2)            # menu and INFO (v2.0.0: no TEXT page)
+# menu 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 9 SNAP: keys 72 73 74 62 63 64 (54)
+CHECK = {None: ('1 ALMANAC', '2 SPLIT', '6 INFO', '9 SNAP', '±1 HOUR', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'),
+         73: ('FOMALHAUT', 'MIRFAK'), 74: ('NIGHT', ' UT', '90'), 62: ('18:30', '21:30', 'NIGHT'), 63: ('NIGHT',),
+         64: ('ALMANAC 47 - INFO', '+ MENU')}
+NOT = {None: ('SMALL', 'CHART', 'TEXT'), 73: ('RISE', 'TWI')}
 for k, want in CHECK.items():
     c, txt = run([82] if k is None else [k, 85, 82])
     ok = all(w in txt for w in want) and not any(w in txt for w in NOT.get(k, ())) and c.frames
     bad += not ok
     print('%-5s %2d screens %6d steps: %s' % (k or 'menu', len(c.frames), c.steps, 'OK' if ok else 'FAILED %s' % [w for w in want if w not in txt]))
-# key 9 (54) = SNAP on the menu, on a view (WPLS) and on SKY (its own key loop)
-for keys, want in (([54, 82], 1), ([72, 54, 85, 82], 1), ([62, 54, 85, 82], 1), ([54, 72, 54, 85, 82], 2)):
+# key 9 (54) = SNAP on the menu, on a view and on SKY (its own key loop)
+for keys, want in (([54, 82], 1), ([72, 54, 85, 82], 1), ([74, 54, 85, 82], 1), ([54, 72, 54, 85, 82], 2)):
     c, _ = run(keys)
     n = len(getattr(c, 'snaps', []) or [])
     bad += n != want
