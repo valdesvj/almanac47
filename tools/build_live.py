@@ -3,9 +3,10 @@
 
   build/dev/live/NAVFULL_LIVE.txt (.p47)            C47 / R47: PAUSE 0 (the screen to the LCD, no wait) after every
                                                     text or symbol a view draws; the SINKING....ABOUT box only at the
-                                                    start, before the menu
+                                                    start, before the menu; SKY: the next body's name every 2 s
   build/dev/live/src/NAVFULL_LIVE.txt                the same with the routine names
-  build/dev/live/free42/NAVFULL_LIVE.txt (.raw)     Free42: the box only at the start (Free42 shows the drawing itself)
+  build/dev/live/free42/NAVFULL_LIVE.txt (.raw)     Free42: the box only at the start (Free42 shows the drawing itself);
+                                                    SKY every 2 s
   build/dev/live/free42/src/NAVFULL_LIVE.txt
 
 The C47 sends its screen to the LCD only at a PAUSE, a key or the end of the program (programming/input.c:207,
@@ -29,6 +30,7 @@ OUT = os.path.join(ROOT, 'build', 'dev', 'live')
 VIEWS = ('ALMF', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY')
 # the routines that draw a text, a number or a symbol (programs/atext/t21, glyphs47): a PAUSE 0 after each call
 DRAW = ('PTXS', 'PDMS', 'PHMS', 'PDTS', 'PSYS', 'PSYB', 'PTNT', 'PTTY', 'PINS', 'PF1S', 'PZNS', 'PHLS')
+SKY = '20'          # SKY: the next body's name every 2 s (the release: 50, 5 s)
 
 
 def programs(L):
@@ -62,6 +64,24 @@ def box_at_start(L):
     return out
 
 
+def sky_time(L, f42=False):
+    """SKY (HORZ): the time per body name, SKY tenths of a second. C47: PAUSE 50 / KEY?; Free42: XEQ "TK" / 50 / +."""
+    out, n, prog = list(L), 0, None
+    for i, l in enumerate(L):
+        m = re.fullmatch(r'LBL "(.+)"', l)
+        if m and prog in (None, '#END'):
+            prog = m.group(1)
+        if prog == 'HORZ':
+            if not f42 and l == 'PAUSE 50' and L[i + 1].startswith('KEY? '):
+                out[i] = 'PAUSE ' + SKY; n += 1
+            if f42 and l == 'XEQ "TK"' and L[i + 1] == '50' and L[i + 2] == '+':
+                out[i + 1] = SKY; n += 1
+        if l == 'END':
+            prog = '#END'
+    assert n == 1, 'build_live: SKY time found %d times' % n
+    return out
+
+
 def live(L):
     """C47: PAUSE 0 after every drawing call in the views."""
     out, n = list(L), 0
@@ -77,7 +97,7 @@ def live(L):
 
 def c47():
     full, short = N.c47(True, menu=N.SPLIT2,
-                        post=lambda L: live(box_at_start(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))))))
+                        post=lambda L: live(sky_time(box_at_start(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L)))))))
     B.write(os.path.join(OUT, 'NAVFULL_LIVE.txt'), short)
     B.write(os.path.join(OUT, 'src', 'NAVFULL_LIVE.txt'), full)
     return full
@@ -90,7 +110,7 @@ def free42():
     menu = dict(N.SPLIT2, **N.C47_MENU)
     menu['HINT'] = V.F42_HINT
     short, named = N.free42(True, menu=menu,
-                            post=lambda L: box_at_start(navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(L)))[0]))
+                            post=lambda L: sky_time(box_at_start(navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(L)))[0]), True))
     B.write(os.path.join(OUT, 'free42', 'NAVFULL_LIVE.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'src', 'NAVFULL_LIVE.txt'), named)
     return named
