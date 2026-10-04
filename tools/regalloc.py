@@ -23,6 +23,8 @@ READ = re.compile(r'(?:RCL|RCL[+\-×÷]|AGRAPH|GRMOD|αLENG|AVIEW|XEQ IND|GTO IN
 WRITE = re.compile(r'(?:STO|KEY\?|CLα) ' + REG + '$')
 RW = re.compile(r'(?:STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥|HEAD) ' + REG + '$')
 ANY = re.compile(r'^(RCL|RCL[+\-×÷]|AGRAPH|GRMOD|αLENG|AVIEW|XEQ IND|GTO IND|STO IND|RCL IND|STO|KEY\?|CLα|STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥|HEAD) (\d\d)$')
+# the returns: RTN, END and the Free42 FUNC returns (RTNYES / RTNNO: the caller's next step run / skipped)
+RET = ('RTN', 'END', 'RTNYES', 'RTNNO', 'RTNERR')
 SKIP = re.compile(r'^(.*\?( .*)?|ISG .*|DSE .*|KEY\? .*)$')
 ALL = (1 << 100) - 1
 
@@ -75,14 +77,16 @@ class Flow:
         self.succ = [[] for _ in L]
         for i, l in enumerate(L):
             op, _, arg = l.partition(' ')
-            if op in ('RTN', 'END'):
+            if op in RET:
                 continue
             if op == 'GTO':
                 self.succ[i] = self.targets(i, arg)
                 continue
+            nxt = [i + 1]
             if op == 'XEQ':
                 self.calls[i] = self.targets(i, arg)
-            nxt = [i + 1]
+                if any(self.yesno(e) for e in self.calls[i]):       # RTNNO skips the step after the call
+                    nxt.append(i + 2)
             if SKIP.match(l) and not l.startswith(('LBL', '"')):
                 nxt.append(i + 2)
             self.succ[i] = [j for j in nxt if j < n and self.prog[j] == self.prog[i]]
@@ -139,8 +143,18 @@ class Flow:
                             run.append(run[-1] + 1)
                     return sorted(loc['%02d' % x] for x in run)
                 break
-        return [j for j in sorted(loc.values()) if L[j - 1] in ('RTN', 'END') or
+        return [j for j in sorted(loc.values()) if L[j - 1] in RET or
                 L[j - 1].startswith(('GTO ', 'LBL "')) and not SKIP.match(L[j - 2])]
+
+    def yesno(self, e):
+        """the routine at line e returns with RTNYES / RTNNO (Free42 FUNC): its steps up to the next global label."""
+        L = self.L
+        for j in range(e + 1, len(L)):
+            if L[j] in ('RTNYES', 'RTNNO'):
+                return True
+            if L[j] == 'END' or L[j].startswith('LBL "'):
+                return False
+        return False
 
     def body(self, e):
         """Lines reached from entry e without entering calls, in order."""
@@ -184,7 +198,7 @@ def must_write(F):
                         din[i] = v; again = True
             m = ALL
             for i in body:
-                if L[i] in ('RTN', 'END') and i in din:
+                if L[i] in RET and i in din:
                     m &= din[i] | F.wr[i]
             F.din[e] = din
             if m != must[e]:
@@ -204,7 +218,7 @@ def liveness(F, must):
             changed = False
             for i in range(n - 1, -1, -1):
                 out = 0
-                if L[i] in ('RTN', 'END'):
+                if L[i] in RET:
                     for e in F.owners[i]:
                         out |= ret(e)
                 else:
@@ -301,7 +315,7 @@ def reaching(F, must):
         for e in F.entries:
             x = 0
             for i in F.bodies[e]:
-                if L[i] in ('RTN', 'END'):
+                if L[i] in RET:
                     x |= rin[i]
             if x != exitd[e]:
                 exitd[e] = x; changed = True

@@ -158,6 +158,28 @@ def f42_vs_c47():
     return bad
 
 
+def f42_exits():
+    """Free42 NAVFULL: every page goes back to the menu with + (SKY and ANIM too, which run until a key): a + is
+    queued 4 s after the key of SKY and ANIM (pressed after the others), then 0 ends NAV. A page that misses the + keeps f42run running: timeout."""
+    if not os.path.exists(F42):
+        return 0
+    print('\n== Free42 NAVFULL: + back to the menu from every page, then 0')
+    bad = 0
+    for p in (1, 2, 3, 4, 5, 6):
+        cmd = ['paste %s/build/free42/NAVINIT_FAST.txt' % ROOT, 'paste %s/build/free42/NAVFULL.txt' % ROOT, 'xeq INIT',
+               'xeq NAV'] + ['num ' + v for _, v in INPUTS] + (
+              ['qkey %d 4000' % F42KEY['+'], 'key %d' % F42KEY[p]] if p in (3, 4) else       # SKY, ANIM: + while they run
+              ['key %d' % F42KEY[p], 'key %d' % F42KEY['+']]) + ['key %d' % F42KEY[0], 'stack']
+        try:
+            o = subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=180).stdout
+            ok = 'running 0' in o
+        except subprocess.TimeoutExpired:
+            ok = False
+        bad += not ok
+        print('  page %d  %s' % (p, 'menu, then the end' if ok else 'NO WAY BACK (+ not seen)'))
+    return bad
+
+
 def f42_registers():
     if not os.path.exists(F42):
         return 0
@@ -188,6 +210,7 @@ def main():
     bad = c47_vs_v110()
     bad += dm42_vs_v110()
     bad += f42_vs_c47()
+    bad += f42_exits()
     bad += f42_registers()
     print('\n%d differences' % bad)
     sys.exit(1 if bad else 0)
