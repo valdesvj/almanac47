@@ -106,8 +106,36 @@ Python: `c47astro.use_series(json)`; tests: `test_parity.py N seed F`, `test_bod
   Max 0.12', 99 % under 0.07', rms 0.02'.
 - Planets: VSOP87D truncated (Earth 93 terms, Venus 39, Mars 154, Jupiter 152,
   Saturn 239), light time with 2 passes, FK5, aberration, nutation. Max 0.065'.
-- Validated against JPL DE421 + ERFA for 2025-2028. Check a wider range of years
-  before a store release.
+- Validated against JPL DE421 + ERFA, 2000-2050: `tests/test_ephem.py` (below).
+
+### Check against an independent ephemeris: tests/test_ephem.py
+
+Reference: JPL DE421 with ERFA (IAU 2006/2000A, light time, light deflection, aberration), the
+functions of `tools/almanac/c47_almanac_generator.py`; the stars from the calculator's catalogue with
+ERFA `atci13`. Checked: `c47astro.py`, the calculator's method in Python (`test_parity.py` shows
+the RPN programs draw the same screens). Random instants, latitude 60 S - 60 N.
+
+    uv run --no-project --with numpy --with pyerfa --with "jplephem==2.24" --with de421 \
+        python3 tests/test_ephem.py [N] [seed]
+
+Result with N = 500, seed 1 (max differences, arcmin unless noted):
+
+| | FULL 2000-2050 | FAST 2026-2030 | TBL Oct 2026 - Sep 2031 |
+|---|---|---|---|
+| Sun GHA / Dec | 0.013 / 0.007 | 0.016 / 0.015 | 0.001 / 0.001 |
+| GHA Aries | 0.003 | 0.002 | 0.001 |
+| Moon GHA / Dec | 0.125 / 0.047 | 0.105 / 0.052 | 0.001 / 0.001 |
+| Moon HP / SD | 0.007 / 0.002 | 0.006 / 0.002 | 0.000 |
+| Planets GHA / Dec | 0.066 / 0.050 | 0.082 / 0.045 | 0.004 / 0.002 |
+| Stars GHA·cos Dec / Dec | 0.007 / 0.023 | 0.013 / 0.021 | (series) |
+| Hc (all bodies) | 0.080 | 0.071 | 0.001 |
+| Sun times (rise, set, twilight, mer. pass) | 0.06 min | 0.07 min | - |
+| Moon % lit / age | 0.24 % / 0.05 h | - | - |
+
+Limits: 0.2' (Moon 0.3', Hc and Zn 0.3'), HP/SD 0.05', 1 min, 0.5 %, 0.25 h. The tables were fitted
+to the same DE421 reference: their column shows the fit, not an independent error. The calculator
+takes TT - UT1 = 69.2 s for every year; the reference the IERS values (63.8 s in 2000): part of the
+Moon's 0.125'. With TT - UT1 = 0 the test fails (Moon 0.7'): it does see a wrong calculation.
 
 ## Online check (PC only)
 
