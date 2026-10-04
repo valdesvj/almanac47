@@ -73,9 +73,9 @@ def main_program(f42=False):
     P += (['SIZE 100', 'DEG'] if f42 else ['SSIZE#', 'STO 29', 'SSIZE8', 'DEG', 'WSIZE 64'])
     P += clock(f42) + ['STO 06', '0', 'STO 28']
     P += (['3', 'STO "GrMod"', '0', 'STO "RefLCD"', 'XEQ 29'] if f42 else ['21', 'GRFNT', 'DROP', 'XEQ 29'])
-    P += ['LBL 01', 'CLLCD', 'XEQ 30'] + (['-1', 'STO "RefLCD"'] if f42 else ['PAUSE 0'])
+    P += ['LBL 01', 'CLLCD', 'XEQ 30'] + (['-1', 'STO "RefLCD"'] if f42 else [])
     P += (['LBL 02', 'GETKEY', '15', 'X=Y?', 'GTO 04'] if f42 else       # Free42: GETKEY waits; +/- is 15
-          ['LBL 02', 'KEY? 39', 'GTO 02', 'RCL 39', '43', 'X=Y?', 'GTO 04'])
+          ['LBL 02', 'PAUSE 50', 'KEY? 39', 'GTO 02', 'RCL 39', '43', 'X=Y?', 'GTO 04'])   # C47: the key read in a PAUSE
     P += (['CLLCD', '0', 'STO "GrMod"', '7', 'STO "RefLCD"', 'CLST', 'CLD', 'RTN'] if f42 else
           ['CLLCD', '20', 'GRFNT', 'DROP', 'RCL 29', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN'])
     P += ['LBL 04', '1', 'RCL 28', '-', 'STO 28', 'GTO 01']

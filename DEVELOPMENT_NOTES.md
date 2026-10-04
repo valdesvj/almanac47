@@ -705,3 +705,18 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   wait (no frame of its own). build/dev/opt/free42/TBL_50 (CLST before the message) is made but not in git.
 - To do before a release: time on the real C47 (TICKS# around XEQ "SUNA" / "STR2" / "HCZ", release
   and dev), the views on the calculator, then fold it into programs/ (and programs_rem/, listings/).
+
+## Oct 4, 2026 - The C47 builds read the keys in a PAUSE
+
+- Every C47 build (build/NAVFULL, build/dev/ NAVFULL_NOTBL NAVALL NAVCOMP, build/dm42/ NAVLITTLE and dev/
+  NAV12 NAV1T, MOON47) waits for keys with LBL n / PAUSE 50 / KEY? r / GTO n, and SKY's info line with
+  PAUSE n / KEY? (tools/keywait_patch.py, applied by build_navfull.keywait, build_dm42 and build_moon47).
+  The PAUSE 0 that sent the screen to the LCD before the old KEY? loop is gone (PAUSE 50 does it).
+- Why: a key pressed during a PAUSE ends it only after its release, on the calculator (pauseKeyExit) and in
+  the PC simulator (PGM_KEY_PRESSED_WHILE_PAUSED, whose release does not repaint), and KEY? reads it. In a
+  bare KEY? loop the simulator drew the stack over the screen at every key release; the calculator never did.
+  The simulator patch is not needed (tests/calc_keywait/README.txt, the GitLab issue is closed this way).
+- Not PAUSE 99 (its end repaints the normal screen on the calculator), not PAUSE 0 / 1 (no or too short a
+  wait: keys fall outside the pause). Free42 keeps GETKEY: build/free42/ unchanged.
+- v1.1.0: the C47 zips (C47_R47, fw0400b0, DM42_C47firmware) were corrected with keywait_patch.py
+  (~/almanac47_v1.1.0_keywait/, uploaded by Victor with --clobber; the originals kept there).
