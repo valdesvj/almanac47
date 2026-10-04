@@ -159,7 +159,9 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'any other key ends.',
       '<b>The clock is local time.</b> If it is not set to UT, store your offset once in the variable TZ, in hours: '
       '<b>4 STO "TZ"</b> for UT+4, <b>-5 STO "TZ"</b> for UT−5. Without TZ the clock is taken as UT: the phase times '
-      'stay right, the age and % lit are then a few hours off (% lit changes at most 0.45 % an hour).',
+      'stay right, the age and % lit are then a few hours off (% lit changes at most 0.45 % an hour).'
+      ' The top line shows the clock: the time UT and TZ=0, or with TZ the local time LT and your '
+      'offset (TZ=+4, TZ=-5, TZ=+5:30).',
       '<b>Accuracy</b> against the full series of NAV, 2000–2050: phase times and age within 4 minutes (most within 1), '
       'HP 0.03′, SD 0.01′, % lit 0.03 %. It uses the 20 largest terms of the Moon (Meeus, ch. 47), the phases by the '
       'secant method; tests/test_moon47.py checks it.',

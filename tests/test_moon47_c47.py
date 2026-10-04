@@ -28,10 +28,11 @@ def run(j, tz=None, keys=(43, 82)):
 
 
 def main():
-    n = int(sys.argv[1]) if len(sys.argv) > 1 else 4
+    n = int(sys.argv[1]) if len(sys.argv) > 1 else 5
     random.seed(4747)
     cases = [(M47.julian(2026, 10, 3, 12.0), None), (M47.julian(2026, 10, 10, 15.0), 4.0),
-             (M47.julian(2027, 1, 22, 3.5), -5.0)]
+             (M47.julian(2027, 1, 22, 3.5), -5.0),
+             (M47.julian(2028, 6, 5, 20.2), 5.5), (M47.julian(2029, 3, 1, 1.0), -9.5)]
     while len(cases) < n:
         cases.append((M47.julian(random.randint(2000, 2050), random.randint(1, 12), random.randint(1, 28),
                                  random.uniform(0, 24)), None))
@@ -39,7 +40,7 @@ def main():
     for j, tz in cases[:n]:
         t0 = time.time()
         frames, c = run(j, tz)
-        ref = [V.moon47_screen(j, False)[0], V.moon47_screen(j, True)[0]]
+        ref = [V.moon47_screen(j, False, tz or 0)[0], V.moon47_screen(j, True, tz or 0)[0]]
         diffs = [len(a ^ b) for a, b in zip(frames, ref)]
         ok = len(frames) == 2 and not any(diffs)
         bad += not ok

@@ -16,7 +16,7 @@ HP Prime): every one uses these formulas, these 20 terms and these steps.
 Accuracy against the full series of NAV (Meeus 47 + DE421 corrections), 2000-2050: phase times and age
 within 4 minutes (median under 1), HP within 0.03', SD within 0.01', lit within 0.1 %.
 
-  python3 python/moon47.py [--date 2026-10-03 --ut 12:00] [--south] [--png FILE]
+  python3 python/moon47.py [--date 2026-10-03 --ut 12:00] [--tz 4] [--south] [--png FILE]
   The phase does not depend on the place: MOON47 takes the date and time from the clock (UT; on the
   calculators the clock is local time, minus the variable TZ if it exists) and asks nothing. The latitude
   only turns the picture: northern view, or the southern one (the +/- key on the calculators).
@@ -113,6 +113,22 @@ def phase_time(j, target):
     return t1
 
 
+def tz_text(tz):
+    """The offset of the header: 0, +4, -5, +5:30 (hours, minutes)."""
+    if tz == 0:
+        return '0'
+    a = abs(tz); h = int(a); m = int(a * 60 - h * 60 + 0.5)
+    if m == 60:
+        h, m = h + 1, 0
+    return ('+' if tz > 0 else '-') + str(h) + (':%02d' % m if m else '')
+
+
+def header_text(j, tz):
+    """The top line: the clock's date and time (UT when TZ = 0, else LT = UT + TZ) and TZ."""
+    d, m, y, h = from_julian(j + tz / 24.0 + 0.5 / 1440)
+    return '%02d-%02d-%04d %02d:%02d %s TZ=%s' % (d, m, y, int(h), int(h * 60) % 60, 'LT' if tz else 'UT', tz_text(tz))
+
+
 def disc_runs(r, age, south, dx):
     """The disc, one column at a time (what AGRAPH draws): for column dx (-r..r) the runs (a, b) of rows,
     a <= |y| <= b above and below the centre. The lit part is filled, the dark part is the outline;
@@ -161,16 +177,21 @@ def main():
     ap = argparse.ArgumentParser(description='MOON47: the Moon phase page (standalone), now from the clock (UT).')
     ap.add_argument('--date', help='YYYY-MM-DD UT instead of the clock')
     ap.add_argument('--ut', default='12:00', help='HH:MM UT with --date (default 12:00)')
+    ap.add_argument('--tz', type=float, help='hours between local time and UT for the header (default: the PC\'s own '
+                    'offset with the clock, 0 with --date)')
     ap.add_argument('--south', action='store_true', help='the view from the south (the +/- key on the calculators)')
     ap.add_argument('--png', help='write the C47 screen to this PNG file')
     a = ap.parse_args()
     if a.date:
         y, m, d = map(int, a.date.split('-')); hh, mm = map(int, a.ut.split(':')); ut = hh + mm / 60.0
+        tz = a.tz or 0.0
     else:
         now = datetime.datetime.now(datetime.timezone.utc)
         y, m, d, ut = now.year, now.month, now.day, now.hour + now.minute / 60.0 + now.second / 3600.0
+        tz = a.tz if a.tz is not None else datetime.datetime.now().astimezone().utcoffset().total_seconds() / 3600.0
     j = julian(y, m, d, ut)
     p = page(j, a.south)
+    print(header_text(j, tz))
     print('%s  lit %.0f %%  age %.1f days  HP %.1f\'  SD %.1f\'' % (NAMES[p['index']], p['lit'], p['age'], p['hp'], p['sd']))
     for t, name in p['next']:
         dd, mo, yy, h = from_julian(t + 0.5 / 1440)
@@ -178,7 +199,7 @@ def main():
     if a.png:
         sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'native'))
         import c47screen21, c47pc
-        c47pc.write_png(a.png, *c47pc.render_rgb(c47screen21.moon47_screen(j, a.south)[0]))
+        c47pc.write_png(a.png, *c47pc.render_rgb(c47screen21.moon47_screen(j, a.south, tz)[0]))
         print(a.png, 'written')
 
 

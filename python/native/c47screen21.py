@@ -458,13 +458,17 @@ def moon_disc(sc, cx, cy, r, age, south=False):
                 sc.pixel(cy + y, cx + dx); sc.pixel(cy - y, cx + dx)
 
 
-def moon47_screen(j, south=False):
+def moon47_screen(j, south=False, tz=None):
     """MOON47: the phase as a disc, its name, % lit, age, Moon HP and SD, the next four phases
-    and the eight phase glyphs with today's one inverted. j: JD (UT)."""
+    and the eight phase glyphs with today's one inverted. j: JD (UT); tz: hours, the header shows the clock
+    (LT = UT + tz, or UT when tz = 0) and TZ=; None (the MOON view of NAV): UT only."""
     p = M47.page(j, south)
     sc = Screen(F21)
     T = top_x()
-    sc.pdat(226, T['date'], j); sc.phm(226, T['time'], ut_hours(j)); sc.text(226, T['UT'], 'UT')
+    lt = j + (tz or 0) / 24.0                  # the clock: UT when TZ = 0, else local time
+    sc.pdat(226, T['date'], lt); sc.phm(226, T['time'], ut_hours(lt)); sc.text(226, T['UT'], 'LT' if tz else 'UT')
+    if tz is not None:
+        sc.text(226, T['DR'], 'TZ=' + M47.tz_text(tz))
     sc.pixel(-221, 0)
     moon_disc(sc, 80, 120, 62, p['age'], p['south'])
     sc.text(200, 168, PHASE_NAMES[p['index']])

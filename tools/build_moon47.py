@@ -11,7 +11,7 @@ Writes build/MOON47.txt (and build/MOON47.p47 with rejig, if it is on the PATH).
   M7SY    the eight Moon phase symbols of glyphs47 (12 rows, AGRAPH).
 Needs a C47 firmware with ATEXT and GRFNT (master on or after 30 Sep 2026).
 
-Registers: 03 TZ, 05 loop, 06 JD (UT), 09 secant count, 50-53 secant, 54-57 the next phases, 58-61 their quarter, 10-14 D M M' F and T / E, 15 elongation at JD,
+Registers: 03 TZ, 21 its minutes, 05 loop, 06 JD (UT), 09 secant count, 50-53 secant, 54-57 the next phases, 58-61 their quarter, 10-14 D M M' F and T / E, 15 elongation at JD,
 16 Sun-Moon angle, 17 Sun distance, 18 % lit, 19 HP, 20 SD, 23 last new Moon, 24 age, 25 phase number,
 26 27 target and time of a phase, 28 south (0 / 1), 29 stack size, 37 38 40-48 work; 30-36 49 the printers.
 
@@ -105,9 +105,11 @@ def main_program(f42=False):
          'XEQ 75', 'RTN',
          # ---------------------------------------------------------------- the page
          'LBL 30',
-         '226', '2', 'RCL 06', DT,
-         '226', '79', 'RCL 06', '0.5', '+', '1', 'MOD', '24', '×', HM,
-         '226', '118', '"UT"', TX,
+         'RCL 06', 'RCL 03', '24', '÷', '+', 'STO 37',        # the clock: UT, or LT = UT + TZ
+         '226', '2', 'RCL 37', DT,
+         '226', '79', 'RCL 37', '0.5', '+', '1', 'MOD', '24', '×', HM,
+         '226', '118', 'XEQ 11', TX,
+         '226', '143', '"TZ="', TX, 'XEQ 12', 'DROP', 'DROP',
          '-221', '0', 'PIXEL',
          'XEQ 70',
          '200', '168', 'RCL 25', '60', '+', 'STO 37', 'DROP', 'XEQ IND 37', TX,
@@ -122,6 +124,14 @@ def main_program(f42=False):
          'LBL 32', 'RCL 28', 'X≠0?', 'GTO 34', 'DROP', '"AS SEEN FROM THE NORTH"', 'RTN',
          'LBL 34', 'DROP', '"AS SEEN FROM THE SOUTH"', 'RTN',
          'LBL 35', '1', 'CHS', 'STO× 27', 'RTN',
+         'LBL 11', 'RCL 03', 'X≠0?', 'GTO 13', 'DROP', '"UT"', 'RTN',
+         'LBL 13', 'DROP', '"LT"', 'RTN',
+         # LBL 12: Y row, X column -> TZ as 0, +4, -5, +5:30 (R21 its minutes)
+         'LBL 12', 'RCL 03', 'X≠0?', 'GTO 14', IN, 'RTN',
+         'LBL 14', 'X<0?', 'GTO 15', 'DROP', '"+"', 'GTO 16', 'LBL 15', 'DROP', '"-"',
+         'LBL 16', TX, 'RCL 03', 'ABS', '60', '×', '0.5', '+', 'IP', 'STO 21', '60', '÷', 'IP', IN,
+         'RCL 21', '60', 'MOD', 'STO 21', 'X=0?', 'GTO 17', 'DROP', '":"', TX, 'RCL 21', 'XEQ 88', 'RTN',
+         'LBL 17', 'DROP', 'RTN',
          # ---------------------------------------------------------------- the Moon
          'REM "LBL 41: JD (UT) in X -> X elongation 0-360; R41 distance km, R22 latitude, R11 M (deg)"',
          'LBL 41', '0.000798611', '+', '2451545', '-', '36525', '÷', 'STO 14',
@@ -283,7 +293,7 @@ def lib_section(L, name):
 
 def ptxs_with(F, keep, cs):
     """build_free42.font('PTXS') with the glyphs of cs from the C47 standard font, given to the font builder as
-    if PTXS had them: NAV never writes ' ( ) as text, and in PTXS ( is the Moon's symbol. The builder then
+    if PTXS had them: NAV never writes ' ( ) = as text, and in PTXS ( and = are its own symbols. The builder then
     places their rows under the base line itself (as '%' and 'Q'). Only for MOON47: build_free42 is unchanged."""
     from stdfont import STD
     gc, rd = F.glyph_columns, F.B.read
@@ -322,7 +332,7 @@ def build_f42():
     main = [l for l in main_program(f42=True) if not l.startswith('REM ')]
     chars = set(''.join(re.findall(r'^"([^"]*)"$', '\n'.join(main), re.M))) | set('0123456789-.: %\'')
     P = F.conv(main, 'MOON47')
-    P += F.conv(ptxs_with(F, chars - {"'"}, "()"), 'PTXS')
+    P += F.conv(ptxs_with(F, chars - {"'"}, "()="), 'PTXS')
     P += F.conv(F.font('PSYB', chars, F.psym('PSYB', True, '01234567'))[0], 'PSYB')
     lib = F.lib()
     P += lib_section(lib, 'PX') + lib_section(lib, 'FBX')
@@ -485,8 +495,7 @@ def now():
 def draw(j, south):
     p = page(j, south)
     fillrect(0, 0, 0, 320, 240, WH, WH)
-    d, m, y, h = from_julian(j + 0.5 / 1440)
-    text('%02d-%02d-%04d %02d:%02d UT' % (d, m, y, int(h), int(h * 60) % 60), 0, 2)
+    text(header_text(j, TZ), 0, 2)
     fillrect(0, 0, 14, 320, 1, BK, BK)
     cx, cy, r = 66, 124, 58
     for dx in range(-r, r + 1):

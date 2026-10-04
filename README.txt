@@ -323,7 +323,8 @@ build_free42.py)
                 "Non-programmable command": use Almanac47_C47_R47_fw0400b0_v1.1.0.zip (v1.1.0
                 release). build/free42/ runs on the stock DM42 / DM42n firmware.
     MOON47.txt       MOON47: the Moon phase on its own (no NAV, no INIT, about 5.5 KB): the date and time
-                     from the clock (minus TZ hours if the variable TZ exists), the phase as a disc, % lit,
+                     from the clock (minus TZ hours if the variable TZ exists; the top line shows the
+                     clock: UT TZ=0, or LT TZ=+4), the phase as a disc, % lit,
                      age, HP, SD, the next four phases (UT), the 8 phase symbols; +/- north / south view,
                      other keys end. Same page in build/dm42/, build/free42/ (.raw), python/numworks/,
                      python/hpprime/ and on the PC (python/moon47.py; the MOON view of python/native).

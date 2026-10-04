@@ -32,12 +32,13 @@ def main():
     if not os.path.exists(F42):
         print('no tools/f42/f42run: sh tools/f42/setup.sh'); return
     cases = [(2026, 10, 3, 12, 0, 'YMD', None), (2026, 10, 10, 19, 0, 'DMY', 4), (2027, 1, 21, 22, 30, 'MDY', -5),
-             (2049, 3, 16, 21, 51, 'YMD', None), (2016, 2, 29, 5, 23, 'DMY', None)]
+             (2049, 3, 16, 21, 51, 'YMD', None), (2016, 2, 29, 5, 23, 'DMY', None),
+             (2028, 6, 6, 1, 42, 'YMD', 5.5), (2029, 2, 28, 15, 30, 'MDY', -9.5)]
     bad = 0
     for y, m, d, hh, mi, fmt, tz in cases:
         j = M47.julian(y, m, d, hh + mi / 60.0) - (tz or 0) / 24.0
         mine, log = frames(y, m, d, hh, mi, fmt, tz)
-        ref = [V.moon47_screen(j, False)[0], V.moon47_screen(j, True)[0]]
+        ref = [V.moon47_screen(j, False, tz or 0)[0], V.moon47_screen(j, True, tz or 0)[0]]
         diffs = [len(a ^ b) for a, b in zip(mine, ref)]
         ok = not any(diffs)
         bad += not ok
