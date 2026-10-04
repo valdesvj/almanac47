@@ -108,14 +108,17 @@ def raw(path):
     return os.path.getsize(path[:-4] + '.raw')
 
 
-def c47(on=True, wait='50'):
+def c47(on=True, wait='50', post=None):
     """NAVFULL (named labels, short labels); on=False: the release one. wait: the PAUSE of the key waits
-    (NAVFULL_OPT_PAUSE0 / _PAUSE1: PAUSE 0 / PAUSE 1, to compare on the calculator and in the simulator)."""
+    (NAVFULL_OPT_PAUSE0 / _PAUSE1: PAUSE 0 / PAUSE 1, to compare on the calculator and in the simulator).
+    post: one more rewrite of the named listing (tools/build_navhopt.py: the loops on ISG)."""
     with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
         full = B.build()[0]
         short = open(os.path.join(tmp, 'build', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
         if on:                                     # without TEXT: the programs NAV still reaches; keys read in a PAUSE
             full = keywait(prune(full), wait)
+            if post:
+                full = post(full)
             short = B.rename(full, B.fixed_map('NAVFULL', full))
     return full, [l for l in short if l]
 
@@ -131,17 +134,19 @@ def inits():
     return out
 
 
-def free42(on=True):
-    """NAVFULL for Free42 (short labels, named labels); on=False: the release one."""
+def free42(on=True, post=None):
+    """NAVFULL for Free42 (short labels, named labels); on=False: the release one. post: as in c47()."""
     import build_free42 as F
-    keep = F.OUT, F.DEV, F.SRC, F.tbl50
+    keep = F.OUT, F.DEV, F.SRC, F.tbl50, F.assemble
     with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
         F.OUT = os.path.join(tmp, 'free42'); F.DEV = os.path.join(F.OUT, 'dev'); F.SRC = os.path.join(F.DEV, 'src')
         F.tbl50 = lambda: None
+        if post:
+            F.assemble = lambda *a, **k: post(keep[4](*a, **k))
         try:
             F.build(rlcd=True)
         finally:
-            F.OUT, F.DEV, F.SRC, F.tbl50 = keep
+            F.OUT, F.DEV, F.SRC, F.tbl50, F.assemble = keep
         short = open(os.path.join(tmp, 'free42', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
         named = open(os.path.join(tmp, 'free42', 'dev', 'src', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
     return [l for l in short if l], [l for l in named if l]
