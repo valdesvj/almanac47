@@ -1,6 +1,11 @@
-NAVLITTLE - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
+NAVLITTLE v2.0.0 (DM42 with the C47 firmware) - program labels
+==============================================================
+Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.
+Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the
+base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.
+The numbers missing here belong to routines of older versions.
 
-NAV     NAV     no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends
+NAV     NAV     no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends; your registers R00-R29 saved at the start and given back at the end
 N01     ALMF    ALMANAC: GHA ARIES, GHA, Dec, Hc, Zn of the Sun and the stars; twilight, rise/set, meridian passage
 N02     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N03     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
@@ -25,6 +30,7 @@ N21     CTWP    civil twilight, evening, UT
 N22     TRAN    meridian passage of the Sun, UT
 N23     SBRT    star number by brightness rank (1st brightest ... 58th)
 N24     SNMU    star name from its number
+N37     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
 N25     PTXS    TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
 N26     PINS    TEXT: whole number (one ATEXT)
 N27     PF1S    TEXT: number with one decimal
@@ -33,6 +39,5 @@ N29     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
 N30     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
 N31     PZNS    TEXT: azimuth "ddd.d"
 N32     PHLS    horizontal line (X = length in pixels)
-N36     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
-N37     TGET    almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
 N40     PSYB    SYMBOL of the Sun and the star, 12 rows (glyphs47, AGRAPH) - Z row, Y column, X symbol
+N36     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier

@@ -58,7 +58,8 @@ def main():
         j = jd(y, random.randint(1, 12), random.randint(1, 28), random.uniform(0, 24))
         la = random.uniform(-65, 65); lo = random.uniform(-180, 180)
         code = random.choice([60, 61, 62, 63, 64, 65, random.randint(1, 58)])
-        cases = [('ALMF', {}), ('HALMV', {}), ('HALMH', {}), ('HORZ', {'pauses': 3})]
+        cases = [(v, kw) for v, kw in (('ALMF', {}), ('HALMV', {}), ('HALMH', {}), ('HORZ', {'pauses': 3}))
+                 if v in a.labels and v in b.labels]          # v2.0.0 NAVFULL has no HALMV (CHART)
         for view, kw in cases:
             ra, sa = run(a, view, j, la, lo, **kw)
             rb, sb = run(b, view, j, la, lo, **kw)

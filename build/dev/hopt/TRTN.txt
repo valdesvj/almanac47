@@ -1,0 +1,73 @@
+LBL "TRT1"
+REM "TEST 1: XEQ TRT1 from the keyboard. X=11: RTN after a GTO ends the program; X=13 and stopped: RTN went back to the GTO"
+CLSTK
+1
+GTO 10
+LBL 01
+2
++
+STOP
+LBL 10
+10
++
+RTN
+END
+LBL "TRT2"
+REM "TEST 2: XEQ TRT2. It calls TRT1 with XEQ; TRT1 jumps with GTO, then RTN. X=111: RTN went back after the XEQ in TRT2"
+CLSTK
+XEQ "TRT1"
+100
++
+RTN
+END
+LBL "TRT3"
+REM "TEST 3: a call made with GTO (no new level): the label to come back to in local R.01, back with GTO IND R.01"
+REM "XEQ TRT3: X=10 (the routine doubled R.00, a local of the caller), Y=7 (the stack kept): it works"
+LocR 2
+CLSTK
+5
+STO R.00
+7
+20
+GTO 30
+LBL 20
+RCL R.00
+RTN
+LBL 30
+STO R.01
+DROP
+RCL R.00
+2
+×
+STO R.00
+DROP
+GTO IND R.01
+END
+LBL "TRT4"
+REM "TEST 4: XEQ to a local label: the routine reads R.00 of the caller. An error (no local register): an XEQ hides the caller's locals"
+LocR 1
+CLSTK
+5
+STO R.00
+XEQ 30
+RTN
+LBL 30
+RCL R.00
+RTN
+END
+LBL "TRT5"
+REM "TEST 5: XEQ to a local label with its own LocR. X=5 Y=99: the routine has its own R.00 (99, passed back on the stack); the caller's R.00 (5) is kept"
+LocR 1
+CLSTK
+5
+STO R.00
+XEQ 30
+RCL R.00
+RTN
+LBL 30
+LocR 1
+99
+STO R.00
+RCL R.00
+RTN
+END

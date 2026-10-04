@@ -103,11 +103,19 @@ class Calc:
     def regkey(self, arg):
         if arg.startswith('IND '): return int(self.rget(arg[4:].strip()))
         return arg
+    def local(self, k):
+        """R.nn: a local register of the running subroutine level (LocR); (list, index)."""
+        loc = getattr(self, 'locs', {}).get(getattr(self, 'depth', 0)); n = int(k[2:])
+        if loc is None or n >= len(loc): raise ValueError('no local register %s at level %d' % (k, getattr(self, 'depth', 0)))
+        return loc, n
     def rget(self, k):
         k = str(int(k)) if isinstance(k, int) else k
+        if k.startswith('R.'): loc, n = self.local(k); return loc[n]
+        if k in ('X', 'Y', 'Z', 'T'): return self.s['XYZT'.index(k)]          # IND X: a stack register
         return self.reg.get(k.lstrip('0') or '0', D(0))
     def rset(self, k, v):
         k = str(int(k)) if isinstance(k, int) else k
+        if k.startswith('R.'): loc, n = self.local(k); loc[n] = v; return
         self.reg[k.lstrip('0') or '0'] = v
     def indlab(self, n, pc):
         if isinstance(n, str): return n                     # XEQ IND r with a label name in r
@@ -118,7 +126,7 @@ class Calc:
         while True:
             n += 1; self.steps=getattr(self,'steps',0)+1
             if n > maxsteps: raise RuntimeError('too many steps')
-            ln = self.lines[pc]; pc += 1
+            ln = self.lines[pc]; pc += 1; self.depth = len(rs); self.at = pc - 1
             op, _, arg = ln.partition(' '); arg = arg.strip().strip('"')
             if getattr(self, 'count', None) is not None: self.count(op, self.s[0])     # tests: what runs (test_navopt)
             if re.fullmatch(r'[01]+#2', ln):
@@ -130,8 +138,16 @@ class Calc:
             if ln.startswith('├'): self.alpha+=ln[1:].strip('"'); continue
             if ln.startswith('"'): self.alpha=ln.strip('"'); self.push(ln.strip('"')); continue
             if op in ('RTN', 'END'):
+                getattr(self, 'locs', {}).pop(len(rs), None)        # local registers live in their subroutine level
                 if rs: pc = rs.pop(); continue
                 return
+            if op == 'CLα': self.rset(self.regkey(arg), ''); continue      # the text in a register: empty
+            if op == 'LocR':                                         # local registers R.00 .. of this level (all 0)
+                if not 0 <= int(arg) <= 99: raise ValueError('LocR out of range: %s' % arg)
+                # the firmware (allocateLocalRegisters): a second LocR on the same level keeps the values and
+                # only changes the number; new ones are 0
+                self.locs = getattr(self, 'locs', {}); old = self.locs.get(len(rs), [])
+                self.locs[len(rs)] = (old + [D(0)] * int(arg))[:int(arg)]; continue
             if op == 'GTO':
                 if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
                 pc = self.labels[arg] + 1; continue
@@ -234,6 +250,8 @@ class Calc:
             if ln.startswith('├'): self.alpha+=ln[1:].strip('"'); continue
             if op == 'STOP': self.stops.append(self.msgs[-1] if self.msgs else ''); continue
             if op == 'AVIEW' and arg: self.msgs.append(self.rget(arg)); continue
+            if op == 'KEY?' and arg.startswith('R.'):          # the firmware (fnKey): no local register
+                raise ValueError('KEY? %s: out of range (KEY? takes no local register on the C47)' % arg)
             if op == 'KEY?' and getattr(self,'keyskip',False) and not getattr(self,'keys',None):
                 # no key pressed: the program goes on (timed loops); a frame when the screen changed
                 self.frames=getattr(self,'frames',[])
@@ -332,13 +350,12 @@ class Calc:
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue
-            if op == 'RCL' and getattr(self, 'ign1er', False):
-                try:
-                    self.rget(self.regkey(arg))
-                except (KeyError, IndexError):
-                    self.ign1er = False; continue                 # the error is ignored: nothing recalled
             if op == 'RCL':
                 k = self.regkey(arg)
+                if isinstance(k, str) and not re.fullmatch(r'\d+|R\.\d\d|[XYZT]', k) and k not in self.reg and k not in self.mats:
+                    # the firmware (_executeOp): RCL "name" of a missing variable stops the program with an error;
+                    # IGN1ER does not catch it there (only STO, STO+ ... create a missing variable)
+                    raise ValueError('RCL "%s": undefined source variable' % k)
                 if isinstance(k, str) and k in self.mats and k not in self.reg:
                     self.push(Mat(self.mats[k])); continue
                 self.push(self.rget(k)); continue

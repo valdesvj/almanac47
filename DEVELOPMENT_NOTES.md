@@ -720,3 +720,30 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   wait: keys fall outside the pause). Free42 keeps GETKEY: build/free42/ unchanged.
 - v1.1.0: the C47 zips (C47_R47, fw0400b0, DM42_C47firmware) were corrected with keywait_patch.py
   (~/almanac47_v1.1.0_keywait/, uploaded by Victor with --clobber; the originals kept there).
+
+## Oct 4-5, 2026 - v2.0.0: the optimized NAV everywhere, the registers kept
+
+- tools/build_v2.py writes the release files from the optimized pipeline (details: docs/OPTIMIZATIONS.md):
+  build/NAVFULL (= the dev NAVFULL_RSAVE_SPLIT), NAVINIT_FULL / _FAST and TBL_1 / _5 (only their message left
+  on the stack), build/dm42/NAVLITTLE + NAVINIT_LITTLE, build/free42/ NAVFULL, NAVLITTLE, the INITs and TBLs.
+  build/dev/src/NAVFULL.txt is the v2 NAVFULL with the routine names. NAVTXT is gone.
+- Engine: Horner, n-vectors (→POL / →REC turns), nutation as matrix products (tools/navopt_engine.py); the
+  sweeps on ISG (tools/navhopt.loops). Registers: tools/regalloc.py (liveness, def-use webs, DSatur), NAV and
+  the six views are fresh entries. C47 / DM42: R00-R45 (NAVLITTLE R00-R29) saved with LocR at the start of NAV,
+  restored before its last CLSTK. Free42: the same renumbering, SIZE 46 (NAVLITTLE 30), REGS saved in NBAK and
+  stored back at the end (flag 25 guards both).
+- Menu (gennav: EXTRA, HINT; build_navopt: SPLIT2, C47_MENU): 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO
+  9 SNAP 0 END, ↑↓ ±1 HOUR. Free42: 9 = PRLCD; ↑ ↓ ± are the PTXS glyphs 91 [, 95 _, 96 ` from the C47 standard
+  font (build_free42.GLYPHS, shifted like the other glyphs): a Free42 label is 00-99 and '^' is character 30 there.
+- Inputs: a clear stack at each INPUT, only that input's format in Y (navhopt.inputs, f42_inputs).
+- MOON47 (release, C47 / DM42): 0 STO+ "TZ" creates a missing TZ (fix-moon47-tz). RCL of a missing variable
+  stops a C47 program even with IGN1ER set.
+- Python: _ser by Horner over the powers of tau (nav.py, c47astro.py), nav.hcz keeps the observer's sin / cos.
+- c47sim: local registers per level, IND X, CLα, the firmware's KEY? (no local register) and RCL (missing
+  variable) errors.
+- Tests: test_v2 (v2 against main pixel for pixel, the registers kept, Free42 = C47, Free42 SIZE / REGS kept),
+  test_fw (the release files in the C47 firmware: the headless PC simulator, every page, no error, registers
+  kept), test_navhopt; test_navfull_atext, test_datefmt, t21sim (test_parity21), test_notbl updated to the v2
+  menu; test_navfull is for the v1.1 NAVFULL only and says so.
+- Not in v2.0.0 (build/dev/hopt/): NAVFULL_LOCR / _LOCR_SEQ (local registers per routine, dispatch entries,
+  45 labels), MOONFAST_R31 / _LOCR (MOON47 on stand-by), the _T timing copies.

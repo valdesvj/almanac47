@@ -1,25 +1,14 @@
-NAVFULL / NAVFULL_NOTBL - program labels
-==========================================
-Label on the calculator, original name (sources, build/dev/, documentation), what it does.
-Only NAV keeps its name. TEXT = a text routine (ATEXT, GRFNT 21 or the tinyFont), SYMBOL =
-a body symbol drawn with AGRAPH (glyphs47): Z = row of the base line (0 = bottom), Y = column,
-X = text, number or symbol; returns Y = row, X = next column. Needs a C47 firmware with
-ATEXT and GRFNT. The numbers missing here belong to routines of older versions.
+NAVFULL v2.0.0 (C47 / R47) - program labels
+===========================================
+Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.
+Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the
+base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.
+The numbers missing here belong to routines of older versions.
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, key 1-7 a view, 8 INFO, 9 SNAP, 0 ends (the only named program; INFO page inside)
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; your registers R00-R45 saved at the start and given back at 0 (the only named program; INFO page inside)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
-N02     HALMV   view 2 CHART: horizon chart left, Hc/Zn of 10 bodies right (no ARIES, no Moon line)
-N03     ALMR    view 3 TEXT: the almanac page as text in R50-R76 (and the stack and lettered registers); NAV ends in REGS
-N04     HORZ    view 4 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
-N06     HALMH   view 5 SPLIT: horizon chart on top, the bodies below (8 rows)
-N07     SDM     text: degrees and minutes "ddd°mm.m'" as a string
-N08     SNS     text: latitude with N / S
-N09     SEW     text: longitude with E / W
-N10     SZN     text: azimuth "ddd.d°"
-N11     SHM     text: time "hh:mm" (--:-- when no event)
-N12     SF1     text: number with one decimal
-N13     SINT    text: whole number
-N14     SDAT    text: date "dd-mm-yyyy" from a Julian Date
+N04     HORZ    view 3 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)
+N06     HALMH   view 2 SPLIT: horizon chart on top, the bodies below (8 rows)
 N15     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N16     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
 N17     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
@@ -62,9 +51,13 @@ N53     PHMS    TEXT: hh:mm from hours
 N54     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
 N55     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
 N56     PZNS    TEXT: azimuth "ddd.d"
+N79     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
+N80     PTNT    TEXT: whole number in the tinyFont
 N57     PHLS    horizontal line (X = length in pixels)
-N61     HANIM   view 6 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
-N62     ALLSKY  view 7 ALLSKY: whole sky, over the horizon above, under the horizon below
+N81     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
+N82     PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
+N61     HANIM   view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
+N62     ALLSKY  view 5 ALLSKY: whole sky, over the horizon above, under the horizon below
 N63     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 N64     CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 N65     CMOO    Moon from the cache
@@ -81,9 +74,3 @@ N75     CNTP    nautical twilight pm from the cache
 N76     CALC    computes Sun, Moon, planets (GHA Dec Hc Zn) into matrix ALMC; stars marked to compute when asked
 N77     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
 N78     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
-N79     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
-N80     PTNT    TEXT: whole number in the tinyFont
-N81     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
-N82     PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
-
-NAVFULL_NOTBL (build/dev/) has no TGET; its labels are the same (N49 is simply missing there).

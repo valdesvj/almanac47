@@ -1,4 +1,10 @@
 import sys, os, random, tempfile
+# This test is for the v1.1 NAVFULL (menu 1 ALMANAC 2 CHART 3 TEXT 4 SKY 5 SPLIT 6 ANIM 7 ALLSKY 8 INFO, NAVTXT).
+# v2.0.0 has no CHART, TEXT or NAVTXT: its NAVFULL is checked by tests/test_v2.py, test_navfull_atext.py and
+# test_navhopt.py.
+if 'LBL "ALMR"' not in open('build/dev/src/NAVFULL.txt', encoding='utf-8').read():
+    print('test_navfull: build/ is v2.0.0 (no TEXT / CHART / NAVTXT): see test_v2.py, test_navfull_atext.py, test_navhopt.py')
+    sys.exit(0)
 sys.path.insert(0,'python')
 import c47sim
 from c47view import Engine, jd

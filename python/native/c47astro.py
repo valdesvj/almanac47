@@ -26,11 +26,21 @@ def jd(y, m, d, h=0.0):
 
 
 def _ser(rows, tau):
-    """SER: sum A cos(B + C tau) tau^k, result x 1E-8 (radians or au)."""
+    """SER: sum A cos(B + C tau) tau^k, result x 1E-8 (radians or au). The terms of each power k are summed,
+    then the powers by Horner, as the C47 SER (no tau ** k per term)."""
+    g = _GROUPS.get(id(rows))
+    if g is None:
+        g = {}
+        for k, A, B, C in rows:
+            g.setdefault(int(k), []).append((A, B, C))
+        g = _GROUPS[id(rows)] = [g.get(k, []) for k in range(max(g) + 1)]
     s = 0.0
-    for k, A, B, C in rows:
-        s += A * cos(B + C * tau) * tau ** int(k)
+    for terms in reversed(g):
+        s = s * tau + sum(A * cos(B + C * tau) for A, B, C in terms)
     return s * 1e-8
+
+
+_GROUPS = {}
 
 
 def dsin(x): return sin(radians(x % 360.0))

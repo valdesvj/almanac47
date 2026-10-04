@@ -215,6 +215,7 @@ def agraph_code(cols, H, ft, fb, colsrc):
 
 # characters of the text page that the small font lacks (columns, bit 4 = top row; advance)
 HPCODE = {'°': 19}                     # C->N gives the HP-42S character code
+GLYPHS = {}                            # more glyphs per font, {font: {code: (columns, advance)}} (tools/build_v2.py)
 EXTRA = {'PTXT': {19: ({0: 8, 1: 20, 2: 8}, 4), ord("'"): ({0: 24}, 2),
                   ord('%'): ({0: 18, 1: 4, 2: 9}, 4)}}
 
@@ -252,7 +253,10 @@ def font(name, keep, src=None):
     if sh:
         g = {c: ({x: p << (sh + YOFF.get(c, 0)) for x, p in cols.items()}, adv) for c, (cols, adv) in g.items()}
     hp = {v: k for k, v in HPCODE.items()}
-    extra = {c: v for c, v in EXTRA.get(name, {}).items() if c not in g and hp.get(c, chr(c)) in keep}
+    more = dict(EXTRA.get(name, {}))
+    more.update({c: ({x: v << sh for x, v in cols.items()}, adv)                    # the same shift as the others
+                 for c, (cols, adv) in GLYPHS.get(name, {}).items()})
+    extra = {c: v for c, v in more.items() if c not in g and hp.get(c, chr(c)) in keep}
     H = max(p.bit_length() for cols, _ in g.values() for p in cols.values())
     out, i = [], 0
     while i < len(src):

@@ -36,6 +36,7 @@ BUSY = 'SINKING....ABOUT'              # the box in the middle while the calcula
 ANTS_FLAG = 20                         # flag 47 set (SF 47): that many ants, no need to edit the program
 ANTS = 0                               # easter egg: the step after LBL 48 in NAV; 20 gives 20 ants (0.1 s each)
 HINT = 'KEY A NUMBER    + MENU    UP DOWN 1 HOUR'
+EXTRA = []                             # menu entries that are keys, not views (dev C47: [(9, 'SNAP')]): shown after the items
 # The C47 sends its screen to the LCD only at a PAUSE, a key press or the end of the program.
 # SHOW after each drawing puts it on the LCD: PAUSE 0 (0 ticks) does it with no wait (tested on
 # the C47; PAUSE 1 did the same with 0.1 s). The ants keep PAUSE 1: their walking speed.
@@ -50,7 +51,7 @@ COMPACT = [1, 2, 4, 7, 8]              # compact version: ALMANAC CHART SKY ALLS
 def place(d, items=ALL):
     """Base line row and column of menu item d (1-9, 0 = END): two columns of 5 for the
     full menu, one column for a short one."""
-    order = list(items) + [0]
+    order = list(items) + [k for k, _ in EXTRA] + [0]
     i = order.index(d)
     if len(order) <= 5:
         return TOP - i * PITCH, XL
@@ -198,9 +199,10 @@ def program(inp, items=ALL, autoinit=False):
       '"N"', 'STO 37', 'RCL 07', 'X<0?', 'XEQ 44', 206, 174, 'RCL 37', 'XEQ "PTXS"', 206, 176, 'RCL 07', 'ABS', 'XEQ "PDMS"',
       '"E"', 'STO 37', 'RCL 08', 'X<0?', 'XEQ 45', 206, 244, 'RCL 37', 'XEQ "PTXS"', 206, 246, 'RCL 08', 'ABS', 'XEQ "PDMS"',
       200, 0, 400, 'XEQ "PHLS"')
-    for d in list(items) + [0]:
+    extra = dict(EXTRA)
+    for d in list(items) + list(extra) + [0]:
         y, x = place(d, items)
-        a(y, x, '"%d %s"' % (d, ITEMS[d - 1] if d else 'END'), 'XEQ "PTXS"')
+        a(y, x, '"%d %s"' % (d, extra[d] if d in extra else ITEMS[d - 1] if d else 'END'), 'XEQ "PTXS"')
     a(36, 2, '"%s"' % HINT, 'XEQ "PTXS"', 22, 0, 400, 'XEQ "PHLS"', 5, 2, '"%s"' % WARNING, 'XEQ "PTXS"', 'RTN',
       'LBL 44', '"S"', 'STO 37', 'RTN', 'LBL 45', '"W"', 'STO 37', 'RTN')
     # LBL 41: XOR box (GRMOD 3) from row R37, column R36
