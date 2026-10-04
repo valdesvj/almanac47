@@ -68,8 +68,8 @@ S += [P('3. Starting NAV', h2),
                 [22 * mm, 110 * mm, 48 * mm]),
       P('After LON the sky is computed (the Sun, the Moon, the planets, the stars that can be above the horizon, '
         'the sun times) and kept in the matrix ALMC. Then the menu appears, and every view only draws. '
-        'While the calculator works, a box in the middle of the screen says SINKING....ABOUT (after LON, '
-        'after a menu number, + and the arrows) until the new screen is drawn.'),
+        'While the sky is computed after LON, a box in the middle of the screen says SINKING....ABOUT. '
+        'After that every screen (a view, the menu after +, the arrows) is drawn on the display as it goes.'),
       img('NAV_busy_box.png', 0.6),
       P('4. The menu', h2),
       img('NAV_menu.png', 0.66),
@@ -99,7 +99,7 @@ S += [PageBreak(), P('5. The views', h2),
            'below down to the bottom of the screen (8 rows).'),
       Spacer(1, 4),
       pair('HORZ_axes_night.png', 'ANIM_preview.png',
-           '<b>3 SKY</b> (HORZ): full-screen chart of the 8 bodies; every 5 seconds the name of the next one is written '
+           '<b>3 SKY</b> (HORZ): full-screen chart of the 8 bodies; every 2 seconds the name of the next one is written '
            'next to its symbol (here MOON); DAY / TWILIGHT / NIGHT at the bottom.',
            '<b>4 ANIM</b> (HANIM): the Sun and the Moon moving on the whole-sky chart over 12 hours (24 frames, '
            '1 s each, 30 min apart); the first frame.'),
@@ -122,13 +122,11 @@ S += [P('6. Speed and memory', h2)] + B([
       'stack size back when you leave with 0.',
       'v2.0.0 is faster and smaller than v1.1 with the same results: Horner\'s method for every polynomial, n-vectors '
       '(→POL / →REC) instead of trigonometric formula pairs, the nutation as matrix products, counted loops on ISG; '
-      'the registers were renumbered from 100 to 46. NAVFULL is 31.1 KB (36.6 KB in v1.1). Details: docs/OPTIMIZATIONS.md.',
+      'the registers were renumbered from 100 to 46. NAVFULL is 31.5 KB (36.6 KB in v1.1). Details: docs/OPTIMIZATIONS.md.',
       'The C47 sends a new screen to the display only at a PAUSE, a key press or the end of the program. NAV makes a '
-      'PAUSE 0 after each drawing (no wait), so every screen appears complete, at once, and the SINKING box stays until '
-      'the next screen is ready. (Holding a key while a view draws makes the C47 show the drawing step by step.)',
-      'Free42 on the DM42 / DM42n (build/free42) shows every drawing step at once, so the screens build up in front of '
-      'you. The Free42 NAVFULL and NAVLITTLE switch this off with the DM42 variable RefLCD (0 = no update, '
-      '-1 = update once, 7 = normal) and so behave like the C47.',
+      'PAUSE 0 (no wait) after every text and every body symbol it draws, so you see each view being drawn; the '
+      'SINKING box shows only while the sky is computed at the start. This gives the C47 the screen refresh of '
+      'Free42 on the DM42, which shows every drawing step as it goes.',
       'With the tables (TBL) the Sun, the Moon and the planets come from the tables inside their period and the '
       'computation is about twice as fast.',
       '<i>Something lives in NAV at the step after LBL 48. It is 0. Try 20 and press + or an arrow …</i>'])

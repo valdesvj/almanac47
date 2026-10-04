@@ -48,7 +48,7 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
      LON   e.g. 55.18   (55 deg 18 min E; minus = W)
    (R/S keeps the value shown.) At each prompt the stack is clear and Y shows the format of that
    input only (DATE YYYY.MMDD / UT HH.MMSS / LAT DD.MMm  S - / LON DDD.MMm  W -).
-   While the sky is computed a box in the middle of the screen
+   While the sky is computed (only at the start) a box in the middle of the screen
    says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
      1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  0 END
      KEY A NUMBER   + MENU   ↑↓ ±1 HOUR   9 SNAP      (Free42: 9 PRLCD)
@@ -64,20 +64,20 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
    (the hours added stay for the other views; the menu title shows the time in use)
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
-   the views then only draw. After a number the item is highlighted and the SINKING box shows
-   until the view is drawn (also after + and the arrows).
+   the views then only draw. After a number the item is highlighted and the view is drawn
+   on the screen as it goes (also after + and the arrows; the box shows only at the start).
    (Something lives in NAV at the step after LBL 48. It is 0.
    Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
    (4 ANIM computes its own times, as before.)
-   3 SKY: the name of each body in turn next to its symbol (5 s each, endless);
+   3 SKY: the name of each body in turn next to its symbol (2 s each, endless);
    (do not use R/S: it stops the program). 0 on the menu ends NAV, gives your registers back and
    clears the screen and the stack. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
                 meridian passage, Moon
      2 SPLIT    horizon chart on top, the bodies below down to the bottom (8 rows)
-     3 SKY      horizon chart, the name of each body in turn next to it (5 s each)
+     3 SKY      horizon chart, the name of each body in turn next to it (2 s each)
      4 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
      5 ALLSKY   the whole sky: over the horizon above, under the horizon below
      6 INFO     the repository, the licence, no warranty, cross-check with the almanac
@@ -102,7 +102,7 @@ PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY: programs (measured with rejig, v2.0.0) NAVFULL 31.1 KB; INIT while loaded
+MEMORY: programs (measured with rejig, v2.0.0) NAVFULL 31.5 KB; INIT while loaded
 NAVINIT_FAST 28.6 KB, NAVINIT_FULL 57.8 KB; TBL_1 114 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
 and ALMQ about 20 KB.
 

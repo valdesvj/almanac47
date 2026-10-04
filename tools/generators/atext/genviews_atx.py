@@ -382,14 +382,14 @@ def horz():
           '212', DRX, 'RCL 43', 'XEQ "PTXS"', '" "', 'XEQ "PTXS"', 'RCL 91', 'XEQ 54', '"  "', 'XEQ "PTXS"', 'RCL 39', 'XEQ "PTXS"',
           '" "', 'XEQ "PTXS"', 'RCL 92', 'XEQ 54')
     if T21:
-        # every 5 s the name of the next body above the horizon next to its symbol (XOR: drawn
-        # again to take it away); + up down back to NAV, 9 SNAP. 5 s (PAUSE 50 after tools/keywait_patch.py, the
-        # wait of the other views): the program is drawing only a short part of the time, so a key is nearly always
-        # pressed and released inside the PAUSE (with 1 s the PC simulator sometimes painted the stack after +)
+        # every 2 s the name of the next body above the horizon next to its symbol (XOR: drawn
+        # again to take it away); + up down back to NAV, 9 SNAP. 2 s (PAUSE 20 after tools/keywait_patch.py): the
+        # program is drawing only a short part of the time, so a key is nearly always pressed and released inside
+        # the PAUSE (with 1 s the PC simulator painted the stack after + more often: its key-release bug)
         a('RCL 10', 'X=0?', 'RTN', '1', 'STO 42',
           'LBL 35', 'INDEX "HZT"', 'RCL 42', '1', 'STOIJ', 'RCLEL', 'J+', 'STO 13', 'RCLEL', 'J+', 'STO 97', 'RCLEL', 'STO 96',
           '-1', 'STO 36', 'RCL 96', 'X>0?', 'XEQ 70',
-          'PAUSE 0', 'TICKS', '50', '+', 'STO 38',
+          'PAUSE 0', 'TICKS', '20', '+', 'STO 38',
           'LBL 41', 'KEY? 39', 'GTO 46', 'RCL 39', '85', 'X=Y?', 'RTN', 'RCL 39', '51', 'X=Y?', 'RTN', 'RCL 39', '61', 'X=Y?', 'RTN',
           'RCL 39', '54', 'X=Y?', 'SNAP',
           'LBL 62', 'RCL 36', 'X≥0?', 'XEQ 79', '1', 'STO+ 42', 'RCL 10', 'RCL 42', 'X>Y?', 'XEQ 34', 'GTO 35',
