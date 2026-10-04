@@ -94,9 +94,9 @@ rise/set, mer pass, SD, Moon 92 % waxing, age 12.8): all identical.
 
 - No Moon position, no planets (not in `nav.py`); Moon phase only.
 - Time is UT1 (add DUT1 to UTC); the Sun's rise/set use the full Sun series, as `nav.py`.
-- Not tested on a real NumWorks (written for the documented API: `fill_rect`,
-  `draw_string(text, x, y, color, background)`, `color`, `ion.keydown`, `time.sleep`),
-  and checked in a MicroPython (WebAssembly) interpreter with dummy drawing modules.
+- Still a beta: tested on a real NumWorks by the author (works, 4 Oct 2026); written for the documented API
+  (`fill_rect`, `draw_string(text, x, y, color, background)`, `color`, `ion.keydown`, `time.sleep`) and
+  checked in a MicroPython (WebAssembly) interpreter with dummy drawing modules. Feedback is welcome.
 - BACK may stop the script with KeyboardInterrupt instead of the loop seeing the key; both
   end the program.
 
