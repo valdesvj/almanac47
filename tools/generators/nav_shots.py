@@ -77,8 +77,8 @@ def main():
     view = dict(scale=3, on=(0, 0, 0), off=(255, 255, 255), mode='RGB')
     save(run(MENU_CASE, [82])[0], 'NAV_menu', **grey)
     save(run(MENU_CASE, [INFO_KEY, 85, 82])[1], 'NAV_info', **grey)
-    fr = run(MENU_CASE, [gennav.DOWN, 82], box=True)   # the box at the start, the menu, the box over it (DOWN), ...
-    save(fr[2], 'NAV_busy_box', **grey)
+    fr = run(MENU_CASE, [82], box=True)                # the box at the start (the only one: the views draw as they go)
+    save(fr[0], 'NAV_busy_box', **grey)
     for name, key in VIEWS.items():
         if key == 74:                                  # SKY: the chart, then the first name next to its body
             save(run(VIEW_CASE, [key], maxpauses=3, keyskip=True)[2], name, **view)

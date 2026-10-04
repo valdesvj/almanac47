@@ -4,11 +4,15 @@ tools/navhopt.py, tools/regalloc.py; docs/OPTIMIZATIONS.md):
 
   build/NAVFULL.txt (.p47)        C47 / R47: the engine with Horner and n-vectors, the loops on ISG, the registers
                                   renumbered (R00-R45) and saved in local registers while NAV runs; menu 1 ALMANAC
-                                  2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts
+                                  2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts;
+                                  the views drawn on the screen as they go (PAUSE 0), the SINKING....ABOUT box only at
+                                  the start, SKY names a body every 2 s
   build/NAVINIT_FULL / _FAST, TBL_1 / TBL_5 (.p47)   the matrices and tables, only their message left on the stack
-  build/dm42/NAVLITTLE.txt (.p47) DM42 with the C47 firmware: the same engine, prompts and register save
+  build/dm42/NAVLITTLE.txt (.p47) DM42 with the C47 firmware: the same engine, prompts and register save; the
+                                  ALMANAC screen drawn as it goes
   build/free42/NAVFULL / NAVLITTLE / NAVINIT_* / TBL_* (.txt, .raw)   Free42 (DM42 stock firmware): the same
-                                  screens; the registers renumbered and the user's REGS (and SIZE) saved in "NBAK"
+                                  screens; the registers renumbered and the user's REGS (and SIZE) saved in "NBAK";
+                                  NAVFULL: the box only at the start
 NAVTXT (the text page) is not in v2.0.0.
 
   python3 tools/build_v2.py          then python3 tests/test_v2.py
@@ -19,7 +23,6 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE, os.path.join(HERE, 'generators'), os.path.join(ROOT, 'python')]
 import build_navopt as N                                                     # noqa: E402
-import build_navhopt as H                                                    # noqa: E402
 import navhopt                                                               # noqa: E402
 
 B = N.B
@@ -32,7 +35,7 @@ V2_TEXT = {
            'R00-R45 saved at the start and given back at 0 (the only named program; INFO page inside)',
  'ALMF':   'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMH':  'view 2 SPLIT: horizon chart on top, the bodies below (8 rows)',
- 'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 5 s (+ back to the menu, arrows one hour)',
+ 'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)',
  'HANIM':  'view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
  'ALLSKY': 'view 5 ALLSKY: whole sky, over the horizon above, under the horizon below',
 }
@@ -40,6 +43,53 @@ HEADER = ('Label on the calculator, original name (sources, build/dev/src/, docu
           'Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the\n'
           'base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.\n'
           'The numbers missing here belong to routines of older versions.\n\n')
+
+
+# the routines that draw a text, a number or a symbol (programs/atext/t21, glyphs47)
+DRAW = ('PTXS', 'PDMS', 'PHMS', 'PDTS', 'PSYS', 'PSYB', 'PTNT', 'PTTY', 'PINS', 'PF1S', 'PZNS', 'PHLS')
+
+
+def programs(L):
+    """[(name, first line, END line)] of a named listing."""
+    out, start, name = [], None, None
+    for i, l in enumerate(L):
+        m = re.fullmatch(r'LBL "(.+)"', l)
+        if m and start is None:
+            start, name = i, m.group(1)
+        if l == 'END' and start is not None:
+            out.append((name, start, i))
+            start = None
+    return out
+
+
+def box_at_start(L):
+    """NAV: the SINKING....ABOUT box (LBL 48) only the first time, before the menu; the views, the way back to the
+    menu and the arrows show their own drawing (C47: live(); Free42 draws on the LCD as it goes)."""
+    out, n = list(L), 0
+    for name, a, b in reversed(programs(L)):
+        if name == 'NAV':
+            calls = [i for i in range(a, b) if L[i] == 'XEQ 48']
+            for i in reversed(calls[1:]):
+                del out[i]
+                n += 1
+    assert n > 1, 'build_v2: no XEQ 48 in NAV'
+    return out
+
+
+def live(L, views=('ALMF', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY')):
+    """C47: PAUSE 0 (the screen to the LCD, no wait) after every drawing call in the views, so a view appears while
+    it is drawn, as on Free42. The C47 sends its screen to the LCD only at a PAUSE, a key or the end of the program
+    (programming/input.c, lcd_refresh in fnPause). One per text and per body symbol, not per PIXEL."""
+    out, n = list(L), 0
+    calls = ['XEQ "%s"' % d for d in DRAW]
+    for name, a, b in reversed(programs(L)):
+        if name in views:
+            for i in range(b - 1, a, -1):
+                if L[i] in calls:
+                    out.insert(i + 1, 'PAUSE 0')
+                    n += 1
+    assert n > 30, 'build_v2: few drawing calls (%d)' % n
+    return out
 
 
 def labels_file(path, full, short, title, text=None):
@@ -54,7 +104,8 @@ def labels_file(path, full, short, title, text=None):
 
 
 def c47():
-    full, short = H.c47_rsave_split()
+    full, short = N.c47(True, menu=N.SPLIT2,
+                        post=lambda L: live(box_at_start(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))))))
     B.write(os.path.join(OUT, 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # the same with the routine names (tests)
     labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.0.0 (C47 / R47)')
@@ -75,7 +126,7 @@ def dm42():
         nav, progs = D.builds()['NAVLITTLE']
         L, need = D.assemble(nav, progs)
         L = B.keywait(L)
-        L = navhopt.nav_regs(navhopt.inputs(navhopt.loops(L)))
+        L = live(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))), views=('ALMF',))
         m = B.fixed_map('NAVLITTLE', L, keep=('NAV', 'INIT'))
         short = B.rename_keep(L, m, ('NAV', 'INIT'))
         init = N.init_clean(D.init_dm42())
@@ -118,7 +169,7 @@ def free42():
     def post(L):
         L, info['k'] = navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(L)))
         return L
-    short, named = N.free42(True, post=post, menu=menu)
+    short, named = N.free42(True, post=lambda L: box_at_start(post(L)), menu=menu)
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
     labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.0.0 (Free42)',

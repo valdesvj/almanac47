@@ -51,8 +51,8 @@ def main():
     for v, n in NAMES.items():
         if os.path.exists('%s/v%d.pbm' % (t, v)):
             png('%s/v%d.pbm' % (t, v), os.path.join(OUT, 'F42_%s.png' % n))
-    # the busy box with ants (flag 97): a capture during the view change
-    cmd = cmd[:3] + ['xeq ANTS97'] + cmd[3:9] + ['film %s/b 1' % t, 'key 29', 'stopfilm']
+    # the busy box with ants (flag 97): a capture while the sky is computed after LON (the only box)
+    cmd = cmd[:3] + ['xeq ANTS97'] + cmd[3:7] + ['film %s/b 1' % t, cmd[7], 'stopfilm']
     open('%s/ants.txt' % t, 'w').write('LBL "ANTS97"\nSF 97\nEND\n')
     cmd.insert(2, 'paste %s/ants.txt' % t)
     subprocess.run([F42], input='\n'.join(cmd) + '\n', text=True, capture_output=True, timeout=300)

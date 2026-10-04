@@ -112,7 +112,7 @@ def free42():
                      ['LON', 'longitude DDD.MMm, west negative', '55.12 = 55° 12′ E']],
                     [22 * mm, 110 * mm, 48 * mm])] + inputs_note() + [
           P('Then NAV switches to the 400 × 240 graphics mode (GrMod 3), computes the sky (the SINKING....ABOUT box '
-            'shows meanwhile) and draws the menu. 0 on the menu ends NAV and sets the normal screen again (GrMod 0). '
+            'shows meanwhile, only at the start) and draws the menu. 0 on the menu ends NAV and sets the normal screen again (GrMod 0). '
             'Under the items, the keys: + MENU, ↑↓ ±1 HOUR and 9 PRLCD (SNAP on the C47).'),
           img(F('menu'), 0.6),
           P('5. Keys', h2),
@@ -129,21 +129,20 @@ def free42():
           pair(F('almanac'), F('split'), '<b>1 ALMANAC</b>: GHA, Dec, Hc, Zn of 10 bodies; twilight, rise/set, mer. pass, '
                'Moon phase, HP, SD. A negative Hc is white on black.', '<b>2 SPLIT</b>: chart on top (Hc up, Zn across, '
                'the celestial equator dotted), the bodies below down to the bottom.'), Spacer(1, 4),
-          pair(F('sky'), F('anim'), '<b>3 SKY</b>: full-screen chart; every 5 seconds the name of the next body is shown next '
+          pair(F('sky'), F('anim'), '<b>3 SKY</b>: full-screen chart; every 2 seconds the name of the next body is shown next '
                'to it; DAY / TWILIGHT / NIGHT at the bottom.',
                '<b>4 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).'), Spacer(1, 4),
           pair(F('allsky'), F('info'), '<b>5 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.',
                '<b>6 INFO</b>: repository, licence, no warranty, cross-check (the warning is on the menu and INFO only).'),
           Spacer(1, 4),
           img(F('box_ants'), 0.3),
-          P('The SINKING....ABOUT box while the calculator works, with the ants (flag 97, below).', small),
+          P('The SINKING....ABOUT box while the sky is computed at the start, with the ants (flag 97, below).', small),
           PageBreak(), P('7. How the screen appears', h2),
-          P('Free42 sends every drawing step to the LCD at once, so a program builds each screen up in '
-            'front of you (the stars of SKY appear one by one), and the SINKING box is cleared as soon as the next view '
-            'starts to draw. The C47 shows its screen only at a PAUSE, a key press or the end, so there a view appears '
-            'complete, at once, and the box stays until it is ready.'),
+          P('Free42 sends every drawing step to the LCD at once; the C47 shows its screen only at a PAUSE, a key press or '
+            'the end. NAV on the C47 makes a PAUSE 0 after every text and body symbol, so each view is drawn in front of '
+            'you (the stars of SKY appear one by one); the SINKING box shows only while the sky is computed at the start.'),
           P('<b>NAVFULL</b> and <b>NAVLITTLE</b> do it the C47 way with the DM42 variable RefLCD: 0 STO "RefLCD" (no LCD update '
-            'while NAV computes and draws), −1 STO "RefLCD" (one update) where the C47 program shows its screen, and '
+            'while NAV computes), −1 STO "RefLCD" (one update) where the C47 program shows its screen, and '
             '7 (normal) when NAV ends. If you stop it with R/S or EXIT and the screen stays frozen, key '
             '<b>7 STO "RefLCD"</b>.'),
           P('8. The ants', h2),
@@ -158,7 +157,7 @@ def free42():
         '<b>Your registers are kept</b> (v2.0.0): NAV stores REGS (all your registers, and so your SIZE) in the '
         'variable NBAK, runs with SIZE 46 (NAVLITTLE: 30), and stores NBAK back into REGS when you leave (0; '
         'NAVLITTLE: +). If you stop NAV with R/S or EXIT: RCL "NBAK" STO "REGS" gives them back by hand.',
-        'v2.0.0 is faster and smaller (NAVFULL.raw 28.4 KB, was 35.5 KB) with the same screens: Horner, n-vectors, '
+        'v2.0.0 is faster and smaller (NAVFULL.raw 28.3 KB, was 35.5 KB) with the same screens: Horner, n-vectors, '
         'counted loops on ISG, the registers renumbered (docs/OPTIMIZATIONS.md). The ↑ ↓ ± of the menu are drawn by '
         'the font program from the C47 standard font.',
         'Built with tools/build_free42.py from the C47 programs; tested with tools/f42 (the Free42 core with the DM42 '
