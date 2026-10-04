@@ -89,8 +89,10 @@ def init_clean(L):
     """NAVINIT: only the message on the stack at the end (MATRICES READY: ...), nothing else."""
     i = next(k for k in range(len(L)) if L[k] == 'STO "VAL"')
     j = L.index('RTN', i)
+    if L[i + 1] in ('CLSTK', 'CLST') and L[i - 2] == L[i + 1]:
+        return L                                           # already clean (build/ written by tools/build_v2.py)
     assert L[i + 1].startswith('"MATRICES READY')
-    return L[:i - 1] + ['CLSTK', L[i - 1], 'STO "VAL"', 'CLSTK', L[i + 1]] + L[j:]
+    return L[:i - 1] + ['CLSTK', L[i - 1], 'STO "VAL"', 'CLSTK', L[i + 1]] + L[i + 2:j] + L[j:]     # SF 81 (DM42) kept
 
 
 def p47(path):
@@ -144,21 +146,26 @@ def inits():
     return out
 
 
-def free42(on=True, post=None):
-    """NAVFULL for Free42 (short labels, named labels); on=False: the release one. post: as in c47()."""
+def free42(on=True, post=None, menu=None, little=False):
+    """NAVFULL for Free42 (short labels, named labels); on=False: the release one. post: as in c47(); menu: the
+    gennav settings (default NOTEXT); little: NAVLITTLE instead (and its NAVINIT_LITTLE as a third item)."""
     import build_free42 as F
     keep = F.OUT, F.DEV, F.SRC, F.tbl50, F.assemble
-    with optimized(on) as tmp, contextlib.redirect_stdout(io.StringIO()):
+    with optimized(on, menu) as tmp, contextlib.redirect_stdout(io.StringIO()):
         F.OUT = os.path.join(tmp, 'free42'); F.DEV = os.path.join(F.OUT, 'dev'); F.SRC = os.path.join(F.DEV, 'src')
         F.tbl50 = lambda: None
         if post:
             F.assemble = lambda *a, **k: post(keep[4](*a, **k))
         try:
-            F.build(rlcd=True)
+            F.build(rlcd=True, little=little)
         finally:
             F.OUT, F.DEV, F.SRC, F.tbl50, F.assemble = keep
-        short = open(os.path.join(tmp, 'free42', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
-        named = open(os.path.join(tmp, 'free42', 'dev', 'src', 'NAVFULL.txt'), encoding='utf-8').read().split('\n')
+        name = 'NAVLITTLE' if little else 'NAVFULL'
+        short = open(os.path.join(tmp, 'free42', name + '.txt'), encoding='utf-8').read().split('\n')
+        named = open(os.path.join(tmp, 'free42', 'dev', 'src', name + '.txt'), encoding='utf-8').read().split('\n')
+        if little:
+            init = open(os.path.join(tmp, 'free42', 'NAVINIT_LITTLE.txt'), encoding='utf-8').read().split('\n')
+            return [l for l in short if l], [l for l in named if l], [l for l in init if l]
     return [l for l in short if l], [l for l in named if l]
 
 
@@ -173,6 +180,8 @@ def moon47():
 def tbl_clean(L, clear):
     """TBL: only the message (TBL dd-mm-yyyy TO dd-mm-yyyy) left on the stack: clear before it."""
     i = L.index('SF 10')
+    if L[i + 1] in ('CLSTK', 'CLST'):
+        return L                                           # already clean
     assert L[i + 1].startswith(('"TBL ', 'XSTR "TBL ')) and L[i + 2] == 'RTN'
     return L[:i + 1] + [clear] + L[i + 1:]
 

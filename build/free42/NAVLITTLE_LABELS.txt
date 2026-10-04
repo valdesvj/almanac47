@@ -1,5 +1,6 @@
-NAVLITTLE (Free42) - program labels (NAV keeps its name; INIT is NAVINIT_LITTLE)
+NAVLITTLE v2.0.0 (Free42) - program labels (NAV keeps its name)
 
+NAV  NAV
 N01  ALMF
 N02  SUNA
 N03  SUNG
@@ -24,6 +25,7 @@ N21  CTWP
 N22  TRAN
 N23  SBRT
 N24  SNMU
+N47  TGET
 N25  PTXS
 N26  PINS
 N27  PF1S
@@ -33,6 +35,7 @@ N30  PDTS
 N31  PZNS
 N32  PHLS
 N36  WPLS
+N48  PSYB
 N37  F42
 N38  PX
 N39  KM
@@ -42,5 +45,3 @@ N42  TK
 N43  AD
 N44  FBX
 N45  CLT
-N47  TGET
-N48  PSYB

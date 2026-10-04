@@ -21,8 +21,8 @@ import collections, re
 REG = r'(\d\d)'
 READ = re.compile(r'(?:RCL|RCL[+\-×÷]|AGRAPH|GRMOD|αLENG|AVIEW|XEQ IND|GTO IND|STO IND|RCL IND) ' + REG + '$')
 WRITE = re.compile(r'(?:STO|KEY\?|CLα) ' + REG + '$')
-RW = re.compile(r'(?:STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥) ' + REG + '$')
-ANY = re.compile(r'^(RCL|RCL[+\-×÷]|AGRAPH|GRMOD|αLENG|AVIEW|XEQ IND|GTO IND|STO IND|RCL IND|STO|KEY\?|CLα|STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥) (\d\d)$')
+RW = re.compile(r'(?:STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥|HEAD) ' + REG + '$')
+ANY = re.compile(r'^(RCL|RCL[+\-×÷]|AGRAPH|GRMOD|αLENG|AVIEW|XEQ IND|GTO IND|STO IND|RCL IND|STO|KEY\?|CLα|STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥|HEAD) (\d\d)$')
 SKIP = re.compile(r'^(.*\?( .*)?|ISG .*|DSE .*|KEY\? .*)$')
 ALL = (1 << 100) - 1
 

@@ -88,7 +88,7 @@ def transform(P, f42):
     if f42:                                            # Free42: flag 25 ignores the error of RCL; STO creates TZ
         tz = ['RCL "TZ"', 'STO 03', 'CF 25']
         P = cut(P, tz, tz + ['STO "TZ"'])              # TZ, or 0 when it was not there: now it is
-    else:                                              # C47: RCL of a missing variable stops the program even with
+    elif "SF 'IGN1ER'" in P:                           # C47: RCL of a missing variable stops the program even with
         P = cut(P, ['0', 'STO 03', "SF 'IGN1ER'", 'RCL "TZ"', 'STO 03', "CF 'IGN1ER'"],    # IGN1ER (firmware
                 ['0', 'STO+ "TZ"', 'RCL "TZ"', 'STO 03'])   # _executeOp); STO+ creates a missing TZ with 0, else adds 0
     end = 'CLST' if f42 else 'CLSTK'

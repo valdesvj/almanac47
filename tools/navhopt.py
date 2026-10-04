@@ -129,13 +129,15 @@ FRESH = ('NAV', 'ALMF', 'HALMV', 'HORZ', 'HALMH', 'HANIM', 'ALLSKY')     # no re
 def nav_regs(L):
     """NAVFULL_RSAVE (C47, long names): the registers renumbered from R00 (tools/regalloc.py; NAV and the six
     views read no register they have not written: test_navhopt checks it), saved in local registers of NAV
-    at the start and restored when NAV ends (0: LBL 09, before CLSTK)."""
+    at the start and restored when NAV ends (before its last CLSTK: after XEQ 08 in NAVFULL, after SSIZE4 in
+    NAVLITTLE)."""
     import regalloc
     out, k, _ = regalloc.plan(L, FRESH, local=False, roots=[L.index('LBL "NAV"')])
     i = out.index('LBL "NAV"') + 1
     out[i:i] = ['LocR %d' % k] + [x for j in range(k) for x in ('RCL %02d' % j, 'STO R.%02d' % j)]
-    ends = [j for j in range(i, len(out)) if out[j] == 'CLSTK' and out[j - 1] == 'XEQ 08']
-    assert len(ends) == 1, 'navhopt: the end of NAV (XEQ 08, CLSTK) not found once'
+    e = out.index('END', i)
+    ends = [j for j in range(i, e) if out[j] == 'CLSTK' and out[j - 1] in ('XEQ 08', 'SSIZE4')]
+    assert len(ends) == 1, 'navhopt: the end of NAV (XEQ 08 or SSIZE4, CLSTK) not found once'
     j = ends[0]
     out[j:j] = [x for r in range(k) for x in ('RCL R.%02d' % r, 'STO %02d' % r)]
     return out
@@ -502,3 +504,32 @@ def merge(L, main='MOON47'):
     labels = [l for l in out if l.startswith('LBL ')]
     assert len(labels) == len(set(labels)) and sum(1 for l in labels if l[4] != '"') <= 100
     return out, len(labels) - 1
+
+
+def f42_inputs(L):
+    """Free42 NAV (NAVFULL, NAVLITTLE): at each INPUT a clear stack and only the format of that input in Y,
+    as on the C47 (the stack had what NAV and the inputs before left on it)."""
+    old = ['CLA', 'XSTR "Y.MMDD H.MMSS D.MMm"', 'AVIEW', 'INPUT "DATE"', 'INPUT "UTC"', 'INPUT "LAT"', 'INPUT "LON"']
+    new = ['CLST', 'XSTR "DATE Y.MMDD"', 'INPUT "DATE"', 'CLST', 'XSTR "UT H.MMSS"', 'INPUT "UTC"',
+           'CLST', 'XSTR "LAT D.MMm  S -"', 'INPUT "LAT"', 'CLST', 'XSTR "LON D.MMm  W -"', 'INPUT "LON"', 'CLST']
+    return cut(L, old, new)
+
+
+def f42_regs(L):
+    """Free42 NAV: the registers renumbered from R00 (regalloc), SIZE k instead of SIZE 100, and the user's
+    registers kept: RCL "REGS" (the whole register matrix, its size = the user's SIZE) into "NBAK" before
+    SIZE k, back into REGS when NAV ends (STO "REGS" gives the SIZE back too), NBAK deleted. Flag 25 guards
+    both: no REGS (SIZE 0) or no NBAK does not stop NAV."""
+    import regalloc
+    out, k, _ = regalloc.plan(L, FRESH, local=False, roots=[L.index('LBL "NAV"')])
+    i = out.index('LBL "NAV"')
+    e = out.index('END', i)
+    s = [j for j in range(i, e) if out[j] == 'SIZE 100']
+    assert len(s) == 1, 'navhopt: SIZE 100 not found once in NAV'
+    out[s[0]:s[0] + 1] = ['SF 25', 'RCL "REGS"', 'FS?C 25', 'STO "NBAK"', 'CLX', 'SIZE %d' % max(k, 1)]
+    e = out.index('END', i)
+    ends = [j for j in range(i, e) if out[j] == 'CLST' and out[j + 1] in ('CLD', 'RTN') and not out[j - 1].startswith('INPUT')]
+    assert len(ends) == 1, 'navhopt: the end of the Free42 NAV (CLST, CLD / RTN) not found once'
+    j = ends[0]
+    out[j:j] = ['SF 25', 'RCL "NBAK"', 'FS?C 25', 'STO "REGS"', 'SF 25', 'CLV "NBAK"', 'CF 25']
+    return out, k

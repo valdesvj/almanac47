@@ -18,10 +18,21 @@ def jd(y, m, d, h=0.0):
 
 
 def _ser(rows, tau):
+    """sum A cos(B + C tau) tau^k x 1E-8: the terms of each power k summed, then the powers by Horner
+    (as the C47 SER: no tau ** k per term)."""
+    g = _GROUPS.get(id(rows))
+    if g is None:
+        g = {}
+        for k, A, B, C in rows:
+            g.setdefault(int(k), []).append((A, B, C))
+        g = _GROUPS[id(rows)] = [g.get(k, []) for k in range(max(g) + 1)]
     s = 0.0
-    for k, A, B, C in rows:
-        s += A * cos(B + C * tau) * tau ** k
+    for terms in reversed(g):
+        s = s * tau + sum(A * cos(B + C * tau) for A, B, C in terms)
     return s * 1e-8
+
+
+_GROUPS = {}
 
 
 def _nut(T):
@@ -150,12 +161,21 @@ def phase(j):
     return k, age
 
 
+_OBS = [None, 0.0, 1.0]            # the observer's n-vector: latitude, its sine and cosine (once per place)
+
+
 def hcz(lat, lon, dec, gha):
-    """HCZ: returns Hc, Zn (deg) and sin Hc (for the sine-scale charts)."""
-    la, de, t = radians(lat), radians(dec), radians(gha + lon)
-    sh = sin(la) * sin(de) + cos(la) * cos(de) * cos(t)
+    """HCZ: returns Hc, Zn (deg) and sin Hc (for the sine-scale charts). The observer's sin / cos of the latitude
+    are kept from the last call (the C47 HCZI: one place, many bodies)."""
+    if _OBS[0] != lat:
+        la = radians(lat)
+        _OBS[:] = [lat, sin(la), cos(la)]
+    _, sl, cl = _OBS
+    de, t = radians(dec), radians(gha + lon)
+    sd, cd, ct = sin(de), cos(de), cos(t)
+    sh = sl * sd + cl * cd * ct
     sh = max(-1.0, min(1.0, sh))
-    zn = degrees(atan2(-cos(de) * sin(t), cos(la) * sin(de) - sin(la) * cos(de) * cos(t)))
+    zn = degrees(atan2(-cd * sin(t), cl * sd - sl * cd * ct))
     return degrees(asin(sh)), (zn + 360.0) % 360.0, sh
 
 
