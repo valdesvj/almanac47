@@ -32,7 +32,7 @@ V2_TEXT = {
            'R00-R45 saved at the start and given back at 0 (the only named program; INFO page inside)',
  'ALMF':   'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMH':  'view 2 SPLIT: horizon chart on top, the bodies below (8 rows)',
- 'HORZ':   'view 3 SKY: horizon chart, info line per body every 3 s (+ back to the menu, arrows one hour)',
+ 'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 5 s (+ back to the menu, arrows one hour)',
  'HANIM':  'view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
  'ALLSKY': 'view 5 ALLSKY: whole sky, over the horizon above, under the horizon below',
 }

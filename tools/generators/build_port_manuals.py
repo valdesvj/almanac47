@@ -129,7 +129,7 @@ def free42():
           pair(F('almanac'), F('split'), '<b>1 ALMANAC</b>: GHA, Dec, Hc, Zn of 10 bodies; twilight, rise/set, mer. pass, '
                'Moon phase, HP, SD. A negative Hc is white on black.', '<b>2 SPLIT</b>: chart on top (Hc up, Zn across, '
                'the celestial equator dotted), the bodies below down to the bottom.'), Spacer(1, 4),
-          pair(F('sky'), F('anim'), '<b>3 SKY</b>: full-screen chart; every second the name of the next body is shown next '
+          pair(F('sky'), F('anim'), '<b>3 SKY</b>: full-screen chart; every 5 seconds the name of the next body is shown next '
                'to it; DAY / TWILIGHT / NIGHT at the bottom.',
                '<b>4 ANIM</b>: the Sun and the Moon over 12 hours (24 frames, 1 s each).'), Spacer(1, 4),
           pair(F('allsky'), F('info'), '<b>5 ALLSKY</b>: the whole sky, over and under the horizon; DAY / TWILIGHT / NIGHT.',

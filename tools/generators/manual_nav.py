@@ -99,7 +99,7 @@ S += [PageBreak(), P('5. The views', h2),
            'below down to the bottom of the screen (8 rows).'),
       Spacer(1, 4),
       pair('HORZ_axes_night.png', 'ANIM_preview.png',
-           '<b>3 SKY</b> (HORZ): full-screen chart of the 8 bodies; every second the name of the next one is written '
+           '<b>3 SKY</b> (HORZ): full-screen chart of the 8 bodies; every 5 seconds the name of the next one is written '
            'next to its symbol (here MOON); DAY / TWILIGHT / NIGHT at the bottom.',
            '<b>4 ANIM</b> (HANIM): the Sun and the Moon moving on the whole-sky chart over 12 hours (24 frames, '
            '1 s each, 30 min apart); the first frame.'),

@@ -71,13 +71,13 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
    and the charts' equator dots in ALMQ (300 x 3, they change only with the position).
    (4 ANIM computes its own times, as before.)
-   3 SKY: the top line shows each body in turn (3 s each, endless), UT top right, DR under it;
+   3 SKY: the name of each body in turn next to its symbol (5 s each, endless);
    (do not use R/S: it stops the program). 0 on the menu ends NAV, gives your registers back and
    clears the screen and the stack. New date or position: XEQ "NAV" again.
      1 ALMANAC  GHA, Dec, Hc, Zn of Sun, Moon, planets, brightest stars; twilight, rise/set,
                 meridian passage, Moon
      2 SPLIT    horizon chart on top, the bodies below down to the bottom (8 rows)
-     3 SKY      horizon chart, the top line names each body in turn (3 s each)
+     3 SKY      horizon chart, the name of each body in turn next to it (5 s each)
      4 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
      5 ALLSKY   the whole sky: over the horizon above, under the horizon below
      6 INFO     the repository, the licence, no warranty, cross-check with the almanac
