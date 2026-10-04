@@ -172,8 +172,11 @@ def check(mode, cases, tables=None, events=0, phases=0):
         st.add('MOON SD', moon[3] - math.degrees(math.asin(0.272481 * G.REQ / r)) * 60)
         h1, z1 = A.hcz(lat, lon, moon[1], moon[0]); h2, z2 = A.hcz(lat, lon, d, g)
         st.add('Hc (all bodies)', (h1 - h2) * 60)
+        gs, ds, _ = G.apparent('sun', j)
         for p, name in PLANETS.items():
             g, d, r = G.apparent(name, j)
+            if A.dsin(d) * A.dsin(ds) + A.dcos(d) * A.dcos(ds) * A.dcos(g - gs) > A.dcos(1.0):
+                continue          # within 1 deg of the Sun: not observable; ERFA bends its light (the calculator does not)
             st.add('%s GHA' % name.upper(), wrap(pl[p][0] - g)); st.add('%s Dec' % name.upper(), (pl[p][1] - d) * 60)
         if mode == 'TBL':
             continue                                        # the stars do not come from the tables

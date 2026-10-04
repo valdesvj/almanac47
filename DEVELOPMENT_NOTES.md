@@ -136,6 +136,21 @@ Limits: 0.2' (Moon 0.3', Hc and Zn 0.3'), HP/SD 0.05', 1 min, 0.5 %, 0.25 h. The
 to the same DE421 reference: their column shows the fit, not an independent error. The calculator
 takes TT - UT1 = 69.2 s for every year; the reference the IERS values (63.8 s in 2000): part of the
 Moon's 0.125'. With TT - UT1 = 0 the test fails (Moon 0.7'): it does see a wrong calculation.
+Planets within 1 deg of the Sun are skipped (not observable; ERFA bends their light around the Sun,
+up to 0.5' for Venus behind the Sun's disc; the calculator leaves the light bending out).
+
+### Hc and Zn: tests/test_azimuth.py
+
+1. The formula: the calculator's HCZ (RPN, n-vectors with →REC / →POL, run in c47sim through CHZ)
+   and `c47astro.hcz` against ERFA `hd2ae`, 2000 random cases (near the poles and the zenith
+   included) and 13 cases with a known answer (on the meridian north / south, lower transit, east,
+   west, horizon, zenith, pole): exact (0.000000'). Due north the RPN gives Zn 360 instead of 0;
+   PZNS prints it as 000.0.
+2. The whole chain against Skyfield (DE421, its own precession, nutation and Delta T), geocentric
+   Hc (Skyfield's apparent position turned into the observer's horizon frame), 2000-2050: max Hc /
+   Zn x cos Hc: Sun 0.011' / 0.007', Moon 0.060' / 0.097', planets 0.059' / 0.048', stars 0.003'.
+
+    ~/.venvs/almanac47-ephem/bin/python tests/test_azimuth.py [N] [seed]
 
 ## Online check (PC only)
 
