@@ -5,8 +5,8 @@ version and the base for a phone app (**Almanac 47**).
 
 - **Install and run:** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
-  graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 9 SNAP, 0 END (+ back,
-  ↑↓ ±1 hour). v2.0.0: your numbered registers are saved when NAV starts and given back when it ends.
+  graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,
+  ↑↓ ±1 hour, 9 SNAP). v2.0.0: your numbered registers are saved when NAV starts and given back when it ends.
 - **v2.0.0, what changed inside:** `docs/OPTIMIZATIONS.md` (Horner, n-vectors, the loops on ISG,
   the registers renumbered from 100 to 46 and kept; Free42 SIZE and REGS kept).
 - **Text on the graphics screen:** `programs/FONTS.txt` - PTXT (3x5), PTXB (5x7) and
