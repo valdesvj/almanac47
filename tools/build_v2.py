@@ -24,6 +24,7 @@ ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE, os.path.join(HERE, 'generators'), os.path.join(ROOT, 'python')]
 import build_navopt as N                                                     # noqa: E402
 import navhopt                                                               # noqa: E402
+import navmat                                                                # noqa: E402
 
 B = N.B
 OUT = os.path.join(ROOT, 'build')
@@ -38,6 +39,9 @@ V2_TEXT = {
  'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)',
  'HANIM':  'view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
  'ALLSKY': 'view 5 ALLSKY: whole sky, over the horizon above, under the horizon below',
+ 'HDR':    'header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)',
+ 'CMN':    'compass row N E S W N of a chart (X row)',
+ 'CMS':    'compass row S W N E S of a chart, south up (X row)',
 }
 HEADER = ('Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.\n'
           'Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the\n'
@@ -98,6 +102,7 @@ def labels_file(path, full, short, title, text=None):
     t.update(V2_TEXT)
     t.update(text or {})
     m = [(b[5:-1], a[5:-1]) for a, b in zip(full, short) if a.startswith('LBL "')]
+    t.update({l: 'steps shared by several routines (tools/navmat.py outline)' for s, l in m if re.fullmatch(r'OUT\d+', l)})
     with open(path, 'w', encoding='utf-8') as fh:
         fh.write('%s - program labels\n%s\n%s' % (title, '=' * (len(title) + 17), HEADER))
         fh.write('\n'.join('%-7s %-7s %s' % (s, l, t.get(l, '')) for s, l in m) + '\n')
@@ -105,7 +110,7 @@ def labels_file(path, full, short, title, text=None):
 
 def c47():
     full, short = N.c47(True, menu=N.SPLIT2,
-                        post=lambda L: navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))))
+                        post=lambda L: navmat.size(navhopt.nav_regs(navhopt.inputs(navhopt.loops(navmat.c47(L))))))
     B.write(os.path.join(OUT, 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # the same with the routine names (tests)
     labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.0.0 (C47 / R47)')
@@ -126,7 +131,7 @@ def dm42():
         nav, progs = D.builds()['NAVLITTLE']
         L, need = D.assemble(nav, progs)
         L = B.keywait(L)
-        L = live(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))), views=('ALMF',))
+        L = navmat.size(live(navhopt.nav_regs(navhopt.inputs(navhopt.loops(navmat.little(L)))), views=('ALMF',)))
         m = B.fixed_map('NAVLITTLE', L, keep=('NAV', 'INIT'))
         short = B.rename_keep(L, m, ('NAV', 'INIT'))
         init = N.init_clean(D.init_dm42())

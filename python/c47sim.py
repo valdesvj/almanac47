@@ -6,14 +6,14 @@ picture is made by the same code as the calculator picture.
 Only the commands used by the suite are implemented.
 """
 from decimal import Decimal as D, getcontext
-import math, re
+import cmath, math, re
 getcontext().prec = 34
 
 def f(x): return float(x)
 
 class Mat:
     """A real matrix on the stack (RCL of a named matrix, results of matrix operations)."""
-    def __init__(self, rows): self.rows = [[float(v) for v in r] for r in rows]
+    def __init__(self, rows): self.rows = [[v if isinstance(v, complex) else float(v) for v in r] for r in rows]
     def dims(self): return len(self.rows), len(self.rows[0])
     def mul(self, o):
         if isinstance(o, Mat):
@@ -26,6 +26,37 @@ class Mat:
         return Mat([[a + b for a, b in zip(r, q)] for r, q in zip(self.rows, o.rows)])
     def elementwise(self, fn): return Mat([[fn(v) for v in r] for r in self.rows])
     def flat(self): return [v for r in self.rows for v in r]
+
+
+# the whole-matrix and complex commands of the C47 (tools/navmat.py), as the firmware does them (tested in the
+# C47 simulator): element by element on a matrix, except M × M (matrix product)
+MATOPS = {'COMPLEX', 'Re', 'Im', '∡', 'x²', 'eˣ', 'ABS', 'CONJ', '+', '-', '×', '÷', 'MOD', 'ASIN', 'CHS', 'RCL×', 'M.PUTM', 'M.GETM'}
+
+
+def _mc(v):
+    return isinstance(v, (Mat, complex)) or (isinstance(v, tuple) and v[:1] == ('MAT',))
+
+
+def _num(v):
+    if isinstance(v, tuple):
+        return Mat([[0.0] * v[2] for _ in range(v[1])])
+    return v if isinstance(v, (Mat, complex)) else float(v)
+
+
+def _ew(fn, *vs):
+    """fn on the elements of the matrices in vs (the others: scalars); a scalar result when no matrix."""
+    m = next((v for v in vs if isinstance(v, Mat)), None)
+    if m is None:
+        return fn(*vs)
+    n, k = m.dims()
+    get = lambda v, i, j: v.rows[i][j] if isinstance(v, Mat) else v
+    return Mat([[fn(*[get(v, i, j) for v in vs]) for j in range(k)] for i in range(n)])
+
+
+def _out(v):
+    """A scalar result back to the stack's type (Decimal for a real number)."""
+    return D(repr(v)) if isinstance(v, float) else v
+
 
 class Calc:
     def __init__(self, prog_text, mats=None):
@@ -101,7 +132,11 @@ class Calc:
         self.s[1] = D(Y + (y - ny if Y < 0 else ny - y))
 
     def regkey(self, arg):
-        if arg.startswith('IND '): return int(self.rget(arg[4:].strip()))
+        if not isinstance(arg, str): return arg                  # already resolved (STO IND)
+        if arg.startswith('IND '):
+            k = arg[4:].strip().strip('"')
+            v = self.rget(k) if k in self.reg or not k.isalpha() else self.rget(k)
+            return v if isinstance(v, str) else int(v)            # a text: the variable of that name
         return arg
     def local(self, k):
         """R.nn: a local register of the running subroutine level (LocR); (list, index)."""
@@ -121,6 +156,41 @@ class Calc:
         if isinstance(n, str): return n                     # XEQ IND r with a label name in r
         if hasattr(self,'pid'): return '%d_%d'%(self.pid[pc], n)
         return '%02d'%n
+    def matop(self, op, arg):
+        """MATOPS when a matrix or a complex number is involved; False: the ordinary command."""
+        x, y = self.s[0], self.s[1]
+        two = op in ('COMPLEX', '+', '-', '×', '÷', 'MOD', 'M.GETM')
+        if op == 'RCL×':
+            v = self.rget(self.regkey(arg))
+            if not (_mc(x) or _mc(v)): return False
+            self.lastx = x; self.s[0] = _ew(lambda a, b: a * b, _num(x), _num(v)); self.lift = True; return True
+        if op == 'M.PUTM':
+            m = self.mats[self.cur]
+            for i, r in enumerate(x.rows):
+                for j, v in enumerate(r):
+                    m[self.I - 1 + i][self.J - 1 + j] = v
+            return True
+        if op == 'M.GETM':
+            m = self.mats[self.cur]; r, c = int(y), int(x)
+            self.binary(lambda y, x: Mat([row[self.J - 1:self.J - 1 + c] for row in m[self.I - 1:self.I - 1 + r]])); return True
+        if not (_mc(x) or (two and _mc(y)) or op in ('COMPLEX', 'Re', 'Im', '∡')): return False
+        X, Y = _num(x), _num(y)
+        if op == 'COMPLEX' and isinstance(X, Mat) != isinstance(Y, Mat):
+            raise ValueError('COMPLEX of a matrix and a number: the firmware refuses it')
+        if op == '×' and isinstance(X, Mat) and isinstance(Y, Mat):
+            return False                                   # the matrix product: the ordinary code
+        deg = lambda a: math.degrees(a) if self.deg else a
+        fn2 = {'COMPLEX': lambda a, b: complex(a, b), '+': lambda a, b: a + b, '-': lambda a, b: a - b,
+               '×': lambda a, b: a * b, '÷': lambda a, b: a / b, 'MOD': lambda a, b: a - b * math.floor(a / b)}
+        fn1 = {'Re': lambda a: a.real, 'Im': lambda a: a.imag, '∡': lambda a: deg(math.atan2(a.imag, a.real)),
+               'x²': lambda a: a * a, 'ASIN': lambda a: deg(math.asin(a)), 'CHS': lambda a: -a,
+               'eˣ': lambda a: cmath.exp(a) if isinstance(a, complex) else math.exp(a), 'ABS': abs,
+               'CONJ': lambda a: a.conjugate()}
+        if two:
+            self.binary(lambda y_, x_: _out(_ew(fn2[op], Y, X)))
+        else:
+            self.lastx = x; self.s[0] = _out(_ew(fn1[op], X)); self.lift = True
+        return True
     def run(self, label, maxsteps=10**6):
         pc = self.labels[label] + 1; rs = []; n = 0
         while True:
@@ -154,6 +224,7 @@ class Calc:
             if op == 'XEQ':
                 if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
                 rs.append(pc); pc = self.labels[arg] + 1; continue
+            if op in MATOPS and self.matop(op, arg): continue      # whole-matrix and complex commands (tools/navmat.py)
             if isinstance(self.s[0], Mat) or (op in ('×', '+', 'DOT') and isinstance(self.s[1], Mat)):
                 x, y = self.s[0], self.s[1]
                 if op == '×':
@@ -343,10 +414,14 @@ class Calc:
             if op == '→REC':                       # Y angle, X radius -> Y = r sin, X = r cos (C47 →RECT, Free42 →REC)
                 r, t = self.s[0], self.s[1]
                 self.s[0] = r * self.trig(math.cos, t); self.s[1] = r * self.trig(math.sin, t); self.lift = True; continue
-            if op == 'STO' and isinstance(self.s[0], Mat):
-                self.mats[arg] = [list(r) for r in self.s[0].rows]; continue
+            if op == 'STO' and arg.startswith('IND '):
+                arg = self.regkey(arg)                              # STO IND: the register / variable it names
+            if op == 'STO' and isinstance(self.s[0], Mat):          # a variable holds one value: a matrix now
+                self.mats[arg] = [list(r) for r in self.s[0].rows]; self.reg.pop(arg, None); continue
             if op == 'STO' and isinstance(self.s[0], tuple) and self.s[0][0] == 'MAT':
-                _, r, c = self.s[0]; self.mats[arg] = [[0.0]*c for _ in range(r)]; continue
+                _, r, c = self.s[0]; self.mats[arg] = [[0.0]*c for _ in range(r)]; self.reg.pop(arg, None); continue
+            if op == 'STO' and arg in self.mats and not re.fullmatch(r'\d+|R\.\d\d|[XYZT]', arg):
+                del self.mats[arg]                                  # ... and a number now
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue
@@ -399,8 +474,16 @@ class Calc:
             if op == 'FC?':
                 if int(arg) in self.flags: pc += 1
                 continue
+            if op in ('𝜋', 'PI'):                                      # the firmware's π (item 109)
+                self.push(D('3.141592653589793238462643383279503')); continue
             if op == 'NEWMAT':
                 r, c = int(self.s[1]), int(self.s[0]); self.s = [('MAT', r, c), self.s[2], self.s[3], self.s[3]]; self.lift = True; continue
+            if op in ('deg→rad', 'rad→deg'):                         # fnCvtDegRad: a number (not a matrix)
+                if isinstance(self.s[0], Mat): raise ValueError('%s of a matrix: the firmware refuses it' % op)
+                k = D('0.01745329251994329576923690768488613')
+                self.unary(lambda x: x * k if op == 'deg→rad' else x / k); continue
+            if op == 'DELITM':                                        # delete a variable (fnDeleteVariable)
+                self.reg.pop(arg, None); self.mats.pop(arg, None); continue
             if op == 'STOEL': self.mats[self.cur][self.I-1][self.J-1] = self.s[0] if isinstance(self.s[0], D) else float(self.s[0]); continue   # real34 kept (C47 real matrix)
             if op == 'INDEX': self.cur = arg; self.I = self.J = 1; continue
             if op == 'STOIJ':

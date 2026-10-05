@@ -66,7 +66,8 @@ class Flow:
         self.reg = [None] * n                                 # the register operand of the line
         self.rd = [0] * n; self.wr = [0] * n
         for i, l in enumerate(L):
-            assert ' IND ' not in l or l.startswith(('XEQ IND', 'GTO IND')) or table, 'regalloc: indirect register: %s' % l
+            assert ' IND ' not in l or l.startswith(('XEQ IND', 'GTO IND')) or ' IND "' in l or table, \
+                'regalloc: indirect register: %s' % l             # IND "name": a named variable holds the name
             for rx, r, w in ((READ, 1, 0), (WRITE, 0, 1), (RW, 1, 1)):
                 m = rx.match(l)
                 if m:
