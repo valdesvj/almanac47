@@ -122,3 +122,67 @@ screen), and the inputs before.
 * The C47 firmware itself: the PC simulator built from master (headless, `--script`), every page of NAV with
   no error and all 100 registers kept; the input prompts captured from its screen.
 * `python3 tools/c47check.py`: every step is a C47 command allowed in programs.
+
+## 7. After v2.0.0: the same calculation, faster and smaller (`tools/navmat.py`, branch safe-opt)
+
+Every hour is still computed in full, as in v2.0.0 (the hour stepping of the series, tried on branch
+c47-matrix, was slower on the calculator). `tools/build_v2.py` applies the passes; `ALM_PASSES=deg,tget,...`
+builds a subset for measurements.
+
+**The calculation** (on the named listing, before `regalloc` renumbers the registers):
+
+| pass | what | C47 | Free42 |
+|---|---|---|---|
+| deg | `rad→deg` (`→DEG`) in place of `× 57.29577…` (an 18-byte number); the Moon's parallax factor `358473400 × 6378.14 ÷` as one number | yes | `→DEG` only |
+| ceq | the equator dots of the charts on whole complex vectors, 30 at a time (`EQ2` / `EQ3` in place of `ALMQ` and its element reads) | yes | no: Free42 makes no element copies |
+| tget | the tables: T₀…Tₙ₋₁ once per call, each quantity one `M.GETM` (`GETM`) and a `DOT` | yes | yes |
+| hcz | Hc and Zn from the body's direction vector: 2 trigonometric functions in place of HCZ's 6 | yes | yes |
+| margs | the arguments of a Moon series (`ML × MA10`) once for its SIN and COS sums | yes | yes |
+| cexp | the cos and sin of a series' whole argument vector as one complex `eˣ(i A)`, then `Re` / `Im` | yes | no: no `Re` / `Im`, 4-level stack |
+| views | the header of every view (date, UT, DR, latitude, longitude) and the compass row of the charts as routines `HDR`, `CMN`, `CMS` | yes | yes (`LSTO` locals) |
+
+Why `cexp`: the C47 computes SIN and COS at 75 digits and `eˣ` at 39 (still more than the 34 a number keeps).
+30 vectors of 200 elements: SIN + COS 1.05 s → 0.44 s, COS alone 0.69 s → 0.47 s; cos 60° differs by 3 × 10⁻³⁴.
+The complex constants i and iπ/180 are `C1` and `C2`, made when NAV starts (`RCL×` keeps the stack depth).
+
+**The size** (after `regalloc`):
+
+* `strip`: no REM, no code NAV cannot reach (STAR, PLAN, CHZ, HCZ0, CTWA / CTWP, …). `DHA` (Hc Zn → Dec GHA)
+  stays for the star identification to come. On Free42 an `XEQ` of a routine that returns by `RTNYES` /
+  `RTNNO` is a test (the SKY key wait).
+* `consts`: the most used numbers (1 2 360 0 16 …) in registers after the program's own: NAV stores them after
+  saving your registers (C47: `LocR 99`, R00–R98 given back; Free42: a larger `SIZE`, REGS kept in NBAK). DHA,
+  which runs without NAV, keeps its numbers.
+* `names`: NAV's own variables named a letter and a digit (V0, V1, …), the most used first; the inputs and the
+  matrices of NAVINIT and the tables keep their names.
+* `outline`: repeated runs of steps as local or shared subroutines (`OUTn`); never across `LocR` / `LSTO`, a
+  label, a return or a test.
+* NAVINIT: the planet series' phase `3.14159265359` is the firmware's π.
+
+**Results** (bytes; C47 free memory after INIT and a NAV run, `MEM#`):
+
+| | v2.0.0 | safe-opt | c47-size (hour stepping) |
+|---|---|---|---|
+| C47 NAVFULL | 31 098 | 24 240 | 28 948 |
+| DM42 NAVLITTLE | 7 950 | 7 253 | 7 982 |
+| Free42 NAVFULL | 28 334 | 23 380 | — |
+| Free42 NAVLITTLE | 8 699 | 7 839 | — |
+| C47 free memory after NAV (FULL) | 100 468 | 118 880 | 112 104 |
+
+Speed in the C47 firmware (PC simulator, CPU samples at 4 kHz; a page is the mean of 4 visits; about ± 5 %):
+
+| | start | ALMANAC | SPLIT | SKY | ANIM | ALLSKY | per hour |
+|---|---|---|---|---|---|---|---|
+| FULL v2.0.0 | 1095 | 81 | 211 | 249 | 588 | 419 | 497 |
+| FULL safe-opt | 904 | 97 | 193 | 238 | 624 | 366 | 375 |
+| FULL c47-size | 969 | 80 | 186 | 231 | 626 | 372 | 385 |
+| FAST v2.0.0 | 887 | 100 | 238 | 256 | 642 | 449 | 368 |
+| FAST safe-opt | 772 | 106 | 198 | 226 | 642 | 384 | 295 |
+| FAST c47-size | 811 | 77 | 196 | 240 | 665 | 413 | 278 |
+
+The PC simulator showed c47-matrix faster than v2.0.0, and the calculator showed it slower: the timings on the
+calculator decide.
+
+Checked: the C47 firmware pixel for pixel against v2.0.0 (NAVFULL 54 screens, NAVLITTLE 18), the ALMC cache
+(292 values) the same to 7 × 10⁻¹⁷ degrees, every test suite above, Free42 against the C47 screens and SKY /
+ANIM against v2.0.0, `tools/c47check.py` on master 224e5e95d.

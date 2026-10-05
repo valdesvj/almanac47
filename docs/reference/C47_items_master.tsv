@@ -1,5 +1,5 @@
 # C47 items (commands, functions, characters, menus) parsed from the firmware source by tools/c47ref.py
-# source: gitlab.com/rpncalculators/c43 master, commit b8707a818 (2026-10-03 09:16:58 +0000), docs-00.109.04.00a3.Internal.pre05-296-gb8707a818
+# source: gitlab.com/rpncalculators/c43 master, commit 224e5e95d (2026-10-05 12:32:49 +0000), docs-00.109.04.00a3.Internal.pre05-325-g224e5e95d
 # rejig columns: rejig trunk branch [e9cad9b647] --ops=r47, joined by item number (blank: this rejig cannot write the item)
 # data parsed from GPL-3.0-only source (src/c47/items.c, items.h, fonts.h); spare slots left out
 # catalog_name / softmenu_name: as the firmware stores them (its own code points: x² is xⅢ);
