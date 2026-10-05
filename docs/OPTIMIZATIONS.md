@@ -158,6 +158,11 @@ The complex constants i and iπ/180 are `C1` and `C2`, made when NAV starts (`RC
   label, a return or a test.
 * NAVINIT: the planet series' phase `3.14159265359` is the firmware's π.
 
+**MOON47** (`tools/build_moon47.py` `release()`): the 20 Moon terms as matrices (`tools/moon47_opt.py`, until
+now only a dev build), on the C47 their cos and sin by one complex `eˣ`, then `strip` and `outline`. C47 5 795 →
+4 836 bytes, Free42 .raw 6 837 → 6 122; the C47 firmware runs the page and two north / south switches in 966 CPU
+samples against 1 274 (−24 %), the same screens (`tests/test_moon47_c47.py`, `_f42.py`, and the firmware).
+
 **Results** (bytes; C47 free memory after INIT and a NAV run, `MEM#`):
 
 | | v2.0.0 | safe-opt | c47-size (hour stepping) |

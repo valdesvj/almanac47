@@ -521,10 +521,10 @@ def reach(L, entries=('NAV', 'INIT')):
 KEEP_ENTRIES = ('NAV', 'INIT')            # (DHA, the inverse of HCZ, is a separate program: programs/CHZ.txt)
 
 
-def strip(L):
+def strip(L, entries=None):
     """Size: no REM (comments cost bytes on the calculator) and no code NAV can never reach (unused entries such as
     STAR, PLAN, CHZ, DHA, HCZ0, CTWA / CTWP). A line right after a test is never removed (the test skips it)."""
-    r = reach(L, KEEP_ENTRIES)
+    r = reach(L, entries or KEEP_ENTRIES)
     out = []
     for i, l in enumerate(L):
         drop = l.startswith('REM') or (i not in r and l != 'END')
@@ -833,6 +833,19 @@ def size42(L):
         finally:
             nbytes = keep
     return L
+
+
+def shrink(L, entries, f42=False):
+    """strip and outline for another program (MOON47): entries are its global labels run by the user."""
+    global nbytes
+    L = strip(L, entries)
+    keep = nbytes
+    if f42:
+        nbytes = nbytes42
+    try:
+        return outline(L, min_save=4 if f42 else 8)
+    finally:
+        nbytes = keep
 
 
 def size(L):

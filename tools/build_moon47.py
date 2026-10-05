@@ -566,8 +566,17 @@ def python_ports():
         print('%s: %d bytes' % (os.path.relpath(f, ROOT), len(txt.encode('utf-8'))))
 
 
+def release():
+    """(C47 lines, Free42 lines) of the release MOON47: the 20 terms as matrices, Horner and n-vectors
+    (tools/moon47_opt.py; C47: the series' cos and sin by one complex eˣ), then tools/navmat.py: no code MOON47
+    cannot reach, repeated steps as subroutines. The same pages (tests/test_moon47_c47.py, _f42.py)."""
+    import moon47_opt, navmat
+    plain, f42 = moon47_opt.build(sys.modules[__name__])
+    return navmat.shrink(plain, ('MOON47',)), navmat.shrink(f42, ('MOON47',), f42=True)
+
+
 def main():
-    plain, with_rem = build()
+    plain, f42 = release()
     out = os.path.join(ROOT, 'build', 'MOON47.txt')
     for f in (out, os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt')):     # the DM42 runs the same C47 firmware
         open(f, 'w', encoding='utf-8').write('\n'.join(plain) + '\n')
@@ -577,7 +586,6 @@ def main():
         for f in (out, os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt')):
             subprocess.run([r, f, '-o', f[:-4] + '.p47'], check=True)
         print('%s: %d bytes' % (os.path.relpath(out[:-4] + '.p47', ROOT), os.path.getsize(out[:-4] + '.p47')))
-    f42 = build_f42()
     out = os.path.join(ROOT, 'build', 'free42', 'MOON47.txt')
     open(out, 'w', encoding='utf-8').write('\n'.join(f42) + '\n')
     print('%s: %d steps' % (os.path.relpath(out, ROOT), sum(1 for l in f42 if l != 'END')))
