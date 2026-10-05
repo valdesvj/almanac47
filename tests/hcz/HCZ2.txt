@@ -1,0 +1,58 @@
+LBL "HCZ2"
+REM "HCZ2: NAV's HCZ written with unit n-vectors (DOT, CROSS, UNITV), for comparison only (tests/test_hcz.py)"
+REM "The same in and out as HCZ: Y Dec, X GHA, R91 lat, R92 lon (E+) -> X = R96 Hc, R97 Zn, SHC sin Hc"
+REM "Twice the steps of HCZ, 1.4 times slower, and Zn undefined at a pole (the north vector is zero there)"
+CHS
+STO 98
+R↓
+REM "the body's n-vector: Dec as latitude, -GHA as longitude"
+1
+→REC
+RCL 98
+X<>Y
+→REC
+⇄ zyxt
+𝑧𝑦𝑥→𝑣̄_(3M)
+STO 98
+REM "the observer's n-vector"
+RCL 91
+1
+→REC
+RCL 92
+X<>Y
+→REC
+⇄ zyxt
+𝑧𝑦𝑥→𝑣̄_(3M)
+STO 99
+REM "sin Hc = n_obs . n_body"
+RCL 98
+DOT
+STO "SHC"
+ASIN
+STO 96
+REM "north = unit(k - (k . n_obs) n_obs), east = north x n_obs"
+𝑣̄₃[001]
+RCL 99
+DOT
+RCL× 99
+𝑣̄₃[001]
+X<>Y
+-
+UNITV
+STO 93
+RCL 99
+CROSS
+RCL 98
+DOT
+RCL 93
+RCL 98
+DOT
+REM "Zn = atan2(east, north)"
+→POL
+X<>Y
+360
+MOD
+STO 97
+RCL 96
+RTN
+END
