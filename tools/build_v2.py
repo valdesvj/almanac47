@@ -96,6 +96,11 @@ def live(L, views=('ALMF', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY')):
     return out
 
 
+def pi(L, name):
+    """NAVINIT: the planet series' phase 3.14159265359 (VSOP87 prints π to 11 decimals) as the firmware's π."""
+    return [name if l in ('3.14159265359', '𝜋', 'PI') else l for l in L]
+
+
 def labels_file(path, full, short, title, text=None):
     """NAME_LABELS.txt: label, routine name and what it does (build_navfull.LABEL_TEXT, then V2_TEXT, then text)."""
     t = dict(B.LABEL_TEXT)
@@ -116,7 +121,7 @@ def c47():
     labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.0.0 (C47 / R47)')
     for k, L in N.inits().items():
         if not k.startswith('F42_'):
-            B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), L)
+            B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), pi(L, '𝜋'))
     for k, L in N.tbls().items():
         if not k.startswith('F42_') and k != 'TBL_50':
             B.write(os.path.join(OUT, k + '.txt'), L)
@@ -191,7 +196,7 @@ def free42():
     B.write(os.path.join(OUT, 'free42', 'NAVINIT_LITTLE.txt'), init)
     for k, L in N.inits().items():
         if k.startswith('F42_'):
-            B.write(os.path.join(OUT, 'free42', 'NAVINIT_%s.txt' % k[4:]), L)
+            B.write(os.path.join(OUT, 'free42', 'NAVINIT_%s.txt' % k[4:]), pi(L, 'PI'))
     for k, L in N.tbls().items():
         if k.startswith('F42_') and k != 'F42_TBL_50':
             B.write(os.path.join(OUT, 'free42', k[4:] + '.txt'), L)

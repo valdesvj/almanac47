@@ -306,6 +306,7 @@ def _find(L, blk):
     return next((i for i in range(len(L) - k + 1) if L[i] == blk[0] and L[i:i + k] == blk), -1)
 
 
+K_HP = '56203.43862003656238339076909569247'     # 358473400 / 6378.14 (the Moon's parallax factor, deg_rad)
 CX = ['RCL× "C1"', 'eˣ']          # X = A (radians) -> X = eˣ(i A) = cos A + i sin A, element by element; C1 = i
 CXD = ['RCL× "C2"', 'eˣ']         # A in degrees: C2 = i π / 180 (the firmware's π; deg→rad refuses matrices)
 
@@ -436,7 +437,13 @@ def views(L):
 
 
 def deg_rad(L):
-    """The firmware's rad→deg (3 bytes) in place of × 57.29577… (20 bytes): SUNA, the planets."""
+    """The firmware's rad→deg (3 bytes) in place of × 57.29577… (20 bytes): SUNA, the planets. And the Moon's
+    horizontal parallax factor 358473400 × 6378.14 ÷ as one number (358473400 / 6378.14 to 34 digits; C47 only)."""
+    old = ['358473400', '×', '6378.14', '÷']
+    i = -1 if _f42(L) else _find(L, old)            # Free42 keeps the digits as text: 34 of them cost more
+    while i >= 0:
+        L = L[:i] + [K_HP, '×'] + L[i + 4:]
+        i = _find(L, old)
     for old, new in ((['57.295779513082320876798154814105', '×'], ['rad→deg']),
                      (['-57.295779513082320876798154814105', '×'], ['rad→deg', 'CHS']),
                      (['57.29577951308232', '×'], ['rad→deg'])):
