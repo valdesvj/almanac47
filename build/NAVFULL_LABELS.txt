@@ -1,11 +1,11 @@
-NAVFULL v2.0.0 (C47 / R47) - program labels
+NAVFULL v2.1.0 (C47 / R47) - program labels
 ===========================================
 Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.
 Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the
 base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.
 The numbers missing here belong to routines of older versions.
 
-NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; your registers R00-R45 saved at the start and given back at 0 (the only named program; INFO page inside)
+NAV     NAV     graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; your registers R00-R98 saved at the start and given back at 0 (the only named program; INFO page inside)
 N01     ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 N04     HORZ    view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)
 N06     HALMH   view 2 SPLIT: horizon chart on top, the bodies below (8 rows)

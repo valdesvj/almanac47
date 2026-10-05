@@ -50,13 +50,14 @@ LOADING (DM42n / DM42, stock firmware)
   The Free42 and Plus42 simulators on a PC run the programs but have no GrMod: they show
   only the top-left corner (131 x 16) of the screens.
 
-KEYS (NAVFULL, v2.0.0)
+KEYS (NAVFULL, v2.1.0)
   1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO      + back to the menu
   9 SNAP     PRLCD (prints the screen)                      0 end
   UP / DOWN  one hour later / earlier (the menu shows ↑↓ ±1 HOUR)
   The ants: flag 97 (the HP-42S flag 47 is a system flag). SF 97 and try a view.
   YOUR REGISTERS: NAV keeps them. It saves REGS (all your registers, so also your SIZE) in the
-  variable NBAK, runs with SIZE 46 (NAVLITTLE: 30), and stores NBAK back into REGS when you leave
+  variable NBAK, runs with SIZE 100 (NAVLITTLE: 38: the program's values and its frequent numbers),
+  and stores NBAK back into REGS when you leave
   (0, or + in NAVLITTLE); NBAK is then deleted. If you stop NAV with R/S or EXIT, RCL "NBAK"
   STO "REGS" gives them back by hand.
 

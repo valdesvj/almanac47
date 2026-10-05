@@ -1,11 +1,11 @@
-NAVLITTLE v2.0.0 (DM42 with the C47 firmware) - program labels
+NAVLITTLE v2.1.0 (DM42 with the C47 firmware) - program labels
 ==============================================================
 Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.
 Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the
 base line (0 = bottom), Y = column, X = text, number or symbol; returns Y = row, X = next column.
 The numbers missing here belong to routines of older versions.
 
-NAV     NAV     no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends; your registers R00-R29 saved at the start and given back at the end
+NAV     NAV     no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends; your registers R00-R35 saved at the start and given back at the end
 N01     ALMF    ALMANAC: GHA ARIES, GHA, Dec, Hc, Zn of the Sun and the stars; twilight, rise/set, meridian passage
 N02     SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 N03     SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)

@@ -71,7 +71,7 @@ def moon47(n, where, start, keys, extra):
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
     S = [P('Almanac 47 for Free42', title),
-         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.0.0', sub), Spacer(1, 6),
+         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.1.0 (Supercharger)', sub), Spacer(1, 6),
          P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 5 views and INFO — '
            'converted to Free42 3.3 with the DM42 graphics extension (the whole 400 × 240 screen). The menu, the screens '
            'and the values are the same as on the C47: in the Free42 core (SwissMicros source, release 3.3.10) each '
@@ -138,9 +138,9 @@ def free42():
           img(F('box_ants'), 0.3),
           P('The SINKING....ABOUT box while the sky is computed at the start, with the ants (flag 97, below).', small),
           PageBreak(), P('7. How the screen appears', h2),
-          P('Free42 sends every drawing step to the LCD at once; the C47 shows its screen only at a PAUSE, a key press or '
-            'the end. NAV on the C47 makes a PAUSE 0 after every text and body symbol, so each view is drawn in front of '
-            'you (the stars of SKY appear one by one); the SINKING box shows only while the sky is computed at the start.'),
+          P('Free42 sends every drawing step to the LCD at once, so each view is drawn in front of you (the stars of SKY '
+            'appear one by one); the SINKING box shows only while the sky is computed at the start. The C47 shows its '
+            'screen only at a PAUSE, a key press or the end: there each view appears complete.'),
           P('<b>NAVFULL</b> and <b>NAVLITTLE</b> do it the C47 way with the DM42 variable RefLCD: 0 STO "RefLCD" (no LCD update '
             'while NAV computes), −1 STO "RefLCD" (one update) where the C47 program shows its screen, and '
             '7 (normal) when NAV ends. If you stop it with R/S or EXIT and the screen stays frozen, key '
@@ -154,12 +154,16 @@ def free42():
         'PIXEL goes through a routine that converts the C47 coordinates (row 0 at the bottom) to the DM42 ones (row 1 at the top).',
         'Keys (GETKEY / GETKEYA) are translated to the C47 key codes; pauses use TIME; strings use XSTR, APPEND, HEAD; '
         'the date is computed (Free42 has no C47 date functions).',
-        '<b>Your registers are kept</b> (v2.0.0): NAV stores REGS (all your registers, and so your SIZE) in the '
-        'variable NBAK, runs with SIZE 46 (NAVLITTLE: 30), and stores NBAK back into REGS when you leave (0; '
+        '<b>Your registers are kept</b>: NAV stores REGS (all your registers, and so your SIZE) in the '
+        'variable NBAK, runs with SIZE 100 (NAVLITTLE: 38: its values and its most used numbers), and stores NBAK '
+        'back into REGS when you leave (0; '
         'NAVLITTLE: +). If you stop NAV with R/S or EXIT: RCL "NBAK" STO "REGS" gives them back by hand.',
-        'v2.0.0 is faster and smaller (NAVFULL.raw 28.3 KB, was 35.5 KB) with the same screens: Horner, n-vectors, '
-        'counted loops on ISG, the registers renumbered (docs/OPTIMIZATIONS.md). The ↑ ↓ ± of the menu are drawn by '
-        'the font program from the C47 standard font.',
+        'v2.0.0 was faster and smaller than v1.1 (NAVFULL.raw 28.3 KB, was 35.5 KB) with the same screens: Horner, '
+        'n-vectors, counted loops on ISG, the registers renumbered. v2.1.0 (Supercharger): the tables by GETM and DOT, '
+        'Hc and Zn straight from the body\'s direction vector, the Moon\'s series arguments once, the view header and '
+        'compass as shared routines, no unused code, the most used numbers in registers, repeated steps as subroutines: '
+        'NAVFULL.raw 23.3 KB, NAVLITTLE.raw 7.8 KB, MOON47.raw 6.1 KB, the same screens (docs/OPTIMIZATIONS.md). '
+        'The ↑ ↓ ± of the menu are drawn by the font program from the C47 standard font.',
         'Built with tools/build_free42.py from the C47 programs; tested with tools/f42 (the Free42 core with the DM42 '
         'graphics, binary arithmetic). NAVFULL tested on a DM42n with the stock firmware by the author.'])
     S += [PageBreak(), P('10. NAVLITTLE: Sun and stars', h2),

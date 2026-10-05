@@ -2,9 +2,9 @@ C47_nav - QUICK START (install and run)
 =======================================
 
 You need a C47 firmware with ATEXT and GRFNT (the screens write their text with ATEXT) and two
-files. FIRMWARE: a C47 / R47 firmware built from master on or after 30 Sep 2026 (ATEXT came on
-29 Sep, GRFNT on 30 Sep); no released firmware has them yet. On the public firmware 00.109.04.00b0
-use Almanac47_C47_R47_fw0400b0_v1.1.0.zip from the v1.1.0 release. The release zip has them as .p47, ready to load; from the repository, convert the .txt
+files. FIRMWARE: C47 / R47 firmware 00.109.05.00a0.ALPHA (5 Oct 2026) or later, or one built from
+master on or after 30 Sep 2026 (ATEXT came on 29 Sep, GRFNT on 30 Sep). On the older public firmware
+00.109.04.00b0 use Almanac47_C47_R47_fw0400b0_v1.1.0.zip from the v1.1.0 release. The release zip has them as .p47, ready to load; from the repository, convert the .txt
 files in build/ first (tools/rejig47_atext.py runs rejig and writes the ATEXT / GRFNT steps that
 rejig 0.34 does not know; a rejig that knows them converts directly):
 
@@ -16,8 +16,9 @@ rejig 0.34 does not know; a rejig that knows them converts directly):
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
-v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT SKY ANIM ALLSKY INFO.
-  NAV keeps your numbered registers: it saves R00-R45 when it starts (in its own local registers) and
+v2.1.0 "Supercharger": the same views and results as v2.0.0, faster and smaller (docs/OPTIMIZATIONS.md).
+  The views are ALMANAC SPLIT SKY ANIM ALLSKY INFO (NAVTXT is not in v2.x).
+  NAV keeps your numbered registers: it saves R00-R98 when it starts (in its own local registers) and
   gives them back when you leave with 0. Other builds are in build/dev/.
 
 1. LOAD THE PROGRAMS (two files: NAVFULL + NAVINIT_FAST)
@@ -48,8 +49,8 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
      LON   e.g. 55.18   (55 deg 18 min E; minus = W)
    (R/S keeps the value shown.) At each prompt the stack is clear and Y shows the format of that
    input only (DATE YYYY.MMDD / UT HH.MMSS / LAT DD.MMm  S - / LON DDD.MMm  W -).
-   While the sky is computed (only at the start) a box in the middle of the screen
-   says SINKING....ABOUT; then the menu on the graphics screen, with the date and time:
+   While the sky is computed a box in the middle of the screen says SINKING....ABOUT
+   (also while each view is computed); then the menu on the graphics screen, with the date and time:
      1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  0 END
      KEY A NUMBER   + MENU   ↑↓ ±1 HOUR   9 SNAP      (Free42: 9 PRLCD)
    The menu title: ALMANAC 47, VALID (the period of the matrices, stored by INIT as VAL),
@@ -64,8 +65,8 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
    (the hours added stay for the other views; the menu title shows the time in use)
    On the menu itself UP / DOWN change the hour too: the title shows the new time.
    After LON (and after an arrow on the menu) the sky is computed first, then the menu shows:
-   the views then only draw. After a number the item is highlighted and the view is drawn
-   on the screen as it goes (also after + and the arrows; the box shows only at the start).
+   the views then only draw. After a number the item is highlighted, the SINKING box shows while
+   the view is computed, and the view appears when it is complete (also after + and the arrows).
    (Something lives in NAV at the step after LBL 48. It is 0.
    Try 20 and press + or an arrow ... ;-)
    The sky is kept in matrix ALMC (73 x 4: GHA Dec Hc Zn of Sun, Moon, planets 1-4, stars 1-58)
@@ -89,7 +90,7 @@ v2.0.0: NAVTXT (text only) is not in this release; the views are ALMANAC SPLIT S
    NAV uses the 8-level stack while it runs (the text routines need it) and puts your stack
    size back when you leave with 0. It sets the ATEXT font GRFNT 21 while it runs and
    20 (the standard font) when you leave with 0; after R/S 20 GRFNT puts it back.
-   If you stop NAV with R/S or EXIT, your registers R00-R45 keep NAV's values (only 0 gives them back).
+   If you stop NAV with R/S or EXIT, your registers R00-R98 keep NAV's values (only 0 gives them back).
 
 PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
   python3 python/native/c47pc.py           a window (GTK 3): date, UT, DR, a view, Now UTC
@@ -102,9 +103,9 @@ PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
 The user manual (docs/C47_Nav_User_Manual.pdf) shows every view and the map of the
 N01, N02 ... labels.
 
-MEMORY: programs (measured with rejig, v2.0.0) NAVFULL 31.5 KB; INIT while loaded
-NAVINIT_FAST 28.6 KB, NAVINIT_FULL 57.8 KB; TBL_1 114 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrices ALMC
-and ALMQ about 20 KB.
+MEMORY: programs (measured with rejig, v2.1.0) NAVFULL 24.2 KB; MOON47 4.8 KB; INIT while loaded
+NAVINIT_FAST 28.5 KB, NAVINIT_FULL 57.8 KB; TBL_1 114 KB. Estimates: FAST matrices about 55 KB (FULL about 95 KB), the cache matrix ALMC
+about 6 KB (NAV deletes ALMQ, which INIT makes: the charts no longer need it).
 
 MOON47 (the Moon phase on its own, no NAV and no INIT): load build/MOON47 (rejig it to .p47), XEQ "MOON47".
 It asks nothing (the clock; if the clock is not on UT: 4 STO "TZ" for UT+4). +/- turns the picture to
