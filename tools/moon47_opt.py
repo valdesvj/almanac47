@@ -10,6 +10,8 @@
   the Sun        the equation of the centre by Clenshaw (Horner for a sine series: one →REC instead of
                  three SIN), the distance as a polynomial in cos M (one COS instead of two).
   n-vectors      R sin ψ and R cos ψ with one →REC.
+  C47: eˣ        the cos and sin of the 20 arguments as one complex eˣ (M7C = i π/180), then Re / Im: SIN and COS
+                 run at 75 digits in the firmware, eˣ at 39.
 At the end the four matrices become 0 (STO): their memory is free again.
   TZ             at the start: if the variable TZ is not there, MOON47 creates it with 0. C47: 0 STO+ "TZ"
                  (STO+ creates a missing variable with 0; an existing TZ gets + 0), then RCL "TZ"; the C47 stops
@@ -70,6 +72,11 @@ L29_NEW = ['RCL 15', 'RCL 22', 'COS', '→REC', 'ACOS', 'STO 16',               
            '149597870.7', '×', 'STO 17', 'RCL 16', 'X<>Y', '→REC', 'RCL 41', 'X<>Y', '-', 'STO 19',
            'X↑2', 'X<>Y', 'X↑2', '+', 'SQRT', 'RCL 19', 'X<>Y', '÷', '1', '+', '50', '×', 'STO 18']
 FREE = ['0', 'STO "M7T"', 'STO "M7A"', 'STO "M7W"', 'STO "M7V"']
+# C47: the cos and sin of the 20 arguments (degrees) as one complex eˣ(i A π/180) = cos A + i sin A, then Re / Im:
+# the firmware computes SIN and COS at 75 digits, eˣ at 39 (tools/navmat.py cexp); M7C = i π / 180, made in LBL 51
+CX_OLD = ['RCL "M7T"', 'RCL "M7A"', '×', 'ENTER', 'SIN']
+CX_NEW = ['RCL "M7T"', 'RCL "M7A"', '×', 'RCL× "M7C"', 'eˣ', 'ENTER', 'Im']
+CX_C = ['0', '𝜋', '180', '÷', 'COMPLEX', 'STO "M7C"']
 
 
 def transform(P, f42):
@@ -91,10 +98,19 @@ def transform(P, f42):
     elif "SF 'IGN1ER'" in P:                           # C47: RCL of a missing variable stops the program even with
         P = cut(P, ['0', 'STO 03', "SF 'IGN1ER'", 'RCL "TZ"', 'STO 03', "CF 'IGN1ER'"],    # IGN1ER (firmware
                 ['0', 'STO+ "TZ"', 'RCL "TZ"', 'STO 03'])   # _executeOp); STO+ creates a missing TZ with 0, else adds 0
+    free = FREE
+    if not f42:
+        P = cut(P, CX_OLD, CX_NEW)
+        k = P.index('R↓', P.index(CX_NEW[-1]))
+        assert P[k + 1] == 'COS'
+        P[k + 1] = 'Re'
+        k = P.index('LBL 51')
+        P = P[:k + 1] + CX_C + P[k + 1:]
+        free = FREE + ['STO "M7C"']
     end = 'CLST' if f42 else 'CLSTK'
     assert P.count(end) == 1
     k = P.index(end)
-    return P[:k] + FREE + P[k:]
+    return P[:k] + free + P[k:]
 
 
 def build(M):

@@ -13,20 +13,14 @@ N04     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
 N05     SER     sum of one series matrix with the matrix functions (COS, DOT)
 N06     SERT    the time vectors SV1 SV2 used by SER
 N07     NUT     nutation in longitude and obliquity (matrix NU)
-N08     STAR    star: SUNA, then STR2
 N09     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
 N10     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
-N11     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
 N12     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
-N13     HCZ0    sight reduction for Dec 0 (equator points)
 N14     HCZI    keeps sin/cos of the latitude for HCZ
-N15     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
 N16     RISE    sunrise time UT (SUNRISE program)
 N17     SET     sunset time UT
 N18     NTWA    nautical twilight, morning, UT
 N19     NTWP    nautical twilight, evening, UT
-N20     CTWA    civil twilight, morning, UT
-N21     CTWP    civil twilight, evening, UT
 N22     TRAN    meridian passage of the Sun, UT
 N23     SBRT    star number by brightness rank (1st brightest ... 58th)
 N24     SNMU    star name from its number
@@ -38,6 +32,5 @@ N28     PHMS    TEXT: hh:mm from hours
 N29     PDMS    TEXT: degrees and minutes "ddd mm.m" with sign
 N30     PDTS    TEXT: date "dd-mm-yyyy" from a Julian Date
 N31     PZNS    TEXT: azimuth "ddd.d"
-N32     PHLS    horizontal line (X = length in pixels)
 N40     PSYB    SYMBOL of the Sun and the star, 12 rows (glyphs47, AGRAPH) - Z row, Y column, X symbol
 N36     WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier

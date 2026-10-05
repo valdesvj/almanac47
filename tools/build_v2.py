@@ -5,8 +5,8 @@ tools/navhopt.py, tools/regalloc.py; docs/OPTIMIZATIONS.md):
   build/NAVFULL.txt (.p47)        C47 / R47: the engine with Horner and n-vectors, the loops on ISG, the registers
                                   renumbered (R00-R45) and saved in local registers while NAV runs; menu 1 ALMANAC
                                   2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts;
-                                  the views drawn on the screen as they go (PAUSE 0), the SINKING....ABOUT box only at
-                                  the start, SKY names a body every 2 s
+                                  the SINKING....ABOUT box (and the ants, flag 47) while each view is computed, the
+                                  view shown when it is complete; SKY names a body every 2 s
   build/NAVINIT_FULL / _FAST, TBL_1 / TBL_5 (.p47)   the matrices and tables, only their message left on the stack
   build/dm42/NAVLITTLE.txt (.p47) DM42 with the C47 firmware: the same engine, prompts and register save; the
                                   ALMANAC screen drawn as it goes
@@ -24,6 +24,7 @@ ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE, os.path.join(HERE, 'generators'), os.path.join(ROOT, 'python')]
 import build_navopt as N                                                     # noqa: E402
 import navhopt                                                               # noqa: E402
+import navmat                                                                # noqa: E402
 
 B = N.B
 OUT = os.path.join(ROOT, 'build')
@@ -38,6 +39,9 @@ V2_TEXT = {
  'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)',
  'HANIM':  'view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)',
  'ALLSKY': 'view 5 ALLSKY: whole sky, over the horizon above, under the horizon below',
+ 'HDR':    'header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)',
+ 'CMN':    'compass row N E S W N of a chart (X row)',
+ 'CMS':    'compass row S W N E S of a chart, south up (X row)',
 }
 HEADER = ('Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.\n'
           'Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the\n'
@@ -92,12 +96,18 @@ def live(L, views=('ALMF', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY')):
     return out
 
 
+def pi(L, name):
+    """NAVINIT: the planet series' phase 3.14159265359 (VSOP87 prints π to 11 decimals) as the firmware's π."""
+    return [name if l in ('3.14159265359', '𝜋', 'PI') else l for l in L]
+
+
 def labels_file(path, full, short, title, text=None):
     """NAME_LABELS.txt: label, routine name and what it does (build_navfull.LABEL_TEXT, then V2_TEXT, then text)."""
     t = dict(B.LABEL_TEXT)
     t.update(V2_TEXT)
     t.update(text or {})
     m = [(b[5:-1], a[5:-1]) for a, b in zip(full, short) if a.startswith('LBL "')]
+    t.update({l: 'steps shared by several routines (tools/navmat.py outline)' for s, l in m if re.fullmatch(r'OUT\d+', l)})
     with open(path, 'w', encoding='utf-8') as fh:
         fh.write('%s - program labels\n%s\n%s' % (title, '=' * (len(title) + 17), HEADER))
         fh.write('\n'.join('%-7s %-7s %s' % (s, l, t.get(l, '')) for s, l in m) + '\n')
@@ -105,13 +115,13 @@ def labels_file(path, full, short, title, text=None):
 
 def c47():
     full, short = N.c47(True, menu=N.SPLIT2,
-                        post=lambda L: live(box_at_start(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))))))
+                        post=lambda L: navmat.size(navhopt.nav_regs(navhopt.inputs(navhopt.loops(navmat.c47(L))))))
     B.write(os.path.join(OUT, 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # the same with the routine names (tests)
     labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.0.0 (C47 / R47)')
     for k, L in N.inits().items():
         if not k.startswith('F42_'):
-            B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), L)
+            B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), pi(L, '𝜋'))
     for k, L in N.tbls().items():
         if not k.startswith('F42_') and k != 'TBL_50':
             B.write(os.path.join(OUT, k + '.txt'), L)
@@ -126,7 +136,7 @@ def dm42():
         nav, progs = D.builds()['NAVLITTLE']
         L, need = D.assemble(nav, progs)
         L = B.keywait(L)
-        L = live(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))), views=('ALMF',))
+        L = navmat.size(live(navhopt.nav_regs(navhopt.inputs(navhopt.loops(navmat.little(L)))), views=('ALMF',)))
         m = B.fixed_map('NAVLITTLE', L, keep=('NAV', 'INIT'))
         short = B.rename_keep(L, m, ('NAV', 'INIT'))
         init = N.init_clean(D.init_dm42())
@@ -166,9 +176,9 @@ def free42():
     menu['HINT'] = F42_HINT
     info = {}
 
-    def post(L):
-        L, info['k'] = navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(L)))
-        return L
+    def post(L, little=False):
+        L, info['k'] = navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(navmat.free42(L, little))))
+        return navmat.size42(L)
     short, named = N.free42(True, post=lambda L: box_at_start(post(L)), menu=menu)
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
@@ -176,7 +186,7 @@ def free42():
                 {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R45 saved at the start',
                                                                                      'REGS and SIZE saved in NBAK')})
     kfull = info['k']
-    short, named, init = N.free42(True, post=post, menu=menu, little=True)
+    short, named, init = N.free42(True, post=lambda L: post(L, True), menu=menu, little=True)
     B.write(os.path.join(OUT, 'free42', 'NAVLITTLE.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVLITTLE.txt'), named)
     import build_dm42 as D
@@ -186,7 +196,7 @@ def free42():
     B.write(os.path.join(OUT, 'free42', 'NAVINIT_LITTLE.txt'), init)
     for k, L in N.inits().items():
         if k.startswith('F42_'):
-            B.write(os.path.join(OUT, 'free42', 'NAVINIT_%s.txt' % k[4:]), L)
+            B.write(os.path.join(OUT, 'free42', 'NAVINIT_%s.txt' % k[4:]), pi(L, 'PI'))
     for k, L in N.tbls().items():
         if k.startswith('F42_') and k != 'F42_TBL_50':
             B.write(os.path.join(OUT, 'free42', k[4:] + '.txt'), L)

@@ -46,11 +46,11 @@ L = open(NAV, encoding='utf-8').read().split('\n')
 n = sum(1 for l in L if l.startswith('ATEXT '))
 warn = sum(1 for l in L if 'DOES NOT REPLACE' in l or 'NOT FOR NAVIGATION' in l)
 print('ATEXT steps %d, warning lines %d (menu, INFO)' % (n, warn))
-bad = (n != 2) + (warn != 2)            # menu and INFO (v2.0.0: no TEXT page)
+bad = (n != 2) + (warn < 1)             # menu and INFO (v2.0.0: no TEXT page); one line when shared (navmat.outline)
 # menu 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 9 SNAP: keys 72 73 74 62 63 64 (54)
-CHECK = {None: ('1 ALMANAC', '2 SPLIT', '6 INFO', '9 SNAP', '±1 HOUR', 'VALID '), 72: ('FOMALHAUT', '299.6', 'WANING'),
+CHECK = {None: ('1 ALMANAC', '2 SPLIT', '6 INFO', '9 SNAP', '±1 HOUR', 'VALID ', 'DOES NOT REPLACE'), 72: ('FOMALHAUT', '299.6', 'WANING'),
          73: ('FOMALHAUT', 'MIRFAK'), 74: ('NIGHT', ' UT', '90'), 62: ('18:30', '21:30', 'NIGHT'), 63: ('NIGHT',),
-         64: ('ALMANAC 47 - INFO', '+ MENU')}
+         64: ('ALMANAC 47 - INFO', '+ MENU', 'DOES NOT REPLACE')}
 NOT = {None: ('SMALL', 'CHART', 'TEXT'), 73: ('RISE', 'TWI')}
 for k, want in CHECK.items():
     c, txt = run([82] if k is None else [k, 85, 82])
