@@ -15,19 +15,13 @@ N17     SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
 N18     SER     sum of one series matrix with the matrix functions (COS, DOT)
 N19     SERT    the time vectors SV1 SV2 used by SER
 N20     NUT     nutation in longitude and obliquity (matrix NU)
-N21     STAR    star: SUNA, then STR2
 N22     STR2    star GHA/Dec: catalogue ST, precession, aberration, nutation (after SUNA)
 N23     SQK     star, quick sin(Hc) from the catalogue (to skip stars below the horizon)
-N24     MOON    Moon: SUNA, then MOO2
 N25     MOO2    Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
 N26     MOOQ    Moon, quick low-precision formula (BODY list, ANIM)
-N27     PLAN    planet: SUNA, then PLN2
 N28     PLN2    planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
 N29     PLN3    planet for the screens: quick position first, full series only if it can be above the horizon
-N30     PLNQ    planet, quick position from mean elements (BODY list)
-N31     CHZ     sight reduction with all inputs: Dec, GHA, lat, lon -> Hc, Zn
 N32     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
-N33     HCZ0    sight reduction for Dec 0 (equator points)
 N34     HCZQ    celestial equator: start of the dot-by-dot rotation
 N35     HCZR    celestial equator: next point by rotation (no trig)
 N36     HCZI    keeps sin/cos of the latitude for HCZ
@@ -36,10 +30,7 @@ N38     RISE    sunrise time UT (SUNRISE program)
 N39     SET     sunset time UT
 N40     NTWA    nautical twilight, morning, UT
 N41     NTWP    nautical twilight, evening, UT
-N42     CTWA    civil twilight, morning, UT
-N43     CTWP    civil twilight, evening, UT
 N44     TRAN    meridian passage of the Sun, UT
-N45     PHAS    Moon phase: SUNA, then PHA2
 N46     PHA2    Moon phase after SUNA: illumination % and age in days
 N47     SBRT    star number by brightness rank (1st brightest ... 58th)
 N48     SNMU    star name from its number
@@ -72,17 +63,26 @@ N76     CEQQ    celestial equator of the charts: start (replay from matrix ALMQ,
 N77     CEQR    celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
 N91     PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
 N92     PTNT    TEXT: whole number in the tinyFont
-N59     PT1     
 N93     PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
 N94     PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
-N78     F42     
 N79     PX      
 N80     KM      
 N81     KQ      
 N82     RF      
 N83     TK      
-N84     AD      
 N85     FBX     
 N86     CLT     
 N88     W1      
 N89     W10     
+N95     HDR     header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)
+N96     CMN     compass row N E S W N of a chart (X row)
+N97     CMS     compass row S W N E S of a chart, south up (X row)
+N98     OUT1    steps shared by several routines (tools/navmat.py outline)
+N99     OUT2    steps shared by several routines (tools/navmat.py outline)
+N100    OUT3    steps shared by several routines (tools/navmat.py outline)
+N101    OUT4    steps shared by several routines (tools/navmat.py outline)
+N102    OUT5    steps shared by several routines (tools/navmat.py outline)
+N103    OUT6    steps shared by several routines (tools/navmat.py outline)
+N104    OUT7    steps shared by several routines (tools/navmat.py outline)
+N105    OUT8    steps shared by several routines (tools/navmat.py outline)
+N106    OUT9    steps shared by several routines (tools/navmat.py outline)

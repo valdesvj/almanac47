@@ -154,12 +154,20 @@ def tidy(L):
         init += ['STO "ALMQ"', 'DELITM "ALMQ"']        # INIT makes ALMQ (300 x 3, 14 KB): no longer used
     if not init:
         return L
-    k = nav.index('SSIZE8')
-    nav = nav[:k + 1] + init + nav[k + 1:]
-    ends = [e for e in range(1, len(nav)) if nav[e] == 'CLSTK' and nav[e - 1] in ('XEQ 08', 'SSIZE4')]
-    assert len(ends) == 1, 'navmat: the end of NAV not found once'
-    e = ends[0] - (1 if nav[ends[0] - 1] == 'XEQ 08' else 4)
-    assert nav[e] in ('XEQ 08', 'RCL "SSZ"'), nav[e]
+    if 'SIZE 100' in nav:                                     # Free42 (before navhopt.f42_regs)
+        k = nav.index('SIZE 100')
+        nav = nav[:k + 1] + init + nav[k + 1:]
+        ends = [e for e in range(1, len(nav) - 1) if nav[e] == 'CLST' and nav[e + 1] in ('CLD', 'RTN')
+                and not nav[e - 1].startswith('INPUT')]
+        assert len(ends) == 1, 'navmat: the end of the Free42 NAV not found once'
+        e = ends[0]
+    else:
+        k = nav.index('SSIZE8')
+        nav = nav[:k + 1] + init + nav[k + 1:]
+        ends = [e for e in range(1, len(nav)) if nav[e] == 'CLSTK' and nav[e - 1] in ('XEQ 08', 'SSIZE4')]
+        assert len(ends) == 1, 'navmat: the end of NAV not found once'
+        e = ends[0] - (1 if nav[ends[0] - 1] == 'XEQ 08' else 4)
+        assert nav[e] in ('XEQ 08', 'RCL "SSZ"'), nav[e]
     nav = nav[:e] + ['DELITM "%s"' % v for v in used] + nav[e:]
     return L[:i] + nav + L[j + 1:]
 
@@ -330,7 +338,16 @@ def cexp(L):
     return L
 
 
-def _hdr_match(L, i):
+def _f42(L):
+    """Free42 listing (texts as XSTR "...")."""
+    return any(l.startswith('XSTR "') for l in L)
+
+
+def _txt(f42):
+    return (lambda t: 'XSTR "%s"' % t) if f42 else (lambda t: '"%s"' % t)
+
+
+def _hdr_match(L, i, txt):
     """The header block of a view at L[i] (date, UT, DR latitude N/S, longitude E/W): (row, time, lat, lon) or None."""
     r = L[i]
     if not re.fullmatch(r'\d+', r) or L[i + 1] != '2' or L[i + 3] != 'XEQ "PDTS"':
@@ -338,9 +355,10 @@ def _hdr_match(L, i):
     t = L[i + 2]
     lat, lon = L[i + 24], L[i + 38]
     want = [r, '2', t, 'XEQ "PDTS"', r, '79', t, '0.5', '+', '1', 'MOD', '24', '×', 'XEQ "PHMS"',
-            r, '118', '"UT"', 'XEQ "PTXS"', r, '143', '"DR"', 'XEQ "PTXS"', '"N"', L[i + 23], lat, 'X<0?', L[i + 26],
+            r, '118', txt('UT'), 'XEQ "PTXS"', r, '143', txt('DR'), 'XEQ "PTXS"', txt('N'), L[i + 23], lat, 'X<0?',
+            L[i + 26],
             r, '168', 'RCL' + L[i + 23][3:], 'XEQ "PTXS"', r, '171', lat, 'ABS', 'XEQ "PDMS"',
-            '"E"', L[i + 37], lon, 'X<0?', L[i + 40], r, '238', 'RCL' + L[i + 37][3:], 'XEQ "PTXS"',
+            txt('E'), L[i + 37], lon, 'X<0?', L[i + 40], r, '238', 'RCL' + L[i + 37][3:], 'XEQ "PTXS"',
             r, '249', lon, 'ABS', 'XEQ "PDMS"']
     ok = (L[i:i + len(want)] == want and all(x.startswith('RCL ') for x in (t, lat, lon))
           and L[i + 23].startswith('STO ') and L[i + 37].startswith('STO ')
@@ -348,7 +366,7 @@ def _hdr_match(L, i):
     return (r, t, lat, lon, len(want)) if ok else None
 
 
-HDR = ['LBL "HDR"', 'LocR 05', 'STO R.00', 'R↓', 'STO R.01', 'R↓', 'STO R.02', 'R↓', 'STO R.03',
+HDR_C47 = ['LBL "HDR"', 'LocR 05', 'STO R.00', 'R↓', 'STO R.01', 'R↓', 'STO R.02', 'R↓', 'STO R.03',
        'RCL R.00', '2', 'RCL R.01', 'XEQ "PDTS"', 'RCL R.00', '79', 'RCL R.01', '0.5', '+', '1', 'MOD', '24', '×',
        'XEQ "PHMS"', 'RCL R.00', '118', '"UT"', 'XEQ "PTXS"', 'RCL R.00', '143', '"DR"', 'XEQ "PTXS"',
        '"N"', 'STO R.04', 'RCL R.02', 'X≥0?', 'GTO 01', '"S"', 'STO R.04', 'LBL 01',
@@ -357,6 +375,25 @@ HDR = ['LBL "HDR"', 'LocR 05', 'STO R.00', 'R↓', 'STO R.01', 'R↓', 'STO R.02
        '"E"', 'STO R.04', 'RCL R.03', 'X≥0?', 'GTO 02', '"W"', 'STO R.04', 'LBL 02',
        'RCL R.00', '238', 'RCL R.04', 'XEQ "PTXS"',
        'RCL R.00', '249', 'RCL R.03', 'ABS', 'XEQ "PDMS"', 'RTN', 'END']
+
+
+def hdr(f42):
+    """HDR for the C47 (local registers R.00-R.04) or Free42 (local variables H0-H4 by LSTO: no LocR there)."""
+    if not f42:
+        return HDR_C47
+    out = []
+    for l in HDR_C47:
+        if l == 'LocR 05':
+            continue
+        m = re.fullmatch(r'(STO|RCL) R\.0(\d)', l)
+        if m:
+            l = ('LSTO "H%s"' if m.group(1) == 'STO' else 'RCL "H%s"') % m.group(2)
+        elif l.startswith('"'):
+            l = 'XSTR ' + l
+        out.append(l)
+    return out
+
+
 COMPASS = (('CMN', 'NESWN'), ('CMS', 'SWNES'))
 COLS = ('19', '112', '206', '300', '394')
 
@@ -366,10 +403,12 @@ def views(L):
     longitude E / W: about 50 steps in NAV and the 5 views) -> RCL lon RCL lat RCL time row XEQ "HDR" (its own
     local registers: no XEQ inside, a called level does not see them). The compass row of the 4 charts (N E S W N, or S W N E S under the south: 20 steps) -> row
     XEQ "CMN" / "CMS": the text routines give back Y = row, so each letter is column, text, XEQ, DROP."""
+    f42 = _f42(L)
+    txt = _txt(f42)
     n = 0
     i = 0
     while i < len(L):
-        m = _hdr_match(L, i)
+        m = _hdr_match(L, i, txt)
         if m:
             r, t, lat, lon, k = m
             L = L[:i] + [lon, lat, t, r, 'XEQ "HDR"'] + L[i + k:]
@@ -381,18 +420,18 @@ def views(L):
         i = 0
         while i < len(L) - 20:
             r = L[i]
-            want = [x for col, ch in zip(COLS, letters) for x in (r, col, '"%s"' % ch, 'XEQ "PTTY"')]
+            want = [x for col, ch in zip(COLS, letters) for x in (r, col, txt(ch), 'XEQ "PTTY"')]
             if re.fullmatch(r'\d+', r) and L[i:i + 20] == want:
                 L = L[:i] + [r, 'XEQ "%s"' % name] + L[i + 20:]
                 c += 1
             i += 1
     assert c in (0, 8), 'navmat: views: %d compass rows' % c
     if n:
-        L = L + HDR
+        L = L + hdr(f42)
     if c:
         for name, letters in COMPASS:
             L = L + ['LBL "%s"' % name] + [x for col, ch in zip(COLS, letters)
-                                           for x in (col, '"%s"' % ch, 'XEQ "PTTY"', 'DROP')][:-1] + ['RTN', 'END']
+                                           for x in (col, txt(ch), 'XEQ "PTTY"', 'DROP')][:-1] + ['RTN', 'END']
     return L
 
 
@@ -406,13 +445,34 @@ def deg_rad(L):
     return L
 
 
-def _test(op):
+_TESTSUBS = set()          # Free42 routines that return by RTNYES / RTNNO: XEQ of them is a test (RTNNO skips a line)
+
+
+def _testsubs(L):
+    """The global labels whose program has RTNYES or RTNNO."""
+    out, cur = set(), []
+    for l in L:
+        if l.startswith('LBL "'):
+            cur.append(l[5:-1])
+        if l in ('RTNYES', 'RTNNO'):
+            out.update(cur)
+        if l == 'END':
+            cur = []
+    return out
+
+
+def _test(op, l=None):
+    """A line that skips the next one: a test, DSE / ISG, or (Free42) XEQ of a routine ending in RTNYES / RTNNO."""
+    if l is not None and l.startswith('XEQ "') and l[5:-1] in _TESTSUBS:
+        return True
     return op.endswith('?') or op in ('DSE', 'ISG') or op.startswith(('FS?', 'FC?'))
 
 
 def reach(L, entries=('NAV', 'INIT')):
     """Lines a run from NAV can reach: fall-through, GTO / XEQ (local, named, IND: every label of the program, or by
     name), both ways of a test; global labels named in a text (XEQ IND of a name) count as entries."""
+    _TESTSUBS.clear()
+    _TESTSUBS.update(_testsubs(L))
     prog, p = [], 0
     for l in L:
         prog.append(p)
@@ -446,7 +506,7 @@ def reach(L, entries=('NAV', 'INIT')):
             go = False
         if go:
             todo.append(i + 1)
-        if _test(op):
+        if _test(op, L[i]):
             todo.append(i + 2)
     return seen
 
@@ -462,7 +522,7 @@ def strip(L):
     out = []
     for i, l in enumerate(L):
         drop = l.startswith('REM') or (i not in r and l != 'END')
-        if drop and i > 0 and _test(L[i - 1].split(' ')[0]) and (i - 1) in r:
+        if drop and i > 0 and _test(L[i - 1].split(' ')[0], L[i - 1]) and (i - 1) in r:
             drop = False
         if not drop:
             out.append(l)
@@ -488,7 +548,7 @@ def nbytes(l):
     return 2 if arg else 1
 
 
-NOGO = ('LBL', 'END', 'RTN', 'GTO', 'STOP', 'LocR', 'REM')
+NOGO = ('LBL', 'END', 'RTN', 'GTO', 'STOP', 'LocR', 'LSTO', 'REM')
 
 
 def outline(L, name='OUT', min_save=8, max_steps=10 ** 6, log=None):
@@ -499,6 +559,8 @@ def outline(L, name='OUT', min_save=8, max_steps=10 ** 6, log=None):
     program's END, after an RTN when the code before could run into END (END returns like RTN). Greedy, the best
     saving first."""
     L = list(L)
+    _TESTSUBS.clear()
+    _TESTSUBS.update(_testsubs(L))
     k_new = 0
     for _ in range(max_steps):
         prog, p = [], 0
@@ -517,7 +579,8 @@ def outline(L, name='OUT', min_save=8, max_steps=10 ** 6, log=None):
                     run_bad = sum(bad[:k])
                 else:
                     run_bad += bad[i + k - 1] - bad[i - 1]
-                if run_bad or _test(L[i + k - 1].split(' ')[0]) or (i and _test(L[i - 1].split(' ')[0])):
+                if run_bad or _test(L[i + k - 1].split(' ')[0], L[i + k - 1]) or \
+                        (i and _test(L[i - 1].split(' ')[0], L[i - 1])):
                     continue
                 seen.setdefault(tuple(L[i:i + k]), []).append(i)
             for blk, pos in seen.items():
@@ -562,7 +625,7 @@ def outline(L, name='OUT', min_save=8, max_steps=10 ** 6, log=None):
                 L[x:x + k] = call
             e = L.index('END', a)
             # END returns like RTN: code that ran into END must not run into the new body
-            ends = L[e - 1].split(' ')[0] in ('RTN', 'GTO') and not _test(L[e - 2].split(' ')[0])
+            ends = L[e - 1].split(' ')[0] in ('RTN', 'GTO') and not _test(L[e - 2].split(' ')[0], L[e - 2])
             L = L[:e] + ([] if ends else ['RTN']) + body + L[e:]
         else:
             k_new += 1
@@ -636,9 +699,9 @@ def names(L, external=(), letters='VWQUHGFPMB'):
     ref = {}
     for l in L:
         m = re.fullmatch(r'([^"]+) (IND )?"([^"]+)"', l)
-        if m and not m.group(1).startswith(('XEQ', 'GTO', 'LBL')):
+        if m and not m.group(1).startswith(('XEQ', 'GTO', 'LBL', 'XSTR')):
             ref[m.group(3)] = ref.get(m.group(3), 0) + 1
-    texts = {l[1:-1] for l in L if l.startswith('"') and l.endswith('"')}
+    texts = {l.split('"')[1] for l in L if (l.startswith('"') or l.startswith('XSTR "')) and l.endswith('"')}
     own = [n for n, c in sorted(ref.items(), key=lambda x: -x[1])
            if n not in external and n not in KEEP_NAMES and n not in texts and not re.fullmatch(r'[A-Z]\d+', n)]
     taken = set(ref) | set(external)
@@ -648,7 +711,7 @@ def names(L, external=(), letters='VWQUHGFPMB'):
 
     def ren(l):
         m = re.fullmatch(r'([^"]+ (IND )?)"([^"]+)"', l)
-        if m and m.group(3) in new and not m.group(1).startswith(('XEQ', 'GTO', 'LBL')):
+        if m and m.group(3) in new and not m.group(1).startswith(('XEQ', 'GTO', 'LBL', 'XSTR')):
             return '%s"%s"' % (m.group(1), new[m.group(3)])
         return l
     return [ren(l) for l in L]
@@ -658,11 +721,112 @@ def external_names():
     """The names NAVINIT and the TBL programs use (build/NAVINIT_*.txt, TBL_1)."""
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     out = set()
-    for f in ('NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', os.path.join('dm42', 'NAVINIT_LITTLE.txt')):
+    for f in ('NAVINIT_FULL.txt', 'NAVINIT_FAST.txt', 'TBL_1.txt', os.path.join('dm42', 'NAVINIT_LITTLE.txt'),
+              os.path.join('free42', 'NAVINIT_FULL.txt'), os.path.join('free42', 'NAVINIT_FAST.txt'),
+              os.path.join('free42', 'NAVINIT_LITTLE.txt'), os.path.join('free42', 'TBL_1.txt')):
         p = os.path.join(root, 'build', f)
         if os.path.exists(p):
             out |= set(re.findall(r'"([^"]+)"', open(p, encoding='utf-8').read()))
     return out
+
+
+# Free42 names of the commands the passes insert (none of them is in a Free42 listing before)
+F42_OPS = {'rad→deg': ['→DEG'], 'M.GETM': ['GETM'], 'M.PUTM': ['PUTM'], 'STOSEQ': ['STOEL', 'J+'],
+           'RCLSEQ': ['RCLEL', 'J+'], 'x²': ['X↑2']}
+
+
+def f42ops(L):
+    out = []
+    for i, l in enumerate(L):
+        if l.startswith('DELITM "'):
+            out.append('CLV' + l[6:])
+            continue
+        new = F42_OPS.get(l, [l])
+        assert len(new) == 1 or not _test(L[i - 1].split(' ')[0]), 'navmat: f42ops after a test: %s' % l
+        out += new
+    return out
+
+
+def free42(L, little=False):
+    """Free42 NAVFULL (before navhopt.f42_regs): deg, tget, hcz, margs, views. Not ceq (its gain on the C47 is the
+    element copies the C47 makes and Free42 does not; on Free42 it would need POLAR / RECT around COMPLEX) and not
+    cexp (Free42 has no Re / Im: an extra stack level on a 4-level stack, and no measured gain on the DM42)."""
+    passes = ((('deg', deg_rad), ('tget', tget), ('hcz', hcz_vec_little)) if little else
+              (('deg', deg_rad), ('tget', tget), ('hcz', hcz_vec), ('margs', moon_args), ('views', views)))
+    for k, fn in passes:
+        if k in PASSES:
+            L = fn(L)
+    return f42ops(tidy(L))
+
+
+def nbytes42(l):
+    """About what a step costs in a Free42 .raw program (HP-42S coding: a number one byte per character and one
+    more; a text 1 + length; RCL / STO 00-15 one byte, others 2; named arguments 2 + length; local XEQ 3)."""
+    if re.fullmatch(r'-?[\d.]+(E-?\d+)?', l):
+        return len(l) + 1
+    if l.startswith('XSTR "'):
+        return len(l[6:-1].encode('utf-8')) + 2
+    if l.startswith('"'):
+        return len(l[1:-1].encode('utf-8')) + 1
+    op, _, arg = l.partition(' ')
+    if op == 'LBL' and arg.startswith('"'):
+        return 4 + len(arg) - 2
+    if arg.startswith('"') or arg.startswith('IND "'):
+        return 2 + len(arg.split('"')[1].encode('utf-8'))
+    if op in ('RCL', 'STO') and arg.isdigit():
+        return 1 if int(arg) < 16 else 2
+    if op in ('XEQ', 'GTO') and arg.isdigit():
+        return 3 if op == 'XEQ' else (1 if int(arg) < 15 else 3)
+    if op == 'LBL' and arg.isdigit():
+        return 1 if int(arg) < 15 else 2
+    return 2 if arg else 1
+
+
+def consts42(L, min_gain=4, top=99):
+    """Free42: as consts, the numbers in the registers after the program's own: SIZE k -> SIZE k + m (NAV keeps
+    the user's whole REGS in NBAK and STO "REGS" gives them back with the SIZE: no code for the save)."""
+    i = L.index('LBL "NAV"')
+    e = L.index('END', i)
+    sz = [j for j in range(i, e) if re.fullmatch(r'SIZE \d+', L[j])]
+    assert len(sz) == 1, 'navmat: consts42: SIZE'
+    k = int(L[sz[0]].split()[1])
+    back = L.index('STO "REGS"', sz[0])
+    zone = set(range(i, sz[0] + 1)) | set(range(back - 3, e))
+    for en in KEEP_ENTRIES[2:]:
+        if 'LBL "%s"' % en in L:
+            a = L.index('LBL "%s"' % en)
+            zone |= set(range(a, L.index('END', a)))
+    count = {}
+    for j, l in enumerate(L):
+        if j not in zone and NUM.fullmatch(l):
+            count[l] = count.get(l, 0) + 1
+    gain = sorted(((n * (nbytes42(v) - 2) - nbytes42(v) - 2, v) for v, n in count.items()), reverse=True)
+    pick = [v for g, v in gain if g >= min_gain][:top + 1 - k]
+    if not pick:
+        return L
+    reg = {v: '%02d' % (k + j) for j, v in enumerate(pick)}
+    out = [('RCL ' + reg[l] if j not in zone and l in reg else l) for j, l in enumerate(L)]
+    out[sz[0]] = 'SIZE %d' % (k + len(pick))
+    setup = [x for v in pick for x in (v, 'STO ' + reg[v])]
+    return out[:sz[0] + 1] + setup + out[sz[0] + 1:]
+
+
+def size42(L):
+    """Free42 size passes (after navhopt.f42_regs)."""
+    global nbytes
+    if 'strip' in PASSES:
+        L = strip(L)
+    if 'consts' in PASSES:
+        L = consts42(L)
+    if 'names' in PASSES:
+        L = names(L, external_names() | {'REGS', 'NBAK', 'GrMod', 'RefLCD'})
+    if 'outline' in PASSES:
+        keep, nbytes = nbytes, nbytes42
+        try:
+            L = outline(L, min_save=4)
+        finally:
+            nbytes = keep
+    return L
 
 
 def size(L):

@@ -171,9 +171,9 @@ def free42():
     menu['HINT'] = F42_HINT
     info = {}
 
-    def post(L):
-        L, info['k'] = navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(L)))
-        return L
+    def post(L, little=False):
+        L, info['k'] = navhopt.f42_regs(navhopt.f42_inputs(navhopt.loops(navmat.free42(L, little))))
+        return navmat.size42(L)
     short, named = N.free42(True, post=lambda L: box_at_start(post(L)), menu=menu)
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
@@ -181,7 +181,7 @@ def free42():
                 {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R45 saved at the start',
                                                                                      'REGS and SIZE saved in NBAK')})
     kfull = info['k']
-    short, named, init = N.free42(True, post=post, menu=menu, little=True)
+    short, named, init = N.free42(True, post=lambda L: post(L, True), menu=menu, little=True)
     B.write(os.path.join(OUT, 'free42', 'NAVLITTLE.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVLITTLE.txt'), named)
     import build_dm42 as D
