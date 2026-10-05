@@ -310,7 +310,7 @@ S += [P('Register map', h2),
                  ['HALMV, ALMF, HALM', '10–29, 37, 40–48 (work registers, results of SUNRISE/PHAS kept in 13–19)']], [40 * mm, 140 * mm]),
       P('C47 notes', h2)] + B([
     'The C47 does not treat →DEG and flag 77 like the HP-42S; the programs avoid both (verified on the C47 with SUNA).',
-    'Memory: NAVFULL about 13 000 steps; the FULL matrices about 6 000 numbers (FAST about 3 400), plus the cache matrices ALMC (73 × 4) and ALMQ (300 × 3).',
+    'Memory: NAVFULL about 8 000 steps (24.2 KB); the FULL matrices about 6 000 numbers (FAST about 3 400), plus the cache matrix ALMC (73 × 4) and, while the charts are drawn, the equator dots EQ2 / EQ3 (NAV deletes the ALMQ that INIT makes).',
     'Keep the printed Nautical Almanac as the primary reference; use the calculator as support and cross-check.'])
 doc.build(S)
 print('ok')

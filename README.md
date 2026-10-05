@@ -6,9 +6,10 @@ version and the base for a phone app (**Almanac 47**).
 - **Install and run:** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
   graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,
-  ↑↓ ±1 hour, 9 SNAP). v2.0.0: your numbered registers are saved when NAV starts and given back when it ends.
-- **v2.0.0, what changed inside:** `docs/OPTIMIZATIONS.md` (Horner, n-vectors, the loops on ISG,
-  the registers renumbered from 100 to 46 and kept; Free42 SIZE and REGS kept).
+  ↑↓ ±1 hour, 9 SNAP). Your numbered registers are saved when NAV starts and given back when it ends.
+- **v2.1.0 "Supercharger", what changed inside:** `docs/OPTIMIZATIONS.md` (v2.0.0: Horner, n-vectors, the loops
+  on ISG, the registers renumbered and kept; v2.1.0, section 7: the firmware's matrix and complex functions,
+  the series' cos and sin by one complex eˣ, Hc Zn from the direction vectors, smaller code; MOON47 too).
 - **Text on the graphics screen:** `programs/FONTS.txt` - PTXT (3x5), PTXB (5x7) and
   PTXS (the C47 status-bar font), with number printers; usable on their own.
 - **Calculator programs:** `programs/` (start with `NAV`), commented versions in
@@ -17,9 +18,9 @@ version and the base for a phone app (**Almanac 47**).
   ALMANAC CHART TEXT SKY SPLIT ANIM ALLSKY MOON, drawn as the C47 screens of Oct 2026 (MOON,
   the Moon phases, is on the PC only).
 - **PC, reference viewer:** `python/c47view.py` runs the real calculator programs.
-- **Firmware:** the C47 builds (`build/`, `build/dm42/`) need a C47 / R47 firmware built from
-  master on or after 30 Sep 2026 (ATEXT and GRFNT); no released firmware has them yet. For the
-  public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
+- **Firmware:** the C47 builds (`build/`, `build/dm42/`) need C47 / R47 firmware **00.109.05.00a0.ALPHA**
+  (5 Oct 2026) or later, or one built from master on or after 30 Sep 2026 (ATEXT and GRFNT). For the
+  older public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
   release. The Free42 builds (`build/free42/`) run on the stock DM42 / DM42n firmware.
 - **MOON47, the Moon phase on its own:** one program, no NAV and no INIT: the phase as a disc, % lit,
   age, HP, SD and the next four phases (UT), from the clock. `build/MOON47` (C47 / R47),
@@ -29,7 +30,7 @@ version and the base for a phone app (**Almanac 47**).
   phases within 4 minutes, HP 0.03'. Each manual has a MOON47 section.
 - **Calculator files:** `build/` (C47 / R47 with a firmware that has ATEXT and GRFNT: NAVFULL,
   NAVINIT_FULL / _FAST, TBL; the text written with ATEXT, only the body symbols drawn; NAVTXT is
-  not in v2.0.0),
+  not in v2.x),
   `build/dm42/` (C47 on the old DM42: NAVLITTLE, Sun and stars), `build/free42/` (DM42 /
   DM42n stock Free42 firmware: NAVFULL, NAVLITTLE and their INITs, the screens of Oct 2026 with
   AGRAPH fonts); other builds in the

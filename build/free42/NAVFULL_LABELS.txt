@@ -1,4 +1,4 @@
-NAVFULL v2.0.0 (Free42) - program labels
+NAVFULL v2.1.0 (Free42) - program labels
 ========================================
 Label on the calculator, original name (sources, build/dev/src/, documentation), what it does.
 Only NAV keeps its name. TEXT = a text routine, SYMBOL = a body symbol drawn with AGRAPH: Z = row of the

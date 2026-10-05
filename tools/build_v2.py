@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""build_v2.py - the release files of Almanac 47 v2.0.0, from the optimized pipeline (tools/build_navopt.py,
-tools/navhopt.py, tools/regalloc.py; docs/OPTIMIZATIONS.md):
+"""build_v2.py - the release files of Almanac 47 (v2.1.0 "Supercharger"), from the optimized pipeline
+(tools/build_navopt.py, tools/navhopt.py, tools/regalloc.py, tools/navmat.py; docs/OPTIMIZATIONS.md):
 
   build/NAVFULL.txt (.p47)        C47 / R47: the engine with Horner and n-vectors, the loops on ISG, the registers
-                                  renumbered (R00-R45) and saved in local registers while NAV runs; menu 1 ALMANAC
+                                  renumbered, the frequent numbers in registers after them (R00-R98, saved in local
+                                  registers while NAV runs); menu 1 ALMANAC
                                   2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts;
                                   the SINKING....ABOUT box (and the ants, flag 47) while each view is computed, the
                                   view shown when it is complete; SKY names a body every 2 s
@@ -13,7 +14,7 @@ tools/navhopt.py, tools/regalloc.py; docs/OPTIMIZATIONS.md):
   build/free42/NAVFULL / NAVLITTLE / NAVINIT_* / TBL_* (.txt, .raw)   Free42 (DM42 stock firmware): the same
                                   screens; the registers renumbered and the user's REGS (and SIZE) saved in "NBAK";
                                   NAVFULL: the box only at the start
-NAVTXT (the text page) is not in v2.0.0.
+NAVTXT (the text page) is not in v2.x. tools/navmat.py: the calculation and size passes of v2.1.0.
 
   python3 tools/build_v2.py          then python3 tests/test_v2.py
 """
@@ -33,7 +34,7 @@ OUT = os.path.join(ROOT, 'build')
 # what the routines do in v2.0.0 where it differs from build_navfull.LABEL_TEXT (the menu numbers, the registers)
 V2_TEXT = {
  'NAV':    'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; your registers '
-           'R00-R45 saved at the start and given back at 0 (the only named program; INFO page inside)',
+           'R00-R98 saved at the start and given back at 0 (the only named program; INFO page inside)',
  'ALMF':   'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMH':  'view 2 SPLIT: horizon chart on top, the bodies below (8 rows)',
  'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)',
@@ -118,7 +119,7 @@ def c47():
                         post=lambda L: navmat.size(navhopt.nav_regs(navhopt.inputs(navhopt.loops(navmat.c47(L))))))
     B.write(os.path.join(OUT, 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # the same with the routine names (tests)
-    labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.0.0 (C47 / R47)')
+    labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.1.0 (C47 / R47)')
     for k, L in N.inits().items():
         if not k.startswith('F42_'):
             B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), pi(L, '𝜋'))
@@ -142,8 +143,8 @@ def dm42():
         init = N.init_clean(D.init_dm42())
     B.write(os.path.join(OUT, 'dm42', 'NAVLITTLE.txt'), short)
     little = dict(D.LABEL_TEXT, NAV='no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, + ends; '
-                  'your registers R00-R29 saved at the start and given back at the end')
-    labels_file(os.path.join(OUT, 'dm42', 'NAVLITTLE_LABELS.txt'), L, short, 'NAVLITTLE v2.0.0 (DM42 with the C47 firmware)', little)
+                  'your registers R00-R35 saved at the start and given back at the end')
+    labels_file(os.path.join(OUT, 'dm42', 'NAVLITTLE_LABELS.txt'), L, short, 'NAVLITTLE v2.1.0 (DM42 with the C47 firmware)', little)
     B.write(os.path.join(OUT, 'dm42', 'NAVINIT_LITTLE.txt'), init)
     return L
 
@@ -182,15 +183,15 @@ def free42():
     short, named = N.free42(True, post=lambda L: box_at_start(post(L)), menu=menu)
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
-    labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.0.0 (Free42)',
-                {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R45 saved at the start',
+    labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.1.0 (Free42)',
+                {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R98 saved at the start',
                                                                                      'REGS and SIZE saved in NBAK')})
     kfull = info['k']
     short, named, init = N.free42(True, post=lambda L: post(L, True), menu=menu, little=True)
     B.write(os.path.join(OUT, 'free42', 'NAVLITTLE.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVLITTLE.txt'), named)
     import build_dm42 as D
-    labels_file(os.path.join(OUT, 'free42', 'NAVLITTLE_LABELS.txt'), named, short, 'NAVLITTLE v2.0.0 (Free42)',
+    labels_file(os.path.join(OUT, 'free42', 'NAVLITTLE_LABELS.txt'), named, short, 'NAVLITTLE v2.1.0 (Free42)',
                 dict(D.LABEL_TEXT, NAV='no menu: asks DATE UTC LAT LON, then the ALMANAC screen; up / down one hour, '
                      '+ ends; REGS and SIZE saved in NBAK and given back'))
     B.write(os.path.join(OUT, 'free42', 'NAVINIT_LITTLE.txt'), init)

@@ -317,25 +317,26 @@ build_free42.py)
                 draws the screens of Oct 2026 (programs/atext/t21/): the text with ATEXT in
                 GRFNT 21 and the tinyFont (GRFNT 10) on the charts, the body symbols from glyphs47
                 (PSYB, PSYS: the only AGRAPH font left). .p47: tools/rejig47_atext.py.
-                FIRMWARE: these builds and build/dm42/ need a C47 / R47 firmware built from
-                master on or after 30 Sep 2026 (ATEXT 29 Sep, GRFNT 30 Sep); no released
-                firmware has them yet. On the public firmware 00.109.04.00b0 they stop with
+                FIRMWARE: these builds and build/dm42/ need C47 / R47 firmware 00.109.05.00a0.ALPHA
+                (5 Oct 2026) or later, or one built from master on or after 30 Sep 2026 (ATEXT
+                29 Sep, GRFNT 30 Sep). On the older public firmware 00.109.04.00b0 they stop with
                 "Non-programmable command": use Almanac47_C47_R47_fw0400b0_v1.1.0.zip (v1.1.0
                 release). build/free42/ runs on the stock DM42 / DM42n firmware.
-    MOON47.txt       MOON47: the Moon phase on its own (no NAV, no INIT, about 5.5 KB): the date and time
+    MOON47.txt       MOON47: the Moon phase on its own (no NAV, no INIT, about 4.8 KB): the date and time
                      from the clock (minus TZ hours if the variable TZ exists; the top line shows the
                      clock: UT TZ=0, or LT TZ=+4), the phase as a disc, % lit,
                      age, HP, SD, the next four phases (UT), the 8 phase symbols; +/- north / south view,
                      other keys end. Same page in build/dm42/, build/free42/ (.raw), python/numworks/,
                      python/hpprime/ and on the PC (python/moon47.py; the MOON view of python/native).
                      All written by tools/build_moon47.py from python/moon47.py (20 terms of Meeus 47,
-                     phases within 4 minutes, HP 0.03'); tests/test_moon47*.py.
-    NAVFULL.txt      NAV v2.0.0: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO, 9 = SNAP, 0 END
+                     phases within 4 minutes, HP 0.03'; the 20 terms as matrices, on the C47 with one
+                     complex eˣ for their cos and sin); tests/test_moon47*.py.
+    NAVFULL.txt      NAV v2.1.0: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO, 9 = SNAP, 0 END
                      (↑↓ ±1 hour), the sky cache, the SINKING box, the ants (flag 47), and the
-                     almanac tables (TBL) when they are loaded. Your registers are kept: R00-R45
+                     almanac tables (TBL) when they are loaded. Your registers are kept: R00-R98
                      saved in NAV's local registers at the start, given back at 0. Written by
-                     tools/build_v2.py (Horner, n-vectors, ISG loops, registers renumbered:
-                     docs/OPTIMIZATIONS.md). NAVTXT (text only) is not in v2.0.0.
+                     tools/build_v2.py (Horner, n-vectors, ISG loops, registers renumbered; v2.1.0:
+                     tools/navmat.py, docs/OPTIMIZATIONS.md section 7). NAVTXT (text only) is not in v2.x.
     NAVINIT_FULL.txt INIT: VSOP87 series, valid 2000-2050 (MATA MATST MATM MATP as LBL 01-04)
     NAVINIT_FAST.txt INIT: fitted series, valid 2026-2030 (MATN MATST MATM MATF), smaller
                      Load ONE of them, XEQ "INIT" once, delete INIT (GTO "INIT", DELP); the
@@ -372,7 +373,7 @@ build_free42.py)
     TBL_1, TBL_5     the almanac tables as above (.raw 97 KB and 481 KB); flag 11 of the C47
                      programs is flag 91 here (11 is auto-execution on the HP-42S)
   Left out: HORZS, HPLT, HALM, ALM, SNAM, SUNSD, font demos.
-  Checks: tests/test_v2.py (v2.0.0 against the release before it, Free42 against the C47, the
+  Checks: tests/test_v2.py (v2.x against the release before it, Free42 against the C47, the
   registers kept), tests/test_labels.py, test_navfull.py, test_notbl.py,
   test_f42_little.py (Free42 NAVLITTLE against the same view in the C47 simulator, pixel by
   pixel: start, +1 h, -1 h on 3 dates),

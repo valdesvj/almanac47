@@ -19,7 +19,7 @@ def lines(path):
 
 
 S += [P('Almanac 47', title),
-      P('Celestial navigation on the SwissMicros C47 — user manual — version 2.0.0', sub), Spacer(1, 6),
+      P('Celestial navigation on the SwissMicros C47 — user manual — version 2.1.0 (Supercharger)', sub), Spacer(1, 6),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
         'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation); optional '
@@ -35,7 +35,7 @@ S += [P('Almanac 47', title),
       prose_tbl([
           ['File', 'What it is'],
           ['NAVFULL', 'the program NAV with all the views and the almanac tables support (TBL); it keeps your '
-                      'registers (v2.0.0)'],
+                      'registers'],
           ['NAVINIT_FULL', 'INIT: builds the series matrices, valid 2000–2050 (about 6 000 numbers)'],
           ['NAVINIT_FAST', 'INIT: fitted series, valid 2026–2030: smaller and faster'],
           ['TBL_1, TBL_5', 'optional almanac tables (JPL) for 1 or 5 years from 1 Oct 2026; XEQ TBL once, then '
@@ -55,7 +55,7 @@ S += [P('Almanac 47', title),
       'Optional: load TBL, XEQ "TBL" once, delete it. The screens then show T (tables) instead of S (series).',
       'NAV asks DATE in the calculator\'s date format (CLK menu: YYYY-MM-DD, DD.MM.YYYY or MM/DD/YYYY) and reads it '
       'with the C47\'s own date functions; the prompt shows which.',
-      'v2.0.0 has no NAVTXT (text only) and no CHART or TEXT views; what changed inside is in docs/OPTIMIZATIONS.md.'])
+      'v2.x has no NAVTXT (text only) and no CHART or TEXT views; what changed inside is in docs/OPTIMIZATIONS.md.'])
 S += [P('3. Starting NAV', h2),
       P('XEQ "NAV" asks four numbers, once, with INPUT (R/S keeps the value shown). At each prompt the stack is '
         'clear and Y shows only the format of that input: DATE YYYY.MMDD (DATE DD.MMYYYY or DATE MM.DDYYYY when the '
@@ -68,8 +68,8 @@ S += [P('3. Starting NAV', h2),
                 [22 * mm, 110 * mm, 48 * mm]),
       P('After LON the sky is computed (the Sun, the Moon, the planets, the stars that can be above the horizon, '
         'the sun times) and kept in the matrix ALMC. Then the menu appears, and every view only draws. '
-        'While the sky is computed after LON, a box in the middle of the screen says SINKING....ABOUT. '
-        'After that every screen (a view, the menu after +, the arrows) is drawn on the display as it goes.'),
+        'While the sky is computed, and while each view is computed, a box in the middle of the screen says '
+        'SINKING....ABOUT; the view appears when it is complete.'),
       img('NAV_busy_box.png', 0.6),
       P('4. The menu', h2),
       img('NAV_menu.png', 0.66),
@@ -84,7 +84,7 @@ S += [P('3. Starting NAV', h2),
                  ['other keys', 'ignored', 'ignored (R/S or EXIT stop the program)']],
                 [26 * mm, 77 * mm, 77 * mm]),
       P('The hours added with the arrows stay for the other views. New date or position: XEQ "NAV" again.', small),
-      P('<b>Your registers are kept.</b> NAV uses R00–R45 while it runs. It copies them into its own local registers '
+      P('<b>Your registers are kept.</b> NAV uses R00–R98 while it runs (its values and its most used numbers). It copies them into its own local registers '
         'when it starts and copies them back when you leave with 0, so the values you had in your registers are there '
         'again. If you stop NAV with R/S or EXIT, they keep NAV\'s values.')]
 
@@ -117,16 +117,21 @@ S += [PageBreak(), P('5. The views', h2),
 S += [P('6. Speed and memory', h2)] + B([
       'The sky is computed once for a time and place (matrix ALMC, 73 × 4: GHA, Dec, Hc, Zn of the Sun, the Moon, '
       'planets 1–4 and stars 1–58). Going from view to view only draws. An arrow (a new hour) computes again.',
-      'The celestial equator of the charts depends only on the position: it is kept in ALMQ (300 × 3) and redrawn from there.',
+      'The celestial equator of the charts depends only on the position: its dots are computed 30 at a time as complex '
+      'vectors and kept (EQ2, EQ3) for the next view. NAV deletes the matrix ALMQ that INIT makes: it is no longer used.',
       'The fonts read each column pattern from stack register D: NAV uses the 8-level stack while it runs and puts your '
       'stack size back when you leave with 0.',
-      'v2.0.0 is faster and smaller than v1.1 with the same results: Horner\'s method for every polynomial, n-vectors '
-      '(→POL / →REC) instead of trigonometric formula pairs, the nutation as matrix products, counted loops on ISG; '
-      'the registers were renumbered from 100 to 46. NAVFULL is 31.5 KB (36.6 KB in v1.1). Details: docs/OPTIMIZATIONS.md.',
-      'The C47 sends a new screen to the display only at a PAUSE, a key press or the end of the program. NAV makes a '
-      'PAUSE 0 (no wait) after every text and every body symbol it draws, so you see each view being drawn; the '
-      'SINKING box shows only while the sky is computed at the start. This gives the C47 the screen refresh of '
-      'Free42 on the DM42, which shows every drawing step as it goes.',
+      'v2.0.0 was faster and smaller than v1.1 with the same results: Horner\'s method for every polynomial, n-vectors '
+      '(→POL / →REC) instead of trigonometric formula pairs, the nutation as matrix products, counted loops on ISG, '
+      'the registers renumbered and kept.',
+      'v2.1.0 (Supercharger) keeps the same calculation and the same results, faster again: the cos and sin of each '
+      'series as one complex eˣ (the C47 computes SIN and COS with 75 digits, eˣ with 39), Hc and Zn straight from the '
+      'body\'s direction vector, the tables by one M.GETM and DOT, the equator dots as complex vectors; and smaller: no '
+      'unused code, the most used numbers in registers, repeated steps as subroutines. NAVFULL is 24.2 KB (31.5 KB in '
+      'v2.0.0, 36.6 KB in v1.1); starting NAV takes about 17 % less work and each hour about 25 % less. '
+      'Details: docs/OPTIMIZATIONS.md.',
+      'The C47 sends a new screen to the display only at a PAUSE, a key press or the end of the program: the '
+      'SINKING box shows while a view is computed, then the complete view.',
       'With the tables (TBL) the Sun, the Moon and the planets come from the tables inside their period and the '
       'computation is about twice as fast.',
       '<i>Something lives in NAV at the step after LBL 48. It is 0. Try 20 and press + or an arrow …</i>'])
@@ -143,7 +148,7 @@ S += [PageBreak(), P('7. Program map', h2),
         'entries, PTTY / PTNT for the tinyFont, PHLS) and the symbol routines (PSYB, PSYS) are left out. The numbers are fixed (tools/labels/NAVFULL.map): a new routine gets the next free '
         'number, so the labels stay the same from one version to the next. NAVFULL_NOTBL has the same labels without '
         'N49 (TGET). NAVLITTLE has its own numbering: see its _LABELS.txt file. The registers of NAVFULL are '
-        'renumbered by the build (v2.0.0): the register lists of part 2 are those of the separate programs.'),
+        'renumbered by the build: the register lists of part 2 are those of the separate programs.'),
       prose_tbl(rows, [16 * mm, 18 * mm, 146 * mm])]
 
 # ---- MOON47: the Moon phase on its own
@@ -167,7 +172,8 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       '<b>Accuracy</b> against the full series of NAV, 2000–2050: phase times and age within 4 minutes (most within 1), '
       'HP 0.03′, SD 0.01′, % lit 0.03 %. It uses the 20 largest terms of the Moon (Meeus, ch. 47), the phases by the '
       'secant method; tests/test_moon47.py checks it.',
-      '<b>Memory:</b> about 5.5 KB (the program and its own copies of the text and symbol routines, M7TX and M7SY, so '
+      '<b>Memory:</b> about 4.8 KB (v2.1.0: the 20 terms as matrices, their cos and sin by one complex eˣ, '
+      'about 24 % less work; the program and its own copies of the text and symbol routines, M7TX and M7SY, so '
       'it does not need NAVFULL and does not clash with it). It takes registers R00–R61 and leaves your stack size as '
       'it was. Needs a firmware with ATEXT and GRFNT, like NAV.',
       'The same program runs on the old DM42 with the C47 firmware (build/dm42/MOON47). Free42 (build/free42/MOON47.raw), '
