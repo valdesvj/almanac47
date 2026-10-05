@@ -147,12 +147,11 @@ The complex constants i and iπ/180 are `C1` and `C2`, made when NAV starts (`RC
 
 **The size** (after `regalloc`):
 
-* `strip`: no REM, no code NAV cannot reach (STAR, PLAN, CHZ, HCZ0, CTWA / CTWP, …). `DHA` (Hc Zn → Dec GHA)
-  stays for the star identification to come. On Free42 an `XEQ` of a routine that returns by `RTNYES` /
+* `strip`: no REM, no code NAV cannot reach (STAR, PLAN, CHZ, DHA, HCZ0, CTWA / CTWP, …). DHA (Hc Zn → Dec
+  GHA) is a separate program (`programs/CHZ.txt`). On Free42 an `XEQ` of a routine that returns by `RTNYES` /
   `RTNNO` is a test (the SKY key wait).
 * `consts`: the most used numbers (1 2 360 0 16 …) in registers after the program's own: NAV stores them after
-  saving your registers (C47: `LocR 99`, R00–R98 given back; Free42: a larger `SIZE`, REGS kept in NBAK). DHA,
-  which runs without NAV, keeps its numbers.
+  saving your registers (C47: `LocR 99`, R00–R98 given back; Free42: a larger `SIZE`, REGS kept in NBAK).
 * `names`: NAV's own variables named a letter and a digit (V0, V1, …), the most used first; the inputs and the
   matrices of NAVINIT and the tables keep their names.
 * `outline`: repeated runs of steps as local or shared subroutines (`OUTn`); never across `LocR` / `LSTO`, a
@@ -163,10 +162,10 @@ The complex constants i and iπ/180 are `C1` and `C2`, made when NAV starts (`RC
 
 | | v2.0.0 | safe-opt | c47-size (hour stepping) |
 |---|---|---|---|
-| C47 NAVFULL | 31 098 | 24 240 | 28 948 |
-| DM42 NAVLITTLE | 7 950 | 7 253 | 7 982 |
-| Free42 NAVFULL | 28 334 | 23 380 | — |
-| Free42 NAVLITTLE | 8 699 | 7 839 | — |
+| C47 NAVFULL | 31 098 | 24 160 | 28 948 |
+| DM42 NAVLITTLE | 7 950 | 7 173 | 7 982 |
+| Free42 NAVFULL | 28 334 | 23 321 | — |
+| Free42 NAVLITTLE | 8 699 | 7 780 | — |
 | C47 free memory after NAV (FULL) | 100 468 | 118 880 | 112 104 |
 
 Speed in the C47 firmware (PC simulator, CPU samples at 4 kHz; a page is the mean of 4 visits; about ± 5 %):

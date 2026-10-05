@@ -12,7 +12,7 @@ Calculation (navmat.c47 / navmat.little, on the named listing before regalloc re
          eˣ at 39 (cos 60° differs by 3E-34); the Sun, planet, nutation and Moon series about 3 times faster
   views  the header of every view and the compass row of the charts once each as a routine (HDR, CMN, CMS)
 Size (navmat.size, after regalloc):
-  strip    no REM, no code NAV cannot reach (DHA stays: KEEP_ENTRIES)
+  strip    no REM, no code NAV cannot reach
   consts   the most used numbers in registers after the program's own, set and given back by NAV
   names    NAV's own variables named a letter and a digit (V0, V1, ...)
   outline  repeated runs of steps as subroutines
@@ -518,13 +518,12 @@ def reach(L, entries=('NAV', 'INIT')):
     return seen
 
 
-KEEP_ENTRIES = ('NAV', 'INIT', 'DHA')      # DHA: Hc Zn -> Dec GHA, kept for the planned star identification
+KEEP_ENTRIES = ('NAV', 'INIT')            # (DHA, the inverse of HCZ, is a separate program: programs/CHZ.txt)
 
 
 def strip(L):
     """Size: no REM (comments cost bytes on the calculator) and no code NAV can never reach (unused entries such as
-    STAR, PLAN, CHZ, HCZ0, CTWA / CTWP). DHA stays (KEEP_ENTRIES). A line right after a test is never removed
-    (the test skips it)."""
+    STAR, PLAN, CHZ, DHA, HCZ0, CTWA / CTWP). A line right after a test is never removed (the test skips it)."""
     r = reach(L, KEEP_ENTRIES)
     out = []
     for i, l in enumerate(L):
@@ -672,7 +671,7 @@ def consts(L, min_gain=8, top=98):
     rest = L.index('RCL R.00', save_end)
     assert L[rest:rest + 2 * k:2] == ['RCL R.%02d' % r for r in range(k)] and L[rest + 2 * k] == 'CLSTK'
     zone = set(range(i, save_end)) | set(range(rest, rest + 2 * k + 1))
-    for e in KEEP_ENTRIES[2:]:                     # entries run without NAV (DHA): their numbers stay
+    for e in KEEP_ENTRIES[2:]:                     # other entries that run without NAV keep their numbers
         if 'LBL "%s"' % e in L:
             a = L.index('LBL "%s"' % e)
             zone |= set(range(a, L.index('END', a)))

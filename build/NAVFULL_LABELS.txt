@@ -26,7 +26,6 @@ N32     HCZ     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc 
 N34     HCZQ    celestial equator: start of the dot-by-dot rotation
 N35     HCZR    celestial equator: next point by rotation (no trig)
 N36     HCZI    keeps sin/cos of the latitude for HCZ
-N37     DHA     inverse: from Hc and Zn back to Dec and GHA (star identification)
 N38     RISE    sunrise time UT (SUNRISE program)
 N39     SET     sunset time UT
 N40     NTWA    nautical twilight, morning, UT
