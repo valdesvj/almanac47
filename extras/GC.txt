@@ -1,0 +1,46 @@
+LBL "GC"
+DEG
+LocR 04
+STO R.00
+R↓
+STO R.01
+R↓
+RCL R.00
+X<>Y
+-
+STO R.02
+R↓
+STO R.00
+RCL R.01
+1
+→REC
+RCL R.02
+X<>Y
+→REC
+X<>Y
+STO R.03
+R↓
+→POL
+X<>Y
+RCL- R.00
+X<>Y
+→REC
+STO R.01
+R↓
+RCL R.03
+X<>Y
+→POL
+X<>Y
+360
+MOD
+STO R.02
+DROP
+RCL R.01
+→POL
+X<>Y
+60
+×
+RCL R.02
+X<>Y
+RTN
+END

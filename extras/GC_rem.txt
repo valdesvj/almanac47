@@ -1,0 +1,57 @@
+LBL "GC"
+REM "Great circle: distance and initial course, the same n-vector form as Hc and Zn in NAV"
+REM "The destination is the body (Dec = its latitude), the departure the observer:"
+REM "initial course = Zn, distance = 90 - Hc (the zenith distance)"
+REM "In: T lat1  Z lon1  Y lat2  X lon2 (decimal degrees, N and E +)"
+REM "Out: X distance (NM), Y initial course (0-360)"
+DEG
+LocR 04
+REM "R.00 lon2 (later lat1), R.01 lat2 (later up), R.02 dlon (later course), R.03 east"
+STO R.00
+R↓
+STO R.01
+R↓
+RCL R.00
+X<>Y
+-
+STO R.02
+R↓
+STO R.00
+REM "The destination: X cos lat2, Y sin lat2"
+RCL R.01
+1
+→REC
+REM "Turned by dlon: X cos lat2 cos dlon, Y east = cos lat2 sin dlon, Z sin lat2"
+RCL R.02
+X<>Y
+→REC
+X<>Y
+STO R.03
+R↓
+REM "(cos lat2 cos dlon, sin lat2) turned by -lat1: X up, Y north"
+→POL
+X<>Y
+RCL- R.00
+X<>Y
+→REC
+STO R.01
+R↓
+REM "Course = the angle of (north, east); X h, the horizontal length"
+RCL R.03
+X<>Y
+→POL
+X<>Y
+360
+MOD
+STO R.02
+DROP
+REM "Distance = the angle of (up, h): no ACOS, exact for short and long distances"
+RCL R.01
+→POL
+X<>Y
+60
+×
+RCL R.02
+X<>Y
+RTN
+END

@@ -1,0 +1,45 @@
+LBL "GC"
+DEG
+LSTO "G0"
+R↓
+LSTO "G1"
+R↓
+RCL "G0"
+X<>Y
+-
+LSTO "G2"
+R↓
+LSTO "G0"
+RCL "G1"
+1
+→REC
+RCL "G2"
+X<>Y
+→REC
+X<>Y
+LSTO "G3"
+R↓
+→POL
+X<>Y
+RCL- "G0"
+X<>Y
+→REC
+LSTO "G1"
+R↓
+RCL "G3"
+X<>Y
+→POL
+X<>Y
+360
+MOD
+LSTO "G2"
+DROP
+RCL "G1"
+→POL
+X<>Y
+60
+×
+RCL "G2"
+X<>Y
+RTN
+END
