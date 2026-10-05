@@ -184,5 +184,8 @@ The PC simulator showed c47-matrix faster than v2.0.0, and the calculator showed
 calculator decide.
 
 Checked: the C47 firmware pixel for pixel against v2.0.0 (NAVFULL 54 screens, NAVLITTLE 18), the ALMC cache
-(292 values) the same to 7 × 10⁻¹⁷ degrees, every test suite above, Free42 against the C47 screens and SKY /
+(292 values) the same to 7 × 10⁻¹⁷ degrees; the build's own values in the C47 firmware against JPL DE421 + ERFA
+(the reference and limits of `tests/test_ephem.py`, 30 random instants each: FULL 2000–2050, FAST 2026–2030 and
+the October 2026 table): all within the limits, largest Moon GHA 0.09′, planets 0.065′, stars 0.0024′, Hc / Zn
+0.08′; every test suite above, Free42 against the C47 screens and SKY /
 ANIM against v2.0.0, `tools/c47check.py` on master 224e5e95d.
