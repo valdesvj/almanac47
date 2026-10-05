@@ -5,8 +5,8 @@ tools/navhopt.py, tools/regalloc.py; docs/OPTIMIZATIONS.md):
   build/NAVFULL.txt (.p47)        C47 / R47: the engine with Horner and n-vectors, the loops on ISG, the registers
                                   renumbered (R00-R45) and saved in local registers while NAV runs; menu 1 ALMANAC
                                   2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts;
-                                  the views drawn on the screen as they go (PAUSE 0), the SINKING....ABOUT box only at
-                                  the start, SKY names a body every 2 s
+                                  the SINKING....ABOUT box (and the ants, flag 47) while each view is computed, the
+                                  view shown when it is complete; SKY names a body every 2 s
   build/NAVINIT_FULL / _FAST, TBL_1 / TBL_5 (.p47)   the matrices and tables, only their message left on the stack
   build/dm42/NAVLITTLE.txt (.p47) DM42 with the C47 firmware: the same engine, prompts and register save; the
                                   ALMANAC screen drawn as it goes
@@ -105,7 +105,7 @@ def labels_file(path, full, short, title, text=None):
 
 def c47():
     full, short = N.c47(True, menu=N.SPLIT2,
-                        post=lambda L: live(box_at_start(navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))))))
+                        post=lambda L: navhopt.nav_regs(navhopt.inputs(navhopt.loops(L))))
     B.write(os.path.join(OUT, 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # the same with the routine names (tests)
     labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.0.0 (C47 / R47)')
