@@ -29,9 +29,14 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            limit (8.99974 deg). NEEDS ITS OWN NAVINIT_FULL / NAVINIT_FAST (this folder): LBL 05 makes
                            SXA (star vectors J2000) and SXD (per century) from ST, once (+428 bytes). Pages pixel for
                            pixel 7_animq: 6 dates and places 2004-2045, 55 S - 60 N, FULL; and FAST.
+  9_allsky/NAVFULL.txt     + ALLSKY reads its 58 stars from the cache (CSTR GHA / Dec, CHCZ Hc / Zn: step 8's exact
+                           values) in place of its own quick ones (catalogue + linear precession + the full HCZ,
+                           about 9 trig values a star). Uses step 8's NAVINIT. ALLSKY calls CSUN first, so the cache
+                           is the hour shown (arrows checked: the same hour gives the same screen). Stars move by at
+                           most a pixel (38-163 pixels of a screen, 4 places); every other page as 8_mstars.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316.
+4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -92,6 +97,9 @@ ALMANAC + 15 hours FULL 1.563 -> 1.484 s, FAST 1.246 -> 1.145 s. Trig on the C47
 but an hour arrow about 171 -> 241 (7 computes only the stars the table asks for; 8 always all 58): time the
 arrows on the calculator. If they are slower: the over-the-horizon test from the zenith component (no trig) and
 the angles only for the stars a view asks for.
+
+Step 9. ALLSKY + 4 hour arrows, firmware sim CPU of the views 0.614 -> 0.445 s (-28 %); on the C47 about 460
+trig values less per ALLSKY view (estimate 7.0 -> about 4.5 s).
 
 Not done yet
   - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.

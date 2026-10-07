@@ -374,8 +374,25 @@ def mstars(L):
     return L + P
 
 
+def allsky(L):
+    """ALLSKY reads its 58 stars from the cache (CSTR GHA / Dec, CHCZ Hc / Zn: the exact values step 8 computes for
+    every star) in place of its own quick ones (catalogue RA / Dec, a linear precession, then the full HCZ: about 9
+    trig values a star). ALLSKY calls CSUN with its own time first, so the cache is the hour on the screen (the
+    arrows too). The stars move by less than 1' (nutation, aberration, the exact precession): at most a pixel."""
+    a = L.index('LBL "N62"')
+    e = L.index('END', a)
+    P = swap(L[a:e], ['INDEX "ST"', 'RCL 21', 'IP', 'RCL 43', 'STOIJ', 'RCLEL', 'STO 22', 'J+', 'RCLEL', 'STO 05',
+                      'RCL 22', 'COS', '20.0431', '×', 'RCL× 06', 'RCL+ 05', 'RCL 22', 'SIN', 'RCL 05', 'TAN', '×',
+                      '20.0431', '×', '46.1244', '+', 'RCL× 06', 'RCL+ 22', 'RCL 02', 'X<>Y', '-', 'RCL 45', 'MOD',
+                      'XEQ "N69"'],
+             ['RCL 21', 'IP', 'STO 22', 'XEQ "N67"', 'XEQ "N69"'])
+    assert 'XEQ "N64"' in P, 'build_struct: ALLSKY does not call CSUN'     # (step 3 moved its blocks: not by line)
+    print('  9_allsky: ALLSKY stars from the cache (CSTR, CHCZ)')
+    return L[:a] + P + L[e:]
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
-         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars))
+         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky))
 
 
 def main():
