@@ -29,7 +29,12 @@ import build_navopt as N                                                     # n
 
 SRC = os.path.join(ROOT, 'build', 'NAVFULL.txt')
 OUT = os.path.join(ROOT, 'build', 'dev', 'struct')
-LOCAL = ('NAV', 'N83')            # programs with LocR: no tail call in them or towards them
+TARGET = 'FULL'                   # 'FULL': build/NAVFULL.txt; 'LITTLE': build/dm42/NAVLITTLE.txt (python3 ... little)
+
+
+def local_programs(L):
+    """The programs with local registers (LocR, R.nn): no tail call in them or towards them (NAVFULL: NAV, N83)."""
+    return {name(p) for p in split(L) if [l for l in p if l.startswith('LocR') or 'R.' in l]}
 # the keys of the pages counted for the order: 1 ALMANAC, 3 SKY, 4 ANIM, 5 ALLSKY, then + back to the menu, 0 end
 PAGES = ([72, 85, 82], [74, 85, 82], [62, 85, 82], [63, 85, 82])
 
@@ -52,6 +57,7 @@ def name(prog):
 
 def tailcall(L):
     """XEQ x; RTN -> GTO x; RTN, outside the LocR programs and not towards them."""
+    LOCAL = local_programs(L)
     out, n = [], 0
     for p in split(L):
         if name(p) not in LOCAL:
@@ -71,6 +77,24 @@ def hits(L):
     import test_v2 as V
     from decimal import Decimal as D
     out = [0] * len(L)
+    if TARGET == 'LITTLE':
+        init = [l for l in open(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'), encoding='utf-8').read()
+                .split('\n') if l.strip()]
+        import tempfile, c47sim
+        t = tempfile.mkdtemp(); files = []
+        for i, pr in enumerate(V.T.split(init + L)):
+            f = os.path.join(t, 'p%d.txt' % i); open(f, 'w', encoding='utf-8').write('\n'.join(pr) + '\n'); files.append(f)
+        c = c47sim.load(files); c.flags.add(82); c.grfnt = 21
+        c.run('INIT', maxsteps=10 ** 7)
+        for k, v in V.INPUTS:
+            c.reg[k] = D(v)
+        h = collections.Counter()
+        c.count = lambda op, x: h.update([c.at])
+        c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = [V.K['up'], V.K['down'], V.K['down'], V.K['+']]
+        c.run('NAV', maxsteps=10 ** 8)
+        a = c.lines.index(L[0])                     # the listing's first program (NAV may have moved)
+        assert len(c.lines) - a == len(L), 'build_struct: the simulator lines are not the listing'
+        return [h[a + i] for i in range(len(L))]
     for keys in PAGES:
         c = V.T.load(L, 'FULL')
         for k, v in V.INPUTS:
@@ -79,7 +103,7 @@ def hits(L):
         c.count = lambda op, x: h.update([c.at])
         c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
         c.run('NAV', maxsteps=10 ** 8)
-        a = c.lines.index('LBL "NAV"')
+        a = c.lines.index(L[0])                     # the listing's first program (NAV may have moved)
         assert len(c.lines) - a == len(L), 'build_struct: the simulator lines are not the listing'
         for i in range(len(L)):
             out[i] += h[a + i]
@@ -170,6 +194,7 @@ def inline(L):
     jump, END, local register or test right before its RTN; the call: no test before it (the test would skip only
     the first copied step) unless the routine is one step, not in a LocR program unless the routine is there too."""
     h = hits(L)
+    LOCAL = local_programs(L)
     bodies = {}                                   # (program, label) -> steps
     for p, a in starts(L):
         for i, l in enumerate(p):
@@ -494,13 +519,110 @@ STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), (
          ('10_selfinit', selfinit), ('11_hybrid', hybrid))
 
 
+def _rtn_block(L, start, prog=None):
+    s = L.index(start, L.index('LBL "%s"' % prog) if prog else 0)
+    j = s
+    while L[j] != 'RTN':
+        j += 1
+    return L[s:j + 1]
+
+
+def little_map(L):
+    """NAVFULL -> NAVLITTLE registers and names (each build numbered its own): STR2, HCZI and the vector Hc / Zn of
+    both lined up step by step; the operands that differ are the mapping (scratch registers, used two ways, left out)."""
+    F = [l for l in open(SRC, encoding='utf-8').read().split('\n') if l.strip()]
+    mp, bad = {}, set()
+    for a, b in ((_rtn_block(F, 'LBL "N22"'), _rtn_block(L, 'LBL "N09"')), (_rtn_block(F, 'LBL "N36"'), _rtn_block(L, 'LBL "N14"')),
+                 (_rtn_block(F, 'LBL 99', 'N64'), _rtn_block(L, 'LBL 99', 'N01'))):
+        assert len(a) == len(b)
+        for x, y in zip(a, b):
+            ox, _, ax = x.partition(' ')
+            oy, _, ay = y.partition(' ')
+            assert ox == oy, (x, y)
+            if ax != ay:
+                if mp.get(ax, ay) != ay:
+                    bad.add(ax)
+                mp[ax] = ay
+    return {k: v for k, v in mp.items() if k not in bad}
+
+
+def to_little(P, mp):
+    """NAVFULL code -> NAVLITTLE: the operands of RCL / RCL+ / RCL- / RCL× / RCL÷ through the mapping (the matrix code
+    only reads NAV's registers); a register or name the mapping does not know stops the build."""
+    out = []
+    for l in P:
+        m = re.fullmatch(r'(RCL[+\-×÷]?) (\d\d|"[A-Z]\d")', l)
+        if m:
+            assert m.group(2) in mp, 'build_struct: no NAVLITTLE register for %s' % l
+            l = '%s %s' % (m.group(1), mp[m.group(2)])
+        out.append(l)
+    return out
+
+
+LITE_TEMP = ('YC4', 'YQ', 'YMT', 'YV', 'YR', 'YCC', 'YSS', 'YX', 'YY', 'YZ', 'YT')
+
+
+def little_stars(L):
+    """NAVLITTLE (no sky cache, 64 KB on the old DM42): the stars of the ALMANAC loop as in step 11, without 58-row
+    matrices per time (they left a few bytes free on the 64 KB DM42). Before the loop N95 makes two 4 x 3 matrices
+    for the time: SXG (the star vector -> the GHA frame) and SXH (-> north / east / zenith); SXA SXD (the star vectors,
+    7.4 KB) are made by NAV the first time, from NAVINIT_LITTLE's ST. In the loop SQK becomes N96: the star's row
+    (x y z 1 at T: SXA + T SXD) times SXH, the zenith component is sin Hc (no trig); STR2 + the vector Hc / Zn become
+    N97: the same row times SXG, then GHA Dec Hc Zn (4 →POL) into the same registers (R17 GHA, R18 Dec, R24 Hc,
+    R23 Zn, W4 sin Hc). Kept between calls: YS (the star's row, 1 x 4), YHR and YER (its horizon and GHA-frame vectors, 1 x 3)."""
+    sys.path.insert(0, os.path.join(HERE, 'tests_calc'))
+    import gen_tstar
+    mp = little_map(L)
+    T, ARIES = mp['03'], mp['02']
+    a = L.index('LBL "N01"')
+    e = L.index('END', a)
+    P = swap(L[a:e], ['RCL 35', 'STO 15', '1.058', 'STO 16'], ['XEQ "N95"', 'RCL 35', 'STO 15', '1.058', 'STO 16'])
+    P = swap(P, ['XEQ "N10"', '0.15643'], ['XEQ "N96"', '0.15643'])
+    P = swap(P, ['XEQ "N09"', 'STO 17', 'X<>Y', 'STO 18', 'XEQ 96'], ['RCL 12', 'XEQ "N97"'])
+    ms = to_little(gen_tstar.matrix_stars('SXA', 'SXD'), mp)
+    setup = gen_tstar.vector_setup('SXA', 'SXD', (10, 11, 12, 13))
+    i = setup.index('RTN')
+    setup = setup[:i] + ['DELITM "%s"' % v for v in SETUP_TEMP] + ['1', 'STO "SXK"'] + setup[i:]
+    S = ['LBL "N95"', 'DEG', '0', 'STO+ "SXK"', 'RCL "SXK"', 'X=0?', 'XEQ 10', 'XEQ 30',
+         'RCL %s' % ARIES, 'XEQ 73', '[M]⊤', 'RCL "YC4"', 'X<>Y', '×', 'STO "SXG"',
+         'XEQ 40', 'RCL "YC4"', 'X<>Y', '×', 'STO "SXH"'] + ['DELITM "%s"' % v for v in LITE_TEMP] + ['RTN']
+    S += ms[ms.index('LBL 30'):] + setup + ['END']
+    S += ['LBL "N96"', 'DEG', 'STO 20',                                                  # star X: its row at T
+          'INDEX "SXD"', 'RCL 20', '1', 'STOIJ', '1', 'ENTER', '4', 'M.GETM', 'RCL× %s' % T, 'STO "YS"',
+          'INDEX "SXA"', 'RCL 20', '1', 'STOIJ', '1', 'ENTER', '4', 'M.GETM', 'RCL "YS"', '+', 'STO "YS"',
+          'RCL "SXH"', '×', 'STO "YHR"', 'INDEX "YHR"', '1', 'ENTER', '3', 'STOIJ', 'RCLEL', 'RTN',   # sin Hc
+          'LBL "N97"', 'DEG', 'STO 20',
+          'RCL "YS"', 'RCL "SXG"', '×', 'STO "YER"', 'INDEX "YER"',                       # x y z of the star (1 x 3)
+          '1', 'ENTER', '1', 'STOIJ', 'RCLEL', 'STO 17', 'J+', 'RCLEL', 'STO 19', 'J+', 'RCLEL', 'STO 23',
+          'RCL 19', 'RCL 17', '→POL', 'X<>Y', 'CHS', '360', 'MOD', 'STO 17',             # GHA = -atan2(y, x)
+          'X<>Y', 'RCL 23', 'X<>Y', '→POL', 'X<>Y', 'STO 18',                           # Dec = atan2(z, r)
+          'INDEX "YHR"', '1', 'ENTER', '1', 'STOIJ', 'RCLEL', 'STO 19', 'J+', 'RCLEL', 'STO 23', 'J+', 'RCLEL', 'STO 24',
+          'RCL 23', 'RCL 19', '→POL', 'X<>Y', '360', 'MOD', 'STO 23',                 # Zn = atan2(east, north)
+          'X<>Y', 'RCL 24', 'X<>Y', '→POL', 'RCL 24', 'X<>Y', '÷', 'STO "W4"', 'DROP',  # sin Hc = up / length
+          'STO 24', 'RTN', 'END']
+    assert not re.findall(r'"T\w+"', '\n'.join(S))
+    print('  5_stars: NAVLITTLE stars by matrix (4 x 3 per time), angles only for the stars the table asks for')
+    assert L[-1] == 'END'
+    return L[:a] + P + L[e:-1] + S
+
+
+STEPS_LITTLE = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
+                ('5_stars', little_stars))
+
+
 def main():
-    L = [l for l in open(SRC, encoding='utf-8').read().split('\n') if l.strip()]
-    for folder, step in STEPS:
+    global TARGET
+    if sys.argv[1:] == ['little']:
+        TARGET = 'LITTLE'
+        src, out, fname, steps = os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt'), os.path.join(OUT, 'dm42'), 'NAVLITTLE.txt', STEPS_LITTLE
+    else:
+        src, out, fname, steps = SRC, OUT, 'NAVFULL.txt', STEPS
+    L = [l for l in open(src, encoding='utf-8').read().split('\n') if l.strip()]
+    for folder, step in steps:
         L = step(L)
-        d = os.path.join(OUT, folder)
+        d = os.path.join(out, folder)
         os.makedirs(d, exist_ok=True)
-        f = os.path.join(d, 'NAVFULL.txt')
+        f = os.path.join(d, fname)
         open(f, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
         print('  %s: %d steps, %d bytes' % (f[len(ROOT) + 1:], len(L), N.p47(f)))
 
