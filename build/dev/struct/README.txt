@@ -40,9 +40,16 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            SXK = 0: make them, SXK = 1. Pages pixel for pixel 9_allsky (4 places, every page). First
                            run: about 2 s more on the C47 (estimate; sim 0.193 -> 0.243 s), later runs as step 9.
                            To make them again (another NAVINIT catalogue): DELITM "SXK".
+  11_hybrid/NAVFULL.txt    + the stars: at each new time only the matrices (the 4 x 3 matrix, about 9 trig values, and
+                           the two products, kept as SXE and SXH), the star rows marked "not computed" as in the
+                           release; "over the horizon?" from SXH's zenith component (sin Hc, no trig); the angles
+                           (4 →POL) only for the stars a page asks for; ALLSKY fills all 58 at once (∡ on columns).
+                           Release NAVINIT. Pages pixel for pixel 10_selfinit (4 places + FAST/TBL, hour arrows on
+                           ALMANAC, SKY, ALLSKY). Cache after an hour arrow on ALMANAC: 6 stars computed, 13 marked
+                           below, 39 not asked (step 10: all 58 every time).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702.
+4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -110,6 +117,11 @@ trig values less per ALLSKY view (estimate 7.0 -> about 4.5 s).
 Variable names: the matrix code's temporary variables start with Y. They started with T until 2026-10-07: with
 the almanac tables loaded, "TSA" (the Saturn table) was overwritten and deleted (steps 8-10 stopped before the
 menu). Steps 8-10 and TSTAR fixed; checked with NAVINIT_FAST + TBL (the tables intact, pages as 7_animq).
+
+Step 11. Firmware sim CPU of the page (vectors kept), release / 7 / 10 / 11: ALMANAC + 15 hour arrows 1.364 /
+1.325 / 1.256 / 1.178 s; SKY + 5 arrows 0.641 / 0.461 / 0.436 / 0.416 s; ALLSKY + 4 arrows (11 with N99) 0.622 (10)
+/ 0.649 (11) s, total with start-up. Stars per hour arrow on ALMANAC on the C47 (counted): 7 about 300 trig values,
+10 about 241, 11 about 33.
 
 Not done yet
   - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.

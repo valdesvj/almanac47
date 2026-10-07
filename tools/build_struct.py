@@ -410,9 +410,88 @@ def selfinit(L):
     return L[:a] + P + L[e:]
 
 
+HYB_TEMP = ('YSA', 'YC4', 'YG', 'YH', 'YQ', 'YMT', 'YV', 'YR', 'YCC', 'YSS', 'YX', 'YY', 'YZ', 'YT')
+
+
+def fill_columns(e, h):
+    """The angles of all 58 stars from the matrices e (GHA frame) and h (north / east / zenith): M.GETM columns,
+    ∡ of complex columns, ABS; results in YB1-YB4 (GHA, Dec, Hc, Zn). TSTAR's LBL 20 after its two products."""
+    sys.path.insert(0, os.path.join(HERE, 'tests_calc'))
+    import gen_tstar
+    ms = gen_tstar.matrix_stars('SXA', 'SXD')
+    l20 = ms[:ms.index('LBL 30')]
+    a = l20.index('INDEX "YE"') + 1
+    b = l20.index('RTN')
+    out = l20[a:b]
+    i = out.index('RCL "YSA"')                       # the second product -> the matrix h
+    assert out[i:i + 5] == ['RCL "YSA"', 'RCL "YH"', '×', 'STO "YE"', 'INDEX "YE"']
+    out = out[:i] + ['INDEX "%s"' % h] + out[i + 5:]
+    assert 'RCL "YSA"' not in out and 'YE' not in ' '.join(out)
+    return out
+
+
+def hybrid(L):
+    """Stars: the matrices at each new time, the angles only for the stars a page asks for (fast hour arrows).
+    CALC (N95): the 4 x 3 matrix (about 9 trig values) and the two products, kept as SXE (58 x 3, the stars in the
+    GHA frame) and SXH (58 x 3, north / east / zenith); every star row of ALMC marked "not computed" (-98) as in the
+    release. CSQK on a -98 star: the zenith component of SXH is sin Hc (no trig) against SQK's limit (R92); under it
+    the star is marked -99 (LBL 33, as in the release), else N97 computes GHA Dec Hc Zn from its two rows (4 →POL)
+    into the cache. ALLSKY: N98 computes any star still without values (-98 or -99) before reading it.
+    The same formulas as steps 8-10 (atan2 of the same vectors): the same values."""
+    sys.path.insert(0, os.path.join(HERE, 'tests_calc'))
+    import gen_tstar
+    # CSQK: -98 -> LBL 32 (test and compute), -99 -> 0, else the exact Hc against the limit (as step 8)
+    L = swap(L, ['RCLEL', '8.999740983204436', 'X>Y?', 'GTO 31', 'RCL 43', 'RTN'],
+             ['RCLEL', '-98', 'X=Y?', 'GTO 32', 'X<>Y', '-99', 'X=Y?', 'GTO 31', 'X<>Y', '8.999740983204436', 'X>Y?',
+              'GTO 31', 'RCL 43', 'RTN'])
+    L = swap(L, ['LBL 32', 'RCL "V0"', 'XEQ "N23"', 'RCL 92', 'X>Y?', 'GTO 33', 'XEQ "N22"', 'STO "V0"', 'X<>Y',
+                 'STO "V1"', 'X<>Y', 'XEQ 94', 'INDEX "ALMC"', 'RCL 22', 'RCL 93', '+', 'XEQ 90', 'RCL 43', 'RTN'],
+             ['LBL 32', 'INDEX "SXH"', 'RCL "V0"', 'RCL 51', 'STOIJ', 'RCLEL', 'RCL 92', 'X>Y?', 'GTO 33',
+              'RCL "V0"', 'XEQ "N97"', 'RCL 43', 'RTN'])
+    # ALLSKY: every star computed before CSTR / CHCZ read it
+    L = swap(L, ['RCL 21', 'IP', 'STO 22', 'XEQ "N67"', 'XEQ "N69"'],
+             ['RCL 21', 'IP', 'STO 22', 'XEQ "N98"', 'XEQ "N67"', 'XEQ "N69"'])
+    # N95 again: the matrices only, then the -98 marks
+    a = L.index('LBL "N95"')
+    e = L.index('END', a)
+    old = L[a:e]
+    setup = old[old.index('LBL 10'):]
+    assert setup[0] == 'LBL 10' and '1' in setup and 'STO "SXK"' in setup
+    ms = gen_tstar.matrix_stars('SXA', 'SXD')
+    lbl30 = ms[ms.index('LBL 30'):]
+    l20 = ms[:ms.index('LBL 30')]
+    cut = l20.index('STO "YE"')
+    l20 = l20[:cut] + ['STO "SXE"', 'RCL "YSA"', 'RCL "YH"', '×', 'STO "SXH"', 'RTN']
+    P = ['LBL "N95"', 'DEG', '0', 'STO+ "SXK"', 'RCL "SXK"', 'X=0?', 'XEQ 10', 'XEQ 20',
+         'INDEX "ALMC"', '7', 'RCL 51', 'STOIJ', '58', 'STO 25', '-98', 'LBL 02', 'STOEL', 'I+', 'DSE 25', 'GTO 02']
+    P += ['DELITM "%s"' % v for v in HYB_TEMP] + ['RTN'] + l20 + lbl30 + setup
+    names = set(re.findall(r'"(Y\w+)"', '\n'.join(P)))
+    assert names <= set(HYB_TEMP) | set(SETUP_TEMP), names - set(HYB_TEMP) - set(SETUP_TEMP)
+    # N97: star X -> GHA Dec Hc Zn into its ALMC row (R01 R05 R06 R07 R09: CSQK's old path used them as scratch)
+    P += ['END', 'LBL "N97"', 'DEG', 'STO 07',
+          'INDEX "SXE"', 'RCL 07', '1', 'STOIJ', 'RCLEL', 'STO 01', 'J+', 'RCLEL', 'STO 05', 'J+', 'RCLEL', 'STO 06',
+          'INDEX "ALMC"', 'RCL 07', 'RCL 93', '+', '1', 'STOIJ',
+          'RCL 05', 'RCL 01', '→POL', 'X<>Y', 'CHS', 'RCL 45', 'MOD', 'STOSEQ',          # GHA = -atan2(y, x)
+          'X<>Y', 'RCL 06', 'X<>Y', '→POL', 'X<>Y', 'STOSEQ',                           # Dec = atan2(z, r)
+          'INDEX "SXH"', 'RCL 07', '1', 'STOIJ', 'RCLEL', 'STO 01', 'J+', 'RCLEL', 'STO 05', 'J+', 'RCLEL', 'STO 06',
+          'RCL 05', 'RCL 01', '→POL', 'X<>Y', 'RCL 45', 'MOD', 'STO 05',              # Zn = atan2(east, north)
+          'X<>Y', 'RCL 06', 'X<>Y', '→POL', 'X<>Y', 'STO 09',                         # Hc = atan2(up, r)
+          'INDEX "ALMC"', 'RCL 07', 'RCL 93', '+', 'RCL 51', 'STOIJ', 'RCL 09', 'STOSEQ', 'RCL 05', 'STOEL', 'RTN',
+          # N98 (ALLSKY): a star without values (-98, -99; a real Hc is never under -90) -> all 58 at once (N99)
+          'LBL "N98"', 'INDEX "ALMC"', 'RCL 93', '+', 'RCL 51', 'STOIJ', 'RCLEL', '-90.5', 'X>Y?',
+          'GTO "N99"', 'RTN']
+    # N99: GHA Dec Hc Zn of every star from SXE / SXH with ∡ on whole columns (step 10's code), into ALMC (M.PUTM)
+    P += ['LBL "N99"', 'DEG', 'INDEX "SXE"'] + fill_columns('SXE', 'SXH') + ['INDEX "ALMC"']
+    for j in range(1, 5):
+        P += ['7', 'ENTER', str(j), 'STOIJ', 'RCL "YB%d"' % j, 'M.PUTM']
+    P += ['DELITM "%s"' % v for v in ('YX1', 'YX2', 'YB1', 'YB2', 'YB3', 'YB4')] + ['RTN']
+    print('  11_hybrid: stars by matrix at each time, angles only for the stars a page asks for')
+    return L[:a] + P + L[e:]
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
-         ('10_selfinit', selfinit))
+         ('10_selfinit', selfinit), ('11_hybrid', hybrid))
 
 
 def main():
