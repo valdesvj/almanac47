@@ -391,8 +391,27 @@ def allsky(L):
     return L[:a] + P + L[e:]
 
 
+def selfinit(L):
+    """The star vectors SXA / SXD made by NAV itself, the first time (from NAVINIT's catalogue ST, as step 8's NAVINIT
+    does), then kept like the cache ALMC: the release NAVINIT stays. The test: 0 STO+ "SXK" (STO+ makes a missing
+    variable with 0: allocateNamedVariableOnMiss; RCL of a missing name would stop NAV); SXK = 0: make SXA SXD, SXK = 1."""
+    sys.path.insert(0, os.path.join(HERE, 'tests_calc'))
+    import gen_tstar
+    a = L.index('LBL "N95"')
+    e = L.index('END', a)
+    P = L[a:e]
+    assert P[:3] == ['LBL "N95"', 'DEG', 'XEQ 20'] and not {'LBL 10', 'LBL 11', 'LBL 12', 'LBL 13'} & set(P)
+    setup = gen_tstar.vector_setup('SXA', 'SXD', (10, 11, 12, 13))
+    i = setup.index('RTN')
+    setup = setup[:i] + ['DELITM "%s"' % v for v in SETUP_TEMP] + ['1', 'STO "SXK"'] + setup[i:]
+    P = P[:2] + ['0', 'STO+ "SXK"', 'RCL "SXK"', 'X=0?', 'XEQ 10'] + P[2:] + setup
+    print('  10_selfinit: NAV makes SXA SXD the first time (release NAVINIT)')
+    return L[:a] + P + L[e:]
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
-         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky))
+         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
+         ('10_selfinit', selfinit))
 
 
 def main():

@@ -34,9 +34,15 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            about 9 trig values a star). Uses step 8's NAVINIT. ALLSKY calls CSUN first, so the cache
                            is the hour shown (arrows checked: the same hour gives the same screen). Stars move by at
                            most a pixel (38-163 pixels of a screen, 4 places); every other page as 8_mstars.
+  10_selfinit/NAVFULL.txt  + NAV makes the star vectors SXA SXD itself the first time it runs (from NAVINIT's catalogue
+                           ST, the code of step 8's NAVINIT) and keeps them, like the cache ALMC: the RELEASE NAVINIT
+                           stays. The test: 0 STO+ "SXK" (STO+ makes a missing variable with 0; RCL would stop NAV);
+                           SXK = 0: make them, SXK = 1. Pages pixel for pixel 9_allsky (4 places, every page). First
+                           run: about 2 s more on the C47 (estimate; sim 0.193 -> 0.243 s), later runs as step 9.
+                           To make them again (another NAVINIT catalogue): DELITM "SXK".
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246.
+4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
