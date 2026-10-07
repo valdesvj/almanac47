@@ -606,12 +606,69 @@ def little_stars(L):
     return L[:a] + P + L[e:-1] + S
 
 
+def free42(L):
+    """Free42 NAVFULL with the screens of the C47 step 11: the equator every SKY_STEP deg (SKY, ANIM) and CHART_STEP deg
+    (SPLIT, ALLSKY), each dot 3 x 3 pixels as the C47 POINT (x-1..x+1, y-1..y+1 around the old 2 x 2 dot at x..x+1,
+    y..y+1; nine calls of the pixel routine N79 in place of four); ALLSKY's stars exact (STR2 N22 and CHCZ N68, which
+    falls back to HCZ, in place of the catalogue with a linear precession), as the C47 step 9. Free42 has no frame
+    wait in ANIM and computes every frame (the C47 interpolation changes no pixel): nothing to do there."""
+    nsky, nchart = round(360 / SKY_STEP), round(360 / CHART_STEP)
+    S, C = '%g' % SKY_STEP, '%g' % CHART_STEP
+    isg = lambda n: '0.%03d01' % (n - 1)
+    L = swap(L, ['0', '2', 'XEQ "N76"', '0.35802'], ['0', S, 'XEQ "N76"', isg(nsky)], 2)        # SKY, ANIM
+    L = swap(L, ['0', '3', 'XEQ "N76"', '0.35703'], ['0', C, 'XEQ "N76"', isg(nchart)], 2)      # SPLIT, ALLSKY
+    L = swap(L, ['RCL "U2"', '3', 'X=Y?', 'GTO 43', 'RCL "U2"', '2', 'X=Y?', 'GTO 42'],        # CEQQ: the cache rows
+             ['RCL "U2"', C, 'X=Y?', 'GTO 43', 'RCL "U2"', S, 'X=Y?', 'GTO 42'])
+    assert nchart <= 120 and nsky <= 180                    # ALMQ rows 1-120 and 121-300
+    def dot(y, x):
+        def plus(v, d):
+            return [v] if d == 0 else [v, '1', '+' if d > 0 else '-']
+        old = []
+        for dy, dx in ((0, 0), (0, 1), (1, 0), (1, 1)):
+            old += plus(y, dy) + plus(x, dx) + ['XEQ "N79"']
+        new = []
+        for dy in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                new += plus(y, dy) + plus(x, dx) + ['XEQ "N79"']
+        return old, new
+    old, new = dot('RCL 00', 'RCL 25')                     # SKY: the first y is still in X after STO 00
+    L = swap(L, ['STO 00'] + old[1:] + ['RTN'], ['STO 00', 'DROP'] + new + ['RTN'])
+    for y, x in (('RCL 09', 'RCL 25'), ('RCL 09', 'RCL 05'), ('RCL 23', 'RCL 10')):
+        old, new = dot(y, x)
+        L = swap(L, old + ['RTN'], new + ['RTN'])
+    a = L.index('LBL "N61"')
+    e = L.index('END', a)
+    P = swap(L[a:e], ['INDEX "ST"', 'RCL 22', 'IP', '1', 'STOIJ', 'RCLEL', 'STO 23', 'J+', 'RCLEL', 'STO 05',
+                      'RCL 23', 'COS', '20.0431', '×', 'RCL× 09', 'RCL+ 05', 'RCL 23', 'SIN', 'RCL 05', 'TAN', '×',
+                      '20.0431', '×', '46.1244', '+', 'RCL× 09', 'RCL+ 23', 'RCL 06', 'X<>Y', '-', 'RCL 43', 'MOD',
+                      'XEQ "N68"'],
+             ['RCL 22', 'IP', 'STO 23', 'XEQ "N22"', 'XEQ "N68"'])
+    # STR2 reads the Sun's state that CSUN restores; ALLSKY keeps the Sun's GHA / Dec from its CSUN call in R07 R08,
+    # two of those inputs: before the stars R07 R08 saved and CSUN called again for the same time R20 (a cache hit
+    # that puts STR2's inputs back), after them R07 R08 given back (nothing else CSUN writes is read before ALLSKY
+    # writes it again)
+    P = swap(P, ['RCL 85', 'STO 22', 'LBL 20'], ['RCL 07', 'STO "YA7"', 'RCL 08', 'STO "YA8"', 'RCL 20', 'XEQ "N63"',
+                                                 'RCL 85', 'STO 22', 'LBL 20'])
+    P = swap(P, ['XEQ 15', 'ISG 22', 'GTO 20'], ['XEQ 15', 'ISG 22', 'GTO 20', 'RCL "YA7"', 'STO 07', 'RCL "YA8"',
+                                                 'STO 08', 'DELITM "YA7"', 'DELITM "YA8"'])
+    print('  free42: equator %s / %s deg with 3 x 3 dots, ALLSKY stars exact' % (S, C))
+    return L[:a] + P + L[e:]
+
+
 STEPS_LITTLE = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
                 ('5_stars', little_stars))
 
 
 def main():
     global TARGET
+    if sys.argv[1:] == ['f42']:
+        L = [l for l in open(os.path.join(ROOT, 'build', 'free42', 'NAVFULL.txt'), encoding='utf-8').read().split('\n') if l.strip()]
+        d = os.path.join(OUT, 'free42')
+        os.makedirs(d, exist_ok=True)
+        f = os.path.join(d, 'NAVFULL.txt')
+        open(f, 'w', encoding='utf-8').write('\n'.join(free42(L)) + '\n')
+        print('  %s: %d steps, .raw %s bytes' % (f[len(ROOT) + 1:], len([l for l in open(f) if l.strip()]), N.raw(f)))
+        return
     if sys.argv[1:] == ['little']:
         TARGET = 'LITTLE'
         src, out, fname, steps = os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt'), os.path.join(OUT, 'dm42'), 'NAVLITTLE.txt', STEPS_LITTLE
