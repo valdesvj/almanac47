@@ -242,17 +242,20 @@ def equator(L):
     return L
 
 
-def nopause(L):
-    """No PAUSE 0 (the screen sent to the LCD while NAV computes: the SINKING box, the box after a key); the PAUSE of
-    the key loops (PAUSE 50 / 20 before KEY?) and ANIM's frames (PAUSE 10) stay."""
-    idx = [i for i, l in enumerate(L) if l == 'PAUSE 0']
-    assert idx and not [i for i in idx if skips(L[i - 1])], 'build_struct: PAUSE 0 after a test'
-    print('  6_nopause: %d PAUSE 0 removed' % len(idx))
-    return [l for l in L if l != 'PAUSE 0']
+def anim(L):
+    """ANIM's frames without the 1 s wait: PAUSE 10 -> PAUSE 0 (each frame still reaches the LCD; 24 frames = 24 s
+    less). The PAUSE 0 of the SINKING box and of the bar after a key stay: the C47 shows the screen only at a PAUSE
+    or a key wait."""
+    a = L.index('LBL "N61"')
+    e = L.index('END', a)
+    idx = [i for i in range(a, e) if L[i] == 'PAUSE 10']
+    assert len(idx) == 1 and L.count('PAUSE 10') == 1, 'build_struct: PAUSE 10 not only in ANIM'
+    print('  6_anim: ANIM PAUSE 10 -> PAUSE 0')
+    return L[:idx[0]] + ['PAUSE 0'] + L[idx[0] + 1:]
 
 
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
-         ('5_equator', equator), ('6_nopause', nopause))
+         ('5_equator', equator), ('6_anim', anim))
 
 
 def main():

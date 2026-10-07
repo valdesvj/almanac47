@@ -15,12 +15,12 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            old 2 x 2 dot of four PIXEL): every 6 deg on SKY and ANIM (60 dots, were 180), every 9 deg
                            on SPLIT and ALLSKY (40, were 120); CEQQ computes them in blocks of 20 (was 30). The charts
                            look different (the dots lie on the old curve): Free42 and the Python versions not yet.
-  6_nopause/NAVFULL.txt    + no PAUSE 0 (3: the SINKING box before the sky is computed, and after a key): the screen
-                           reaches the LCD only at the key waits (PAUSE 50 / 20 + KEY?), which stay, as do ANIM's
-                           frames (PAUSE 10). Same pages as 5_equator, pixel for pixel; the box is no longer seen.
+  6_anim/NAVFULL.txt       + ANIM's frames without the 1 s wait: PAUSE 10 -> PAUSE 0 (24 frames: 24 s less; each
+                           frame still reaches the LCD). The PAUSE 0 of the SINKING box and of the bar after a key
+                           stay: the C47 shows the screen only at a PAUSE or a key wait. Same pages as 5_equator.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator 24290, 6_nopause 24284.
+4_inline 24375, 5_equator and 6_anim 24290.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -59,13 +59,13 @@ in the calls that remain. Every page of every step is pixel for pixel the releas
 1 ALMANAC with the arrows, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO).
 The real calculator may weigh the walks differently from the PC: time it there before a release.
 
-Steps 5 and 6. Estimated C47 time of the first view of a page (Python simulator counts, steps * 0.17 ms +
+Step 5. Estimated C47 time of the first view of a page (Python simulator counts, steps * 0.17 ms +
 trig values * 5.8 ms, the TVEC figures; POINT counted as PIXEL), and the firmware PC sim's CPU of the page
 (menu-only run subtracted):
-  page      estimate 4_inline -> 6_nopause      firmware sim CPU 4_inline -> 6_nopause
+  page      estimate 4_inline -> 5_equator     firmware sim CPU 4_inline -> 5_equator
   SKY       4.6 s -> 2.5 s  (-46 %)             0.053 -> 0.021 s  (-57 %)
   SPLIT     4.1 s -> 2.7 s  (-34 %)             0.041 -> 0.029 s  (-29 %)
-  ANIM     14.1 s -> 10.8 s (-23 %)             0.152 -> 0.126 s  (-17 %)   (+ 24 x PAUSE 10 = 24 s of frames)
+  ANIM     14.1 s -> 10.8 s (-23 %)             0.152 -> 0.126 s  (-17 %)   (6_anim: + 24 s less of frame waits)
   ALLSKY    8.5 s -> 7.0 s  (-18 %)             0.081 -> 0.074 s  (-15 %)
 ALMANAC, INFO, the menu and the hour arrows have no equator: unchanged (pixel for pixel the release).
 The menu (the whole sky, about 12.4 s) and each hour arrow (about 8.7 s, SER alone 3 s) are now the long waits.
