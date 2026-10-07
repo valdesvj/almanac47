@@ -22,7 +22,7 @@ the 58 results of A (all stars computed) and B. Results (ticks are 1/10 s):
 
 Load NAVFULL (any build of branch struct-opt or the release: they share the registers), run NAVINIT, then load
 TSTAR. It changes NAV's registers R00-R98 (NAV puts them back only when NAV itself ends): save yours first.
-The variables it makes start with T and are deleted at the end.
+The variables it makes start with Y and are deleted at the end (none of NAV, NAVINIT or TBL does).
 """
 import os
 import re
@@ -73,9 +73,14 @@ def column(i, j, name):
     return ['1', 'ENTER', str(j), 'STOIJ', '58', 'ENTER', '1', 'M.GETM', 'STO "%s"' % name]
 
 
+def yname(P):
+    """The test's own variables start with Y: no NAV, NAVINIT or TBL variable does (TBL's Saturn table is "TSA")."""
+    return [re.sub(r'"T(\w+)"', r'"Y\1"', l) for l in P]
+
+
 def vector_setup(sa0='TSA0', sad='TSD', lbl=(10, 11, 12, 13)):
     """LBL lbl[0]: the 58 star vectors (x y z 1) from the catalogue ST into sa0 (J2000) and their change per century
-    into sad (J2000 -> J2050 as a straight line). Temporary variables: TS50 TK TA TD TPA TPD TT TDD TAA TCD TSZ TX TY."""
+    into sad (J2000 -> J2050 as a straight line). Temporary variables (Y...): YS50 YK YA YD YPA YPD YT YDD YAA YCD YSZ YX YY."""
     P = []
     # LBL 10: the star vectors (x y z 1) at t = 0 and 50 years from the catalogue ST (RA, Dec, pm RA, pm Dec), as
     # STR2: a = a0 + pa t / 3600000 / cos d0, d = d0 + pd t / 3600000
@@ -92,13 +97,13 @@ def vector_setup(sa0='TSA0', sad='TSD', lbl=(10, 11, 12, 13)):
           'LBL %d' % lbl[3], 'RCL "TK"', '1', 'STOIJ', 'RCL "TX"', 'STOSEQ', 'RCL "TY"', 'STOSEQ', 'RCL "TSZ"', 'STOSEQ',
           '1', 'STOSEQ', 'RTN']
 
-    return P
+    return yname(P)
 
 
 def matrix_stars(sa0='TSA0', sad='TSD'):
     """B, all 58 stars: LBL 20 (one pass: GHA, Dec, Hc, Zn into the columns TB1-TB4), LBL 30 (C4), LBL 40 (the
     observer's north / east / zenith), LBL 71-73 (Rx, Ry, Rz). sa0: the star vectors (x y z 1) at J2000, sad: their
-    change per century. Reads NAV's registers after SUNA / CALC and HCZI; writes only variables starting with T."""
+    change per century. Reads NAV's registers after SUNA / CALC and HCZI; writes only variables starting with Y."""
     P = []
     # LBL 20: B, one pass
     P += ['LBL 20', 'RCL "%s"' % sad, 'RCL× 03', 'RCL "%s"' % sa0, '+', 'STO "TSA"', 'XEQ 30',
@@ -141,7 +146,7 @@ def matrix_stars(sa0='TSA0', sad='TSD'):
     P += rot(72, ['c', '0', '-s', '0', '1', '0', 's', '0', 'c'])
     P += rot(73, ['c', 's', '0', '-s', 'c', '0', '0', '0', '1'])
 
-    return P
+    return yname(P)
 
 
 def program():
@@ -194,12 +199,12 @@ def program():
           'RCL 09', 'STOSEQ', 'RCL 05', 'STOSEQ', 'RTN']
     P += hcz_vec()
     P += ['END']
-    return P
+    return yname(P)
 
 
 def main():
     P = program()
-    names = set(re.findall(r'"(T\w+)"', '\n'.join(P)))
+    names = set(re.findall(r'"(Y\w+)"', '\n'.join(P)))
     assert all(len(n) <= 7 for n in names), [n for n in names if len(n) > 7]
     out = os.path.join(HERE, 'TSTAR.txt')
     open(out, 'w', encoding='utf-8').write('\n'.join(P) + '\n')

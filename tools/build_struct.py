@@ -317,11 +317,11 @@ def animq(L):
     return L[:a] + P + L[e:]
 
 
-MST_TEMP = ('TSA', 'TC4', 'TG', 'TH', 'TE', 'TX1', 'TX2', 'TB1', 'TB2', 'TB3', 'TB4', 'TQ', 'TMT', 'TV', 'TR',
-            'TCC', 'TSS', 'TX', 'TY', 'TZ', 'TT')
+MST_TEMP = ('YSA', 'YC4', 'YG', 'YH', 'YE', 'YX1', 'YX2', 'YB1', 'YB2', 'YB3', 'YB4', 'YQ', 'YMT', 'YV', 'YR',
+            'YCC', 'YSS', 'YX', 'YY', 'YZ', 'YT')         # Y...: no NAV, NAVINIT or TBL name (TBL's Saturn is "TSA")
 
 
-SETUP_TEMP = ('TS50', 'TK', 'TA', 'TD', 'TPA', 'TPD', 'TT', 'TDD', 'TAA', 'TCD', 'TSZ', 'TX', 'TY')
+SETUP_TEMP = ('YS50', 'YK', 'YA', 'YD', 'YPA', 'YPD', 'YT', 'YDD', 'YAA', 'YCD', 'YSZ', 'YX', 'YY')
 
 
 def navinit_mstars(src, dst):
@@ -336,7 +336,7 @@ def navinit_mstars(src, dst):
     code = gen_tstar.vector_setup('SXA', 'SXD', (5, 6, 7, 8))
     i = code.index('RTN')                                         # the end of LBL 05: delete the set-up's variables
     code = code[:i] + ['DELITM "%s"' % v for v in SETUP_TEMP] + code[i:]
-    names = set(re.findall(r'"(T\w+)"', '\n'.join(code)))
+    names = set(re.findall(r'"(Y\w+)"', '\n'.join(code)))
     assert names <= set(SETUP_TEMP), names - set(SETUP_TEMP)
     L = L[:5] + ['XEQ 05'] + L[5:-1] + code + ['END']
     open(dst, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
@@ -361,10 +361,11 @@ def mstars(L):
              ['RCLEL', '8.999740983204436', 'X>Y?', 'GTO 31', 'RCL 43', 'RTN'])
     P = ['LBL "N95"', 'DEG', 'XEQ 20', 'INDEX "ALMC"']
     for j in range(1, 5):
-        P += ['7', 'ENTER', str(j), 'STOIJ', 'RCL "TB%d"' % j, 'M.PUTM']
+        P += ['7', 'ENTER', str(j), 'STOIJ', 'RCL "YB%d"' % j, 'M.PUTM']
     P += ['DELITM "%s"' % v for v in MST_TEMP] + ['RTN'] + gen_tstar.matrix_stars('SXA', 'SXD') + ['END']
-    names = set(re.findall(r'"(T\w+)"', '\n'.join(P)))
+    names = set(re.findall(r'"(Y\w+)"', '\n'.join(P)))
     assert names <= set(MST_TEMP), names - set(MST_TEMP)
+    assert not re.findall(r'"T\w+"', '\n'.join(P)), 'build_struct: a T... name in N95 (TBL uses T...)'
     d = os.path.join(OUT, '8_mstars')
     os.makedirs(d, exist_ok=True)
     for init in ('NAVINIT_FULL', 'NAVINIT_FAST'):

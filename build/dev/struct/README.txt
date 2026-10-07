@@ -107,6 +107,10 @@ the angles only for the stars a view asks for.
 Step 9. ALLSKY + 4 hour arrows, firmware sim CPU of the views 0.614 -> 0.445 s (-28 %); on the C47 about 460
 trig values less per ALLSKY view (estimate 7.0 -> about 4.5 s).
 
+Variable names: the matrix code's temporary variables start with Y. They started with T until 2026-10-07: with
+the almanac tables loaded, "TSA" (the Saturn table) was overwritten and deleted (steps 8-10 stopped before the
+menu). Steps 8-10 and TSTAR fixed; checked with NAVINIT_FAST + TBL (the tables intact, pages as 7_animq).
+
 Not done yet
   - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.
   - NAVLITTLE (DM42) and MOON47: the same passes, once a step has shown it pays.
