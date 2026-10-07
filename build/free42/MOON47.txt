@@ -157,7 +157,7 @@ STO "BH"
 XEQ "M7BX"
 RCL "AY"
 RCL "AX"
-7
+3
 +
 RTN
 LBL 29
@@ -1547,7 +1547,7 @@ CLA
 XEQ 93
 RTN
 LBL 55
-"€0c€0c€8c€ec€7c"
+"€0c€0c€8c€fc€7c"
 ├"€1c"
 RCL "FT"
 XEQ 99

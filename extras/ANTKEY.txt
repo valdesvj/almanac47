@@ -1,48 +1,78 @@
-LBL "ANTKEY"
-CLLCD
+; ANTKEY: C47 PC simulator bug. The simulator draws the stack over a running program's
+; graphics when a key is RELEASED. The calculator (DM42n/C47) keeps the drawing.
+; Firmware: c43 master e7909a744 (2026-10-05).
+;
+; How to see it: XEQ ANTKEY2, then press any key except R/S or EXIT (5 times).
+;   Calculator: one more ant each time, all ants stay on the screen.
+;   PC simulator: the ant is drawn, then the stack comes back when you release the key.
+;
+; Where it is (PC_BUILD only):
+; 1. src/c47/keyboard.c btnPressed (line 1841): while the program is RUNNING or PAUSED it
+;    only stores the key code for KEY?. Correct.
+; 2. src/c47/keyboard.c btnReleased (line 2080) has no such check. It only returns early
+;    for PGM_KEY_PRESSED_WHILE_PAUSED (line 2122) and otherwise ends in refreshScreen(117)
+;    (line 2352), which draws the stack over the graphics. btnFnReleased (line 820) is the same.
+; 3. On the calculator btnReleased is never reached while a program runs: the run loop polls
+;    the keys itself, and fnPause (src/c47/programming/input.c line 178) waits for the release
+;    (wait_for_key_release + key_pop, lines 208 and 169 in pauseKeyExit). The PC branch of
+;    fnPause (from line 263) does not, so the GTK release event goes to btnReleased.
+;
+; Possible fix: in btnReleased and btnFnReleased, after the PGM_KEY_PRESSED_WHILE_PAUSED check,
+;   #if defined(PC_BUILD)
+;     if(programRunStop == PGM_RUNNING || programRunStop == PGM_PAUSED) return;
+;   #endif
+; (PAUSED is needed: with a normal click the release arrives during the PAUSE after the drawing.)
+; Or: make the PC fnPause wait for the key release like the DMCP one.
+
+LBL "ANTKEY"     ; Without PAUSE: the display is not updated on the calculator
+CLLCD            ; Clear the screen
 50
-STO 01
+STO 01           ; R01 = x of the first ant
 5
-STO 02
+STO 02           ; R02 = 5 ants
 LBL 01
-110
-RCL 01
-XEQ 10
+110              ; y
+RCL 01           ; x
+XEQ 10           ; Draw an ant (inverted)
 LBL 02
-KEY? 03
-GTO 02
+KEY? 03          ; Wait for a key, program RUNNING
+GTO 02           ; Calculator: the ant appears only now, at the key
+                 ; Simulator: BUG, releasing the key -> btnReleased -> refreshScreen(117) -> stack
 60
-STO+ 01
+STO+ 01          ; Next ant 60 pixels to the right
 DSE 02
 GTO 01
 RTN
-LBL "ANTKEY2"
-CLLCD
+
+LBL "ANTKEY2"    ; The same with PAUSE 1: right on the calculator, the bug shows in the simulator
+CLLCD            ; Clear the screen
 50
-STO 01
+STO 01           ; R01 = x of the first ant
 5
-STO 02
+STO 02           ; R02 = 5 ants
 LBL 21
-110
-RCL 01
-XEQ 10
-PAUSE 1
+110              ; y
+RCL 01           ; x
+XEQ 10           ; Draw an ant (inverted)
+PAUSE 1          ; Calculator: shows the ant now
+                 ; Simulator: a key released during the PAUSE (PGM_PAUSED) -> BUG
 LBL 22
-KEY? 03
-GTO 22
+KEY? 03          ; Wait for a key, program RUNNING
+GTO 22           ; Simulator: BUG, releasing the key -> btnReleased -> refreshScreen(117) -> stack
 60
-STO+ 01
+STO+ 01          ; Next ant 60 pixels to the right
 DSE 02
 GTO 21
 RTN
-LBL 10
+
+LBL 10           ; Draw an ant: 10 columns of 14 pixels at x, y
 WSIZE 16
-11000000000000#2
+11000000000000#2 ; Legs
 STO 32
 R↓
 AGRAPH 32
 AGRAPH 32
-00111100111111#2
+00111100111111#2 ; Body
 STO 32
 R↓
 AGRAPH 32
@@ -51,7 +81,7 @@ AGRAPH 32
 AGRAPH 32
 AGRAPH 32
 AGRAPH 32
-11000000000000#2
+11000000000000#2 ; Legs
 STO 32
 R↓
 AGRAPH 32

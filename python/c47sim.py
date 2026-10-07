@@ -115,7 +115,9 @@ class Calc:
             on = {(line + rb + rg - 1 - r, x + cb + c) for r, v in enumerate(rows) for c in range(cg) if v >> (cg - 1 - c) & 1}
             on = {p for p in on if 0 <= p[0] < 240 and 0 <= p[1] < 400}
             if mode == 1:
-                ps -= {(yy, xx) for yy in range(line, line + ra + rg + rb) for xx in range(x, x + adv)}
+                # the firmware (showGlyphCode): the whole width of the glyph box is cleared, before GRFNT 21
+                # moves the next character one column back
+                ps -= {(yy, xx) for yy in range(line, line + ra + rg + rb) for xx in range(x, x + adv + CP)}
             if mode == 2: ps -= on
             elif mode == 3: ps ^= on
             else: ps |= on
@@ -201,7 +203,8 @@ class Calc:
             if getattr(self, 'count', None) is not None: self.count(op, self.s[0])     # tests: what runs (test_navopt)
             if re.fullmatch(r'[01]+#2', ln):
                 v=int(ln[:-2],2)
-                if v >= 1<<(getattr(self,'ws',64)-1): raise ValueError('OUT OF RANGE literal %s ws %d'%(ln,self.ws))
+                # the firmware takes up to WSIZE bits (64 ones at WSIZE 64: ELEM47P's info box edge)
+                if v >= 1<<getattr(self,'ws',64): raise ValueError('OUT OF RANGE literal %s ws %d'%(ln,self.ws))
                 self.push(D(v)); continue
             if re.fullmatch(r'-?[\d.]+(E-?\d+)?', ln): self.push(D(ln)); continue
             if op == 'LBL': continue
@@ -243,6 +246,8 @@ class Calc:
                 if op == 'STO' and arg.startswith('"'):
                     pass
             if op == 'ENTER': self.s = [self.s[0]] + self.s[:3]; self.lift = False; continue
+            if op == 'CC':                                 # item 1730: x + iy from Y (real) and X (imaginary)
+                self.binary(lambda y, x: complex(float(y), float(x))); continue
             if op == 'DEG': self.deg = True; continue
             if op == 'RAD': self.deg = False; continue
             op={'Y↑X':'Y^X','X↑2':'X^2','x²':'X^2'}.get(op,op)
@@ -258,6 +263,13 @@ class Calc:
                 x,y=self.s[0],self.s[1]
                 ok={'X<Y?':lambda:x<y,'X≥Y?':lambda:x>=y,'X=0?':lambda:x==0,'X<0?':lambda:x<0,'X>0?':lambda:x>0,'X≤Y?':lambda:x<=y,'X≥0?':lambda:x>=0,'X>Y?':lambda:x>y,'X=Y?':lambda:x==y,'X≠0?':lambda:x!=0,'X≠Y?':lambda:x!=y,'X≤0?':lambda:x<=0}[op]()
                 if not ok: pc+=1
+                continue
+            cmp = op.replace('𝑥', 'x')
+            if cmp in ('x=?', 'x≠?', 'x<?', 'x≤?', 'x>?', 'x≥?') and arg:
+                # the C47 compares (items 11-22): X with the argument, a stack register or a register
+                x = self.s[0]; v = self.s['XYZT'.index(arg[-1])] if arg in ('X', 'Y', 'Z', 'T', 'ST X', 'ST Y', 'ST Z', 'ST T') else self.rget(self.regkey(arg))
+                ok = {'x=?': x == v, 'x≠?': x != v, 'x<?': x < v, 'x≤?': x <= v, 'x>?': x > v, 'x≥?': x >= v}[cmp]
+                if not ok: pc += 1
                 continue
             if op == 'CLLCD': self.pix=[]; self.txt=[]; continue
             if op == 'TICKS': self.push(D(int(self.steps * 0.0017))); continue   # 1/10 s, model: 0.17 ms per step
@@ -362,6 +374,21 @@ class Calc:
                 if v >= 1<<(getattr(self,'ws',64)-1): raise ValueError('OUT OF RANGE alpha->x %d ws %d'%(v,self.ws))
                 self.push(D(v)); self.rset(arg,k[1:]); continue
             if op == 'αSL': self.rset(arg, self.rget(arg)[int(self.s[0]):]); continue
+            if op in ('αLEFT', 'αRIGHT', 'αMID'):
+                # the firmware (stringFuncs.c _alphaLeftMidRight): the register is not changed; X (the
+                # number of characters) is replaced by the text; αMID takes the start (from 1) from Y and
+                # drops Y. Checked with the T47 simulator: "ABCDEF" 2 αLEFT r -> r = "ABCDEF", X = "AB"
+                s = self.rget(self.regkey(arg)); n = max(0, min(int(self.s[0]), len(s))); self.lastx = self.s[0]
+                if op == 'αLEFT': self.s[0] = s[:n]
+                elif op == 'αRIGHT': self.s[0] = s[len(s) - n:]
+                else:
+                    a = max(0, int(self.s[1])); self.s[0] = '' if a == 0 or a > len(s) else s[a - 1:a - 1 + n]
+                    self.s = [self.s[0]] + self.s[2:] + self.s[3:]
+                continue
+            if op == 'αPOS':
+                # the firmware (fnAlphaPos): X (the text searched for) stays, the stack is lifted and X = its
+                # position in the register (from 0), -1 when it is not there
+                self.lastx = self.s[0]; self.push(D(str(self.rget(self.regkey(arg))).find(str(self.s[0])))); continue
             if op == 'REM': continue
             if op == 'GRFNT' and not arg: self.grfnt = int(self.s[0]); continue   # font of ATEXT from X (10 tiny, 20 standard); X stays
             if op == 'SNAP': self.snaps = getattr(self, 'snaps', []) + [list(self.pix)]; continue   # a picture of the screen
@@ -370,7 +397,12 @@ class Calc:
             if op == 'RAN#':
                 import random as _r; self.push(D(repr(_r.Random(getattr(self,'seed',0)).random()))); self.seed=getattr(self,'seed',0)+1; continue
             if op == 'DELP': self.deleted=getattr(self,'deleted',[])+[arg]; continue
-            if op == 'GRMOD': self.grmod=int(self.rget(arg)) if arg else int(self.s[0]); continue
+            if op == 'GRMOD':
+                # GRMOD (item 2742) takes no argument: the mode from X. rejig encodes "GRMOD 30" as GRMOD
+                # and then the number 30 (pushed), as the C47 runs it
+                self.grmod = int(self.s[0])
+                if arg: self.push(D(arg))
+                continue
             if op in ('DROP', 'DROP𝑥'): self.s = self.s[1:] + self.s[3:]; continue
             if op == 'ATEXT' and arg:
                 # ATEXT r (new C47 command): the string in r in the standardFont, Y = row of the bottom of
@@ -387,6 +419,11 @@ class Calc:
                 if getattr(self,'grmod',0) == 2:                  # OFF: switch the pattern's pixels off
                     off={(y+i,x) for i in range(self.ws) if v>>i & 1}
                     self.pix=[p for p in self.pix if p not in off]
+                elif getattr(self,'grmod',0) in (1, 4):           # the firmware (fnAGraph): 1 writes the pattern
+                    on = {(y+i,x) for i in range(self.ws) if v>>i & 1}  # exactly (0 bits white), 4 the inverse
+                    col = {(y+i,x) for i in range(self.ws)}
+                    if self.grmod == 4: on = col - on
+                    self.pix = [q for q in self.pix if q not in col] + sorted(on)
                 elif getattr(self,'grmod',0) == 3:                # XOR: switch every pixel of the pattern
                     ps=set(self.pix)
                     for i in range(self.ws):
@@ -484,7 +521,11 @@ class Calc:
                 self.unary(lambda x: x * k if op == 'deg→rad' else x / k); continue
             if op == 'DELITM':                                        # delete a variable (fnDeleteVariable)
                 self.reg.pop(arg, None); self.mats.pop(arg, None); continue
-            if op == 'STOEL': self.mats[self.cur][self.I-1][self.J-1] = self.s[0] if isinstance(self.s[0], D) else float(self.s[0]); continue   # real34 kept (C47 real matrix)
+            if op == 'STOEL':                            # real34 kept (C47 real matrix); a complex number kept too
+                x = self.s[0]; self.mats[self.cur][self.I-1][self.J-1] = x if isinstance(x, (D, complex)) else float(x); continue
+            if op in ('M.DIM', 'DIM'):                  # item 1526: Y x X zeros in the register (a new size)
+                r, c = int(self.s[1]), int(self.s[0]); k = arg.strip('"')
+                self.mats[k] = [[D(0)] * c for _ in range(r)]; self.reg.pop(k, None); continue
             if op == 'INDEX': self.cur = arg; self.I = self.J = 1; continue
             if op == 'STOIJ':
                 i, j = self.s[1], self.s[0]; m = self.mats[self.cur]
@@ -492,7 +533,7 @@ class Calc:
                     raise ValueError('STOIJ (%s, %s) out of range for %s %dx%d' % (i, j, self.cur, len(m), len(m[0])))
                 self.I, self.J = int(i), int(j); self.lift = True; continue
             if op == 'RCLEL':
-                v = self.mats[self.cur][self.I-1][self.J-1]; self.push(v if isinstance(v, D) else D(str(float(v)))); continue
+                v = self.mats[self.cur][self.I-1][self.J-1]; self.push(v if isinstance(v, (D, complex)) else D(str(float(v)))); continue
             if op in ('RCLSEQ', 'STOSEQ'):              # recall / store the element, then J+
                 m = self.mats[self.cur]
                 if op == 'RCLSEQ':
