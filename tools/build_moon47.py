@@ -66,6 +66,17 @@ def clock(f42):
                  'TIME', '→HR', 'RCL 03', '-', '24', '÷', '+']
 
 
+def _ap_adv():
+    """The advance of the minute mark ' in GRFNT 21: the firmware's standard font (python/stdfont.py), one column
+    less (3 px since the font of Oct 2026; it was 7)."""
+    from stdfont import STD
+    cb, cg, ca = STD[ord("'")][:3]
+    return cb + cg + ca - 1
+
+
+AP_ADV = _ap_adv()
+
+
 def main_program(f42=False):
     # the minute mark ': ATEXT on the C47; on Free42 two boxes (LBL 47), because with it and the descenders of
     # ( and ) the AGRAPH font would be 17 rows high (two bands of 8). Same pixels: the standard font's '
@@ -86,7 +97,7 @@ def main_program(f42=False):
               'REM "LBL 47: Y row of the base line, X column -> the minute mark (2 x 5 + 1 x 1 pixels); Y row, X next column"',
               'LBL 47', 'STO "AX"', 'STO "BX"', 'X<>Y', 'STO "AY"', '10', '+', 'STO "BY"', '2', 'STO "BW"', '5', 'STO "BH"',
               'XEQ "M7BX"', 'RCL "AX"', 'STO "BX"', 'RCL "AY"', '9', '+', 'STO "BY"', '1', 'STO "BW"', 'STO "BH"',
-              'XEQ "M7BX"', 'RCL "AY"', 'RCL "AX"', '7', '+', 'RTN']
+              'XEQ "M7BX"', 'RCL "AY"', 'RCL "AX"', str(AP_ADV), '+', 'RTN']
     P += [
          # ---------------------------------------------------------------- the numbers
          'REM "LBL 29: the numbers of the page (once); LBL 30 draws it (again after +/-)"',
