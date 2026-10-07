@@ -159,7 +159,8 @@ def main_program(f42=False):
          'RCL 46', 'COS', 'RCL 43', '×', 'RCL 47', '×', 'STO+ 41', 'RTN',
          'REM "LBL 42: Y JD, X elongation (0 new, 90, 180 full, 270) -> X the JD of that phase from about Y on:"',
          'REM "the secant method from Y and the guess of the mean rate, three steps (R50 R51 t0 f0, R27 R52 t1 f1)"',
-         'LBL 42', 'STO 26', 'R↓', 'STO 50', 'XEQ 41', 'RCL 26', 'X<>Y', '-', '360', 'MOD', 'STO 51',
+         'LBL 42', 'STO 26', 'R↓', 'STO 50', 'XEQ 41'] + ([] if f42 else ['LBL 18']) + [
+         'RCL 26', 'X<>Y', '-', '360', 'MOD', 'STO 51',
          RATE, '÷', 'RCL 50', '+', 'STO 27', 'RCL 51', 'CHS', 'STO 51', '3', 'STO 09',
          'LBL 43', 'RCL 27', 'XEQ 41', 'RCL 26', '-', '180', '+', '360', 'MOD', '180', '-', 'STO 52',
          'RCL 51', 'X=Y?', 'GTO 44', '-', 'STO 53',
@@ -201,7 +202,9 @@ def main_program(f42=False):
          'REM "LBL 75: the next four phases (UT) into R54-R57, their quarter into R58-R61"',
          'LBL 75', 'RCL 15', '90', '÷', 'IP', '1', '+', 'STO 38', '0', 'STO 05',
          'LBL 83', 'RCL 38', 'RCL 05', '+', '4', 'MOD', 'STO 37',
-         'RCL 06', 'RCL 37', '90', '×', 'XEQ 42', 'STO 44',
+         ] + (['RCL 06', 'RCL 37', '90', '×', 'XEQ 42'] if f42 else
+              # C47: the search starts at now (R06), whose elongation LBL 29 has in R15: LBL 18, no XEQ 41
+              ['RCL 37', '90', '×', 'STO 26', 'RCL 06', 'STO 50', 'RCL 15', 'XEQ 18']) + ['STO 44',
          'RCL 06', 'X<>Y', 'X<Y?', 'XEQ 84',
          'RCL 05', '54', '+', 'STO 39', 'RCL 44', 'STO IND 39', '4', 'STO+ 39', 'RCL 37', 'STO IND 39',
          '1', 'STO+ 05', '4', 'RCL 05', 'X<Y?', 'GTO 83', 'RTN',
@@ -575,8 +578,25 @@ def release():
     return navmat.shrink(plain, ('MOON47',)), navmat.shrink(f42, ('MOON47',), f42=True)
 
 
+def disc_first(P):
+    """C47: the disc routine (LBL 70 to its RTN, 166 steps) moved to the start of the program MOON47. The C47
+    firmware walks from the first step of a program to the return step on every RTN: the 620 calls of the
+    disc's rows (LBL 76, 81, 69) returned to steps 700-784; now to steps under 170 (about 15 % less time).
+    The labels of the program are unique, so every jump lands where it did."""
+    e = P.index('END')
+    main = P[:e]
+    labs = [l for l in main if re.fullmatch(r'LBL (\d\d|[A-La-l])', l)]
+    assert len(labs) == len(set(labs)), 'MOON47: a label twice'
+    a = main.index('LBL 70')
+    b = main.index('LBL 75')
+    assert main[a - 1] == 'RTN' and main[b - 1] == 'RTN', 'MOON47: the disc is not a block of its own'
+    assert sum(1 for l in main if l in ('XEQ 70', 'GTO 70')) == 1
+    return main[a:b] + main[:a] + main[b:] + P[e:]
+
+
 def main():
     plain, f42 = release()
+    plain = disc_first(plain)
     out = os.path.join(ROOT, 'build', 'MOON47.txt')
     for f in (out, os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt')):     # the DM42 runs the same C47 firmware
         open(f, 'w', encoding='utf-8').write('\n'.join(plain) + '\n')
