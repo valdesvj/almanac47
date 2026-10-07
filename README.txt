@@ -331,11 +331,10 @@ build_free42.py)
                      All written by tools/build_moon47.py from python/moon47.py (20 terms of Meeus 47,
                      phases within 4 minutes, HP 0.03'; the 20 terms as matrices, on the C47 with one
                      complex eˣ for their cos and sin); tests/test_moon47*.py.
-    NAVFULL.txt      NAV v2.2.0: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO, 9 = SNAP, 0 END
+    NAVFULL.txt      NAV v2.1.0: 1 ALMANAC 2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO, 9 = SNAP, 0 END
                      (↑↓ ±1 hour), the sky cache, the SINKING box, the ants (flag 47), and the
-                     almanac tables (TBL) when they are loaded. ONE program: NAV the only global
-                     label, the routines local labels with their names (:SUNA: ...; NAVFULL_LABELS.txt;
-                     tools/local_labels.py). R00-R98 used, R00-R99 cleared (CLREGS) at 0. Written by
+                     almanac tables (TBL) when they are loaded. Your registers are kept: R00-R98
+                     saved in NAV's local registers at the start, given back at 0. Written by
                      tools/build_v2.py (Horner, n-vectors, ISG loops, registers renumbered; v2.1.0:
                      tools/navmat.py, docs/OPTIMIZATIONS.md section 7). NAVTXT (text only) is not in v2.x.
     NAVINIT_FULL.txt INIT: VSOP87 series, valid 2000-2050 (MATA MATST MATM MATP as LBL 01-04)

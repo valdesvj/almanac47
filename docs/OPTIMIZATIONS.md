@@ -67,7 +67,6 @@ values while MOON runs with the Sun's results and TGET (the tables lookup) its 1
 * **C47 / DM42:** at the start NAV does `LocR 46` and `RCL 00`, `STO R.00`, … `RCL 45`, `STO R.45` (into its
   own local registers). When NAV ends (key 0) it copies them back. That is 92 steps once per session; the pages
   are not slower (±0 %).
-  **C47 NAVFULL from v2.2.0:** no save any more; NAV clears R00–R99 when it ends (section 8).
 * **Free42 / DM42 stock firmware:** `RCL "REGS"`, `STO "NBAK"` (the whole register matrix) before `SIZE 46`,
   and `RCL "NBAK"`, `STO "REGS"` at the end. STO "REGS" gives the SIZE back too. Flag 25 guards both, so a
   calculator with SIZE 0 does not stop NAV.
@@ -194,32 +193,3 @@ Checked: the C47 firmware pixel for pixel against v2.0.0 (NAVFULL 54 screens, NA
 the October 2026 table): all within the limits, largest Moon GHA 0.09′, planets 0.065′, stars 0.0024′, Hc / Zn
 0.08′; every test suite above, Free42 against the C47 screens and SKY /
 ANIM against v2.0.0, `tools/c47check.py` on master 224e5e95d.
-
-## 8. v2.2.0 (C47 only): one program, named local labels, no register save (`tools/local_labels.py`)
-
-The same calculation, the same screens and the same numbers as v2.1.0. Free42 and NAVLITTLE are unchanged.
-
-* **One program.** NAVFULL was 33 programs (one `LBL "NAV"` and 71 global labels N01 … N99, each listed in the
-  catalogue and the program menus). It is now one program: `NAV` is the only global label and every routine is
-  a **local label with its own name**: `LBL :SUNA:`, `XEQ :HCZ:` (up to 7 characters, shown between colons;
-  on the calculator: LBL, the local-label softkey, then α and the name). A local label belongs to its program: nothing else in the menus, no
-  clash with your names, and the routine names readable in the listing. The inner `END`s became `RTN`.
-  MOON47 too: `:M7TX:` … `:M7SY:`, only `MOON47` global.
-* **The inner labels.** A local label (number, letter or `:name:`) is looked for first after the `GTO` / `XEQ`,
-  then from the start of the program (`lblGtoXeq.c` fnGoto, `manage.c` findNamedLabelWithDuplicate), so one
-  number can serve several routines. The build gives each inner label a number (00–99, A–L, a–l) such that
-  every jump lands where it did, and keeps the numbers of the dispatch tables reached by `XEQ IND` / `GTO IND`
-  (SBRT and SNMU, both 01–58 and reached backwards, have their entry moved in front of the table). 25 inner
-  labels did not fit: `:L1:` … `:L25:`.
-* **No register save.** NAV no longer copies R00–R98 into `LocR 99` at the start and back at the end (396 steps):
-  it clears R00–R99 with `CLREGS` when it ends (key 0). Named variables and matrices are not touched. NAV stores
-  its numbers (R43–R98) again at every start, so each run is the same.
-* **Why not local registers for everything:** every `XEQ`, even to a local label, starts a new level with no
-  local registers (`fnExecute`), so a routine cannot read its caller's `R.nn`; `KEY?` refuses a local register.
-  The values that go from routine to routine stay in R00–R42; only HDR uses its own (`LocR 05`).
-* **Size:** NAVFULL 24.2 KB → **23.9 KB** (8 047 → 7 640 steps); MOON47 4 836 → 4 828 bytes. Time: about 2 %
-  more in the firmware PC simulator (ANIM 26.9 → 27.5 s), from the longer label search in one program.
-* **Tested:** `tests/test_local_labels.py` (every page and frame the same as the code before the conversion,
-  FULL, FAST and tables; R00–R99 0 after; NAV twice in a row the same pages; the C47 firmware with no error;
-  MOON47 the same pages), `tests/test_v2.py` (the pages against the release before, R00–R99 0 after),
-  `tests/test_fw.py` (the C47 firmware).

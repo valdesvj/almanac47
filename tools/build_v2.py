@@ -3,9 +3,8 @@
 (tools/build_navopt.py, tools/navhopt.py, tools/regalloc.py, tools/navmat.py; docs/OPTIMIZATIONS.md):
 
   build/NAVFULL.txt (.p47)        C47 / R47: the engine with Horner and n-vectors, the loops on ISG, the registers
-                                  renumbered, the frequent numbers in registers after them (R00-R98, cleared with
-                                  CLREGS when NAV ends); ONE program, NAV its only global label, the routines local
-                                  labels with their names (tools/local_labels.py); menu 1 ALMANAC
+                                  renumbered, the frequent numbers in registers after them (R00-R98, saved in local
+                                  registers while NAV runs); menu 1 ALMANAC
                                   2 SPLIT 3 SKY 4 ANIM 5 ALLSKY 6 INFO 0 END, ↑↓ ±1 HOUR, 9 SNAP; clean input prompts;
                                   the SINKING....ABOUT box (and the ants, flag 47) while each view is computed, the
                                   view shown when it is complete; SKY names a body every 2 s
@@ -34,8 +33,8 @@ OUT = os.path.join(ROOT, 'build')
 
 # what the routines do in v2.0.0 where it differs from build_navfull.LABEL_TEXT (the menu numbers, the registers)
 V2_TEXT = {
- 'NAV':    'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; uses R00-R98 and '
-           'clears them (CLREGS) at 0 (the only global label; INFO page inside)',
+ 'NAV':    'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP, 0 ends; your registers '
+           'R00-R98 saved at the start and given back at 0 (the only named program; INFO page inside)',
  'ALMF':   'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon',
  'HALMH':  'view 2 SPLIT: horizon chart on top, the bodies below (8 rows)',
  'HORZ':   'view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)',
@@ -115,40 +114,12 @@ def labels_file(path, full, short, title, text=None):
         fh.write('\n'.join('%-7s %-7s %s' % (s, l, t.get(l, '')) for s, l in m) + '\n')
 
 
-HEADER_LOCAL = ('NAVFULL is ONE program: NAV is its only global label, every routine a local label with its name\n'
-                '(LBL :SUNA:, tools/local_labels.py), so none of them is in the program menus. TEXT = a text routine,\n'
-                'SYMBOL = a body symbol drawn with AGRAPH: Z = row of the base line (0 = bottom), Y = column,\n'
-                'X = text, number or symbol; returns Y = row, X = next column. :L1: .. are inner labels (no name).\n\n')
-
-
-# the C47 NAVFULL (v2.2.0) where LABEL_TEXT names registers of the separate programs
-LOCAL_TEXT = {
- 'HCZ':  'sight reduction: Y = Dec, X = GHA (and the DR: R13 longitude, R14 latitude) -> X = Hc, Y = Zn (also in R09, '
-         'R05), sin Hc in "V4"',
- 'CSTR': 'star from the cache: its values after the over-the-horizon test (:CSQK:)',
-}
-
-
-def labels_local(path, full, title):
-    """NAVFULL_LABELS.txt of the one-program build: each routine's local label and what it does."""
-    t = dict(B.LABEL_TEXT)
-    t.update(V2_TEXT)
-    t.update(LOCAL_TEXT)
-    names = [l[5:-1] for l in full if l.startswith('LBL "')]
-    t.update({n: 'steps shared by several routines (tools/navmat.py outline)' for n in names if re.fullmatch(r'OUT\d+', n)})
-    with open(path, 'w', encoding='utf-8') as fh:
-        fh.write('%s - program labels\n%s\n%s' % (title, '=' * (len(title) + 17), HEADER_LOCAL))
-        fh.write('\n'.join('%-9s %s' % ('NAV' if n == 'NAV' else ':%s:' % n, t.get(n, '')) for n in names) + '\n')
-
-
 def c47():
-    import local_labels
     full, short = N.c47(True, menu=N.SPLIT2,
                         post=lambda L: navmat.size(navhopt.nav_regs(navhopt.inputs(navhopt.loops(navmat.c47(L))))))
-    # one program, the routines as local labels with their names, no register save: CLREGS at the end
-    B.write(os.path.join(OUT, 'NAVFULL.txt'), local_labels.convert(full, ('NAV',), nav=True))
-    B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # global names, the registers saved (tests)
-    labels_local(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, 'NAVFULL v2.2.0 (C47 / R47)')
+    B.write(os.path.join(OUT, 'NAVFULL.txt'), short)
+    B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # the same with the routine names (tests)
+    labels_file(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, short, 'NAVFULL v2.1.0 (C47 / R47)')
     for k, L in N.inits().items():
         if not k.startswith('F42_'):
             B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), pi(L, '𝜋'))
@@ -213,8 +184,8 @@ def free42():
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
     labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.1.0 (Free42)',
-                {'NAV': 'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP (PRLCD), 0 ends; your '
-                        'registers REGS and SIZE saved in NBAK and given back at 0 (the only named program; INFO page inside)'})
+                {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R98 saved at the start',
+                                                                                     'REGS and SIZE saved in NBAK')})
     kfull = info['k']
     short, named, init = N.free42(True, post=lambda L: post(L, True), menu=menu, little=True)
     B.write(os.path.join(OUT, 'free42', 'NAVLITTLE.txt'), short)
