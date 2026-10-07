@@ -19,7 +19,7 @@ def lines(path):
 
 
 S += [P('Almanac 47', title),
-      P('Celestial navigation on the SwissMicros C47 — user manual — version 2.1.0 (Supercharger)', sub), Spacer(1, 6),
+      P('Celestial navigation on the SwissMicros C47 — user manual — version 2.2.0', sub), Spacer(1, 6),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
         'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation); optional '
@@ -34,8 +34,8 @@ S += [P('Almanac 47', title),
       P('1. What to load', h2),
       prose_tbl([
           ['File', 'What it is'],
-          ['NAVFULL', 'the program NAV with all the views and the almanac tables support (TBL); it keeps your '
-                      'registers'],
+          ['NAVFULL', 'the program NAV with all the views and the almanac tables support (TBL): one program, '
+                      'NAV its only global label; it clears R00–R99 when it ends'],
           ['NAVINIT_FULL', 'INIT: builds the series matrices, valid 2000–2050 (about 6 000 numbers)'],
           ['NAVINIT_FAST', 'INIT: fitted series, valid 2026–2030: smaller and faster'],
           ['TBL_1, TBL_5', 'optional almanac tables (JPL) for 1 or 5 years from 1 Oct 2026; XEQ TBL once, then '
@@ -80,13 +80,15 @@ S += [P('3. Starting NAV', h2),
                  ['9', 'SNAP (a screenshot)', 'SNAP (a screenshot)'],
                  ['+', '—', 'back to the menu'],
                  ['▲ / ▼', 'one hour later / earlier (the title shows the new time)', 'the same view one hour later / earlier'],
-                 ['0', 'end of NAV: gives your registers back, clears the screen and the stack', '—'],
+                 ['0', 'end of NAV: clears the registers R00–R99, the screen and the stack', '—'],
                  ['other keys', 'ignored', 'ignored (R/S or EXIT stop the program)']],
                 [26 * mm, 77 * mm, 77 * mm]),
       P('The hours added with the arrows stay for the other views. New date or position: XEQ "NAV" again.', small),
-      P('<b>Your registers are kept.</b> NAV uses R00–R98 while it runs (its values and its most used numbers). It copies them into its own local registers '
-        'when it starts and copies them back when you leave with 0, so the values you had in your registers are there '
-        'again. If you stop NAV with R/S or EXIT, they keep NAV\'s values.')]
+      P('<b>NAV uses the numbered registers.</b> It uses R00–R98 while it runs (its values and its most used numbers) '
+        'and clears R00–R99 (CLREGS) when you leave with 0. Keep anything you need in named variables or a matrix: '
+        'NAV does not touch them (DATE, UTC, LAT, LON and the matrices of INIT stay). If you stop NAV with R/S or EXIT, '
+        'the registers keep NAV\'s values. Up to v2.1.0 NAV saved your registers and gave them back; v2.2.0 does not, '
+        'and is smaller for it.')]
 
 S += [PageBreak(), P('5. The views', h2),
       P('All views: 23 Sep 2026 23:30 UT, 10° N 075° 30′ W (the menu: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E). '
@@ -130,26 +132,87 @@ S += [P('6. Speed and memory', h2)] + B([
       'unused code, the most used numbers in registers, repeated steps as subroutines. NAVFULL is 24.2 KB (31.5 KB in '
       'v2.0.0, 36.6 KB in v1.1); starting NAV takes about 17 % less work and each hour about 25 % less. '
       'Details: docs/OPTIMIZATIONS.md.',
+      'v2.2.0 (C47 only) has the same calculation, screens and results as v2.1.0. NAVFULL is one program: NAV is its '
+      'only global label and every routine is a local label with its own name (:SUNA:, :HCZ: …), so the catalogue '
+      'and the program menus show NAV alone, and your programs can use any name. It no longer saves your registers '
+      '(396 steps fewer): 23.9 KB. Each jump to a routine looks for its name in one program: about 2 % more time.',
       'The C47 sends a new screen to the display only at a PAUSE, a key press or the end of the program: the '
       'SINKING box shows while a view is computed, then the complete view.',
       'With the tables (TBL) the Sun, the Moon and the planets come from the tables inside their period and the '
       'computation is about twice as fast.',
       '<i>Something lives in NAV at the step after LBL 48. It is 0. Try 20 and press + or an arrow …</i>'])
 
-# ---- program map: the navigation routines and their labels on the calculator (no fonts)
-rows = [['Label', 'Name', 'What it does']]
+# ---- program map: every local label of NAVFULL, what it does and where its source is (v2.2.0: one program)
+def _src(n):
+    """Where a routine of NAVFULL comes from: its program in programs/ (comments in programs_rem/), or the tool
+    that writes it."""
+    for d in ('programs/atext/t21', 'programs'):
+        for f in sorted(os.listdir(os.path.join(ROOT, d))):
+            if f.endswith('.txt') and ('LBL "%s"' % n) in open(os.path.join(ROOT, d, f), encoding='utf-8').read().split('\n'):
+                return '%s/%s' % (d, f)
+    if _re.fullmatch(r'OUT\d+', n) or n in ('HDR', 'CMN', 'CMS'):
+        return 'tools/navmat.py'
+    if n in ('PSYB', 'PSYS'):
+        return 'tools/generators/atext/glyphs47.py'
+    return 'tools/atext_common.py'
+
+
+_lab = {}
 for l in lines('build/NAVFULL_LABELS.txt'):
-    m = _re.match(r'(NAV|N\d\d)\s+(\S+)\s+(.*)$', l)
-    if m and not m.group(3).startswith(('FONT', 'TEXT', 'SYMBOL', 'horizontal line')):
-        rows.append([m.group(1), m.group(2), m.group(3)])
-S += [PageBreak(), P('7. Program map', h2),
-      P('In the NAV files every program label except NAV is renamed N01, N02 … (so the names do not clash with your own '
-        'programs). This is the map of the navigation routines in NAVFULL; the text routines (PTXS with ATEXT and its number '
-        'entries, PTTY / PTNT for the tinyFont, PHLS) and the symbol routines (PSYB, PSYS) are left out. The numbers are fixed (tools/labels/NAVFULL.map): a new routine gets the next free '
-        'number, so the labels stay the same from one version to the next. NAVFULL_NOTBL has the same labels without '
-        'N49 (TGET). NAVLITTLE has its own numbering: see its _LABELS.txt file. The registers of NAVFULL are '
-        'renumbered by the build: the register lists of part 2 are those of the separate programs.'),
-      prose_tbl(rows, [16 * mm, 18 * mm, 146 * mm])]
+    m = _re.match(r'(NAV|:(\S+):)\s+(.*)$', l)
+    if m:
+        _lab[m.group(2) or 'NAV'] = m.group(3)
+_groups = [
+    ('Navigation: the calculations', ['SUNA', 'SUNG', 'SUNF', 'SER', 'SERT', 'NUT', 'STR2', 'SQK', 'MOON', 'MOO2', 'MOOQ',
+                                      'PLN2', 'PLN3', 'TGET', 'HCZ', 'HCZI', 'HCZQ', 'HCZR', 'RISE', 'SET', 'NTWA', 'NTWP',
+                                      'TRAN', 'PHA2', 'SBRT', 'SNMU']),
+    ('The menu and the views', ['NAV', 'ALMF', 'HALMH', 'HORZ', 'HANIM', 'ALLSKY', 'WPLS']),
+    ('The sky kept in matrix ALMC (computed once per time and place)', [n for n in _lab if n.startswith('C') and n not in ('CMN', 'CMS')]),
+    ('Text, symbols and screen parts', ['PTXS', 'PINS', 'PF1S', 'PHMS', 'PDMS', 'PDTS', 'PZNS', 'PTTY', 'PTNT', 'PHLS', 'PSYB',
+                                        'PSYS', 'HDR', 'CMN', 'CMS'])]
+_seen = {n for _, g in _groups for n in g}
+_outs = [n for n in _lab if n not in _seen]
+assert all(_re.fullmatch(r'OUT\d+', n) for n in _outs), _outs
+S += [PageBreak(), P('7. Inside NAVFULL: the program map', h2),
+      P('NAVFULL is <b>one program</b>. NAV is its only global label; every routine is a <b>local label with its own '
+        'name</b>: LBL :SUNA:, XEQ :HCZ: … (at most 7 characters, written between colons). A local label belongs to its '
+        'program, so none of them shows in the catalogue or the program menus, and none can clash with a name of yours. '
+        'Below, every routine with what it does and where to find its source, so you can check it, copy it or adapt it '
+        'to your own programs. The same list is in NAVFULL_LABELS.txt.')]
+for title, names in _groups:
+    rows = [['Label', 'What it does', 'Source']]
+    rows += [[':%s:' % n if n != 'NAV' else 'NAV', _lab[n], _src(n)] for n in names if n in _lab]
+    S += [P(title, h3), prose_tbl(rows, [18 * mm, 112 * mm, 50 * mm])]
+S += [P('<b>Shared steps:</b> %s are runs of steps that several routines had in common, written once (tools/navmat.py, '
+        'outlining).' % ', '.join(':%s:' % n for n in _outs)),
+      P('<b>Inner labels:</b> inside the routines the jumps use the local labels 00–99, A–L and a–l. One number serves '
+        'several routines: the C47 looks for a local label first after the GTO or XEQ, then from the start of the program, '
+        'and the build checks that every jump lands where it should. The few that did not fit are :L1: … :L25:.')]
+
+# the numbers NAV stores at its start (the most used ones, so that each use is a 2-byte RCL)
+_L = lines('build/NAVFULL.txt')
+_num = {}
+for _i in range(1, 120):
+    _m = _re.fullmatch(r'STO (\d\d)', _L[_i])
+    if _m and int(_m.group(1)) >= 43 and _m.group(1) not in _num:
+        _num[_m.group(1)] = _L[_i - 1]
+_cells = [['R%s' % k, v] for k, v in sorted(_num.items())]
+_n = (len(_cells) + 3) // 4
+_rows = [['Reg.', 'Number'] * 4] + [sum((_cells[c * _n + r] if c * _n + r < len(_cells) else ['', ''] for c in range(4)), [])
+                                        for r in range(_n)]
+S += [P('Using a routine in your own program', h3)] + B([
+      '<b>Copy it from programs/</b> (the file in the Source column): those are the separate programs with their own '
+      'names and registers, described one by one in part 2 of this manual; programs_rem/ has the same with comments, '
+      'listings/ a note on each. The calculation is the same as in NAVFULL; NAVFULL has the faster and smaller form of '
+      'v2.x (docs/OPTIMIZATIONS.md explains each change).',
+      '<b>Reading NAVFULL itself:</b> build/NAVFULL.txt is the file on the calculator; build/dev/src/NAVFULL.txt is the '
+      'same code with global labels, as separate programs. Inside NAVFULL the routines pass their values in R00–R42 '
+      '(the build gives the registers new numbers and lets routines share them) and read the numbers below, which NAV '
+      'stores at its start. A routine copied out of NAVFULL needs those numbers, the values its caller left in R00–R42, '
+      'and the matrices of INIT.',
+      '<b>Local registers:</b> every XEQ, even to a local label, starts a new level with no local registers (LocR), so '
+      'a routine cannot read its caller\'s R.00 …; only :HDR: uses its own (LocR 05).'])
+S += [P('The numbers in R43–R98 (stored by NAV at its start)', h3), prose_tbl(_rows, [14 * mm, 31 * mm] * 4)]
 
 # ---- MOON47: the Moon phase on its own
 S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
@@ -174,7 +237,8 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'secant method; tests/test_moon47.py checks it.',
       '<b>Memory:</b> about 4.8 KB (v2.1.0: the 20 terms as matrices, their cos and sin by one complex eˣ, '
       'about 24 % less work; the program and its own copies of the text and symbol routines, M7TX and M7SY, so '
-      'it does not need NAVFULL and does not clash with it). It takes registers R00–R61 and leaves your stack size as '
-      'it was. Needs a firmware with ATEXT and GRFNT, like NAV.',
+      'it does not need NAVFULL and does not clash with it; in v2.2.0 they are local labels, :M7TX: … :M7SY:, so only '
+      'MOON47 shows in the program menus). It uses registers R03–R53, clears R00–R99 when it ends (CLREGS) and leaves '
+      'your stack size as it was. Needs a firmware with ATEXT and GRFNT, like NAV.',
       'The same program runs on the old DM42 with the C47 firmware (build/dm42/MOON47). Free42 (build/free42/MOON47.raw), '
       'the NumWorks and the HP Prime have their own MOON47 with the same page: see their manuals.'])

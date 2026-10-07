@@ -16,10 +16,13 @@ rejig 0.34 does not know; a rejig that knows them converts directly):
   NAVINIT_FAST   builds the matrices, valid 2026-2030 (smaller and faster).
                  NAVINIT_FULL builds the FULL matrices instead (2000-2050, about twice the memory).
 
-v2.1.0 "Supercharger": the same views and results as v2.0.0, faster and smaller (docs/OPTIMIZATIONS.md).
+v2.2.0 (C47 only): the same views and results as v2.1.0 "Supercharger" (docs/OPTIMIZATIONS.md).
   The views are ALMANAC SPLIT SKY ANIM ALLSKY INFO (NAVTXT is not in v2.x).
-  NAV keeps your numbered registers: it saves R00-R98 when it starts (in its own local registers) and
-  gives them back when you leave with 0. Other builds are in build/dev/.
+  NAVFULL is ONE program: NAV is its only global label, every routine is a local label with its
+  name (:SUNA:, :HCZ: ... - NAVFULL_LABELS.txt and the manual say what each one does), so the
+  catalogue shows NAV alone. NAV uses the numbered registers R00-R98 and clears R00-R99 (CLREGS)
+  when you leave with 0: keep what you need in named variables (NAV does not touch them).
+  Other builds are in build/dev/.
 
 1. LOAD THE PROGRAMS (two files: NAVFULL + NAVINIT_FAST)
    Copy both .p47 files to the calculator (USB disk) and load them as you load any
@@ -90,7 +93,7 @@ v2.1.0 "Supercharger": the same views and results as v2.0.0, faster and smaller 
    NAV uses the 8-level stack while it runs (the text routines need it) and puts your stack
    size back when you leave with 0. It sets the ATEXT font GRFNT 21 while it runs and
    20 (the standard font) when you leave with 0; after R/S 20 GRFNT puts it back.
-   If you stop NAV with R/S or EXIT, your registers R00-R98 keep NAV's values (only 0 gives them back).
+   If you stop NAV with R/S or EXIT, the registers R00-R98 keep NAV's values (0 clears them).
 
 PC VERSION (no calculator needed) - python/native/c47pc.py, version 1.5
   python3 python/native/c47pc.py           a window (GTK 3): date, UT, DR, a view, Now UTC

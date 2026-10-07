@@ -1,4 +1,4 @@
-NAVFULL v2.1.0 (C47 / R47) - program labels
+NAVFULL v2.2.0 (C47 / R47) - program labels
 ===========================================
 NAVFULL is ONE program: NAV is its only global label, every routine a local label with its name
 (LBL :SUNA:, tools/local_labels.py), so none of them is in the program menus. TEXT = a text routine,
@@ -22,7 +22,7 @@ NAV       graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9
 :MOOQ:    Moon, quick low-precision formula (BODY list, ANIM)
 :PLN2:    planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
 :PLN3:    planet for the screens: quick position first, full series only if it can be above the horizon
-:HCZ:     sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ("SHC")
+:HCZ:     sight reduction: Y = Dec, X = GHA (and the DR: R13 longitude, R14 latitude) -> X = Hc, Y = Zn (also in R09, R05), sin Hc in "V4"
 :HCZQ:    celestial equator: start of the dot-by-dot rotation
 :HCZR:    celestial equator: next point by rotation (no trig)
 :HCZI:    keeps sin/cos of the latitude for HCZ
@@ -53,7 +53,7 @@ NAV       graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9
 :CSUN:    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 :CMOO:    Moon from the cache
 :CPLN:    planet from the cache
-:CSTR:    star R82 from the cache
+:CSTR:    star from the cache: its values after the over-the-horizon test (:CSQK:)
 :CSQK:    star from the cache: over the horizon test (computes the star the first time: SQK, STR2, HCZ)
 :CHCZ:    Hc Zn from the cache for the body just read (else the real HCZ)
 :CPHA:    Moon phase from the cache

@@ -121,10 +121,19 @@ HEADER_LOCAL = ('NAVFULL is ONE program: NAV is its only global label, every rou
                 'X = text, number or symbol; returns Y = row, X = next column. :L1: .. are inner labels (no name).\n\n')
 
 
+# the C47 NAVFULL (v2.2.0) where LABEL_TEXT names registers of the separate programs
+LOCAL_TEXT = {
+ 'HCZ':  'sight reduction: Y = Dec, X = GHA (and the DR: R13 longitude, R14 latitude) -> X = Hc, Y = Zn (also in R09, '
+         'R05), sin Hc in "V4"',
+ 'CSTR': 'star from the cache: its values after the over-the-horizon test (:CSQK:)',
+}
+
+
 def labels_local(path, full, title):
     """NAVFULL_LABELS.txt of the one-program build: each routine's local label and what it does."""
     t = dict(B.LABEL_TEXT)
     t.update(V2_TEXT)
+    t.update(LOCAL_TEXT)
     names = [l[5:-1] for l in full if l.startswith('LBL "')]
     t.update({n: 'steps shared by several routines (tools/navmat.py outline)' for n in names if re.fullmatch(r'OUT\d+', n)})
     with open(path, 'w', encoding='utf-8') as fh:
@@ -139,7 +148,7 @@ def c47():
     # one program, the routines as local labels with their names, no register save: CLREGS at the end
     B.write(os.path.join(OUT, 'NAVFULL.txt'), local_labels.convert(full, ('NAV',), nav=True))
     B.write(os.path.join(OUT, 'dev', 'src', 'NAVFULL.txt'), full)          # global names, the registers saved (tests)
-    labels_local(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, 'NAVFULL v2.1.0 (C47 / R47)')
+    labels_local(os.path.join(OUT, 'NAVFULL_LABELS.txt'), full, 'NAVFULL v2.2.0 (C47 / R47)')
     for k, L in N.inits().items():
         if not k.startswith('F42_'):
             B.write(os.path.join(OUT, 'NAVINIT_%s.txt' % k), pi(L, '𝜋'))
