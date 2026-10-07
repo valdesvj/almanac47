@@ -16,8 +16,8 @@ changes), ANIM's interpolation (no pixel changes) and its frame wait (Free42's A
 NAVLITTLE: the C47 NAVLITTLE steps change no pixel, so the release Free42 NAVLITTLE stays as it is.
 
 Checked: f42run against the C47 step 11 in the firmware PC simulator (NAVINIT_FULL), the menu, ALMANAC, SPLIT,
-ALLSKY, INFO at 2026-10-04 25.2 N 55.2 E, 2031-03-15 33.5 S 18.25 E, 2004-06-21 60.1 N 24.55 E: the same
-differences as the release pair (release Free42 against release C47), which come from comparing the firmware
-simulator with f42run (menus 561 pixels, ALMANAC 8-15, SPLIT 6-13, INFO 2; ALLSKY 0). SKY and ANIM run until a
-key, so f42run takes no picture of them: they use the same equator code as SPLIT and ALLSKY.
+ALLSKY, INFO at 2026-10-04 25.2 N 55.2 E, 2031-03-15 33.5 S 18.25 E, 2004-06-21 60.1 N 24.55 E: 0 pixels different
+on every screen (rebuilt after #64, which gave Free42 the firmware's fonts; before it the small differences of the
+release pair remained). SKY and ANIM run until a key, so f42run takes no picture of them: they use the same equator
+code as SPLIT and ALLSKY.
 Size: 8475 steps, .raw 23542 bytes.
