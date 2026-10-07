@@ -264,8 +264,61 @@ def anim(L):
     return L[:idx[0]] + ['PAUSE 0'] + L[idx[0] + 1:]
 
 
+AQ_VARS = ('AQ', 'AQL', 'AQP', 'AQ1', 'AQ2', 'AQ3', 'AQ4', 'AQ5', 'AQ6', 'AQK', 'AQI', 'AQD', 'AQQ')
+
+
+def animq(L):
+    """ANIM: the quick Sun (SUNF) and Moon (MOOQ) only at frames 0, 12 and 23, the other 21 frames interpolated.
+    The three frames go into a 3 x 4 matrix AQ (rows: the frames; columns: Sun GHA - w t, Sun Dec, Moon GHA - w t,
+    Moon Dec; w = 360.98564736629 deg / day in R78, t the time since frame 0, so the columns change slowly); each
+    frame takes one product (Lagrange weights 1 x 3) x AQ and adds w t back. MOOQ reads T (R08) and GHA Aries (R04),
+    which LBL 71 sets from the JD in R28, as each frame does before SUNF. Largest difference to computing every
+    frame, 300 random 12-hour runs 2000-2050: Sun 0.000000 deg, Moon 0.0007 deg (a pixel of the chart is about
+    1 deg; MOOQ itself is good to 0.3 deg). The variables AQ... are deleted when the frames are done."""
+    a = L.index('LBL "N61"')
+    e = L.index('END', a)
+    P = L[a:e]
+    assert 'RCL 70' in P and P[P.index('RCL 70') + 1] == 'STO 18', 'build_struct: ANIM frames are not R70 = 24'
+    used = {l for l in P if l.startswith('LBL ')}
+    assert not used & {'LBL %d' % n for n in (70, 73, 74, 75, 76, 77, 78, 79)}, 'build_struct: ANIM labels taken'
+    P = swap(P, ['RCL 46', 'STO 22', 'LBL 01'], ['RCL 46', 'STO 22', 'XEQ 75', 'LBL 01'])
+    P = swap(P, ['RCL 28', 'XEQ "N17"', 'XEQ "N32"'], ['XEQ 76', 'XEQ "N32"'])
+    P = swap(P, ['STO 29', 'XEQ "N26"', 'XEQ "N32"'], ['STO 29', 'XEQ 77', 'XEQ "N32"'])
+    i = P.index('GTO 01', P.index('LBL 68'))
+    assert P[i + 1] in ('GTO "N63"', 'XEQ "N63"'), P[i - 3:i + 3]
+    P = P[:i + 1] + ['DELITM "%s"' % v for v in AQ_VARS] + P[i + 1:]
+    P += ['LBL 75', '3', 'ENTER', '4', 'NEWMAT', 'STO "AQ"', '1', 'STO "AQI"',
+          '0', 'XEQ 79', '12', 'XEQ 79', '23', 'XEQ 79', 'RTN',
+          # one of the three frames (X = 0, 12 or 23): SUNF and MOOQ, GHA - w t unwrapped against frame 0, into AQ
+          'LBL 79', 'STO "AQK"', 'RCL× 20', 'RCL÷ 70', 'RCL+ 19', 'STO 28', 'XEQ 71', 'RCL 28',
+          'XEQ "N17"', 'XEQ 74', 'STO "AQ1"', 'X<>Y', 'STO "AQ2"',
+          'XEQ "N26"', 'XEQ 74', 'STO "AQ3"', 'X<>Y', 'STO "AQ4"',
+          'RCL "AQK"', 'X=0?', 'XEQ 73',
+          'RCL "AQ1"', 'RCL- "AQ5"', 'XEQ 70', 'RCL+ "AQ5"', 'STO "AQ1"',
+          'RCL "AQ3"', 'RCL- "AQ6"', 'XEQ 70', 'RCL+ "AQ6"', 'STO "AQ3"',
+          'INDEX "AQ"', 'RCL "AQI"', '1', 'STOIJ', 'RCL "AQ1"', 'STOSEQ', 'RCL "AQ2"', 'STOSEQ',
+          'RCL "AQ3"', 'STOSEQ', 'RCL "AQ4"', 'STOSEQ', '1', 'STO+ "AQI"', 'RTN',
+          'LBL 73', 'RCL "AQ1"', 'STO "AQ5"', 'RCL "AQ3"', 'STO "AQ6"', 'RTN',
+          'LBL 70', 'RCL 62', '+', 'RCL 45', 'MOD', 'RCL 62', '-', 'RTN',
+          'LBL 74', 'RCL "AQK"', 'RCL× 20', 'RCL÷ 70', 'RCL× 78', '-', 'RTN',
+          # frame R22: the weights of the frames 0, 12, 23, one product, the Sun (X GHA, Y Dec)
+          'LBL 76', '1', 'ENTER', '3', 'NEWMAT', 'STO "AQL"', 'INDEX "AQL"', '1', 'ENTER', 'STOIJ',
+          'RCL 22', '12', '-', 'RCL 22', '23', '-', '×', '276', '÷', 'STOSEQ',
+          'RCL 22', 'RCL 22', '23', '-', '×', '-132', '÷', 'STOSEQ',
+          'RCL 22', 'RCL 22', '12', '-', '×', '253', '÷', 'STOSEQ',
+          'RCL "AQL"', 'RCL "AQ"', '×', 'STO "AQP"', 'INDEX "AQP"',
+          '1', 'ENTER', '2', 'STOIJ', 'RCLEL', 'STO "AQD"', '1', 'ENTER', '1', 'STOIJ', 'RCLEL', 'STO "AQQ"',
+          'RCL "AQD"', 'RCL "AQQ"', 'GTO 78',
+          # the Moon of the same frame
+          'LBL 77', 'INDEX "AQP"', '1', 'ENTER', '4', 'STOIJ', 'RCLEL', 'STO "AQD"',
+          '1', 'ENTER', '3', 'STOIJ', 'RCLEL', 'STO "AQQ"', 'RCL "AQD"', 'RCL "AQQ"',
+          'LBL 78', 'RCL 22', 'RCL× 20', 'RCL÷ 70', 'RCL× 78', '+', 'RCL 45', 'MOD', 'RTN']
+    print('  7_animq: ANIM Sun and Moon at 3 frames, 21 interpolated (one 1x3 x 3x4 product per frame)')
+    return L[:a] + P + L[e:]
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
-         ('5_equator', equator), ('6_anim', anim))
+         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq))
 
 
 def main():

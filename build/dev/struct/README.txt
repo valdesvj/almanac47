@@ -18,9 +18,14 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
   6_anim/NAVFULL.txt       + ANIM's frames without the 1 s wait: PAUSE 10 -> PAUSE 0 (24 frames: 24 s less; each
                            frame still reaches the LCD). The PAUSE 0 of the SINKING box and of the bar after a key
                            stay: the C47 shows the screen only at a PAUSE or a key wait. Same pages as 5_equator.
+  7_animq/NAVFULL.txt      + ANIM's quick Sun (SUNF) and Moon (MOOQ) only at frames 0, 12 and 23 (a 3 x 4 matrix);
+                           each other frame is one product (Lagrange weights 1 x 3) x (3 x 4), GHA without the
+                           Earth's turn (w = 360.98564736629 deg/day) and Dec. Error against every frame computed:
+                           Sun 0.000000 deg, Moon 0.0007 deg (a pixel is about 1 deg). ANIM pixel for pixel 6_anim
+                           (first run, +1 h, -2 h: the last screen keeps every frame's symbols).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator and 6_anim 24290.
+4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -69,6 +74,12 @@ trig values * 5.8 ms, the TVEC figures; POINT counted as PIXEL), and the firmwar
   ALLSKY    8.5 s -> 7.0 s  (-18 %)             0.081 -> 0.074 s  (-15 %)
 ALMANAC, INFO, the menu and the hour arrows have no equator: unchanged (pixel for pixel the release).
 The menu (the whole sky, about 12.4 s) and each hour arrow (about 8.7 s, SER alone 3 s) are now the long waits.
+
+Step 7. ANIM: estimate 10.8 s -> 7.9 s (-27 %; SUNF + MOOQ 3.8 s -> 0.5 s); firmware sim CPU of the page
+0.106 -> 0.072 s (-32 %). The other pages: unchanged.
+
+The stars (tools/tests_calc/TSTAR.txt): one matrix for all 58 against one by one, to time on the calculator
+before NAV changes; firmware PC sim 12 against 51 ticks.
 
 Not done yet
   - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.
