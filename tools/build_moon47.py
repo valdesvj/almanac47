@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """build_moon47.py - MOON47 for the C47 / R47: the Moon phase page as its own program.
 
-Writes build/MOON47.txt (and build/MOON47.p47 with rejig, if it is on the PATH). Three programs in one file:
+Writes build/MOON47.txt (and build/MOON47.p47 with rejig, if it is on the PATH). The C47 file is ONE program:
+MOON47 is its only global label, the parts below are local labels (:M7TX: ...), and it clears R00-R99 (CLREGS)
+when it ends (tools/local_labels.py). The parts:
   MOON47  the page: no inputs and no INIT tables, the date and time from the calculator's clock (local time;
           minus the variable TZ, in hours: 4 STO "TZ" for UT+4; without TZ MOON47 creates it with 0). Every number comes from the
           20 terms of python/moon47.py, the same steps. The +/- key switches the northern / southern view,
@@ -576,7 +578,10 @@ def release():
 
 
 def main():
+    import local_labels
     plain, f42 = release()
+    # C47: one program, MOON47 the only global label (:M7TX: ...), CLREGS at the end (tools/local_labels.py)
+    plain = local_labels.convert(local_labels.moon_exit(plain), ('MOON47',))
     out = os.path.join(ROOT, 'build', 'MOON47.txt')
     for f in (out, os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt')):     # the DM42 runs the same C47 firmware
         open(f, 'w', encoding='utf-8').write('\n'.join(plain) + '\n')

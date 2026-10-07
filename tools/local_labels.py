@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """local_labels.py - a C47 listing made of several programs (LBL "NAME" ... END) turned into ONE program
 whose labels are all local except the entry (NAV, MOON47): no routine in the calculator's program menus.
 
@@ -13,13 +12,10 @@ whose labels are all local except the entry (NAV, MOON47): no routine in the cal
   registers       (nav=True) NAV no longer saves R00.. in LocR at the start and puts them back at the end:
                   it clears the global registers (CLREGS) when it ends instead.
 
-  python3 tools/local_labels.py   -> build/dev/local/NAVFULL_NAMES (the routine names: :SUNA:),
-                                     NAVFULL_NXX (the N.. of tools/labels/: :N15:), MOON47 (:M7TX: ...)
+  Used by tools/build_v2.py (build/NAVFULL.txt: the routine names, :SUNA:) and tools/build_moon47.py
+  (build/MOON47.txt: :M7TX: ...); tests/test_local_labels.py checks them.
 """
-import os, re, sys
-
-HERE = os.path.dirname(os.path.abspath(__file__))
-ROOT = os.path.dirname(HERE)
+import re
 
 LETTERS = [chr(c) for c in range(ord('A'), ord('L') + 1)] + [chr(c) for c in range(ord('a'), ord('l') + 1)]
 CANDIDATES = ['%02d' % n for n in range(100)] + LETTERS
@@ -218,31 +214,8 @@ def convert(L, keep, names=None, nav=False):
     return M
 
 
-def read(p):
-    with open(p, encoding='utf-8') as fh:
-        return [l.rstrip('\n') for l in fh]
-
-
-def write(p, L):
-    os.makedirs(os.path.dirname(p), exist_ok=True)
-    with open(p, 'w', encoding='utf-8') as fh:
-        fh.write('\n'.join(L) + '\n')
-
-
 def moon_exit(L):
     """MOON47 keeps no register of yours: CLREGS before the CLSTK of its end."""
     j = [i for i in range(len(L) - 1) if L[i] == 'STO "M7C"' and L[i + 1] == 'CLSTK']
     assert len(j) == 1
     return L[:j[0] + 1] + ['CLREGS'] + L[j[0] + 1:]
-
-
-def main():
-    out = os.path.join(ROOT, 'build', 'dev', 'local')
-    B = os.path.join(ROOT, 'build')
-    write(os.path.join(out, 'NAVFULL_NAMES.txt'), convert(read(os.path.join(B, 'dev', 'src', 'NAVFULL.txt')), ('NAV',), nav=True))
-    write(os.path.join(out, 'NAVFULL_NXX.txt'), convert(read(os.path.join(B, 'NAVFULL.txt')), ('NAV',), nav=True))
-    write(os.path.join(out, 'MOON47.txt'), convert(moon_exit(read(os.path.join(B, 'MOON47.txt'))), ('MOON47',)))
-
-
-if __name__ == '__main__':
-    main()

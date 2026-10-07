@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
-"""test_local_labels.py - the one-program NAVFULL builds with local labels (tools/local_labels.py,
-build/dev/local/) against build/NAVFULL.txt.
+"""test_local_labels.py - the one-program builds with local labels (tools/local_labels.py): build/NAVFULL.txt
+against build/dev/src/NAVFULL.txt (the same code before the conversion: global names, R00-R98 saved in LocR),
+build/MOON47.txt against build_moon47.release() (before the conversion).
 
   C47 simulator (python/c47sim.py)   every page (1 ALMANAC, SPLIT, SKY, ANIM, ALLSKY, INFO), every frame the same,
         with the FULL and the FAST series and with the tables; after NAV R00-R99 are 0 (CLREGS) and the stack clear
   C47 firmware (tests/test_fw.run)   each page key, + menu, 0 end: no error, X = 0, R00-R99 all 0
   listing                            one program, NAV the only global label, every jump has its label
-  MOON47                             the pages against build/MOON47.txt, R00-R99 0 after; the firmware with and
-                                     without TZ
+  twice                              NAV run again after it ended: the same pages (its numbers are stored again at
+                                     the start), DATE UTC LAT LON and the matrices kept
+  MOON47                             the pages pixel for pixel, R00-R99 0 after; the firmware with and without TZ
 
-  python3 tests/test_local_labels.py [NAMES NXX MOON]
+  python3 tests/test_local_labels.py [NAV MOON]
 """
 import os, re, sys
 from decimal import Decimal as D
@@ -18,7 +20,6 @@ sys.path[:0] = [os.path.join(ROOT, 'python'), os.path.join(ROOT, 'tools'), os.pa
 import test_v2 as V                                                   # noqa: E402
 import test_fw as F                                                   # noqa: E402
 
-LOCAL = os.path.join(ROOT, 'build', 'dev', 'local')
 CASES = [('FULL', False, ('2026.1004', '9.30', '25.20', '55.12')), ('FAST', False, ('2027.0315', '3.30', '-33.54', '18.25')),
          ('FULL', True, ('2026.1020', '22.10', '60.10', '-5.00'))]
 
@@ -63,6 +64,28 @@ def sim(L, ref):
     return bad
 
 
+def twice(L):
+    """NAV, then NAV again in the same calculator: CLREGS cleared R00-R99, the second run must give the same pages."""
+    bad = 0
+    for name in ('ALMANAC', 'ANIM', 'ALLSKY'):
+        keys = [V.K[V.PAGES[name][0]], V.K['+'], V.K[0]]
+        c = V.T.load(L, 'FULL', False)
+        for k, v in V.INPUTS:
+            c.reg[k] = D(v)
+        mats = sorted(c.mats)
+        runs = []
+        for _ in range(2):
+            c.flags.add(81); c.s = [D(0)] * 4; c.keys = list(keys); c.frames = []; c.pix = []
+            c.run('NAV', maxsteps=10 ** 8)
+            runs.append([frozenset(f) for f in c.frames])
+        kept = all(c.reg.get(k) == D(v) for k, v in V.INPUTS) and sorted(c.mats) == mats
+        ok = len(runs[0]) > 1 and runs[0] == runs[1] and kept
+        bad += not ok
+        print('  %-7s second run %s, DATE UTC LAT LON and %d matrices %s' % (name, 'the same pages' if runs[0] == runs[1] else 'DIFFERENT',
+                                                                           len(mats), 'kept' if kept else 'CHANGED'))
+    return bad
+
+
 def firmware(path):
     if not os.path.exists(F.SIM):
         print('  no C47 simulator (%s): skipped' % F.SIM)
@@ -82,20 +105,24 @@ def firmware(path):
 
 
 def moon():
-    """MOON47 (build/dev/local/MOON47.txt): its pages against build/MOON47.txt pixel for pixel, R00-R99 0 at
-    the end; the firmware without TZ and with TZ = -5."""
+    """build/MOON47.txt against build_moon47.release() (before the conversion) pixel for pixel, R00-R99 0 at the
+    end; the firmware without TZ and with TZ = -5."""
+    import tempfile
     import test_moon47_c47 as MC
     import moon47 as M47
-    path = os.path.join(LOCAL, 'MOON47.txt')
+    import build_moon47
+    path = os.path.join(ROOT, 'build', 'MOON47.txt')
+    refp = os.path.join(tempfile.mkdtemp(), 'MOON47_REF.txt')
+    open(refp, 'w', encoding='utf-8').write('\n'.join(build_moon47.release()[0]) + '\n')
     L = V.lines(path)
     b = [x for x in listing(L) if 'global labels' not in x]
     g = [l for l in L if l.startswith('LBL "')]
     b += [] if g == ['LBL "MOON47"'] else ['global labels %s' % g]
     print('== MOON47: the listing\n  ' + ('; '.join(b) if b else 'one program, MOON47 the only global label, every jump has its label'))
     bad = len(b)
-    print('== MOON47 in the C47 simulator (python) against build/MOON47.txt')
+    print('== MOON47 in the C47 simulator (python) against MOON47 before the conversion')
     for j, tz in [(M47.julian(2026, 10, 3, 12.0), None), (M47.julian(2027, 1, 22, 3.5), -5.0), (M47.julian(2029, 3, 1, 1.0), -9.5)]:
-        MC.PROG = os.path.join(ROOT, 'build', 'MOON47.txt')
+        MC.PROG = refp
         ref, _ = MC.run(j, tz)
         MC.PROG = path
         frames, c = MC.run(j, tz)
@@ -115,18 +142,19 @@ def moon():
 
 
 def main(which):
-    ref = V.lines(os.path.join(ROOT, 'build', 'NAVFULL.txt'))
     bad = 0
-    for w in [w for w in which if w != 'MOON']:
-        path = os.path.join(LOCAL, 'NAVFULL_%s.txt' % w)
+    if 'NAV' in which:
+        path = os.path.join(ROOT, 'build', 'NAVFULL.txt')
         L = V.lines(path)
-        print('== NAVFULL_%s: the listing' % w)
+        print('== NAVFULL: the listing')
         b = listing(L)
         print('  ' + ('; '.join(b) if b else 'one program, NAV the only global label, every jump has its label'))
         bad += len(b)
-        print('== NAVFULL_%s against build/NAVFULL.txt in the C47 simulator (python)' % w)
-        bad += sim(L, ref)
-        print('== NAVFULL_%s in the C47 firmware (headless PC simulator)' % w)
+        print('== NAVFULL against build/dev/src/NAVFULL.txt in the C47 simulator (python)')
+        bad += sim(L, V.lines(os.path.join(ROOT, 'build', 'dev', 'src', 'NAVFULL.txt')))
+        print('== NAVFULL twice in a row (python)')
+        bad += twice(L)
+        print('== NAVFULL in the C47 firmware (headless PC simulator)')
         bad += firmware(path)
     if 'MOON' in which:
         bad += moon()
@@ -135,4 +163,4 @@ def main(which):
 
 
 if __name__ == '__main__':
-    sys.exit(1 if main(sys.argv[1:] or ['NAMES', 'NXX', 'MOON']) else 0)
+    sys.exit(1 if main(sys.argv[1:] or ['NAV', 'MOON']) else 0)
