@@ -317,8 +317,65 @@ def animq(L):
     return L[:a] + P + L[e:]
 
 
+MST_TEMP = ('TSA', 'TC4', 'TG', 'TH', 'TE', 'TX1', 'TX2', 'TB1', 'TB2', 'TB3', 'TB4', 'TQ', 'TMT', 'TV', 'TR',
+            'TCC', 'TSS', 'TX', 'TY', 'TZ', 'TT')
+
+
+SETUP_TEMP = ('TS50', 'TK', 'TA', 'TD', 'TPA', 'TPD', 'TT', 'TDD', 'TAA', 'TCD', 'TSZ', 'TX', 'TY')
+
+
+def navinit_mstars(src, dst):
+    """NAVINIT with LBL 05: the star vectors SXA (x y z 1 at J2000) and SXD (their change per century, J2000 -> J2050
+    as a straight line) computed once from NAVINIT's own catalogue ST, as TSTAR's set-up (a loop of about 60 steps:
+    the 464 numbers written out made NAVINIT_FULL too large to load)."""
+    sys.path.insert(0, os.path.join(HERE, 'tests_calc'))
+    import gen_tstar
+    L = [l for l in open(src, encoding='utf-8').read().split('\n') if l.strip()]
+    assert L[1:5] == ['XEQ 01', 'XEQ 02', 'XEQ 03', 'XEQ 04'] and L[-1] == 'END'
+    assert not {'LBL 05', 'LBL 06', 'LBL 07', 'LBL 08'} & set(L), 'build_struct: NAVINIT labels 05-08 taken'
+    code = gen_tstar.vector_setup('SXA', 'SXD', (5, 6, 7, 8))
+    i = code.index('RTN')                                         # the end of LBL 05: delete the set-up's variables
+    code = code[:i] + ['DELITM "%s"' % v for v in SETUP_TEMP] + code[i:]
+    names = set(re.findall(r'"(T\w+)"', '\n'.join(code)))
+    assert names <= set(SETUP_TEMP), names - set(SETUP_TEMP)
+    L = L[:5] + ['XEQ 05'] + L[5:-1] + code + ['END']
+    open(dst, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+    return N.p47(dst)
+
+
+def mstars(L):
+    """The 58 stars at once with matrices (tools/tests_calc/TSTAR.txt, part B) in place of one by one: CALC (a new
+    time or place) computes GHA, Dec, Hc, Zn of every star from NAVINIT's SXA / SXD (two products (58 x 4) x (4 x 3))
+    and puts the four columns into ALMC's star rows (7-64) with M.PUTM; CSQK (over the horizon?) then compares the
+    exact Hc with SQK's limit (sin Hc 0.15643, Hc 8.99974 deg) and reads the cache; SQK and STR2 no longer run for the
+    views. ALLSKY keeps its own star path. Needs the NAVINIT of this folder (SXA, SXD)."""
+    sys.path.insert(0, os.path.join(HERE, 'tests_calc'))
+    import gen_tstar
+    # the stars right after the Sun (SUNA's T, obliquity, nutation, precession angles, and G2 G3 = cos / sin of
+    # GHA Aries + longitude); the Moon and the planets then overwrite those registers (CSUN restores them later)
+    L = swap(L, ['RCL 02', 'RCL+ 13', 'RCL 43', '→REC', 'STO "G2"', 'X<>Y', 'STO "G3"', 'XEQ "N46"'],
+             ['RCL 02', 'RCL+ 13', 'RCL 43', '→REC', 'STO "G2"', 'X<>Y', 'STO "G3"', 'XEQ "N95"', 'XEQ "N46"'])
+    L = swap(L, ['INDEX "ALMC"', '7', 'RCL 51', 'STOIJ', '58', 'STO 25', '-98', 'LBL 02', 'STOEL', 'I+', 'DSE 25',
+                 'GTO 02'], [])
+    L = swap(L, ['RCLEL', '-98', 'X=Y?', 'GTO 32', 'X<>Y', '-99', 'X=Y?', 'GTO 31', 'RCL 43', 'RTN'],
+             ['RCLEL', '8.999740983204436', 'X>Y?', 'GTO 31', 'RCL 43', 'RTN'])
+    P = ['LBL "N95"', 'DEG', 'XEQ 20', 'INDEX "ALMC"']
+    for j in range(1, 5):
+        P += ['7', 'ENTER', str(j), 'STOIJ', 'RCL "TB%d"' % j, 'M.PUTM']
+    P += ['DELITM "%s"' % v for v in MST_TEMP] + ['RTN'] + gen_tstar.matrix_stars('SXA', 'SXD') + ['END']
+    names = set(re.findall(r'"(T\w+)"', '\n'.join(P)))
+    assert names <= set(MST_TEMP), names - set(MST_TEMP)
+    d = os.path.join(OUT, '8_mstars')
+    os.makedirs(d, exist_ok=True)
+    for init in ('NAVINIT_FULL', 'NAVINIT_FAST'):
+        n = navinit_mstars(os.path.join(ROOT, 'build', init + '.txt'), os.path.join(d, init + '.txt'))
+        print('  8_mstars: %s with SXA SXD, %d bytes' % (init, n))
+    print('  8_mstars: stars by matrix in CALC (N95), CSQK reads the exact Hc')
+    return L + P
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
-         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq))
+         ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars))
 
 
 def main():

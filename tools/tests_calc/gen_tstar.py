@@ -73,60 +73,35 @@ def column(i, j, name):
     return ['1', 'ENTER', str(j), 'STOIJ', '58', 'ENTER', '1', 'M.GETM', 'STO "%s"' % name]
 
 
-def program():
-    P = ['LBL "TSTAR"', 'REM "58 stars: A one by one (SQK STR2), B one matrix. X = passes (3). Ticks R21 R22 R23,"',
-         'REM "differences arcmin R26 GHA R27 Dec R28 Hc R29 Zn, R30 stars of A in full. Load NAVFULL, run NAVINIT."',
-         'X>0?', 'GTO 01', '3', 'LBL 01', 'STO "TN"', 'DEG']
-    P += nav_setup()
-    P += ['%g' % PLACE[0], 'STO 13', '%g' % PLACE[1], 'STO 14', repr(JD), 'STO 17',
-          'XEQ "N36"', 'RCL 17', 'XEQ "N64"']
-    # B's set-up, once: the star vectors at J2000 and J2050 -> TSA0, and per century TSD (column 4: 1 and 0)
-    P += ['REM "B set-up: star vectors J2000, J2050"', 'TICKS', 'STO "TT0"', 'XEQ 10',
-          'TICKS', 'RCL- "TT0"', 'STO "TR3"']
-    # A, N passes
-    P += ['REM "A: N passes, one star at a time"', '0', 'STO "TW"', 'RCL "TN"', 'STO "TC"', 'TICKS', 'STO "TT0"',
-          'LBL 02', 'XEQ 50', '1', 'STO- "TC"', 'RCL "TC"', 'X>0?', 'GTO 02',
-          'TICKS', 'RCL- "TT0"', 'STO "TR1"', 'RCL "TF"', 'STO "TF1"']
-    # B, N passes
-    P += ['REM "B: N passes, all stars at once"', 'RCL "TN"', 'STO "TC"', 'TICKS', 'STO "TT0"',
-          'LBL 03', 'XEQ 20', '1', 'STO- "TC"', 'RCL "TC"', 'X>0?', 'GTO 03',
-          'TICKS', 'RCL- "TT0"', 'STO "TR2"']
-    # the check: A for every star into TRA, B into TRB, the largest difference of each column
-    P += ['REM "check: A for all 58 stars against B"', '58', 'ENTER', '4', 'NEWMAT', 'STO "TRA"', 'STO "TRB"',
-          '1', 'STO "TW"', 'XEQ 50', 'INDEX "TRB"']
-    for j, name in enumerate(('TB1', 'TB2', 'TB3', 'TB4'), 1):
-        P += ['1', 'ENTER', str(j), 'STOIJ', 'RCL "%s"' % name, 'M.PUTM']
-    P += ['RCL "TRA"', 'RCL "TRB"', '-', 'SIN', 'STO "TE"', 'INDEX "TE"']
-    for j, reg in ((1, 26), (2, 27), (3, 28), (4, 29)):
-        P += column(1, j, 'TX1') + ['RCL "TX1"', 'RNORM', 'ASIN', '60', '×', 'STO "TD%d"' % j]
-    # results to R21-R30, the T variables deleted
-    P += ['RCL "TR1"', 'STO 21', 'RCL "TR2"', 'STO 22', 'RCL "TR3"', 'STO 23',
-          'RCL "TD1"', 'STO 26', 'RCL "TD2"', 'STO 27', 'RCL "TD3"', 'STO 28', 'RCL "TD4"', 'STO 29',
-          'RCL "TF1"', 'STO 30']
-    for v in ('TF1', 'TN', 'TT0', 'TR1', 'TR2', 'TR3', 'TW', 'TC', 'TK', 'TF', 'TGA', 'TDE', 'TCC', 'TSS', 'TR', 'TSA0',
-              'TS50', 'TSD', 'TSA', 'TQ', 'TMT', 'TV', 'TC4', 'TG', 'TH', 'TE', 'TX1', 'TX2', 'TB1', 'TB2', 'TB3',
-              'TB4', 'TRA', 'TRB', 'TD1', 'TD2', 'TD3', 'TD4', 'TT', 'TA', 'TD', 'TPA', 'TPD', 'TAA', 'TDD', 'TCD',
-              'TSZ', 'TX', 'TY', 'TZ'):
-        P += ['DELITM "%s"' % v]
-    P += ['RCL 21', 'RTN']
-
+def vector_setup(sa0='TSA0', sad='TSD', lbl=(10, 11, 12, 13)):
+    """LBL lbl[0]: the 58 star vectors (x y z 1) from the catalogue ST into sa0 (J2000) and their change per century
+    into sad (J2000 -> J2050 as a straight line). Temporary variables: TS50 TK TA TD TPA TPD TT TDD TAA TCD TSZ TX TY."""
+    P = []
     # LBL 10: the star vectors (x y z 1) at t = 0 and 50 years from the catalogue ST (RA, Dec, pm RA, pm Dec), as
     # STR2: a = a0 + pa t / 3600000 / cos d0, d = d0 + pd t / 3600000
-    P += ['LBL 10', '58', 'ENTER', '4', 'NEWMAT', 'STO "TSA0"', 'STO "TS50"', '1', 'STO "TK"',
-          'LBL 11', 'INDEX "ST"', 'RCL "TK"', '1', 'STOIJ', 'RCLEL', 'STO "TA"', 'J+', 'RCLEL', 'STO "TD"',
+    P += ['LBL %d' % lbl[0], '58', 'ENTER', '4', 'NEWMAT', 'STO "%s"' % sa0, 'STO "TS50"', '1', 'STO "TK"',
+          'LBL %d' % lbl[1], 'INDEX "ST"', 'RCL "TK"', '1', 'STOIJ', 'RCLEL', 'STO "TA"', 'J+', 'RCLEL', 'STO "TD"',
           'J+', 'RCLEL', 'STO "TPA"', 'J+', 'RCLEL', 'STO "TPD"',
-          '0', 'XEQ 12', 'INDEX "TSA0"', 'XEQ 13', '50', 'XEQ 12', 'INDEX "TS50"', 'XEQ 13',
-          '1', 'STO+ "TK"', '58', 'RCL "TK"', 'X≤Y?', 'GTO 11',
-          'RCL "TS50"', 'RCL "TSA0"', '-', '2', '×', 'STO "TSD"', 'RTN',
-          'LBL 12', 'STO "TT"', 'RCL× "TPD"', '3600000', '÷', 'RCL+ "TD"', 'STO "TDD"',
+          '0', 'XEQ %d' % lbl[2], 'INDEX "%s"' % sa0, 'XEQ %d' % lbl[3], '50', 'XEQ %d' % lbl[2], 'INDEX "TS50"', 'XEQ %d' % lbl[3],
+          '1', 'STO+ "TK"', '58', 'RCL "TK"', 'X≤Y?', 'GTO %d' % lbl[1],
+          'RCL "TS50"', 'RCL "%s"' % sa0, '-', '2', '×', 'STO "%s"' % sad, 'RTN',
+          'LBL %d' % lbl[2], 'STO "TT"', 'RCL× "TPD"', '3600000', '÷', 'RCL+ "TD"', 'STO "TDD"',
           'RCL "TPA"', 'RCL× "TT"', '3600000', '÷', 'RCL "TD"', 'COS', '÷', 'RCL+ "TA"', 'STO "TAA"',
           'RCL "TDD"', '1', '→REC', 'STO "TCD"', 'X<>Y', 'STO "TSZ"',
           'RCL "TAA"', 'RCL "TCD"', '→REC', 'STO "TX"', 'X<>Y', 'STO "TY"', 'RTN',
-          'LBL 13', 'RCL "TK"', '1', 'STOIJ', 'RCL "TX"', 'STOSEQ', 'RCL "TY"', 'STOSEQ', 'RCL "TSZ"', 'STOSEQ',
+          'LBL %d' % lbl[3], 'RCL "TK"', '1', 'STOIJ', 'RCL "TX"', 'STOSEQ', 'RCL "TY"', 'STOSEQ', 'RCL "TSZ"', 'STOSEQ',
           '1', 'STOSEQ', 'RTN']
 
+    return P
+
+
+def matrix_stars(sa0='TSA0', sad='TSD'):
+    """B, all 58 stars: LBL 20 (one pass: GHA, Dec, Hc, Zn into the columns TB1-TB4), LBL 30 (C4), LBL 40 (the
+    observer's north / east / zenith), LBL 71-73 (Rx, Ry, Rz). sa0: the star vectors (x y z 1) at J2000, sad: their
+    change per century. Reads NAV's registers after SUNA / CALC and HCZI; writes only variables starting with T."""
+    P = []
     # LBL 20: B, one pass
-    P += ['LBL 20', 'RCL "TSD"', 'RCL× 03', 'RCL "TSA0"', '+', 'STO "TSA"', 'XEQ 30',
+    P += ['LBL 20', 'RCL "%s"' % sad, 'RCL× 03', 'RCL "%s"' % sa0, '+', 'STO "TSA"', 'XEQ 30',
           'RCL 02', 'XEQ 73', '[M]⊤', 'RCL "TC4"', 'X<>Y', '×', 'STO "TG"',
           'XEQ 40', 'RCL "TC4"', 'X<>Y', '×', 'STO "TH"',
           'RCL "TSA"', 'RCL "TG"', '×', 'STO "TE"', 'INDEX "TE"']
@@ -165,6 +140,49 @@ def program():
     P += rot(71, ['1', '0', '0', '0', 'c', 's', '0', '-s', 'c'])
     P += rot(72, ['c', '0', '-s', '0', '1', '0', 's', '0', 'c'])
     P += rot(73, ['c', 's', '0', '-s', 'c', '0', '0', '0', '1'])
+
+    return P
+
+
+def program():
+    P = ['LBL "TSTAR"', 'REM "58 stars: A one by one (SQK STR2), B one matrix. X = passes (3). Ticks R21 R22 R23,"',
+         'REM "differences arcmin R26 GHA R27 Dec R28 Hc R29 Zn, R30 stars of A in full. Load NAVFULL, run NAVINIT."',
+         'X>0?', 'GTO 01', '3', 'LBL 01', 'STO "TN"', 'DEG']
+    P += nav_setup()
+    P += ['%g' % PLACE[0], 'STO 13', '%g' % PLACE[1], 'STO 14', repr(JD), 'STO 17',
+          'XEQ "N36"', 'RCL 17', 'XEQ "N64"']
+    # B's set-up, once: the star vectors at J2000 and J2050 -> TSA0, and per century TSD (column 4: 1 and 0)
+    P += ['REM "B set-up: star vectors J2000, J2050"', 'TICKS', 'STO "TT0"', 'XEQ 10',
+          'TICKS', 'RCL- "TT0"', 'STO "TR3"']
+    # A, N passes
+    P += ['REM "A: N passes, one star at a time"', '0', 'STO "TW"', 'RCL "TN"', 'STO "TC"', 'TICKS', 'STO "TT0"',
+          'LBL 02', 'XEQ 50', '1', 'STO- "TC"', 'RCL "TC"', 'X>0?', 'GTO 02',
+          'TICKS', 'RCL- "TT0"', 'STO "TR1"', 'RCL "TF"', 'STO "TF1"']
+    # B, N passes
+    P += ['REM "B: N passes, all stars at once"', 'RCL "TN"', 'STO "TC"', 'TICKS', 'STO "TT0"',
+          'LBL 03', 'XEQ 20', '1', 'STO- "TC"', 'RCL "TC"', 'X>0?', 'GTO 03',
+          'TICKS', 'RCL- "TT0"', 'STO "TR2"']
+    # the check: A for every star into TRA, B into TRB, the largest difference of each column
+    P += ['REM "check: A for all 58 stars against B"', '58', 'ENTER', '4', 'NEWMAT', 'STO "TRA"', 'STO "TRB"',
+          '1', 'STO "TW"', 'XEQ 50', 'INDEX "TRB"']
+    for j, name in enumerate(('TB1', 'TB2', 'TB3', 'TB4'), 1):
+        P += ['1', 'ENTER', str(j), 'STOIJ', 'RCL "%s"' % name, 'M.PUTM']
+    P += ['RCL "TRA"', 'RCL "TRB"', '-', 'SIN', 'STO "TE"', 'INDEX "TE"']
+    for j, reg in ((1, 26), (2, 27), (3, 28), (4, 29)):
+        P += column(1, j, 'TX1') + ['RCL "TX1"', 'RNORM', 'ASIN', '60', '×', 'STO "TD%d"' % j]
+    # results to R21-R30, the T variables deleted
+    P += ['RCL "TR1"', 'STO 21', 'RCL "TR2"', 'STO 22', 'RCL "TR3"', 'STO 23',
+          'RCL "TD1"', 'STO 26', 'RCL "TD2"', 'STO 27', 'RCL "TD3"', 'STO 28', 'RCL "TD4"', 'STO 29',
+          'RCL "TF1"', 'STO 30']
+    for v in ('TF1', 'TN', 'TT0', 'TR1', 'TR2', 'TR3', 'TW', 'TC', 'TK', 'TF', 'TGA', 'TDE', 'TCC', 'TSS', 'TR', 'TSA0',
+              'TS50', 'TSD', 'TSA', 'TQ', 'TMT', 'TV', 'TC4', 'TG', 'TH', 'TE', 'TX1', 'TX2', 'TB1', 'TB2', 'TB3',
+              'TB4', 'TRA', 'TRB', 'TD1', 'TD2', 'TD3', 'TD4', 'TT', 'TA', 'TD', 'TPA', 'TPD', 'TAA', 'TDD', 'TCD',
+              'TSZ', 'TX', 'TY', 'TZ'):
+        P += ['DELITM "%s"' % v]
+    P += ['RCL 21', 'RTN']
+
+    P += vector_setup()
+    P += matrix_stars()
 
     # LBL 50: A, one pass over the 58 stars, as CSQK (TW = 1: every star in full, results into TRA)
     P += ['LBL 50', '1', 'STO "TK"', '0', 'STO "TF"',

@@ -23,9 +23,15 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            Earth's turn (w = 360.98564736629 deg/day) and Dec. Error against every frame computed:
                            Sun 0.000000 deg, Moon 0.0007 deg (a pixel is about 1 deg). ANIM pixel for pixel 6_anim
                            (first run, +1 h, -2 h: the last screen keeps every frame's symbols).
+  8_mstars/                + the 58 stars at once with matrices (TSTAR's part B) in place of one by one: CALC, right
+                           after the Sun, computes GHA Dec Hc Zn of every star (two products (58 x 4) x (4 x 3), ∡ of
+                           complex columns) into ALMC's star rows with M.PUTM; CSQK compares the exact Hc with SQK's
+                           limit (8.99974 deg). NEEDS ITS OWN NAVINIT_FULL / NAVINIT_FAST (this folder): LBL 05 makes
+                           SXA (star vectors J2000) and SXD (per century) from ST, once (+428 bytes). Pages pixel for
+                           pixel 7_animq: 6 dates and places 2004-2045, 55 S - 60 N, FULL; and FAST.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912.
+4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -80,6 +86,12 @@ Step 7. ANIM: estimate 10.8 s -> 7.9 s (-27 %; SUNF + MOOQ 3.8 s -> 0.5 s); firm
 
 The stars (tools/tests_calc/TSTAR.txt): one matrix for all 58 against one by one, to time on the calculator
 before NAV changes; firmware PC sim 12 against 51 ticks.
+
+Step 8. Firmware PC sim CPU (with start-up), 7_animq -> 8_mstars: menu FULL 0.236 -> 0.197 s, FAST 0.210 -> 0.173 s;
+ALMANAC + 15 hours FULL 1.563 -> 1.484 s, FAST 1.246 -> 1.145 s. Trig on the C47 (counted): menu about 615 -> 241,
+but an hour arrow about 171 -> 241 (7 computes only the stars the table asks for; 8 always all 58): time the
+arrows on the calculator. If they are slower: the over-the-horizon test from the zenith component (no trig) and
+the angles only for the stars a view asks for.
 
 Not done yet
   - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.
