@@ -13,7 +13,7 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
 
   5_equator/NAVFULL.txt    + the celestial equator with one dot in three, each dot one POINT (3 x 3 pixels around the
                            old 2 x 2 dot of four PIXEL): every 6 deg on SKY and ANIM (60 dots, were 180), every 9 deg
-                           on SPLIT and ALLSKY (40, were 120); CEQQ computes them in blocks of 20 (was 30). The charts
+                           on SPLIT and ALLSKY (40, were 120); CEQQ computes them in blocks of 10 (was 30). The charts
                            look different (the dots lie on the old curve): Free42 and the Python versions not yet.
   6_anim/NAVFULL.txt       + ANIM's frames without the 1 s wait: PAUSE 10 -> PAUSE 0 (24 frames: 24 s less; each
                            frame still reaches the LCD). The PAUSE 0 of the SINKING box and of the bar after a key

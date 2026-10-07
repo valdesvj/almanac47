@@ -209,36 +209,46 @@ def swap(L, old, new, times=1):
     return t.replace(o, n)[1:-1].split('\n')
 
 
-def equator(L):
-    """The celestial equator of the charts with one dot in three: every 6 deg (SKY, ANIM: 60 dots, were 180) and
-    every 9 deg (SPLIT, ALLSKY: 40, were 120), each dot one POINT (3 x 3 pixels around the old 2 x 2 dot, which
-    took four PIXEL). CEQQ computes the dots in blocks of 20 (R75 = 30 does not divide 40); the cache keys
-    (step 6 -> U2, 9 -> U3) follow."""
+SKY_STEP = 6      # deg between equator dots on SKY and ANIM (release 2: 180 dots)
+CHART_STEP = 9    # on SPLIT and ALLSKY (release 3: 120 dots)
+BLOCK = 10        # dots computed together by CEQQ (release 30): must divide 360 / SKY_STEP and 360 / CHART_STEP
+
+
+def equator(L, sky=None, chart=None):
+    """The celestial equator of the charts with fewer dots, each one POINT (3 x 3 pixels around the old 2 x 2 dot,
+    which took four PIXEL): every SKY_STEP deg on SKY and ANIM, every CHART_STEP deg on SPLIT and ALLSKY. CEQQ
+    computes the dots in blocks of BLOCK; the cache keys (SKY_STEP -> U2, CHART_STEP -> U3) follow. The loops
+    count the dots one by one (ISG 0.nnn01), the step goes to HCZQ / CEQQ."""
+    sky, chart = sky or SKY_STEP, chart or CHART_STEP
+    nsky, nchart = round(360 / sky), round(360 / chart)
+    assert nsky * sky == 360 and nchart * chart == 360 and nsky % BLOCK == 0 and nchart % BLOCK == 0 and sky != chart
+    S, C = '%g' % sky, '%g' % chart
+    isg = lambda n: '0.%03d01' % (n - 1)
     # the views: step and loop count (ANIM through HCZQ / HCZR, the others through CEQQ / CEQR)
-    L = swap(L, ['RCL 46', 'RCL 44', 'XEQ "N34"', '0.35802'], ['RCL 46', '6', 'XEQ "N34"', '0.35406'])
-    L = swap(L, ['RCL 46', 'RCL 44', 'XEQ "N77"', '0.35802'], ['RCL 46', '6', 'XEQ "N77"', '0.35406'])
-    L = swap(L, ['RCL 46', 'RCL 51', 'XEQ "N77"', '0.35703'], ['RCL 46', '9', 'XEQ "N77"', '0.35109'], 2)
+    L = swap(L, ['RCL 46', 'RCL 44', 'XEQ "N34"', '0.35802'], ['RCL 46', S, 'XEQ "N34"', isg(nsky)])
+    L = swap(L, ['RCL 46', 'RCL 44', 'XEQ "N77"', '0.35802'], ['RCL 46', S, 'XEQ "N77"', isg(nsky)])
+    L = swap(L, ['RCL 46', 'RCL 51', 'XEQ "N77"', '0.35703'], ['RCL 46', C, 'XEQ "N77"', isg(nchart)], 2)
     # CEQQ (N77) and CEQR (N78): the cache for each step, its size
-    L = swap(L, ['RCL "Q9"', 'RCL 51', 'X=Y?', 'GTO 43'], ['RCL "Q9"', '9', 'X=Y?', 'GTO 43'])
-    L = swap(L, ['RCL "Q9"', 'RCL 44', 'X=Y?', 'GTO 42'], ['RCL "Q9"', '6', 'X=Y?', 'GTO 42'])
-    L = swap(L, ['LBL 43', 'RCL 51', 'STO "G4"'], ['LBL 43', '9', 'STO "G4"'])
-    L = swap(L, ['LBL 42', 'RCL 44', 'STO "G4"'], ['LBL 42', '6', 'STO "G4"'])
-    L = swap(L, ['120', 'XEQ 49', 'STO "U3"'], ['40', 'XEQ 49', 'STO "U3"'])
-    L = swap(L, ['RCL 62', 'XEQ 49', 'STO "U2"'], ['60', 'XEQ 49', 'STO "U2"'])
-    L = swap(L, ['LBL "N78"', 'RCL "G4"', 'RCL 44', 'X=Y?', 'GTO 41'], ['LBL "N78"', 'RCL "G4"', '6', 'X=Y?', 'GTO 41'])
+    L = swap(L, ['RCL "Q9"', 'RCL 51', 'X=Y?', 'GTO 43'], ['RCL "Q9"', C, 'X=Y?', 'GTO 43'])
+    L = swap(L, ['RCL "Q9"', 'RCL 44', 'X=Y?', 'GTO 42'], ['RCL "Q9"', S, 'X=Y?', 'GTO 42'])
+    L = swap(L, ['LBL 43', 'RCL 51', 'STO "G4"'], ['LBL 43', C, 'STO "G4"'])
+    L = swap(L, ['LBL 42', 'RCL 44', 'STO "G4"'], ['LBL 42', S, 'STO "G4"'])
+    L = swap(L, ['120', 'XEQ 49', 'STO "U3"'], [str(nchart), 'XEQ 49', 'STO "U3"'])
+    L = swap(L, ['RCL 62', 'XEQ 49', 'STO "U2"'], [str(nsky), 'XEQ 49', 'STO "U2"'])
+    L = swap(L, ['LBL "N78"', 'RCL "G4"', 'RCL 44', 'X=Y?', 'GTO 41'], ['LBL "N78"', 'RCL "G4"', S, 'X=Y?', 'GTO 41'])
     a = L.index('LBL "N77"')
     s = L.index('LBL 49', a)
     e = L.index('DELITM "W2"', s)
     assert L[e + 1] == 'RTN' and L.index('END', a) > e
-    n = sum(L[i] == 'RCL 75' for i in range(s, e))
-    L = L[:s] + ['20' if l == 'RCL 75' else l for l in L[s:e]] + L[e:]
+    L = L[:s] + [str(BLOCK) if l == 'RCL 75' else l for l in L[s:e]] + L[e:]
     # the dots: four PIXEL -> one POINT
     four = lambda y, x: [y, x, 'PIXEL', y, x, 'RCL 43', '+', 'PIXEL', y, 'RCL 43', '+', x, 'PIXEL',
                          y, 'RCL 43', '+', x, 'RCL 43', '+', 'PIXEL']
     for y, x in (('RCL 09', 'RCL 05'), ('RCL 09', 'RCL 08'), ('RCL 08', 'RCL 23')):
         L = swap(L, four(y, x) + ['RTN'], [y, x, 'POINT', 'RTN'])
     L = swap(L, ['STO 06'] + four('RCL 06', 'RCL 23')[1:] + ['RTN'], ['STO 06', 'RCL 23', 'POINT', 'RTN'])
-    print('  5_equator: one dot in three, POINT; CEQQ blocks of 20 (%d RCL 75)' % n)
+    print('  5_equator: SKY / ANIM every %s deg (%d dots), SPLIT / ALLSKY every %s deg (%d), POINT, blocks of %d'
+          % (S, nsky, C, nchart, BLOCK))
     return L
 
 
