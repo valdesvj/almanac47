@@ -6,7 +6,9 @@ version and the base for a phone app (**Almanac 47**).
 - **Install and run:** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
   graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,
-  ↑↓ ±1 hour, 9 SNAP). Your numbered registers are saved when NAV starts and given back when it ends.
+  ↑↓ ±1 hour, 9 SNAP). NAV uses the numbered registers and clears R00–R99 when it ends (v2.2.0; up to
+  v2.1.0 they were saved and given back). NAVFULL is one program: NAV is its only global label, the routines
+  are local labels with their names (`build/NAVFULL_LABELS.txt`, section 7 of the manual).
 - **v2.1.0 "Supercharger", what changed inside:** `docs/OPTIMIZATIONS.md` (v2.0.0: Horner, n-vectors, the loops
   on ISG, the registers renumbered and kept; v2.1.0, section 7: the firmware's matrix and complex functions,
   the series' cos and sin by one complex eˣ, Hc Zn from the direction vectors, smaller code; MOON47 too).

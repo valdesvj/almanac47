@@ -3,7 +3,7 @@
 
   C47 NAVFULL v2 / the release before it (branch main)   every page they share (1 ALMANAC, SPLIT, SKY, ANIM, ALLSKY, INFO),
         pixel for pixel in the C47 simulator, with the FULL and the FAST series and with the tables; after NAV the
-        registers R00-R99 as before (set to marks first) and the stack clear
+        registers R00-R99 0 (CLREGS: NAVFULL keeps no register of yours since the one-program build) and the stack clear
   DM42 NAVLITTLE v2 / main (C47 firmware)  the ALMANAC screen, one hour later, one hour earlier; registers kept
   Free42 NAVFULL / C47 NAVFULL v2             the menu and the pages 1 2 5 6, f42run against the C47 simulator
   Free42 NAVLITTLE / C47 NAVLITTLE v2         the three screens of tests/test_f42_little.py
@@ -38,8 +38,9 @@ def git_file(tag, path):
     return subprocess.run(['git', 'show', '%s:%s' % (tag, path)], cwd=ROOT, capture_output=True, text=True, check=True).stdout
 
 
-def session(L, keys, init='FULL', tables=False, inputs=INPUTS, marks=True):
-    """NAV in the C47 simulator: frames (as sets of (x, y), y from the top), registers kept, stack clear."""
+def session(L, keys, init='FULL', tables=False, inputs=INPUTS, marks=True, cleared=False):
+    """NAV in the C47 simulator: frames (as sets of (x, y), y from the top), registers kept (cleared: R00-R99 0
+    after NAV, the one-program NAVFULL with CLREGS), stack clear."""
     c = T.load(L, init, tables)
     for k, v in inputs:
         c.reg[k] = D(v)
@@ -50,7 +51,7 @@ def session(L, keys, init='FULL', tables=False, inputs=INPUTS, marks=True):
     c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
     c.run('NAV', maxsteps=10 ** 8)
     frames = [frozenset((x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400) for f in c.frames]
-    kept = not marks or all(c.rget(r) == v for r, v in m.items())
+    kept = not marks or all(c.rget(r) == (0 if cleared else v) for r, v in m.items())
     return frames, kept, all(x == 0 for x in c.s)
 
 
@@ -65,13 +66,13 @@ def c47_vs_v110():
     for init, tables, (dt, ut, la, lo) in cases:
         inp = (('DATE', dt), ('UTC', ut), ('LAT', la), ('LON', lo))
         for name, (k2, k1) in PAGES.items():
-            a, kept, clear = session(new, [K[k2], K['+'], K[0]], init, tables, inp)
+            a, kept, clear = session(new, [K[k2], K['+'], K[0]], init, tables, inp, cleared=True)
             b, _, _ = session(old, [K[k1], K['+'], K[0]], init, tables, inp, marks=False)
             same = len(a) > 1 and len(b) > 1 and a[1] == b[1] and (name != 'ANIM' or a[1:-2] == b[1:-2])
             ok = same and kept and clear
             bad += not ok
             print('  %-4s%-6s %s %5s %6s %7s  %-7s page %s, registers %s, stack %s' % (init, ' T' if tables else '', dt, ut, la, lo, name,
-                  'the same' if same else 'DIFFERENT', 'kept' if kept else 'CHANGED', 'clear' if clear else 'NOT CLEAR'))
+                  'the same' if same else 'DIFFERENT', '0 (CLREGS)' if kept else 'NOT 0', 'clear' if clear else 'NOT CLEAR'))
     return bad
 
 

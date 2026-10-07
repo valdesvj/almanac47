@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """test_fw.py - the C47 release files in the C47 firmware itself: the PC simulator built from the firmware
 sources (gitlab rpncalculators/c43), headless with its Tcl script (--script). No pixels here (a SNAP inside a
-running program is not reliable headless): every run must end with no error, X = 0, and every register R00-R99
-as it was before (set to marks).
+running program is not reliable headless): every run must end with no error and X = 0. NAVFULL and MOON47 clear
+R00-R99 when they end (CLREGS): every register 0 after (set to marks before); NAVLITTLE keeps them.
 
   NAVFULL    NAVINIT_FAST, the four inputs (R/S at each prompt), then each page key (1-6), + menu, 0 end
   NAVLITTLE  NAVINIT_LITTLE, the inputs, up, down, + end
@@ -77,9 +77,10 @@ def main():
     print('== NAVFULL in the C47 firmware (headless PC simulator): each page, + menu, 0 end')
     for k, name in ((72, '1 ALMANAC'), (73, '2 SPLIT'), (74, '3 SKY'), (62, '4 ANIM'), (63, '5 ALLSKY'), (64, '6 INFO'), (54, '9 SNAP')):
         vals, changed, err = run([os.path.join(B, 'NAVINIT_FAST.txt'), os.path.join(B, 'NAVFULL.txt')], 'NAV', [k, 85, 82], inputs, resume=4)
-        ok = not err and not changed and vals.get('X') == '0'
+        zero = all(vals.get('R%02d' % r) == '0' for r in range(100))          # CLREGS when NAV ends
+        ok = not err and zero and vals.get('X') == '0'
         bad += not ok
-        print('  %-10s X=%s  registers %s  %s' % (name, vals.get('X'), 'kept' if not changed else 'CHANGED %d' % len(changed), err[:2] or 'no error'))
+        print('  %-10s X=%s  R00-R99 %s  %s' % (name, vals.get('X'), 'all 0' if zero else 'NOT 0', err[:2] or 'no error'))
     print('== NAVLITTLE (DM42 with the C47 firmware): up, down, + end')
     vals, changed, err = run([os.path.join(B, 'dm42', 'NAVINIT_LITTLE.txt'), os.path.join(B, 'dm42', 'NAVLITTLE.txt')], 'NAV', [51, 61, 85],
                              inputs, resume=4)
@@ -89,9 +90,10 @@ def main():
     print('== MOON47: without TZ, with TZ = -5')
     for tz, setup in (('none', []), ('-5', ['-5', 'STO "TZ"'])):
         vals, changed, err = run([os.path.join(B, 'MOON47.txt')], 'MOON47', [43, 82], setup, init=False, show=('TZ',))
-        ok = not err and vals.get('TZ') == ('0' if tz == 'none' else '-5')
+        zero = all(vals.get('R%02d' % r) == '0' for r in range(100))          # CLREGS when MOON47 ends
+        ok = not err and vals.get('TZ') == ('0' if tz == 'none' else '-5') and zero
         bad += not ok
-        print('  TZ before %-4s -> TZ %s  %s' % (tz, vals.get('TZ'), err[:2] or 'no error'))
+        print('  TZ before %-4s -> TZ %s, R00-R99 %s  %s' % (tz, vals.get('TZ'), 'all 0' if zero else 'NOT 0', err[:2] or 'no error'))
     print('%d failed' % bad)
     return bad
 

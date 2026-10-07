@@ -70,6 +70,20 @@ class Calc:
         self.labels = {}
         for i, ln in enumerate(self.lines):
             if ln.startswith('LBL '): self.labels[ln[4:].strip().strip('"')] = i
+        # local labels (00-99, A-L, a-l, :name:) per program (END to END): the firmware (lblGtoXeq.c fnGoto,
+        # manage.c findNamedLabelWithDuplicate) takes the first one after the GTO / XEQ, else the first one
+        self.prog = []; self.loc = {}; p = 0
+        for i, ln in enumerate(self.lines):
+            self.prog.append(p)
+            if ln == 'END': p += 1
+            elif ln.startswith('LBL ') and not ln[4:].strip().startswith('"'):
+                self.loc.setdefault((p, ln[4:].strip()), []).append(i)
+    def target(self, arg, at):
+        """The line of the label a GTO / XEQ at line at reaches (arg as written: "NAME", nn, :name:)."""
+        c = self.loc.get((self.prog[at], arg)) if not arg.startswith('"') else None
+        if c:
+            return next((k for k in c if k > at), c[0])
+        return self.labels[arg.strip('"')]
     # stack
     def push(self, v):
         if self.lift: self.s = [v] + self.s[:3]
@@ -153,7 +167,8 @@ class Calc:
         if k.startswith('R.'): loc, n = self.local(k); loc[n] = v; return
         self.reg[k.lstrip('0') or '0'] = v
     def indlab(self, n, pc):
-        if isinstance(n, str): return n                     # XEQ IND r with a label name in r
+        if isinstance(n, str):                              # XEQ IND r with a label name in r: a local
+            return ':%s:' % n if (self.prog[pc], ':%s:' % n) in self.loc else n    # named label first
         if hasattr(self,'pid'): return '%d_%d'%(self.pid[pc], n)
         return '%02d'%n
     def matop(self, op, arg):
@@ -197,7 +212,7 @@ class Calc:
             n += 1; self.steps=getattr(self,'steps',0)+1
             if n > maxsteps: raise RuntimeError('too many steps')
             ln = self.lines[pc]; pc += 1; self.depth = len(rs); self.at = pc - 1
-            op, _, arg = ln.partition(' '); arg = arg.strip().strip('"')
+            op, _, arg = ln.partition(' '); raw = arg.strip(); arg = raw.strip('"')
             if getattr(self, 'count', None) is not None: self.count(op, self.s[0])     # tests: what runs (test_navopt)
             if re.fullmatch(r'[01]+#2', ln):
                 v=int(ln[:-2],2)
@@ -219,11 +234,11 @@ class Calc:
                 self.locs = getattr(self, 'locs', {}); old = self.locs.get(len(rs), [])
                 self.locs[len(rs)] = (old + [D(0)] * int(arg))[:int(arg)]; continue
             if op == 'GTO':
-                if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
-                pc = self.labels[arg] + 1; continue
+                if arg.startswith('IND '): raw=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
+                pc = self.target(raw, pc - 1) + 1; continue
             if op == 'XEQ':
-                if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
-                rs.append(pc); pc = self.labels[arg] + 1; continue
+                if arg.startswith('IND '): raw=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
+                rs.append(pc); pc = self.target(raw, pc - 1) + 1; continue
             if op in MATOPS and self.matop(op, arg): continue      # whole-matrix and complex commands (tools/navmat.py)
             if isinstance(self.s[0], Mat) or (op in ('×', '+', 'DOT') and isinstance(self.s[1], Mat)):
                 x, y = self.s[0], self.s[1]
@@ -269,6 +284,11 @@ class Calc:
                 continue
             if op == 'CLA': self.alpha=''; continue
             if op == 'CLSTK': self.s = [D(0)] * 4; continue
+            if op == 'CLREGS':                         # item 1427 (fnClearRegisters): R00-R99, the lettered I-W and
+                for r in [str(k) for k in range(100)] + list('IJKLMNOPQRSTUVW'):    # the local registers
+                    if r in self.reg: self.reg[r] = D(0)
+                if getattr(self, 'locs', {}).get(len(rs)): self.locs[len(rs)] = [D(0)] * len(self.locs[len(rs)])
+                continue
             if op == 'SSIZE#': self.push(D(8)); continue          # stack size (C47 default 8; modelled as 4 levels)
             if op in ('SSIZE4', 'SSIZE8'): continue
             # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ / ⅅ→x follow the CLK date format
