@@ -284,6 +284,11 @@ class Calc:
                 continue
             if op == 'CLA': self.alpha=''; continue
             if op == 'CLSTK': self.s = [D(0)] * 4; continue
+            if op == 'CLREGS':                         # item 1427 (fnClearRegisters): R00-R99, the lettered I-W and
+                for r in [str(k) for k in range(100)] + list('IJKLMNOPQRSTUVW'):    # the local registers
+                    if r in self.reg: self.reg[r] = D(0)
+                if getattr(self, 'locs', {}).get(len(rs)): self.locs[len(rs)] = [D(0)] * len(self.locs[len(rs)])
+                continue
             if op == 'SSIZE#': self.push(D(8)); continue          # stack size (C47 default 8; modelled as 4 levels)
             if op in ('SSIZE4', 'SSIZE8'): continue
             # dates (C47 CLK functions); a date is ('D', y, m, d). x→ⅅ / ⅅ→x follow the CLK date format
@@ -296,11 +301,6 @@ class Calc:
                 else:
                     v = int((self.s[0] * 1000000).to_integral_value()); a, b, y = v // 1000000, v // 10000 % 100, v % 10000
                     self.s[0] = ('D', y, b, a) if fmt == 'DMY' else ('D', y, a, b)
-            if op == 'CLREGS':                         # item 1427 (fnClearRegisters): R00-R99, the lettered I-W and
-                for r in [str(k) for k in range(100)] + list('IJKLMNOPQRSTUVW'):    # the local registers
-                    if r in self.reg: self.reg[r] = D(0)
-                if getattr(self, 'locs', {}).get(len(rs)): self.locs[len(rs)] = [D(0)] * len(self.locs[len(rs)])
-                continue
                 continue
             if op == 'ⅅ→x':
                 _, y, m, d = self.s[0]; fmt = getattr(self, 'datefmt', 'YMD')

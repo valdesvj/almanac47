@@ -791,12 +791,14 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
 - Not in v2.0.0 (build/dev/hopt/): NAVFULL_LOCR / _LOCR_SEQ (local registers per routine, dispatch entries,
   45 labels), MOONFAST_R31 / _LOCR (MOON47 on stand-by), the _T timing copies.
 
-## Oct 7, 2026 - DEV: one program with local labels, the registers cleared at the end
+## Oct 7, 2026 - NAVFULL and MOON47 (C47): one program with named local labels, the registers cleared
 
-- tools/local_labels.py writes build/dev/local/ from the release listings: NAVFULL_NAMES (routines as :SUNA:
-  :ALMF: ...), NAVFULL_NXX (the N.. of tools/labels/ as :N15: ...; NAVFULL_LABELS.txt still applies) and
-  MOON47 (:M7TX: ...). Each is ONE program: NAV / MOON47 the only global label, nothing else in the program
-  menus. The inner END become RTN.
+- build/NAVFULL.txt (tools/build_v2.py) and build/MOON47.txt, build/dm42/MOON47.txt (tools/build_moon47.py) go
+  through tools/local_labels.py: ONE program each, NAV / MOON47 the only global label, every routine a local
+  label with its name (:SUNA: :ALMF: ...; MOON47: :M7TX: ...), nothing else in the program menus. The inner
+  END become RTN. build/NAVFULL_LABELS.txt lists the local labels. build/dev/src/NAVFULL.txt keeps the global
+  names and the register save (the reference of the tests). A variant with :N15: (the map files) was tried and
+  not kept. Free42 and NAVLITTLE are unchanged (REGS / LocR save).
 - Local labels in the firmware (lblGtoXeq.c fnGoto, manage.c findNamedLabelWithDuplicate): a number, letter or
   :name: is looked for first after the GTO / XEQ, then from the start of the program, so one number can serve
   several routines. The inner labels are renumbered so that every jump lands where it did (00-99, A-L, a-l;
@@ -806,10 +808,12 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
 - Registers: NAV no longer saves R00-R98 in LocR 99 at the start and puts them back at the end (396 steps): it
   ends with CLREGS (R00-R99, the lettered I-W). MOON47 too. Local registers stay per routine (HDR): every XEQ,
   even to a local label, starts a level with no local registers, so NAV's LocR cannot be shared.
-- Size (rejig .p47): NAVFULL 24160 -> NAMES 23913, NXX 23586; MOON47 4836 -> 4828. ANIM in the firmware PC
+- Size (rejig .p47): NAVFULL 24160 -> 23913 (:N15: style 23586); MOON47 4836 -> 4828. ANIM in the firmware PC
   simulator 26.9 -> 27.5 s (the longer label search). Not timed on the calculator.
 - c47sim: the firmware's search for local labels (per program, first after the jump, else the first), :name:,
   XEQ IND with a name (local named label first), CLREGS.
-- tests/test_local_labels.py: every page, every frame the same as build/NAVFULL.txt (FULL, FAST, tables),
-  R00-R99 0 and the stack clear after NAV; the C47 firmware: each page, no error, X = 0, R00-R99 0; MOON47
-  pixel for pixel with build/MOON47.txt and in the firmware with and without TZ.
+- tests/test_local_labels.py: every page, every frame the same as build/dev/src/NAVFULL.txt (FULL, FAST,
+  tables), R00-R99 0 and the stack clear after NAV; NAV run twice: the same pages (its numbers R43-R98 are
+  stored again at the start; DATE UTC LAT LON and the matrices are variables, CLREGS leaves them); the C47
+  firmware: each page, no error, X = 0, R00-R99 0; MOON47 pixel for pixel with build_moon47.release() and in
+  the firmware with and without TZ. test_v2 / test_fw now expect R00-R99 0 after NAVFULL and MOON47.

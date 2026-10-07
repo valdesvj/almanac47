@@ -204,8 +204,8 @@ def free42():
     B.write(os.path.join(OUT, 'free42', 'NAVFULL.txt'), short)
     B.write(os.path.join(OUT, 'free42', 'dev', 'src', 'NAVFULL.txt'), named)
     labels_file(os.path.join(OUT, 'free42', 'NAVFULL_LABELS.txt'), named, short, 'NAVFULL v2.1.0 (Free42)',
-                {'NAV': V2_TEXT['NAV'].replace('9 SNAP', '9 SNAP (PRLCD)').replace('R00-R98 saved at the start',
-                                                                                     'REGS and SIZE saved in NBAK')})
+                {'NAV': 'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-5 a view, 6 INFO, 9 SNAP (PRLCD), 0 ends; your '
+                        'registers REGS and SIZE saved in NBAK and given back at 0 (the only named program; INFO page inside)'})
     kfull = info['k']
     short, named, init = N.free42(True, post=lambda L: post(L, True), menu=menu, little=True)
     B.write(os.path.join(OUT, 'free42', 'NAVLITTLE.txt'), short)

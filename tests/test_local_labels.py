@@ -64,25 +64,30 @@ def sim(L, ref):
     return bad
 
 
-def twice(L):
-    """NAV, then NAV again in the same calculator: CLREGS cleared R00-R99, the second run must give the same pages."""
+def twice(L, ref):
+    """NAV, then NAV again in the same calculator: CLREGS cleared R00-R99, the second run must give the same pages
+    (NAV stores its numbers again at the start); DATE UTC LAT LON kept, and the same variables as NAV before the
+    conversion (ref) leaves (its own work matrices included)."""
     bad = 0
     for name in ('ALMANAC', 'ANIM', 'ALLSKY'):
         keys = [V.K[V.PAGES[name][0]], V.K['+'], V.K[0]]
-        c = V.T.load(L, 'FULL', False)
-        for k, v in V.INPUTS:
-            c.reg[k] = D(v)
-        mats = sorted(c.mats)
-        runs = []
-        for _ in range(2):
-            c.flags.add(81); c.s = [D(0)] * 4; c.keys = list(keys); c.frames = []; c.pix = []
-            c.run('NAV', maxsteps=10 ** 8)
-            runs.append([frozenset(f) for f in c.frames])
-        kept = all(c.reg.get(k) == D(v) for k, v in V.INPUTS) and sorted(c.mats) == mats
-        ok = len(runs[0]) > 1 and runs[0] == runs[1] and kept
+        after = []
+        for prog, n in ((L, 2), (ref, 1)):
+            c = V.T.load(prog, 'FULL', False)
+            for k, v in V.INPUTS:
+                c.reg[k] = D(v)
+            runs = []
+            for _ in range(n):
+                c.flags.add(81); c.s = [D(0)] * 4; c.keys = list(keys); c.frames = []; c.pix = []
+                c.run('NAV', maxsteps=10 ** 8)
+                runs.append([frozenset(f) for f in c.frames])
+            after.append((runs, all(c.reg.get(k) == D(v) for k, v in V.INPUTS), sorted(c.mats)))
+        (runs, inputs, mats), (_, _, refmats) = after
+        ok = len(runs[0]) > 1 and runs[0] == runs[1] and inputs and mats == refmats
         bad += not ok
-        print('  %-7s second run %s, DATE UTC LAT LON and %d matrices %s' % (name, 'the same pages' if runs[0] == runs[1] else 'DIFFERENT',
-                                                                           len(mats), 'kept' if kept else 'CHANGED'))
+        print('  %-7s second run %s, DATE UTC LAT LON %s, matrices %s' % (
+            name, 'the same pages' if runs[0] == runs[1] else 'DIFFERENT', 'kept' if inputs else 'CHANGED',
+            'as before the conversion (%d)' % len(mats) if mats == refmats else 'DIFFERENT'))
     return bad
 
 
@@ -153,7 +158,7 @@ def main(which):
         print('== NAVFULL against build/dev/src/NAVFULL.txt in the C47 simulator (python)')
         bad += sim(L, V.lines(os.path.join(ROOT, 'build', 'dev', 'src', 'NAVFULL.txt')))
         print('== NAVFULL twice in a row (python)')
-        bad += twice(L)
+        bad += twice(L, V.lines(os.path.join(ROOT, 'build', 'dev', 'src', 'NAVFULL.txt')))
         print('== NAVFULL in the C47 firmware (headless PC simulator)')
         bad += firmware(path)
     if 'MOON' in which:
