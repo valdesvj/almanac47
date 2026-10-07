@@ -790,3 +790,13 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   menu; test_navfull is for the v1.1 NAVFULL only and says so.
 - Not in v2.0.0 (build/dev/hopt/): NAVFULL_LOCR / _LOCR_SEQ (local registers per routine, dispatch entries,
   45 labels), MOONFAST_R31 / _LOCR (MOON47 on stand-by), the _T timing copies.
+
+## Oct 7, 2026 - TEST: does the structure change the speed? (branch struct-speed-test)
+
+- An outside analysis proposed global labels for shared routines, routines ordered by use and placed next to
+  their callers (a local label found by scanning steps and wrapping past END), and no named variables in loops.
+  The registers part is mostly done in v2 (regalloc, consts; the remaining names V0 ... exist because R00-R98 are
+  taken). The label claims depend on how the C47 firmware finds a label, which python/c47sim.py cannot show.
+- tools/tests_calc/TSTRUCT.txt (gen_tstruct.py, TSTRUCT_README.txt): near against far GTO / XEQ, local against
+  global XEQ, RCL / STO numbered, named and local, timed with TICKS. Runs in c47sim (flow only). To run on the
+  C47 and the DM42n with NAVFULL / NAVLITTLE loaded; the results decide whether a reordered dev build is worth it.
