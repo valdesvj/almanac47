@@ -81,14 +81,15 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            with the same inputs -> the sky computed once (15: twice), the second ALMANAC page pixel for
                            pixel the first; a new time or a new place computes again. Pages = 15 except the top bar.
   18_hourglass/NAVFULL.txt + while a view is computed, the firmware's hourglass (U+231B, standard font, one ATEXT) in
-                           the top bar at column 370, left of T / S / X: N99 draws it and PAUSE 0 right after the
-                           view's CLLCD (ALMANAC SPLIT SKY ANIM ALLSKY); N76 clears it (GRMOD 2) at the key wait (N63)
+                           the top bar at column 370, left of T / S / X: N99 draws it and PAUSE 0 with the SINKING
+                           box (over the menu or the old view) and again right after the new view's CLLCD (ALMANAC
+                           SPLIT SKY ANIM ALLSKY); N76 clears it (GRMOD 2) at the key wait (N63)
                            and in SKY before the names loop; flag 48 = on screen (CF 48 at the start of NAV). Firmware
                            sim: the hourglass shows at the start of each view; the finished pages = 17_topbar.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
-12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 26026.
+12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 26032.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the

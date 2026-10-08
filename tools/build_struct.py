@@ -737,8 +737,8 @@ HG = ['RCL 73', '370', '"⌛"', 'XEQ "N50"']           # the hourglass of the fi
 
 def hourglass(L):
     """While a view is computed, the firmware's hourglass (U+231B, standard font, ATEXT) in the top bar, left of the
-    T / S / X letter: N99 draws it (OR) and PAUSE 0 shows it, right after the view's CLLCD (ALMANAC, SPLIT, SKY, ANIM,
-    ALLSKY); N76 clears it (GRMOD 2: its pixels off) when the view is complete: at the key wait N63, and in SKY
+    T / S / X letter: N99 draws it (OR) and PAUSE 0 shows it, with the SINKING box on the screen it covers (NAV LBL 13:
+    the menu or the old view) and again right after the new view's CLLCD (ALMANAC, SPLIT, SKY, ANIM, ALLSKY); N76 clears it (GRMOD 2: its pixels off) when the view is complete: at the key wait N63, and in SKY
     before the loop that names the bodies. Flag 48 says it is on the screen (cleared at the start of NAV)."""
     assert 'LBL "N99"' not in L and 'LBL "N76"' not in L and not [l for l in L if l.endswith(' 48') and l[:2] in 'SFCFFS']
     views = ('N01', 'N04', 'N06', 'N61', 'N62')
@@ -753,11 +753,15 @@ def hourglass(L):
     j = [j for j in range(a, b) if L[j:j + 3] == ['RCL 43', 'STO 13', 'LBL 11']]
     assert len(j) == 1
     L = L[:j[0]] + ['XEQ "N76"'] + L[j[0]:]
+    e = L.index('END', L.index('LBL "NAV"'))
+    j = [j for j in range(e) if L[j:j + 4] == ['LBL 13', 'RCL 46', 'FS? 47', 'RCL 55']]     # the SINKING box
+    assert len(j) == 1
+    L = L[:j[0] + 1] + ['XEQ "N99"'] + L[j[0] + 1:]
     i = L.index('LBL "NAV"')
     L = L[:i + 1] + ['CF 48'] + L[i + 1:]
     L += (['LBL "N99"', 'SF 48'] + HG + ['PAUSE 0', 'END']
           + ['LBL "N76"', 'FC? 48', 'RTN', 'CF 48', '2', 'GRMOD'] + HG + ['0', 'GRMOD', 'END'])
-    print('  18_hourglass: N99 after the CLLCD of %d views, N76 at the key wait and in SKY' % len(views))
+    print('  18_hourglass: N99 with the SINKING box and after the CLLCD of %d views, N76 at the key wait and in SKY' % len(views))
     return L
 
 
