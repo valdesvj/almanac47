@@ -736,32 +736,15 @@ HG = ['RCL 73', '370', '"⌛"', 'XEQ "N50"']           # the hourglass of the fi
 
 
 def hourglass(L):
-    """While a view is computed, the firmware's hourglass (U+231B, standard font, ATEXT) in the top bar, left of the
-    T / S / X letter: N99 draws it (OR) and PAUSE 0 shows it, with the SINKING box on the screen it covers (NAV LBL 13:
-    the menu or the old view) and again right after the new view's CLLCD (ALMANAC, SPLIT, SKY, ANIM, ALLSKY); N76 clears it (GRMOD 2: its pixels off) when the view is complete: at the key wait N63, and in SKY
-    before the loop that names the bodies. Flag 48 says it is on the screen (cleared at the start of NAV)."""
-    assert 'LBL "N99"' not in L and 'LBL "N76"' not in L and not [l for l in L if l.endswith(' 48') and l[:2] in 'SFCFFS']
-    views = ('N01', 'N04', 'N06', 'N61', 'N62')
-    for v in views:
-        a, b = _prog(L, lambda p, v=v: p[0] == 'LBL "%s"' % v)
-        c = L.index('CLLCD', a)
-        assert c < b and re.match(r'RCL |\d|XEQ 06', L[c + 1])     # nothing after it reads the stack
-        L = L[:c + 1] + ['XEQ "N99"'] + L[c + 1:]
-    i = L.index('LBL "N63"')
-    L = L[:i + 1] + ['XEQ "N76"'] + L[i + 1:]
-    a, b = _prog(L, lambda p: p[0] == 'LBL "N04"')
-    j = [j for j in range(a, b) if L[j:j + 3] == ['RCL 43', 'STO 13', 'LBL 11']]
-    assert len(j) == 1
-    L = L[:j[0]] + ['XEQ "N76"'] + L[j[0]:]
+    """The firmware's hourglass (U+231B, standard font, one ATEXT) in the top bar at column 370, left of T / S / X,
+    together with the SINKING box: drawn in NAV LBL 13 right before the box, on the screen the box covers (the menu
+    or the old view); the box's PAUSE 0 shows both. It goes with the box: the new view (or the menu) clears the
+    screen. No routine, no flag: 4 steps."""
     e = L.index('END', L.index('LBL "NAV"'))
     j = [j for j in range(e) if L[j:j + 4] == ['LBL 13', 'RCL 46', 'FS? 47', 'RCL 55']]     # the SINKING box
     assert len(j) == 1
-    L = L[:j[0] + 1] + ['XEQ "N99"'] + L[j[0] + 1:]
-    i = L.index('LBL "NAV"')
-    L = L[:i + 1] + ['CF 48'] + L[i + 1:]
-    L += (['LBL "N99"', 'SF 48'] + HG + ['PAUSE 0', 'END']
-          + ['LBL "N76"', 'FC? 48', 'RTN', 'CF 48', '2', 'GRMOD'] + HG + ['0', 'GRMOD', 'END'])
-    print('  18_hourglass: N99 with the SINKING box and after the CLLCD of %d views, N76 at the key wait and in SKY' % len(views))
+    L = L[:j[0] + 1] + HG + L[j[0] + 1:]
+    print('  18_hourglass: the hourglass with the SINKING box (NAV LBL 13)')
     return L
 
 
