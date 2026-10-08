@@ -607,10 +607,91 @@ def clean(L):
     return renumber(out)
 
 
+def noregs(L):
+    """NAV keeps none of your registers: no LocR 99 + RCL nn STO R.nn at the start, no RCL R.nn STO nn at the end;
+    CLREGS there instead, before the CLSTK of the end (as v2.2.0)."""
+    i = L.index('LBL "NAV"') + 1
+    k = int(re.fullmatch(r'LocR (\d+)', L[i]).group(1))
+    assert L[i + 1:i + 1 + 2 * k] == [x for j in range(k) for x in ('RCL %02d' % j, 'STO R.%02d' % j)]
+    L = L[:i] + L[i + 1 + 2 * k:]
+    back = [x for r in range(k) for x in ('RCL R.%02d' % r, 'STO %02d' % r)]
+    j = [j for j in range(len(L)) if L[j:j + 2 * k] == back]
+    assert len(j) == 1 and L[j[0] + 2 * k] == 'CLSTK'
+    L = L[:j[0]] + ['CLREGS'] + L[j[0] + 2 * k:]
+    e = L.index('END', L.index('LBL "NAV"'))
+    assert not [l for l in L[:e] if 'R.' in l or l.startswith('LocR')]
+    print('  15_noregs: NAV without LocR %d and the copies (%d steps), CLREGS CLSTK at the end' % (k, 4 * k + 1))
+    return L
+
+
+# host program <- the programs whose every entry only the host (or the group) calls
+GROUPS = (('NAV', ('N61', 'N62')), ('N64', ('N38', 'N28', 'N46', 'N95')), ('N93', ('N47',)),
+          ('N89', ('N88', 'N86', 'N87')))
+
+
+def group(L):
+    """Each group above becomes one program: the host, then its members (END -> RTN where code ran into END). The
+    members' names become numbered labels (nothing outside the group calls them) and their calls XEQ / GTO nn. The
+    labels of the whole group 00, 01 ... in order; the ones XEQ / GTO IND reach keep their numbers (they must not
+    meet: checked). At most 100 numbered labels a program."""
+    P = {name(p): p for p in split(L)}
+    order = [name(p) for p in split(L)]
+    for host, members in GROUPS:
+        segs = [P[host]] + [P[m] for m in members]
+        inner = {re.fullmatch(r'LBL "(.+)"', l).group(1) for s in segs[1:] for l in s if l.startswith('LBL "')}
+        outside = {re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l).group(1) for n, p in P.items() if n != host and n not in members
+                   for l in p if re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l)}
+        assert not inner & outside, (host, inner & outside)
+        fixed, maps, keys = {}, [], []
+        for k, s in enumerate(segs):
+            direct = {l[4:] for l in s if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+            if [l for l in s if re.match(r'(XEQ|GTO) IND', l)]:
+                for l in s:
+                    if re.fullmatch(r'LBL \d\d', l) and l[4:] not in direct:
+                        assert l[4:] not in fixed, (host, l)
+                        fixed[l[4:]] = k
+        free = ('%02d' % n for n in range(100) if '%02d' % n not in fixed)
+        names = {}
+        for k, s in enumerate(segs):
+            m = {}
+            for l in s[1 if k == 0 else 0:]:
+                if re.fullmatch(r'LBL \d\d', l):
+                    m[l[4:]] = l[4:] if fixed.get(l[4:]) == k else next(free)
+                elif k and l.startswith('LBL "'):
+                    names[l[5:-1]] = next(free)
+            maps.append(m)
+        body = []
+        for k, s in enumerate(segs):
+            s = s[:-1]                                              # the END
+            if not exits(s, len(s) - 1):
+                s = s + ['RTN']
+            for l in s:
+                m = re.fullmatch(r'(LBL|XEQ|GTO) (\d\d)', l)
+                n = re.fullmatch(r'(XEQ|GTO) "(.+)"', l)
+                if k and l.startswith('LBL "'):
+                    l = 'LBL ' + names[l[5:-1]]
+                elif m:
+                    l = '%s %s' % (m.group(1), maps[k][m.group(2)])
+                elif n and n.group(2) in names:
+                    l = '%s %s' % (n.group(1), names[n.group(2)])
+                body.append(l)
+        P[host] = body + ['END']
+        for m in members:
+            order.remove(m)
+        nl = len([l for l in body if re.fullmatch(r'LBL \d\d', l)])
+        assert nl <= 100, (host, nl)
+        print('  16_group: %s + %s: %d steps, %d numbered labels, %d names become numbers'
+              % (host, ' '.join(members), len(body) + 1, nl, len(names)))
+    out = [l for n in order for l in P[n]]
+    assert not set(re.findall(r'^(?:XEQ|GTO) "(.+)"$', '\n'.join(out), re.M)) - set(re.findall(r'^LBL "(.+)"$', '\n'.join(out), re.M))
+    print('  16_group: %d programs, %d global labels' % (out.count('END'), len([l for l in out if l.startswith('LBL "')])))
+    return out
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
-         ('14_clean', clean))
+         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group))
 
 
 def _rtn_block(L, start, prog=None):

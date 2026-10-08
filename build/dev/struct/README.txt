@@ -63,10 +63,20 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            (LBL "N24" XEQ "N15": the callers use N25) removed; the names N20 N76 N99 removed (their
                            numbered label stays, step 12). 70 global labels (were 76) in the XEQ menu; labels 01, 02 ...
                            again. Pages pixel for pixel 13_renumber.
+  15_noregs/NAVFULL.txt    + NAV keeps none of your registers: no LocR 99 and no copies at the start and the end (397 steps);
+                           CLREGS and CLSTK when NAV ends (as v2.2.0). Pages pixel for pixel 14_clean; checked: R00 R98
+                           and the stack are 0 after key 0 (step 14 gave them back).
+  16_group/NAVFULL.txt     + a TEST: the programs that only one program calls go into it (labels 00, 01 ... of the group,
+                           the IND tables keep their numbers, at most 100): NAV + ANIM ALLSKY, CSUN (N64) + RISE.. PLN2
+                           PHA2 MSTAR, OUT8 + SBRT, OUT4 + OUT1-3. 24 programs (were 34), 55 global labels (were 70).
+                           Pages pixel for pixel 15_noregs. SLOWER: page CPU minus the menu (sim, best of 3), 15 -> 16:
+                           ALMANAC+15 h 1.193 -> 1.226 s, ANIM 0.075 -> 0.083, ALLSKY 0.052 -> 0.068; NAV + views alone:
+                           ANIM +12 %, ALLSKY +30 %; the CSUN group alone: ALMANAC +2 %. Every RTN walks from the
+                           start of the bigger program (fnReturn -> defineCurrentStep).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
-12_labels and 13_renumber 26866, 14_clean 26484.
+12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
