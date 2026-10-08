@@ -514,9 +514,184 @@ def hybrid(L):
     return L[:a] + P + L[e:]
 
 
+def labels(L):
+    """Numbered labels inside a program, names only between programs; nothing that never runs.
+    1. XEQ "name" / GTO "name" towards a global label of the same program -> XEQ nn / GTO nn: a numbered label is an
+       integer scan of the label table and a jump by address; a name is a text compare of every global label and a
+       walk from the start of the program. The free number goes right after the global label (LBL "N18", LBL 99).
+       The call level is the same either way: XEQ nn starts a new level like XEQ "name" (LocR unchanged).
+    2. A numbered label that no XEQ / GTO of its program names, in a program without XEQ / GTO IND, after a step that
+       always leaves: its block (to the next label or END) can never run and goes.
+    3. RTN just before END: END returns like RTN (both fnReturn); never after a test (it would skip END instead)."""
+    out, moved, dead, rtn = [], 0, [], 0
+    for p in split(L):
+        glob = {re.fullmatch(r'LBL "(.+)"', l).group(1) for l in p if l.startswith('LBL "')}
+        nums = {l[4:] for l in p if re.fullmatch(r'LBL \d\d', l)}
+        free = [n for n in ('%02d' % k for k in range(99, -1, -1)) if n not in nums]
+        own, new = {}, []
+        for l in p:
+            m = re.fullmatch(r'(XEQ|GTO) "(.+)"', l)
+            if m and m.group(2) in glob:
+                own.setdefault(m.group(2), free.pop(0))
+                l = '%s %s' % (m.group(1), own[m.group(2)])
+                moved += 1
+            new.append(l)
+        p = []
+        for l in new:
+            p.append(l)
+            m = re.fullmatch(r'LBL "(.+)"', l)
+            if m and m.group(1) in own:
+                p.append('LBL %s' % own[m.group(1)])
+        if not [l for l in p if re.match(r'(XEQ|GTO) IND', l)]:
+            used = {l[4:] for l in p if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+            i = 1
+            while i < len(p):
+                if re.fullmatch(r'LBL \d\d', p[i]) and p[i][4:] not in used and exits(p, i - 1):
+                    j = i + 1
+                    while not (p[j].startswith('LBL ') or p[j] == 'END'):
+                        j += 1
+                    dead.append('%s %s (%d steps)' % (name(p), p[i], j - i))
+                    del p[i:j]
+                else:
+                    i += 1
+        if len(p) > 2 and p[-2] == 'RTN' and not skips(p[-3]):
+            del p[-2]
+            rtn += 1
+        out += p
+    print('  12_labels: %d calls by name inside their program -> numbered; dead: %s; %d RTN before END'
+          % (moved, ', '.join(dead) or 'none', rtn))
+    return out
+
+
+def renumber(L):
+    """Inside each program the numbered labels in the order they appear: 01, 02, 03 ... and every XEQ / GTO nn with
+    them. In a program with XEQ / GTO IND the labels no XEQ / GTO nn names keep their numbers (the number is the data:
+    a star, a digit, a character code, a body + offset) and the others skip them. Only easier to read: GTO / XEQ nn
+    cost the labels before it in the table, not its number."""
+    out, fixed_all = [], 0
+    for p in split(L):
+        nums = [l[4:] for l in p if re.fullmatch(r'LBL \d\d', l)]
+        direct = {l[4:] for l in p if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+        ind = [l for l in p if re.match(r'(XEQ|GTO) IND', l)]
+        fixed = {n for n in nums if n not in direct} if ind else set()
+        fixed_all += len(fixed)
+        free = ('%02d' % k for k in range(1, 100) if '%02d' % k not in fixed)
+        new = {n: (n if n in fixed else next(free)) for n in nums}
+        assert len(set(new.values())) == len(nums), name(p)
+        for l in p:
+            m = re.fullmatch(r'(LBL|XEQ|GTO) (\d\d)', l)
+            out.append('%s %s' % (m.group(1), new[m.group(2)]) if m else l)
+    print('  13_renumber: labels 01, 02 ... in order in every program; %d kept for XEQ / GTO IND' % fixed_all)
+    return out
+
+
+def clean(L):
+    """What no page can run, and the names no program calls: the program N22 / N23 (STR2, SQK: its calls left with
+    step 11), N24's entry (LBL "N24" XEQ "N15": the callers use N25), and the names N20 N76 N99 (reached by their
+    numbered label since step 12). A program keeps the name on its first line (N28). Then 01, 02 ... again."""
+    called = set(re.findall(r'^(?:XEQ|GTO) "(N\d\d)"$', '\n'.join(L), re.M))
+    out = []
+    for p in split(L):
+        g = [re.fullmatch(r'LBL "(.+)"', l).group(1) for l in p if l.startswith('LBL "')]
+        if not called & set(g):
+            assert name(p) in ('NAV', 'N22'), name(p)
+            if name(p) == 'N22':
+                continue
+        if name(p) not in called and name(p) == 'N24':
+            assert p[1:3] == ['XEQ "N15"', 'LBL "N25"']
+            p = p[2:]
+        p = [p[0]] + [l for l in p[1:] if not (l.startswith('LBL "') and l[5:-1] not in called)]
+        out += p
+    names = len([l for l in out if l.startswith('LBL "')])
+    print('  14_clean: program N22 / N23 and N24 entry removed; %d global labels' % names)
+    return renumber(out)
+
+
+def noregs(L):
+    """NAV keeps none of your registers: no LocR 99 + RCL nn STO R.nn at the start, no RCL R.nn STO nn at the end;
+    CLREGS there instead, before the CLSTK of the end (as v2.2.0)."""
+    i = L.index('LBL "NAV"') + 1
+    k = int(re.fullmatch(r'LocR (\d+)', L[i]).group(1))
+    assert L[i + 1:i + 1 + 2 * k] == [x for j in range(k) for x in ('RCL %02d' % j, 'STO R.%02d' % j)]
+    L = L[:i] + L[i + 1 + 2 * k:]
+    back = [x for r in range(k) for x in ('RCL R.%02d' % r, 'STO %02d' % r)]
+    j = [j for j in range(len(L)) if L[j:j + 2 * k] == back]
+    assert len(j) == 1 and L[j[0] + 2 * k] == 'CLSTK'
+    L = L[:j[0]] + ['CLREGS'] + L[j[0] + 2 * k:]
+    e = L.index('END', L.index('LBL "NAV"'))
+    assert not [l for l in L[:e] if 'R.' in l or l.startswith('LocR')]
+    print('  15_noregs: NAV without LocR %d and the copies (%d steps), CLREGS CLSTK at the end' % (k, 4 * k + 1))
+    return L
+
+
+# host program <- the programs whose every entry only the host (or the group) calls
+GROUPS = (('NAV', ('N61', 'N62')), ('N64', ('N38', 'N28', 'N46', 'N95')), ('N93', ('N47',)),
+          ('N89', ('N88', 'N86', 'N87')))
+
+
+def group(L):
+    """Each group above becomes one program: the host, then its members (END -> RTN where code ran into END). The
+    members' names become numbered labels (nothing outside the group calls them) and their calls XEQ / GTO nn. The
+    labels of the whole group 00, 01 ... in order; the ones XEQ / GTO IND reach keep their numbers (they must not
+    meet: checked). At most 100 numbered labels a program."""
+    P = {name(p): p for p in split(L)}
+    order = [name(p) for p in split(L)]
+    for host, members in GROUPS:
+        segs = [P[host]] + [P[m] for m in members]
+        inner = {re.fullmatch(r'LBL "(.+)"', l).group(1) for s in segs[1:] for l in s if l.startswith('LBL "')}
+        outside = {re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l).group(1) for n, p in P.items() if n != host and n not in members
+                   for l in p if re.fullmatch(r'(?:XEQ|GTO) "(.+)"', l)}
+        assert not inner & outside, (host, inner & outside)
+        fixed, maps, keys = {}, [], []
+        for k, s in enumerate(segs):
+            direct = {l[4:] for l in s if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+            if [l for l in s if re.match(r'(XEQ|GTO) IND', l)]:
+                for l in s:
+                    if re.fullmatch(r'LBL \d\d', l) and l[4:] not in direct:
+                        assert l[4:] not in fixed, (host, l)
+                        fixed[l[4:]] = k
+        free = ('%02d' % n for n in range(100) if '%02d' % n not in fixed)
+        names = {}
+        for k, s in enumerate(segs):
+            m = {}
+            for l in s[1 if k == 0 else 0:]:
+                if re.fullmatch(r'LBL \d\d', l):
+                    m[l[4:]] = l[4:] if fixed.get(l[4:]) == k else next(free)
+                elif k and l.startswith('LBL "'):
+                    names[l[5:-1]] = next(free)
+            maps.append(m)
+        body = []
+        for k, s in enumerate(segs):
+            s = s[:-1]                                              # the END
+            if not exits(s, len(s) - 1):
+                s = s + ['RTN']
+            for l in s:
+                m = re.fullmatch(r'(LBL|XEQ|GTO) (\d\d)', l)
+                n = re.fullmatch(r'(XEQ|GTO) "(.+)"', l)
+                if k and l.startswith('LBL "'):
+                    l = 'LBL ' + names[l[5:-1]]
+                elif m:
+                    l = '%s %s' % (m.group(1), maps[k][m.group(2)])
+                elif n and n.group(2) in names:
+                    l = '%s %s' % (n.group(1), names[n.group(2)])
+                body.append(l)
+        P[host] = body + ['END']
+        for m in members:
+            order.remove(m)
+        nl = len([l for l in body if re.fullmatch(r'LBL \d\d', l)])
+        assert nl <= 100, (host, nl)
+        print('  16_group: %s + %s: %d steps, %d numbered labels, %d names become numbers'
+              % (host, ' '.join(members), len(body) + 1, nl, len(names)))
+    out = [l for n in order for l in P[n]]
+    assert not set(re.findall(r'^(?:XEQ|GTO) "(.+)"$', '\n'.join(out), re.M)) - set(re.findall(r'^LBL "(.+)"$', '\n'.join(out), re.M))
+    print('  16_group: %d programs, %d global labels' % (out.count('END'), len([l for l in out if l.startswith('LBL "')])))
+    return out
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
-         ('10_selfinit', selfinit), ('11_hybrid', hybrid))
+         ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
+         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group))
 
 
 def _rtn_block(L, start, prog=None):
