@@ -585,9 +585,32 @@ def renumber(L):
     return out
 
 
+def clean(L):
+    """What no page can run, and the names no program calls: the program N22 / N23 (STR2, SQK: its calls left with
+    step 11), N24's entry (LBL "N24" XEQ "N15": the callers use N25), and the names N20 N76 N99 (reached by their
+    numbered label since step 12). A program keeps the name on its first line (N28). Then 01, 02 ... again."""
+    called = set(re.findall(r'^(?:XEQ|GTO) "(N\d\d)"$', '\n'.join(L), re.M))
+    out = []
+    for p in split(L):
+        g = [re.fullmatch(r'LBL "(.+)"', l).group(1) for l in p if l.startswith('LBL "')]
+        if not called & set(g):
+            assert name(p) in ('NAV', 'N22'), name(p)
+            if name(p) == 'N22':
+                continue
+        if name(p) not in called and name(p) == 'N24':
+            assert p[1:3] == ['XEQ "N15"', 'LBL "N25"']
+            p = p[2:]
+        p = [p[0]] + [l for l in p[1:] if not (l.startswith('LBL "') and l[5:-1] not in called)]
+        out += p
+    names = len([l for l in out if l.startswith('LBL "')])
+    print('  14_clean: program N22 / N23 and N24 entry removed; %d global labels' % names)
+    return renumber(out)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
-         ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber))
+         ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
+         ('14_clean', clean))
 
 
 def _rtn_block(L, start, prog=None):

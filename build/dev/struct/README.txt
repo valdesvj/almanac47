@@ -59,10 +59,14 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            R71 = 90 ...); the other labels skip them. Only easier to read: XEQ / GTO nn cost the labels
                            before it in the table, not its number. Same bytes; pages pixel for pixel 12_labels.
                            (The test harness found NAV's input routine as XEQ 20: now by its "DATE YYYY.MMDD" prompt.)
+  14_clean/NAVFULL.txt     + the program N22 / N23 (STR2, SQK: no call left since step 11, 160 steps) and N24's entry
+                           (LBL "N24" XEQ "N15": the callers use N25) removed; the names N20 N76 N99 removed (their
+                           numbered label stays, step 12). 70 global labels (were 76) in the XEQ menu; labels 01, 02 ...
+                           again. Pages pixel for pixel 13_renumber.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
-12_labels and 13_renumber 26866.
+12_labels and 13_renumber 26866, 14_clean 26484.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
