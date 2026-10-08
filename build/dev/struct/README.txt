@@ -47,9 +47,16 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            Release NAVINIT. Pages pixel for pixel 10_selfinit (4 places + FAST/TBL, hour arrows on
                            ALMANAC, SKY, ALLSKY). Cache after an hour arrow on ALMANAC: 6 stars computed, 13 marked
                            below, 39 not asked (step 10: all 58 every time).
+  12_labels/NAVFULL.txt    + numbered labels inside a program, names only between programs: the 9 XEQ / GTO "name" towards
+                           a global label of the same program (N17-N20, N28, N76, N99) -> XEQ / GTO nn, the number right
+                           after the global label (7 labels); the 2 routines nothing calls (N64's LBL 94 since step 11,
+                           N24's LBL 97 since step 4, 14 steps) removed; the 33 RTN just before END removed (END returns
+                           like RTN: both fnReturn). Pages pixel for pixel 11_hybrid (4 places + FAST/TBL, hour arrows);
+                           CPU the same within the noise (sim +-0.01 s a page).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
-4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961.
+4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
+12_labels 26866.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the

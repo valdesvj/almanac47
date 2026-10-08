@@ -514,9 +514,58 @@ def hybrid(L):
     return L[:a] + P + L[e:]
 
 
+def labels(L):
+    """Numbered labels inside a program, names only between programs; nothing that never runs.
+    1. XEQ "name" / GTO "name" towards a global label of the same program -> XEQ nn / GTO nn: a numbered label is an
+       integer scan of the label table and a jump by address; a name is a text compare of every global label and a
+       walk from the start of the program. The free number goes right after the global label (LBL "N18", LBL 99).
+       The call level is the same either way: XEQ nn starts a new level like XEQ "name" (LocR unchanged).
+    2. A numbered label that no XEQ / GTO of its program names, in a program without XEQ / GTO IND, after a step that
+       always leaves: its block (to the next label or END) can never run and goes.
+    3. RTN just before END: END returns like RTN (both fnReturn); never after a test (it would skip END instead)."""
+    out, moved, dead, rtn = [], 0, [], 0
+    for p in split(L):
+        glob = {re.fullmatch(r'LBL "(.+)"', l).group(1) for l in p if l.startswith('LBL "')}
+        nums = {l[4:] for l in p if re.fullmatch(r'LBL \d\d', l)}
+        free = [n for n in ('%02d' % k for k in range(99, -1, -1)) if n not in nums]
+        own, new = {}, []
+        for l in p:
+            m = re.fullmatch(r'(XEQ|GTO) "(.+)"', l)
+            if m and m.group(2) in glob:
+                own.setdefault(m.group(2), free.pop(0))
+                l = '%s %s' % (m.group(1), own[m.group(2)])
+                moved += 1
+            new.append(l)
+        p = []
+        for l in new:
+            p.append(l)
+            m = re.fullmatch(r'LBL "(.+)"', l)
+            if m and m.group(1) in own:
+                p.append('LBL %s' % own[m.group(1)])
+        if not [l for l in p if re.match(r'(XEQ|GTO) IND', l)]:
+            used = {l[4:] for l in p if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+            i = 1
+            while i < len(p):
+                if re.fullmatch(r'LBL \d\d', p[i]) and p[i][4:] not in used and exits(p, i - 1):
+                    j = i + 1
+                    while not (p[j].startswith('LBL ') or p[j] == 'END'):
+                        j += 1
+                    dead.append('%s %s (%d steps)' % (name(p), p[i], j - i))
+                    del p[i:j]
+                else:
+                    i += 1
+        if len(p) > 2 and p[-2] == 'RTN' and not skips(p[-3]):
+            del p[-2]
+            rtn += 1
+        out += p
+    print('  12_labels: %d calls by name inside their program -> numbered; dead: %s; %d RTN before END'
+          % (moved, ', '.join(dead) or 'none', rtn))
+    return out
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
-         ('10_selfinit', selfinit), ('11_hybrid', hybrid))
+         ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels))
 
 
 def _rtn_block(L, start, prog=None):
