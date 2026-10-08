@@ -688,10 +688,54 @@ def group(L):
     return out
 
 
+def _prog(L, test):
+    """(first line, END line) of the one program for which test(its lines) is true."""
+    found = [(a, b) for a, b in ((a, L.index('END', a)) for a, l in enumerate(L) if l.startswith('LBL "')
+                                 and (a == 0 or L[a - 1] == 'END')) if test(L[a:b + 1])]
+    assert len(found) == 1, found
+    return found[0]
+
+
+def _dms(lab):
+    """HDR: ' d mm.m' of X appended to the text in R.04 (no padding: the letter, a space, the degrees). R.05 =
+    tenths of a minute. No XEQ: a called level does not see HDR's local registers."""
+    ap = lambda: ['x→α R.04']
+    return (['ABS', '600', '×', 'RCL 56', '+', 'IP', 'STO R.05', '" "'] + ap()
+            + ['RCL R.05', '600', '÷', 'IP', 'αIP R.04', '" "'] + ap()
+            + ['RCL R.05', '600', 'MOD', '10', '÷', 'IP', '10', 'X≤Y?', 'GTO %02d' % lab, '"0"'] + ap()
+            + ['LBL %02d' % lab, 'RCL R.05', '600', 'MOD', '10', '÷', 'IP', 'αIP R.04', '"."'] + ap()
+            + ['RCL R.05', '10', 'MOD', 'αIP R.04'])
+
+
+def topbar(L):
+    """The top bar as 'DATE TIME UT DR   N 40 24.0   W 3 42.0': DR, the latitude and the longitude one text and one
+    ATEXT at column 143 (built in R.04 with x→α / αIP, no padding), three spaces before N / S and before E / W, the
+    letter right before its degrees. And the sky cache kept from one run of NAV to the next: NAV makes ALMC only
+    when it is missing (0 STO+ creates it as a number; a matrix stays as it is, +0) or not 73 x 4; the key in its
+    row 67 (JD, lat, lon) then decides, as between two views, so the same date, time and place draw at once."""
+    a, b = _prog(L, lambda p: '"DR"' in p and 'LocR 05' in p)
+    P = L[a:b + 1]
+    i = P.index('"DR"') - 2
+    assert P[i:i + 4] == ['RCL R.00', 'RCL 60', '"DR"', 'XEQ "N50"'] and P[-1] == 'END', P[i:i + 4]
+    new = (['"DR   N"', 'STO R.04', 'RCL R.02', 'X≥0?', 'GTO 01', '"DR   S"', 'STO R.04', 'LBL 01', 'RCL R.02']
+           + _dms(2) + ['RCL R.03', 'X<0?', 'GTO 03', '"   E"', 'GTO 05', 'LBL 03', '"   W"', 'LBL 05', 'x→α R.04',
+                       'RCL R.03']
+           + _dms(4) + ['RCL R.00', 'RCL 60', 'RCL R.04', 'XEQ "N50"', 'END'])
+    P = [('LocR 06' if l == 'LocR 05' else l) for l in P[:i]] + new
+    L = L[:a] + P + L[b + 1:]
+    old = ['73', 'ENTER', 'RCL 66', 'NEWMAT', 'STO "ALMC"']
+    j = [j for j in range(len(L)) if L[j:j + 5] == old]
+    assert len(j) == 1 and 'LBL 49' not in L[:L.index('END')]
+    L = L[:j[0]] + ['0', 'STO+ "ALMC"', 'RCL "ALMC"', 'MATR?', '42DIM#', '×', '292', 'X=Y?', 'GTO 49'] + old \
+        + ['LBL 49'] + L[j[0] + 5:]
+    print('  17_topbar: HDR %d -> %d steps; NAV keeps the cache ALMC' % (b + 1 - a, len(P)))
+    return L
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
-         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group))
+         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'))
 
 
 def _rtn_block(L, start, prog=None):
@@ -850,8 +894,10 @@ def main():
     else:
         src, out, fname, steps = SRC, OUT, 'NAVFULL.txt', STEPS
     L = [l for l in open(src, encoding='utf-8').read().split('\n') if l.strip()]
-    for folder, step in steps:
-        L = step(L)
+    done = {}
+    for folder, step, *base in steps:          # a third item: the step is applied to that folder, not the one before
+        L = step(list(done[base[0]]) if base else L)
+        done[folder] = L
         d = os.path.join(out, folder)
         os.makedirs(d, exist_ok=True)
         f = os.path.join(d, fname)

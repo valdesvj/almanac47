@@ -459,6 +459,16 @@ class Calc:
                 _, r, c = self.s[0]; self.mats[arg] = [[0.0]*c for _ in range(r)]; self.reg.pop(arg, None); continue
             if op == 'STO' and arg in self.mats and not re.fullmatch(r'\d+|R\.\d\d|[XYZT]', arg):
                 del self.mats[arg]                                  # ... and a number now
+            if op in ('STO+', 'STO-', 'STO×', 'STO÷') and arg in self.mats and not isinstance(self.s[0], (Mat, tuple, str)):
+                # the firmware (store.c _storeOp, addRemaReal ...): a matrix variable and a number, element by element
+                x = self.s[0]; g = {'STO+': lambda v, y: v + y, 'STO-': lambda v, y: v - y, 'STO×': lambda v, y: v * y, 'STO÷': lambda v, y: v / y}[op]
+                self.mats[arg] = [[g(v, D(x) if isinstance(v, D) else float(x)) for v in r] for r in self.mats[arg]]; self.lift = True; continue
+            if op == 'MATR?':                                   # fnCheckMatrix: true when X is a real or complex matrix
+                if not _mc(self.s[0]) or isinstance(self.s[0], complex): pc += 1
+                continue
+            if op == '42DIM#':                                  # fnGetMatrixDimensions42: X (a matrix) -> Y rows, X columns
+                m = self.s[0]; r, c = m.dims() if isinstance(m, Mat) else m[1:3]
+                self.s = self.s[1:] + self.s[-1:]; self.push(D(r)); self.push(D(c)); continue
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue
