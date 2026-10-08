@@ -14,6 +14,8 @@ are not changed. Build again with:  python3 tools/build_moon47_struct.py
                         ALL 124 local labels of a program (00-99, a-l, A-L): no room for one more. Ends with CLSTK
                         as before (MOON47 keeps no registers of yours, no CLREGS). 4646 bytes.
 
+CHOSEN (Victor, 2026-10-08): 1_labels. 2_compact stays as the record of the test.
+
 Checked in the C47 firmware PC simulator (clock pinned to the date in a test copy, the key wait -> PAUSE 1 SNAP;
 ~/almanac47-fwtest/moon/moonfw.py): 7 dates 2000-2050, north and south (+/- key): every screen pixel for pixel
 the same in 0, 1 and 2; X = Y = 0 at the end, no error.
