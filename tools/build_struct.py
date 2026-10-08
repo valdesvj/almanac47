@@ -732,10 +732,39 @@ def topbar(L):
     return L
 
 
+HG = ['RCL 73', '370', '"⌛"', 'XEQ "N50"']           # the hourglass of the firmware font: row 226, left of T / S / X
+
+
+def hourglass(L):
+    """While a view is computed, the firmware's hourglass (U+231B, standard font, ATEXT) in the top bar, left of the
+    T / S / X letter: N99 draws it (OR) and PAUSE 0 shows it, right after the view's CLLCD (ALMANAC, SPLIT, SKY, ANIM,
+    ALLSKY); N76 clears it (GRMOD 2: its pixels off) when the view is complete: at the key wait N63, and in SKY
+    before the loop that names the bodies. Flag 48 says it is on the screen (cleared at the start of NAV)."""
+    assert 'LBL "N99"' not in L and 'LBL "N76"' not in L and not [l for l in L if l.endswith(' 48') and l[:2] in 'SFCFFS']
+    views = ('N01', 'N04', 'N06', 'N61', 'N62')
+    for v in views:
+        a, b = _prog(L, lambda p, v=v: p[0] == 'LBL "%s"' % v)
+        c = L.index('CLLCD', a)
+        assert c < b and re.match(r'RCL |\d|XEQ 06', L[c + 1])     # nothing after it reads the stack
+        L = L[:c + 1] + ['XEQ "N99"'] + L[c + 1:]
+    i = L.index('LBL "N63"')
+    L = L[:i + 1] + ['XEQ "N76"'] + L[i + 1:]
+    a, b = _prog(L, lambda p: p[0] == 'LBL "N04"')
+    j = [j for j in range(a, b) if L[j:j + 3] == ['RCL 43', 'STO 13', 'LBL 11']]
+    assert len(j) == 1
+    L = L[:j[0]] + ['XEQ "N76"'] + L[j[0]:]
+    i = L.index('LBL "NAV"')
+    L = L[:i + 1] + ['CF 48'] + L[i + 1:]
+    L += (['LBL "N99"', 'SF 48'] + HG + ['PAUSE 0', 'END']
+          + ['LBL "N76"', 'FC? 48', 'RTN', 'CF 48', '2', 'GRMOD'] + HG + ['0', 'GRMOD', 'END'])
+    print('  18_hourglass: N99 after the CLLCD of %d views, N76 at the key wait and in SKY' % len(views))
+    return L
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
-         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'))
+         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass))
 
 
 def _rtn_block(L, start, prog=None):
