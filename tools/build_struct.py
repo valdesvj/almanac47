@@ -563,9 +563,31 @@ def labels(L):
     return out
 
 
+def renumber(L):
+    """Inside each program the numbered labels in the order they appear: 01, 02, 03 ... and every XEQ / GTO nn with
+    them. In a program with XEQ / GTO IND the labels no XEQ / GTO nn names keep their numbers (the number is the data:
+    a star, a digit, a character code, a body + offset) and the others skip them. Only easier to read: GTO / XEQ nn
+    cost the labels before it in the table, not its number."""
+    out, fixed_all = [], 0
+    for p in split(L):
+        nums = [l[4:] for l in p if re.fullmatch(r'LBL \d\d', l)]
+        direct = {l[4:] for l in p if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+        ind = [l for l in p if re.match(r'(XEQ|GTO) IND', l)]
+        fixed = {n for n in nums if n not in direct} if ind else set()
+        fixed_all += len(fixed)
+        free = ('%02d' % k for k in range(1, 100) if '%02d' % k not in fixed)
+        new = {n: (n if n in fixed else next(free)) for n in nums}
+        assert len(set(new.values())) == len(nums), name(p)
+        for l in p:
+            m = re.fullmatch(r'(LBL|XEQ|GTO) (\d\d)', l)
+            out.append('%s %s' % (m.group(1), new[m.group(2)]) if m else l)
+    print('  13_renumber: labels 01, 02 ... in order in every program; %d kept for XEQ / GTO IND' % fixed_all)
+    return out
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
-         ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels))
+         ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber))
 
 
 def _rtn_block(L, start, prog=None):
