@@ -729,7 +729,7 @@ def topbar(L):
     L = L[:j[0]] + ['0', 'STO+ "ALMC"', 'RCL "ALMC"', 'MATR?', '42DIM#', '×', '292', 'X=Y?', 'GTO 49'] + old \
         + ['LBL 49'] + L[j[0] + 5:]
     print('  17_topbar: HDR %d -> %d steps; NAV keeps the cache ALMC' % (b + 1 - a, len(P)))
-    return L
+    return renumber(L)                                  # the new labels 01, 02 ... in order again (step 13)
 
 
 HG = ['RCL 73', '370', '"⌛"', 'XEQ "N50"']           # the hourglass of the firmware font: row 226, left of T / S / X
@@ -737,14 +737,14 @@ HG = ['RCL 73', '370', '"⌛"', 'XEQ "N50"']           # the hourglass of the fi
 
 def hourglass(L):
     """The firmware's hourglass (U+231B, standard font, one ATEXT) in the top bar at column 370, left of T / S / X,
-    together with the SINKING box: drawn in NAV LBL 13 right before the box, on the screen the box covers (the menu
+    together with the SINKING box: drawn in NAV's box routine (LBL 13 in step 15) right before the box, on the screen the box covers (the menu
     or the old view); the box's PAUSE 0 shows both. It goes with the box: the new view (or the menu) clears the
     screen. No routine, no flag: 4 steps."""
     e = L.index('END', L.index('LBL "NAV"'))
-    j = [j for j in range(e) if L[j:j + 4] == ['LBL 13', 'RCL 46', 'FS? 47', 'RCL 55']]     # the SINKING box
+    j = [j for j in range(e) if re.fullmatch(r'LBL \d\d', L[j]) and L[j + 1:j + 4] == ['RCL 46', 'FS? 47', 'RCL 55']]  # the SINKING box
     assert len(j) == 1
     L = L[:j[0] + 1] + HG + L[j[0] + 1:]
-    print('  18_hourglass: the hourglass with the SINKING box (NAV LBL 13)')
+    print("  18_hourglass: the hourglass with the SINKING box (NAV)")
     return L
 
 
