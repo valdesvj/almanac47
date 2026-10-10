@@ -906,3 +906,5 @@ without copied code, all at once.
   are steps), search work 3.62 M -> 2.59 M (-28 %; 2_compact, the old one-program try with letter labels, 7.34 M).
   Pixel for pixel 1_labels and python/moon47.py at 16 dates, time zones, north and south.
   build/forum/MOON47.p47u. Inlining the two small routines c47struct.inline finds: +5 steps for -3 % search: not done.
+- The forum file NAV.p47u is now ALMA47.p47u (Victor): its main label LBL "NAV" written as LBL "ALMA47" (nothing calls
+  it by name), the headers say XEQ 'ALMA47'. The source and build/dev/struct_src keep NAV.

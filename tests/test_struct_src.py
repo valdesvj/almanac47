@@ -6,7 +6,7 @@
      NAVFULL_COMMENTED.txt the same steps with REM lines
   2. every page (FULL, FAST, three dates and places, hour arrows) and the menu's keys pixel for pixel
      build/dev/struct/18_hourglass, the stack clear at the end; how many structures the pages entered
-  3. build/forum/NAV.p47u and NAVINIT.p47u (tools/build_forum.py): the header, the main label, the same steps
+  3. build/forum/ALMA47.p47u (NAV named ALMA47), NAVINIT.p47u (tools/build_forum.py): the header, the main label, the same steps
   4. MOON47 (programs_struct/MOON47.txt, one program): the build, the page pixel for pixel build/dev/moon/1_labels
      and python/moon47.py at 16 dates and time zones, north and south
   5. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
@@ -123,7 +123,7 @@ def forum(L):
     NAVINIT_FAST.txt (its label INIT named NAVINIT)."""
     import build_forum as F
     print('== build/forum/ (the PROGRAMS folder of the C47 release)')
-    for fname, want in (('NAV.p47u', L), ('NAVINIT.p47u', ['LBL "NAVINIT"'] + lines(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt'))[1:]),
+    for fname, want in (('%s.p47u' % F.MAIN, ['LBL "%s"' % F.MAIN] + L[1:]), ('NAVINIT.p47u', ['LBL "NAVINIT"'] + lines(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt'))[1:]),
                         ('MOON47.p47u', B.build_moon())):
         p = os.path.join(F.OUT, fname)
         txt = open(p, encoding='utf-8').read().split('\n')

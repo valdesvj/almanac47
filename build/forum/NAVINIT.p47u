@@ -1,13 +1,13 @@
-@ Index:   Matrices for NAV, valid 2026-2030
+@ Index:   Matrices for ALMA47, valid 2026-2030
 @ Author:  Victor Valdes
 @ Version: 2.2
 @ Source:  https://github.com/valdesvj/almanac47
-@ Tested:  C47 simulator (python/c47sim.py): ends with MATRICES READY: FAST 2026-2030; NAV's views then as v2
+@ Tested:  C47 simulator (python/c47sim.py): ends with MATRICES READY: FAST 2026-2030; ALMA47's views then as v2
 @ Input:   none
-@ Output:  the matrices NAV reads (Sun, Moon, planets, nutation, the star catalogue ST, the caches ALMC, ALMQ)
+@ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the caches ALMC, ALMQ)
 @ Output:  and the message MATRICES READY: FAST 2026-2030
 @
-@ Run once with NAV loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
+@ Run once with ALMA47 loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
 @ Run it again only for a new period.
 @
 @ Memory: this is the FAST set, a series fitted to 2026-2030 (smaller and faster). The full package also has

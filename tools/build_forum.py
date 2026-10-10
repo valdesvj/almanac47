@@ -4,8 +4,8 @@
 The release's res/PROGRAMS/BUILD.md: one .p47u per program, named after its main label, with '@' header lines
 (Index: the one field every program needs; Author, Version optional; Source, Tested, Input, Output and notes).
 
-  build/forum/NAV.p47u      the STRUCT build (build/dev/struct_src/NAVFULL.txt, tools/build_struct_src.py): the main
-                            label is NAV; indented, the STRUCT partner numbers written, a '#' line under each global
+  build/forum/ALMA47.p47u   the STRUCT build (build/dev/struct_src/NAVFULL.txt, tools/build_struct_src.py) with its
+                            main label NAV named ALMA47 (the file name is the main label; nothing calls it); indented, the STRUCT partner numbers written, a '#' line under each global
                             label (its original name and job)
   build/forum/NAVINIT.p47u  build/NAVINIT_FAST.txt with its label INIT named NAVINIT (the file name is the main label)
   build/forum/MOON47.p47u   MOON47 on its own (build/dev/struct_src/MOON47.txt): ONE program, LBL "MOON47" its only
@@ -13,7 +13,7 @@ The release's res/PROGRAMS/BUILD.md: one .p47u per program, named after its main
 
 Only the FAST matrices (2026-2030) are supplied: NAVINIT_FULL (2000-2050) and the almanac tables TBL need more memory.
 
-  python3 tools/build_forum.py      -> build/forum/NAV.p47u, NAVINIT.p47u, MOON47.p47u
+  python3 tools/build_forum.py      -> build/forum/ALMA47.p47u, NAVINIT.p47u, MOON47.p47u
 """
 import os, re, sys
 
@@ -27,6 +27,7 @@ OUT = os.path.join(ROOT, 'build', 'forum')
 AUTHOR = 'Victor Valdes'
 VERSION = '2.2'
 SOURCE = 'https://github.com/valdesvj/almanac47'
+MAIN = 'ALMA47'                   # NAV's name in the release (LBL "NAV" -> LBL "ALMA47"; no step calls it by name)
 
 NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  %(author)s
@@ -34,7 +35,7 @@ NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reducti
 @ Source:  %(source)s
 @ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel the v2 screens, 3 places and 16 random dates
 @ Tested:  2000-2049, 65 S - 65 N, FULL and FAST matrices
-@ Input:   NAVINIT run once. XEQ 'NAV' asks DATE (YYYY.MMDD), UTC (H.MM), LAT and LON (D.MM, S and W negative)
+@ Input:   NAVINIT run once. XEQ 'ALMA47' asks DATE (YYYY.MMDD), UTC (H.MM), LAT and LON (D.MM, S and W negative)
 @ Output:  FAST, DATE 2030.1019, UTC 17.45, LAT -53.11, LON 48.01, key 1 (ALMANAC) then the up arrow (18:45 UT):
 @ Output:  Sun GHA 105 01.7, Dec S 10 11.7, Hc -22 35.0, Zn 208.9; the stars Canopus, Rigil Kent, Rigel, Achernar ...
 @
@@ -44,14 +45,14 @@ NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reducti
 @
 @ Needs a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
 @
-@ Two files: NAV.p47u (the programs that stay on the calculator) and NAVINIT.p47u (builds the matrices once).
+@ Two files: ALMA47.p47u (the programs that stay on the calculator) and NAVINIT.p47u (builds the matrices once).
 @   1. Load both. XEQ 'NAVINIT': it ends with MATRICES READY: FAST 2026-2030.
-@   2. Delete NAVINIT (GTO 'NAVINIT', DELP): the matrices stay. Do not use CLPALL (it deletes NAV too).
-@   3. XEQ 'NAV': date, UT and position once, then the menu:
+@   2. Delete NAVINIT (GTO 'NAVINIT', DELP): the matrices stay. Do not use CLPALL (it deletes ALMA47 too).
+@   3. XEQ 'ALMA47': date, UT and position once, then the menu:
 @      1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  9 SNAP (a picture of the screen)  0 END.
 @      In a view: + back to the menu, up / down arrow one hour later / earlier.
 @
-@ Only NAV has a name; the other programs show as N01, N02 ... NAV uses the numbered registers and the 8-level stack
+@ Only ALMA47 has a name; the other programs show as N01, N02 ... ALMA47 uses the numbered registers and the 8-level stack
 @ and clears them when it ends (CLREGS, CLSTK): save your registers first. It keeps its named matrices between runs
 @ (the sky of the last time and place: the same inputs again show the views at once).
 @
@@ -65,16 +66,16 @@ NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reducti
 @
 """
 
-INIT_HEAD = """@ Index:   Matrices for NAV, valid 2026-2030
+INIT_HEAD = """@ Index:   Matrices for ALMA47, valid 2026-2030
 @ Author:  %(author)s
 @ Version: %(version)s
 @ Source:  %(source)s
-@ Tested:  C47 simulator (python/c47sim.py): ends with MATRICES READY: FAST 2026-2030; NAV's views then as v2
+@ Tested:  C47 simulator (python/c47sim.py): ends with MATRICES READY: FAST 2026-2030; ALMA47's views then as v2
 @ Input:   none
-@ Output:  the matrices NAV reads (Sun, Moon, planets, nutation, the star catalogue ST, the caches ALMC, ALMQ)
+@ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the caches ALMC, ALMQ)
 @ Output:  and the message MATRICES READY: FAST 2026-2030
 @
-@ Run once with NAV loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
+@ Run once with ALMA47 loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
 @ Run it again only for a new period.
 @
 @ Memory: this is the FAST set, a series fitted to 2026-2030 (smaller and faster). The full package also has
@@ -116,8 +117,12 @@ def nav():
             m = re.fullmatch(r'\s*LBL "(\w+)"', l)
             if m:
                 n, what = B.LABELS[m.group(1)]
+                if m.group(1) == 'NAV':
+                    out[-1] = 'LBL "%s"' % MAIN
+                    n = MAIN
                 out.append(l[:len(l) - len(l.lstrip())] + '  # %s - %s' % (n, what))
-    assert [l.strip() for l in out if not l.strip().startswith('#')] == L
+    assert [l.strip() for l in out if not l.strip().startswith('#')] == ['LBL "%s"' % MAIN] + L[1:]
+    assert not any('"NAV"' in l for l in L[1:])                 # nothing calls NAV by name
     return out
 
 
@@ -134,7 +139,7 @@ def moon():
 def main():
     os.makedirs(OUT, exist_ok=True)
     f = {'author': AUTHOR, 'version': VERSION, 'source': SOURCE}
-    for fname, head, body in (('NAV.p47u', NAV_HEAD, nav()), ('NAVINIT.p47u', INIT_HEAD, navinit()),
+    for fname, head, body in (('%s.p47u' % MAIN, NAV_HEAD, nav()), ('NAVINIT.p47u', INIT_HEAD, navinit()),
                               ('MOON47.p47u', MOON_HEAD, moon())):
         p = os.path.join(OUT, fname)
         open(p, 'w', encoding='utf-8').write(head % f + '\n'.join(body) + '\n')
