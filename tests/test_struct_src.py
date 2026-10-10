@@ -6,7 +6,8 @@
      NAVFULL_COMMENTED.txt the same steps with REM lines
   2. every page (FULL, FAST, three dates and places, hour arrows) and the menu's keys pixel for pixel
      build/dev/struct/18_hourglass, the stack clear at the end; how many structures the pages entered
-  3. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
+  3. build/forum/NAV.p47u and NAVINIT.p47u (tools/build_forum.py): the header, the main label, the same steps
+  4. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
 
   python3 tests/test_struct_src.py [n]      (n random cases, default 16)
 """
@@ -115,9 +116,26 @@ def places(B_, n):
         ok(all(same), '%s %s %s %s %s: pages 1-5 pixel for pixel' % ((init,) + tuple(v for _, v in inp)))
 
 
+def forum(L):
+    """build/forum/*.p47u (tools/build_forum.py): the release's PROGRAMS format; the steps those of NAVFULL.txt and
+    NAVINIT_FAST.txt (its label INIT named NAVINIT)."""
+    import build_forum as F
+    print('== build/forum/ (the PROGRAMS folder of the C47 release)')
+    for fname, want in (('NAV.p47u', L), ('NAVINIT.p47u', ['LBL "NAVINIT"'] + lines(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt'))[1:])):
+        p = os.path.join(F.OUT, fname)
+        txt = open(p, encoding='utf-8').read().split('\n')
+        head = [l for l in txt if l.startswith('@')]
+        steps = [l.strip() for l in txt if l.strip() and not l.startswith('@') and not l.strip().startswith('#')]
+        ok(any(re.match(r'@ Index:\s+\S', l) for l in head) and txt[0].startswith('@ Index:'), '%s: @ Index: first' % fname)
+        ok(steps[0] == 'LBL "%s"' % fname[:-5], '%s: the main label is the file name' % fname)
+        ok(steps == want, '%s: the steps of the build (%d)' % (fname, len(steps)))
+        ok(not any(l.startswith('GTO') for l in steps), '%s: no GTO' % fname)
+
+
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
+    forum(L)
     pages(L)
     places(L, n)
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))

@@ -1,7 +1,0 @@
-LBL "N93"
-IP
-XEQ "N47"
-STO 22
-XEQ "N68"
-RCL 92
-END

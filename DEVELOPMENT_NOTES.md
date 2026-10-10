@@ -886,3 +886,12 @@ without copied code, all at once.
   writes build/dev/struct_src/NAVFULL_COMMENTED.txt, the numbered, indented listing with REM lines (each program, the
   global labels' names and jobs from LABELS in tools/build_struct_src.py, the callers of each local routine, the XEQ
   IND tables, the loops only RTN leaves). Without its REM lines it is NAVFULL.txt step for step (tested).
+- Then (Victor): the good optimizations up to 41 in the source, still STRUCT. build/dev/struct steps 21-41 applied
+  to the source build (pixel_lines and star_order also take the source's shapes: N57 as IF ... ELSE PIXEL ENDIF, SBRT
+  by XEQ IND, its caller OUT8 doing the IP), the layout once at the end, then programs_struct/ written again from the
+  result (26 programs). 8859 steps (41_layout 9027), 370 labels, 126 structures, 0 GTO. Sim, one view + an arrow:
+  ALMANAC 20318 steps (41: 19864), SPLIT 22608 (22278), SKY 16998 (16974), ANIM 36472 (35864), ALLSKY 32394 (32552);
+  search work 3.22 M (41: 3.12 M, 18_hourglass 8.17 M). Pages pixel for pixel 18_hourglass (16 random cases).
+- tools/build_forum.py: build/forum/NAV.p47u and NAVINIT.p47u for the PROGRAMS folder of the C47 release (res/PROGRAMS
+  /BUILD.md: '@ Index:' ... header, the file named after its main label: INIT is NAVINIT there). Only NAVINIT_FAST
+  (2026-2030); the header says NAVINIT_FULL and TBL exist but need more memory.

@@ -1,31 +1,3 @@
-LBL "N50"
-LBL 01
-⇄ zyxt
-RCL 66
--
-X<>Y
-ATEXT Z
-X<>Y
-RCL 66
-+
-X<>Y
-RTN
-LBL 02
-48
-+
-STO 11
-XEQ IND 11
-STO 11
-RTN
-LBL 03
-STO 07
-RCL 50
-÷
-IP
-αIP 11
-RCL 07
-XEQ 10
-RTN
 LBL "N80"
 STO 07
 R↓
@@ -37,167 +9,28 @@ ABS
 RCL 56
 +
 IP
-XEQ 05
+XEQ 02
 RCL 10
 RCL 01
 RCL 11
 ⇄ zyxt
 X<>Y
-XEQ 06
-RTN
-LBL "N52"
-XEQ 08
-RCL 07
-ABS
 RCL 50
-×
-RCL 56
-+
-IP
-STO 06
+GRFNT
+DROP
+ATEXT Z
+21
+GRFNT
+DROP
+RTN
+LBL 01
+STO 07
 RCL 50
 ÷
 IP
-XEQ 05
-"."
-x→α 11
-RCL 06
-XEQ 10
-LBL 04
-RCL 10
-RCL 01
-RCL 11
-XEQ 01
-RTN
-LBL 05
-STO 16
-RCL 50
-RCL 16
-X≥Y?
-IF
-  RCL 64
-  RCL 16
-  X≥Y?
-  IF
-    RCL 16
-    RCL 64
-    ÷
-    IP
-    XEQ 02
-    RCL 16
-    RCL 64
-    MOD
-    XEQ 03
-    RTN
-  ENDIF
-  RCL 16
-  RCL 50
-  ÷
-  IP
-  XEQ 02
-  RCL 16
-  XEQ 10
-  RTN
-ENDIF
-RCL 16
-XEQ 02
-RTN
-LBL "N51"
-XEQ 08
-RCL 07
-ABS
-RCL 56
-+
-IP
-XEQ 05
-XEQ 04
-RTN
-LBL "N55"
-STO 07
-R↓
-STO 01
-R↓
-STO 10
-RCL 07
-J→ⅅℸ
-R↓
-STO 11
-DAY
-STO 06
-RCL 11
-MONTH
-STO 07
-RCL 11
-YEAR
-STO 16
-RCL 06
-RCL 50
-÷
-IP
-XEQ 02
-RCL 06
-RCL 50
-MOD
 αIP 11
-"-"
-x→α 11
 RCL 07
-XEQ 03
-"-"
-x→α 11
-RCL 16
-RCL 64
-÷
-IP
-XEQ 03
-RCL 16
-RCL 64
-MOD
-XEQ 03
-XEQ 04
-RTN
-LBL "N53"
-STO 07
-R↓
-STO 01
-R↓
-STO 10
-RCL 07
-98
-X≥Y?
-IF
-  RCL 07
-  RCL 57
-  ×
-  RCL 56
-  +
-  IP
-  STO 06
-  RCL 57
-  ÷
-  IP
-  RCL 70
-  MOD
-  STO 16
-  RCL 50
-  ÷
-  IP
-  XEQ 02
-  RCL 16
-  RCL 50
-  MOD
-  αIP 11
-  ":"
-  x→α 11
-  RCL 06
-  RCL 57
-  MOD
-  XEQ 03
-ELSE
-  "--:--"
-  STO 11
-ENDIF
-XEQ 04
+XEQ 08
 RTN
 LBL "N54"
 STO 07
@@ -233,10 +66,10 @@ IF
     " "
     x→α 11
   ENDIF
-  XEQ 07
+  XEQ 06
   x→α 11
 ELSE
-  XEQ 07
+  XEQ 06
   STO 11
 ENDIF
 RCL 06
@@ -247,17 +80,146 @@ RCL 16
 RCL 50
 ÷
 IP
-XEQ 03
+XEQ 01
 "."
 x→α 11
 RCL 16
 RCL 50
 MOD
 αIP 11
-XEQ 04
+XEQ 05
+RTN
+LBL "N55"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+J→ⅅℸ
+R↓
+STO 11
+DAY
+STO 06
+RCL 11
+MONTH
+STO 07
+RCL 11
+YEAR
+STO 16
+RCL 06
+RCL 50
+÷
+IP
+CLα 11
+αIP 11
+RCL 06
+RCL 50
+MOD
+αIP 11
+"-"
+x→α 11
+RCL 07
+XEQ 01
+"-"
+x→α 11
+RCL 16
+αIP 11
+XEQ 05
+RTN
+LBL "N53"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+98
+X≥Y?
+IF
+  RCL 07
+  RCL 57
+  ×
+  RCL 56
+  +
+  IP
+  STO 06
+  RCL 57
+  ÷
+  IP
+  RCL 70
+  MOD
+  STO 16
+  RCL 50
+  ÷
+  IP
+  CLα 11
+  αIP 11
+  RCL 16
+  RCL 50
+  MOD
+  αIP 11
+  ":"
+  x→α 11
+  RCL 06
+  RCL 57
+  MOD
+  XEQ 01
+ELSE
+  "--:--"
+  STO 11
+ENDIF
+XEQ 05
+RTN
+LBL "N51"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+ABS
+RCL 56
++
+IP
+XEQ 02
+XEQ 05
+RTN
+LBL 02
+STO 16
+CLα 11
+αIP 11
+RTN
+LBL "N79"
+⇄ zyxt
+X<>Y
+LBL 03
+RCL 50
+GRFNT
+DROP
+ATEXT Z
+21
+GRFNT
+DROP
+RTN
+LBL "N50"
+LBL 04
+⇄ zyxt
+RCL 66
+-
+X<>Y
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 RTN
 LBL "N56"
-XEQ 08
+STO 07
+R↓
+STO 01
+R↓
+STO 10
 RCL 07
 RCL 50
 ×
@@ -267,36 +229,61 @@ IP
 STO 16
 RCL 54
 X≤Y?
-XEQ 09
+XEQ 07
 RCL 16
 1000
 ÷
 IP
-XEQ 02
+CLα 11
+αIP 11
 RCL 16
 RCL 50
 ÷
 IP
 RCL 64
 MOD
-XEQ 03
+XEQ 01
 "."
 x→α 11
 RCL 16
-XEQ 10
-XEQ 04
+XEQ 08
+XEQ 05
 RTN
-LBL "N79"
-⇄ zyxt
-X<>Y
-LBL 06
+LBL "N52"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+ABS
 RCL 50
-GRFNT
-DROP
+×
+RCL 56
++
+IP
+STO 06
+RCL 50
+÷
+IP
+XEQ 02
+"."
+x→α 11
+RCL 06
+XEQ 08
+LBL 05
+RCL 10
+RCL 01
+RCL 11
+⇄ zyxt
+RCL 66
+-
+X<>Y
 ATEXT Z
-21
-GRFNT
-DROP
+X<>Y
+RCL 66
++
+X<>Y
 RTN
 LBL "N57"
 STO 05
@@ -304,31 +291,54 @@ R↓
 STO 01
 R↓
 STO 07
+RCL 07
+CHS
+RCL 46
+PIXEL
 RCL 05
 400
 X>Y?
 IF
   WSIZE 8
+  2
+  GRMOD
   1#2
   STO 09
-  RCL 07
+  400
+  RCL- 05
+  RCL- 01
+  STO 05
+  X≠0?
+  IF
+    RCL 07
+    400
+    RCL- 05
+    DO
+      AGRAPH 09
+      DSE 05
+    WHILE
+    ENDDO
+  ENDIF
   RCL 01
-  DO
-    AGRAPH 09
-    DSE 05
-  WHILE
-  ENDDO
-ELSE
-  RCL 07
-  CHS
+  STO 05
+  X≠0?
+  IF
+    RCL 07
+    RCL 46
+    DO
+      AGRAPH 09
+      DSE 05
+    WHILE
+    ENDDO
+  ENDIF
   RCL 46
-  PIXEL
+  GRMOD
 ENDIF
 WSIZE 64
 RCL 07
 RCL 01
 RTN
-LBL 07
+LBL 06
 RCL 07
 X≥0?
 IF
@@ -337,48 +347,11 @@ IF
 ENDIF
 "-"
 RTN
-LBL 08
-STO 07
-R↓
-STO 01
-R↓
-STO 10
-RTN
-LBL 09
+LBL 07
 RCL 46
 STO 16
 RTN
-LBL 48
-"0"
-RTN
-LBL 49
-"1"
-RTN
-LBL 50
-"2"
-RTN
-LBL 51
-"3"
-RTN
-LBL 52
-"4"
-RTN
-LBL 53
-"5"
-RTN
-LBL 54
-"6"
-RTN
-LBL 55
-"7"
-RTN
-LBL 56
-"8"
-RTN
-LBL 57
-"9"
-RTN
-LBL 10
+LBL 08
 RCL 50
 MOD
 αIP 11

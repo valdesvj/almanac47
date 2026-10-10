@@ -1164,6 +1164,9 @@ def layout(L):
 N57_OLD = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07', 'RCL 05', '400', 'X>Y?', 'IF', 'WSIZE 8', '1#2',
            'STO 09', 'RCL 07', 'RCL 01', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'WSIZE 64', 'RCL 07', 'RCL 01',
            'RTN', 'ENDIF', 'RCL 07', 'CHS', 'RCL 46', 'PIXEL', 'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']
+N57_SRC = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07', 'RCL 05', '400', 'X>Y?', 'IF', 'WSIZE 8', '1#2',
+           'STO 09', 'RCL 07', 'RCL 01', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'ELSE', 'RCL 07', 'CHS', 'RCL 46',
+           'PIXEL', 'ENDIF', 'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']      # the same, as programs_struct/ writes it
 N57_NEW = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07',
            'RCL 07', 'CHS', 'RCL 46', 'PIXEL',                          # the whole row: PIXEL with Y < 0 (fnPixel)
            'RCL 05', '400', 'X>Y?', 'IF',                               # shorter: the columns outside it cleared
@@ -1184,8 +1187,9 @@ def pixel_lines(L):
     import c47struct
     P = c47struct.plain(L)
     i = P.index('LBL "N57"')
-    assert P[i:i + len(N57_OLD)] == N57_OLD, P[i:i + len(N57_OLD)]
-    out = P[:i] + N57_NEW + P[i + len(N57_OLD):]
+    old = N57_OLD if P[i:i + len(N57_OLD)] == N57_OLD else N57_SRC
+    assert P[i:i + len(old)] == old, P[i:i + len(old)]
+    out = P[:i] + N57_NEW + P[i + len(old):]
     print('  21_pixel: N57 (lines) in PIXEL line mode; %d -> %d steps' % (len(N57_OLD), len(N57_NEW)))
     return c47struct.number(out)
 
@@ -1566,7 +1570,7 @@ def star_order(L):
         if m and re.fullmatch(r'-?[\d.]+', P[i - 1]):
             const[m.group(1)] = P[i - 1]
     a = P.index('LBL "N47"')
-    assert P[a - 1] == 'END' and P[a + 1:a + 3] == ['STO 01', 'GTO IND 01']
+    assert P[a - 1] == 'END' and P[a + 1:a + 3] in (['STO 01', 'GTO IND 01'], ['STO 01', 'XEQ IND 01'])
     e = P.index('END', a)
     tab = {}
     for k in range(a, e):
@@ -1578,10 +1582,13 @@ def star_order(L):
     assert sorted(tab) == list(range(1, 59)) and sorted(int(v) for v in tab.values()) == list(range(1, 59))
     P = P[:a] + P[e + 1:]
     sites = [k for k, l in enumerate(P) if l == 'XEQ "N47"']
-    assert len(sites) == 3
+    assert sites
     for k in reversed(sites):
-        assert re.fullmatch(r'RCL \d\d', P[k - 2]) and P[k - 1] == 'IP' and P[k + 1:k + 3] == ['STO 22', 'XEQ "N68"']
-        P = P[:k - 2] + ['INDEX "SBR"', P[k - 2], 'IP', '1', 'STOIJ', 'RCLEL'] + P[k + 1:]
+        assert P[k - 1] == 'IP' and P[k + 1] == 'STO 22', P[k - 2:k + 2]
+        if re.fullmatch(r'RCL \d\d', P[k - 2]):
+            P = P[:k - 2] + ['INDEX "SBR"', P[k - 2], 'IP', '1', 'STOIJ', 'RCLEL'] + P[k + 1:]
+        else:                                           # the rank already in X (programs_struct/: OUT8 does the IP)
+            P = P[:k] + ['INDEX "SBR"', '1', 'STOIJ', 'RCLEL'] + P[k + 1:]
     j = P.index('DELITM "ALMQ"', s)
     make = (['0', 'STO+ "SBR"', 'RCL "SBR"', 'MATR?', 'IF', 'ELSE', '58', 'ENTER', '1', 'NEWMAT', 'STO "SBR"',
              'INDEX "SBR"', '1', 'ENTER', 'STOIJ'] + [x for r in range(1, 59) for x in (tab[r], 'STOSEQ')] + ['ENDIF'])

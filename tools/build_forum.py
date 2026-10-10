@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+"""build_forum.py - the two files for the PROGRAMS folder of the C47 release (res/PROGRAMS, rejig sources .p47u).
+
+The release's res/PROGRAMS/BUILD.md: one .p47u per program, named after its main label, with '@' header lines
+(Index: the one field every program needs; Author, Version optional; Source, Tested, Input, Output and notes).
+
+  build/forum/NAV.p47u      the STRUCT build (build/dev/struct_src/NAVFULL.txt, tools/build_struct_src.py): the main
+                            label is NAV; indented, the STRUCT partner numbers written, a '#' line under each global
+                            label (its original name and job)
+  build/forum/NAVINIT.p47u  build/NAVINIT_FAST.txt with its label INIT named NAVINIT (the file name is the main label)
+
+Only the FAST matrices (2026-2030) are supplied: NAVINIT_FULL (2000-2050) and the almanac tables TBL need more memory.
+
+  python3 tools/build_forum.py      -> build/forum/NAV.p47u, build/forum/NAVINIT.p47u (and .p47 with rejig)
+"""
+import os, re, sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+sys.path[:0] = [HERE]
+import c47struct as C                                                         # noqa: E402
+import build_struct_src as B                                                  # noqa: E402
+
+OUT = os.path.join(ROOT, 'build', 'forum')
+AUTHOR = 'Victor Valdes'
+VERSION = '2.2'
+SOURCE = 'https://github.com/valdesvj/almanac47'
+
+NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
+@ Author:  %(author)s
+@ Version: %(version)s
+@ Source:  %(source)s
+@ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel the v2 screens, 3 places and 16 random dates
+@ Tested:  2000-2049, 65 S - 65 N, FULL and FAST matrices
+@ Input:   NAVINIT run once. XEQ 'NAV' asks DATE (YYYY.MMDD), UTC (H.MM), LAT and LON (D.MM, S and W negative)
+@ Output:  FAST, DATE 2030.1019, UTC 17.45, LAT -53.11, LON 48.01, key 1 (ALMANAC) then the up arrow (18:45 UT):
+@ Output:  Sun GHA 105 01.7, Dec S 10 11.7, Hc -22 35.0, Zn 208.9; the stars Canopus, Rigil Kent, Rigel, Achernar ...
+@
+@ Almanac 47: celestial navigation on the C47 / R47. Sun, Moon, planets and 58 stars: GHA, Dec, Hc, Zn for your
+@ dead-reckoning position, sunrise, sunset, twilight, meridian passage, the Moon's phase, and sky charts.
+@ DOES NOT REPLACE THE NAUTICAL ALMANAC.
+@
+@ Needs a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
+@
+@ Two files: NAV.p47u (the programs that stay on the calculator) and NAVINIT.p47u (builds the matrices once).
+@   1. Load both. XEQ 'NAVINIT': it ends with MATRICES READY: FAST 2026-2030.
+@   2. Delete NAVINIT (GTO 'NAVINIT', DELP): the matrices stay. Do not use CLPALL (it deletes NAV too).
+@   3. XEQ 'NAV': date, UT and position once, then the menu:
+@      1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  9 SNAP (a picture of the screen)  0 END.
+@      In a view: + back to the menu, up / down arrow one hour later / earlier.
+@
+@ Only NAV has a name; the other programs show as N01, N02 ... NAV uses the numbered registers and the 8-level stack
+@ and clears them when it ends (CLREGS, CLSTK): save your registers first. It keeps its named matrices between runs
+@ (the sky of the last time and place: the same inputs again show the views at once).
+@
+@ Memory: only the FAST matrices are supplied (a fitted series, valid 2026-2030; an X in the top right corner marks
+@ a date outside them). The full package also has NAVINIT_FULL (VSOP87 and Meeus series, 2000-2050, about twice
+@ the memory) and the almanac tables TBL (1 or 5 years); they are left out here because of the memory they need.
+@ All of them are in the source repository.
+@
+@ Written with the STRUCT commands (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL), no GTO; the series and the
+@ 58 stars with the matrix functions; the screens with ATEXT, AGRAPH and PIXEL.
+@
+"""
+
+INIT_HEAD = """@ Index:   Matrices for NAV, valid 2026-2030
+@ Author:  %(author)s
+@ Version: %(version)s
+@ Source:  %(source)s
+@ Tested:  C47 simulator (python/c47sim.py): ends with MATRICES READY: FAST 2026-2030; NAV's views then as v2
+@ Input:   none
+@ Output:  the matrices NAV reads (Sun, Moon, planets, nutation, the star catalogue ST, the caches ALMC, ALMQ)
+@ Output:  and the message MATRICES READY: FAST 2026-2030
+@
+@ Run once with NAV loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
+@ Run it again only for a new period.
+@
+@ Memory: this is the FAST set, a series fitted to 2026-2030 (smaller and faster). The full package also has
+@ NAVINIT_FULL (VSOP87 and Meeus series, 2000-2050, about twice the memory) and the almanac tables TBL (1 or 5
+@ years); they are not supplied here because of the memory they need. All of them are in the source repository.
+@
+"""
+
+
+def nav():
+    L = B.build()
+    out = []
+    for name, P in zip(B.ORDER, C.split(L)):
+        for l in C.indent(P):
+            out.append(l)
+            m = re.fullmatch(r'\s*LBL "(\w+)"', l)
+            if m:
+                n, what = B.LABELS[m.group(1)]
+                out.append(l[:len(l) - len(l.lstrip())] + '  # %s - %s' % (n, what))
+    assert [l.strip() for l in out if not l.strip().startswith('#')] == L
+    return out
+
+
+def navinit():
+    L = [l for l in open(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt'), encoding='utf-8').read().split('\n') if l.strip()]
+    assert L[0] == 'LBL "INIT"' and L.count('LBL "INIT"') == 1 and not any('"INIT"' in l for l in L[1:])
+    return ['LBL "NAVINIT"'] + L[1:]
+
+
+def main():
+    os.makedirs(OUT, exist_ok=True)
+    f = {'author': AUTHOR, 'version': VERSION, 'source': SOURCE}
+    for fname, head, body in (('NAV.p47u', NAV_HEAD, nav()), ('NAVINIT.p47u', INIT_HEAD, navinit())):
+        p = os.path.join(OUT, fname)
+        open(p, 'w', encoding='utf-8').write(head % f + '\n'.join(body) + '\n')
+        print('  %s: %d steps' % (p[len(ROOT) + 1:], sum(1 for l in body if l.strip() and not l.strip().startswith('#'))))
+
+
+if __name__ == '__main__':
+    main()

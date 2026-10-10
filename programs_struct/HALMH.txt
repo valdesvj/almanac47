@@ -10,7 +10,13 @@ RCL 18
 STO 14
 RCL 19
 STO 13
-XEQ "N36"
+RCL 14
+RCL 43
+→REC
+STO "V6"
+X<>Y
+STO "W1"
+X<>Y
 CLLCD
 RCL 17
 XEQ "N64"
@@ -22,7 +28,11 @@ STO 05
 RCL 19
 RCL 18
 RCL 17
-XEQ "N91"
+RCL 73
+XEQ "N83"
+-221
+RCL 46
+PIXEL
 144
 RCL 55
 376
@@ -194,64 +204,171 @@ ENDIF
 RCL 46
 9
 XEQ "N77"
-0.03901
+40
+ENTER
+3
+NEWMAT
+STO "QP"
+INDEX "U3"
+1
+ENTER
+3
+STOIJ
+40
+ENTER
+1
+M.GETM
+RCL 17
++
+RCL 45
+MOD
+375
+×
+RCL 45
+÷
+RCL 55
++
+IP
+STO "QX"
+INDEX "U3"
+1
+ENTER
+2
+STOIJ
+40
+ENTER
+1
+M.GETM
+68
+×
+144
++
+IP
+STO "QY"
+INDEX "U3"
+1
+ENTER
+1
+STOIJ
+40
+ENTER
+1
+M.GETM
+STO "QH"
+INDEX "QP"
+1
+ENTER
+STOIJ
+RCL "QH"
+M.PUTM
+1
+ENTER
+2
+STOIJ
+RCL "QY"
+M.PUTM
+1
+ENTER
+3
+STOIJ
+RCL "QX"
+M.PUTM
+1
+ENTER
+STOIJ
+40
 STO 01
 DO
-  XEQ 01
-  RCL 09
+  RCLSEQ
   1E-4
   X<Y?
-  XEQ 08
-  ISG 01
+  IF
+    RCLSEQ
+    RCLSEQ
+    POINT
+  ELSE
+    J+
+    J+
+  ENDIF
+  DSE 01
 WHILE
 ENDDO
-121
-RCL 74
+DELITM "QP"
+DELITM "QX"
+DELITM "QY"
+DELITM "QH"
 "BODY"
-XEQ "N50"
-121
-158
+117
+RCL 74
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 "GHA"
-XEQ "N50"
-121
-232
+117
+158
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 "DEC"
-XEQ "N50"
-121
-312
+117
+232
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 "HC"
-XEQ "N50"
-121
-372
+117
+312
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 "ZN"
-XEQ "N50"
+117
+372
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 107
 STO 18
 RCL 12
 RCL 21
-XEQ 02
+XEQ 05
 RCL 09
 X>0?
-XEQ 09
+XEQ 06
 RCL 18
 RCL 46
 "@"
 XEQ "N81"
-RCL 18
-RCL 74
 "SUN"
-XEQ "N50"
-XEQ 04
+RCL 18
+RCL- 66
+RCL 74
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+XEQ 01
 XEQ "N65"
 STO 21
 R↓
 STO 12
 RCL 12
 RCL 21
-XEQ 02
+XEQ 05
 RCL 09
 X>0?
-XEQ 11
+XEQ 07
 1.004
 STO 19
 DO
@@ -262,44 +379,33 @@ DO
   STO 05
   XEQ IND 05
   STO 20
-  XEQ "N66"
+  INDEX "ALMC"
+  RCL 44
+  +
+  STO "KR"
+  RCL 44
+  STOIJ
+  RCLEL
+  J-
+  RCLEL
   STO 21
   X<>Y
   STO 12
   RCL 12
   RCL 21
-  XEQ 02
+  XEQ 05
   RCL 09
   X>0?
   IF
-    XEQ 05
+    XEQ 02
     RTN
   ENDIF
   ISG 19
 WHILE
 ENDDO
-XEQ 06
+XEQ 04
 RTN
 LBL 01
-XEQ "N78"
-XEQ 03
-RTN
-LBL 02
-XEQ "N69"
-LBL 03
-RCL 05
-RCL+ 17
-XEQ "N92"
-STO 23
-RCL "V4"
-68
-×
-144
-+
-IP
-STO 08
-RTN
-LBL 04
 RCL 18
 138
 RCL 21
@@ -308,11 +414,16 @@ XEQ "N54"
 STO 08
 RCL 12
 X<0?
-XEQ 12
-RCL 18
-214
+XEQ 08
 RCL 08
-XEQ "N50"
+RCL 18
+RCL- 66
+214
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
 RCL 18
 216
 RCL 12
@@ -328,109 +439,17 @@ RCL 05
 XEQ "N56"
 RCL 09
 X<0?
-XEQ 16
+XEQ 12
 14
 STO- 18
 RTN
-LBL 05
-XEQ 10
-LBL 06
-RCL 46
-STO 19
-1.058
-STO 20
-DO
-  9
-  RCL 18
-  X≥Y?
-WHILE
-  RCL 20
-  XEQ "N93"
-  X≤Y?
-  IF
-    XEQ "N67"
-    STO 21
-    X<>Y
-    STO 12
-    RCL 12
-    RCL 21
-    XEQ 02
-    RCL 50
-    RCL 09
-    X>Y?
-    IF
-      XEQ 07
-      RCL 18
-      RCL 46
-      "*"
-      XEQ "N81"
-      RCL 18
-      14
-      RCL 22
-      XEQ "N51"
-      RCL 22
-      XEQ "N48"
-      STO 08
-      RCL 18
-      RCL 74
-      RCL 08
-      XEQ "N50"
-      XEQ 04
-      RCL 43
-      STO+ 19
-    ENDIF
-  ENDIF
-  ISG 20
-WHILE
-ENDDO
-"S"
-STO 02
-FS? 11
-XEQ 13
-FS? 12
-XEQ 14
-RCL 73
-RCL 94
-RCL 02
-XEQ "N50"
-XEQ "N63"
-RTN
-LBL 07
-XEQ 17
-"*"
-XEQ "N82"
-RCL 23
-RCL 88
-+
-STO 23
-380
-RCL 23
-X>Y?
-XEQ 15
-RCL 08
-RCL 51
--
-RCL 23
-RCL 22
-XEQ "N80"
-RTN
-LBL 08
-RCL 08
-RCL 23
-POINT
-RTN
-LBL 09
-XEQ 17
-"@"
-XEQ "N82"
-RTN
-LBL 10
+LBL 02
 RCL 20
 IP
 70
 +
 STO 16
-XEQ 17
+XEQ 13
 XEQ IND 16
 XEQ "N82"
 RCL 18
@@ -446,31 +465,166 @@ RCL 18
 RCL 74
 XEQ IND 08
 XEQ "N50"
-XEQ 04
+XEQ 01
+LBL 04
+RCL 46
+STO 19
+1.058
+STO 20
+DO
+  9
+  RCL 18
+  X≥Y?
+WHILE
+  INDEX "SBR"
+  RCL 20
+  IP
+  1
+  STOIJ
+  RCLEL
+  STO 22
+  XEQ "N68"
+  RCL 92
+  X≤Y?
+  IF
+    INDEX "ALMC"
+    RCL 22
+    RCL 93
+    +
+    STO "KR"
+    RCL 44
+    STOIJ
+    RCLEL
+    J-
+    RCLEL
+    STO 21
+    X<>Y
+    STO 12
+    RCL 12
+    RCL 21
+    XEQ 05
+    RCL 50
+    RCL 09
+    X>Y?
+    IF
+      XEQ 13
+      "*"
+      XEQ "N82"
+      RCL 23
+      RCL 88
+      +
+      STO 23
+      380
+      RCL 23
+      X>Y?
+      XEQ 11
+      RCL 08
+      RCL 51
+      -
+      RCL 23
+      RCL 22
+      XEQ "N80"
+      RCL 18
+      RCL 46
+      "*"
+      XEQ "N81"
+      RCL 18
+      14
+      RCL 22
+      XEQ "N51"
+      RCL 22
+      XEQ "N48"
+      STO 08
+      RCL 08
+      RCL 18
+      RCL- 66
+      RCL 74
+      ATEXT Z
+      X<>Y
+      RCL 66
+      +
+      X<>Y
+      XEQ 01
+      RCL 43
+      STO+ 19
+    ENDIF
+  ENDIF
+  ISG 20
+WHILE
+ENDDO
+"S"
+STO 02
+FS? 11
+XEQ 09
+FS? 12
+XEQ 10
+RCL 02
+RCL 73
+RCL- 66
+RCL 94
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+XEQ "N63"
 RTN
-LBL 11
-XEQ 17
+LBL 05
+XEQ "N69"
+LBL 03
+RCL 05
+RCL+ 17
+RCL 45
+MOD
+375
+×
+RCL 45
+÷
+RCL 55
++
+IP
+STO 23
+RCL "V4"
+68
+×
+144
++
+IP
+STO 08
+RTN
+LBL 06
+XEQ 13
+"@"
+XEQ "N82"
+RTN
+LBL 07
+XEQ 13
 "("
 XEQ "N82"
 RCL 18
 RCL 46
 "("
 XEQ "N81"
-RCL 18
-RCL 74
 "MOON"
-XEQ "N50"
-XEQ 04
+RCL 18
+RCL- 66
+RCL 74
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+XEQ 01
 RTN
-LBL 12
+LBL 08
 "S"
 STO 08
 RTN
-LBL 13
+LBL 09
 "T"
 STO 02
 RTN
-LBL 14
+LBL 10
 "X"
 STO 02
 RTN
@@ -478,12 +632,17 @@ LBL 27
 "W"
 STO 00
 RTN
-LBL 15
+LBL 11
 22
 STO- 23
 RTN
-LBL 16
-XEQ "N94"
+LBL 12
+WSIZE 16
+RCL 51
+STO 01
+GRMOD 01
+11111111111111#2
+STO 01
 RCL 18
 RCL 43
 -
@@ -537,7 +696,7 @@ RTN
 LBL 94
 RCL 66
 RTN
-LBL 17
+LBL 13
 RCL 08
 RCL 51
 -

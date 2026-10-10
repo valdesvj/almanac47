@@ -1,11 +1,40 @@
-REM "NAVFULL (C47 / R47) in STRUCT - the commented listing of build/dev/struct_src/NAVFULL.txt"
-REM "built by tools/build_struct_src.py from programs_struct/ (code only); only to read"
-REM "without the REM lines it is NAVFULL.txt step for step. Labels: build/NAVFULL_LABELS.txt"
-
-REM "======================================================================"
-REM "program NAV"
+@ Index:   Celestial navigation almanac, sky charts, sight reduction
+@ Author:  Victor Valdes
+@ Version: 2.2
+@ Source:  https://github.com/valdesvj/almanac47
+@ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel the v2 screens, 3 places and 16 random dates
+@ Tested:  2000-2049, 65 S - 65 N, FULL and FAST matrices
+@ Input:   NAVINIT run once. XEQ 'NAV' asks DATE (YYYY.MMDD), UTC (H.MM), LAT and LON (D.MM, S and W negative)
+@ Output:  FAST, DATE 2030.1019, UTC 17.45, LAT -53.11, LON 48.01, key 1 (ALMANAC) then the up arrow (18:45 UT):
+@ Output:  Sun GHA 105 01.7, Dec S 10 11.7, Hc -22 35.0, Zn 208.9; the stars Canopus, Rigil Kent, Rigel, Achernar ...
+@
+@ Almanac 47: celestial navigation on the C47 / R47. Sun, Moon, planets and 58 stars: GHA, Dec, Hc, Zn for your
+@ dead-reckoning position, sunrise, sunset, twilight, meridian passage, the Moon's phase, and sky charts.
+@ DOES NOT REPLACE THE NAUTICAL ALMANAC.
+@
+@ Needs a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
+@
+@ Two files: NAV.p47u (the programs that stay on the calculator) and NAVINIT.p47u (builds the matrices once).
+@   1. Load both. XEQ 'NAVINIT': it ends with MATRICES READY: FAST 2026-2030.
+@   2. Delete NAVINIT (GTO 'NAVINIT', DELP): the matrices stay. Do not use CLPALL (it deletes NAV too).
+@   3. XEQ 'NAV': date, UT and position once, then the menu:
+@      1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  9 SNAP (a picture of the screen)  0 END.
+@      In a view: + back to the menu, up / down arrow one hour later / earlier.
+@
+@ Only NAV has a name; the other programs show as N01, N02 ... NAV uses the numbered registers and the 8-level stack
+@ and clears them when it ends (CLREGS, CLSTK): save your registers first. It keeps its named matrices between runs
+@ (the sky of the last time and place: the same inputs again show the views at once).
+@
+@ Memory: only the FAST matrices are supplied (a fitted series, valid 2026-2030; an X in the top right corner marks
+@ a date outside them). The full package also has NAVINIT_FULL (VSOP87 and Meeus series, 2000-2050, about twice
+@ the memory) and the almanac tables TBL (1 or 5 years); they are left out here because of the memory they need.
+@ All of them are in the source repository.
+@
+@ Written with the STRUCT commands (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL), no GTO; the series and the
+@ 58 stars with the matrix functions; the screens with ATEXT, AGRAPH and PIXEL.
+@
 LBL "NAV"
-REM "NAV - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program"
+  # NAV - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program
 1
 STO 43
 2
@@ -568,7 +597,6 @@ SSIZE4
 CLREGS
 CLSTK
 RTN
-REM "routine 01 (NAV): called by NAV x2"
 LBL 01
 XEQ "N50"
 22
@@ -585,7 +613,6 @@ RCL 66
 +
 X<>Y
 RTN
-REM "routine 02 (NAV): called by NAV x7"
 LBL 02
 RCL "DATE"
 x→ⅅ
@@ -636,7 +663,6 @@ RCL 02
 RCL 03
 RCL 04
 RTN
-REM "routine 03 (NAV): called by NAV x2"
 LBL 03
 XEQ 02
 STO 13
@@ -665,7 +691,6 @@ XEQ "N71"
 RCL 43
 STO 22
 RTN
-REM "routine 04 (NAV): called by NAV x3"
 LBL 04
 XEQ 02
 CLLCD
@@ -759,7 +784,6 @@ RCL 44
 "KEY A NUMBER   + MENU   ↑↓ ±1 HOUR   9 SNAP"
 XEQ 01
 RTN
-REM "routine 05 (NAV): called by NAV x1"
 LBL 05
 WSIZE 30
 RCL 43
@@ -808,7 +832,6 @@ RCL 66
 X<>Y
 PAUSE 0
 RTN
-REM "routine 06 (NAV): called by NAV x5"
 LBL 06
 "⌛"
 RCL 73
@@ -866,7 +889,6 @@ DO 05
 WHILE 05
 ENDDO 05
 RTN
-REM "routine 07 (NAV): called by NAV x2"
 LBL 07
 STO 04
 IP
@@ -878,7 +900,6 @@ RCL 57
 ÷
 +
 RTN
-REM "routine 08 (NAV): called by NAV x2"
 LBL 08
 WSIZE 18
 RCL 51
@@ -919,17 +940,14 @@ GRMOD 03
 STO 03
 R↓
 RTN
-REM "routine 10 (NAV): called by NAV x1"
 LBL 10
 "DATE DD.MMYYYY"
 STO 02
 RTN
-REM "routine 11 (NAV): called by NAV x1"
 LBL 11
 "DATE MM.DDYYYY"
 STO 02
 RTN
-REM "routine 12 (NAV): called by NAV x2"
 LBL 12
 11000000000000#2
 STO 03
@@ -937,11 +955,8 @@ R↓
 AGRAPH 03
 AGRAPH 03
 END
-
-REM "======================================================================"
-REM "program CALC"
 LBL "N95"
-REM "CALC - the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks"
+  # CALC - the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks
 DEG
 0
 STO+ "SXK"
@@ -1035,7 +1050,6 @@ DELITM "YY"
 DELITM "YZ"
 DELITM "YT"
 RTN
-REM "routine 01 (CALC): called by CALC x1"
 LBL 01
 58
 ENTER
@@ -1097,7 +1111,6 @@ DELITM "YY"
 1
 STO "SXK"
 RTN
-REM "routine 02 (CALC): called by CALC x1"
 LBL 02
 RCL 00
 CHS
@@ -1228,7 +1241,6 @@ STOIJ
 RCL "YV"
 M.PUTM
 RTN
-REM "routine 03 (CALC): called by CALC x2"
 LBL 03
 STO "YT"
 RCL× "YPD"
@@ -1258,7 +1270,6 @@ STO "YX"
 X<>Y
 STO "YY"
 RTN
-REM "routine 04 (CALC): called by CALC x4"
 LBL 04
 1
 →REC
@@ -1294,7 +1305,6 @@ STOSEQ
 STOSEQ
 RCL "YR"
 RTN
-REM "routine 05 (CALC): called by CALC x2"
 LBL 05
 1
 →REC
@@ -1330,7 +1340,6 @@ RCL "YCC"
 STOSEQ
 RCL "YR"
 RTN
-REM "routine 06 (CALC): called by CALC x2"
 LBL 06
 RCL "YK"
 1
@@ -1344,11 +1353,8 @@ STOSEQ
 1
 STOSEQ
 END
-
-REM "======================================================================"
-REM "program PTXS"
 LBL "N80"
-REM "PTNT - TEXT: whole number in the tinyFont"
+  # PTNT - TEXT: whole number in the tinyFont
 STO 07
 R↓
 STO 01
@@ -1373,7 +1379,6 @@ ATEXT Z
 GRFNT
 DROP
 RTN
-REM "routine 01 (PTNT): called by PDMS x1, PDTS x1, PHMS x1, PZNS x1"
 LBL 01
 STO 07
 RCL 50
@@ -1384,7 +1389,7 @@ RCL 07
 XEQ 08
 RTN
 LBL "N54"
-REM "PDMS - TEXT: degrees and minutes 'ddd mm.m' with sign"
+  # PDMS - TEXT: degrees and minutes 'ddd mm.m' with sign
 STO 07
 R↓
 STO 01
@@ -1442,7 +1447,7 @@ MOD
 XEQ 05
 RTN
 LBL "N55"
-REM "PDTS - TEXT: date 'dd-mm-yyyy' from a Julian Date"
+  # PDTS - TEXT: date 'dd-mm-yyyy' from a Julian Date
 STO 07
 R↓
 STO 01
@@ -1481,7 +1486,7 @@ RCL 16
 XEQ 05
 RTN
 LBL "N53"
-REM "PHMS - TEXT: hh:mm from hours"
+  # PHMS - TEXT: hh:mm from hours
 STO 07
 R↓
 STO 01
@@ -1526,7 +1531,7 @@ ENDIF 03
 XEQ 05
 RTN
 LBL "N51"
-REM "PINS - TEXT: whole number (one ATEXT)"
+  # PINS - TEXT: whole number (one ATEXT)
 STO 07
 R↓
 STO 01
@@ -1540,14 +1545,13 @@ IP
 XEQ 02
 XEQ 05
 RTN
-REM "routine 02 (PINS): called by PTNT x1, PINS x1, PF1S x1"
 LBL 02
 STO 16
 CLα 11
 αIP 11
 RTN
 LBL "N79"
-REM "PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text"
+  # PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
 ⇄ zyxt
 X<>Y
 LBL 03
@@ -1560,7 +1564,7 @@ GRFNT
 DROP
 RTN
 LBL "N50"
-REM "PTXS - TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text"
+  # PTXS - TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
 LBL 04
 ⇄ zyxt
 RCL 66
@@ -1573,7 +1577,7 @@ RCL 66
 X<>Y
 RTN
 LBL "N56"
-REM "PZNS - TEXT: azimuth 'ddd.d'"
+  # PZNS - TEXT: azimuth 'ddd.d'
 STO 07
 R↓
 STO 01
@@ -1609,7 +1613,7 @@ XEQ 08
 XEQ 05
 RTN
 LBL "N52"
-REM "PF1S - TEXT: number with one decimal"
+  # PF1S - TEXT: number with one decimal
 STO 07
 R↓
 STO 01
@@ -1631,7 +1635,6 @@ XEQ 02
 x→α 11
 RCL 06
 XEQ 08
-REM "routine 05 (PF1S): called by PDMS x1, PDTS x1, PHMS x1, PINS x1, PZNS x1"
 LBL 05
 RCL 10
 RCL 01
@@ -1647,7 +1650,7 @@ RCL 66
 X<>Y
 RTN
 LBL "N57"
-REM "PHLS - horizontal line (X = length in pixels)"
+  # PHLS - horizontal line (X = length in pixels)
 STO 05
 R↓
 STO 01
@@ -1700,7 +1703,6 @@ WSIZE 64
 RCL 07
 RCL 01
 RTN
-REM "routine 06 (PHLS): called by PDMS x2"
 LBL 06
 RCL 07
 X≥0?
@@ -1710,22 +1712,17 @@ IF 07
 ENDIF 07
 "-"
 RTN
-REM "routine 07 (PHLS): called by PZNS x1"
 LBL 07
 RCL 46
 STO 16
 RTN
-REM "routine 08 (PHLS): called by PTNT x1, PZNS x1, PF1S x1"
 LBL 08
 RCL 50
 MOD
 αIP 11
 END
-
-REM "======================================================================"
-REM "program HANIM"
 LBL "N61"
-REM "HANIM - view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)"
+  # HANIM - view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
 STO 24
 R↓
 STO 17
@@ -1945,7 +1942,6 @@ DELITM "AQD"
 DELITM "AQQ"
 XEQ "N63"
 RTN
-REM "routine 01 (HANIM): called by HANIM x1"
 LBL 01
 1
 ENTER
@@ -2003,7 +1999,6 @@ RCL "AQD"
 RCL "AQQ"
 XEQ 16
 RTN
-REM "routine 02 (HANIM): called by HANIM x3"
 LBL 02
 STO "AQK"
 RCL× 20
@@ -2173,7 +2168,6 @@ STOSEQ
 1
 STO+ "AQI"
 RTN
-REM "routine 03 (HANIM): called by HANIM x2"
 LBL 03
 RCL 05
 RCL+ 23
@@ -2195,7 +2189,6 @@ RCL "V4"
 IP
 STO 09
 RTN
-REM "routine 04 (HANIM): called by HANIM x2"
 LBL 04
 RCL 51
 STO 01
@@ -2213,7 +2206,6 @@ RCL 46
 STO 01
 GRMOD 01
 RTN
-REM "routine 05 (HANIM): called by HANIM x1"
 LBL 05
 -118
 RCL 46
@@ -2239,7 +2231,6 @@ ENDIF 01
 108
 XEQ "N85"
 RTN
-REM "routine 06 (HANIM): called by HANIM x2"
 LBL 06
 RCL 28
 RCL 90
@@ -2259,21 +2250,18 @@ RCL 45
 MOD
 STO 04
 RTN
-REM "routine 07 (HANIM): called by HANIM x1"
 LBL 07
 "TWILIGHT"
 STO 05
 168
 STO 28
 RTN
-REM "routine 08 (HANIM): called by HANIM x1"
 LBL 08
 "DAY"
 STO 05
 186
 STO 28
 RTN
-REM "routine 09 (HANIM): called by HANIM x2"
 LBL 09
 RCL 62
 +
@@ -2282,7 +2270,6 @@ MOD
 RCL 62
 -
 RTN
-REM "routine 10 (HANIM): called by HANIM x2"
 LBL 10
 RCL "AQK"
 RCL× 20
@@ -2290,29 +2277,24 @@ RCL÷ 70
 RCL× 78
 -
 RTN
-REM "routine 11 (HANIM): called by HANIM x1"
 LBL 11
 RCL "AQ1"
 STO "AQ5"
 RCL "AQ3"
 STO "AQ6"
 RTN
-REM "routine 12 (HANIM): called by HANIM x1"
 LBL 12
 "T"
 STO 41
 RTN
-REM "routine 13 (HANIM): called by HANIM x1"
 LBL 13
 "X"
 STO 41
 RTN
-REM "routine 14 (HANIM): called by HANIM x1"
 LBL 14
 RCL 62
 STO 23
 RTN
-REM "routine 15 (HANIM): called by HANIM x1"
 LBL 15
 INDEX "AQP"
 1
@@ -2329,7 +2311,6 @@ RCLEL
 STO "AQQ"
 RCL "AQD"
 RCL "AQQ"
-REM "routine 16 (HANIM): called by HANIM x1"
 LBL 16
 RCL 22
 RCL× 20
@@ -2339,11 +2320,8 @@ RCL× 78
 RCL 45
 MOD
 END
-
-REM "======================================================================"
-REM "program PSYS"
 LBL "N82"
-REM "PSYS - SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol"
+  # PSYS - SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
 STO 07
 R↓
 STO 01
@@ -2362,7 +2340,6 @@ WSIZE 64
 RCL 10
 RCL 01
 RTN
-REM "entry 60 of the XEQ IND table (PSYS)"
 LBL 60
 RCL 10
 RCL 01
@@ -2374,7 +2351,6 @@ XEQ 01
 R↓
 XEQ 02
 RTN
-REM "entry 61 of the XEQ IND table (PSYS)"
 LBL 61
 RCL 10
 RCL 01
@@ -2392,7 +2368,6 @@ XEQ 03
 R↓
 XEQ 02
 RTN
-REM "entry 63 of the XEQ IND table (PSYS)"
 LBL 63
 RCL 10
 RCL 01
@@ -2412,7 +2387,6 @@ AGRAPH D
 R↓
 XEQ 02
 RTN
-REM "routine 01 (PSYS): called by PSYS x2"
 LBL 01
 R↓
 AGRAPH D
@@ -2420,7 +2394,6 @@ AGRAPH D
 R↓
 AGRAPH D
 RTN
-REM "entry 62 of the XEQ IND table (PSYS)"
 LBL 62
 RCL 10
 RCL 01
@@ -2439,21 +2412,18 @@ R↓
 AGRAPH D
 1110000#2
 R↓
-REM "routine 02 (PSYS): called by PSYS x3"
 LBL 02
 AGRAPH D
 RCL 44
 +
 STO 01
 RTN
-REM "routine 03 (PSYS): called by PSYS x2"
 LBL 03
 AGRAPH D
 1111111#2
 R↓
 AGRAPH D
 RTN
-REM "entry 42 of the XEQ IND table (PSYS)"
 LBL 42
 RCL 10
 RCL 01
@@ -2482,7 +2452,6 @@ RCL 44
 +
 STO 01
 RTN
-REM "entry 40 of the XEQ IND table (PSYS)"
 LBL 40
 RCL 10
 RCL 01
@@ -2503,7 +2472,6 @@ RCL 44
 +
 STO 01
 RTN
-REM "entry 64 of the XEQ IND table (PSYS)"
 LBL 64
 RCL 10
 RCL 01
@@ -2532,7 +2500,6 @@ RCL 44
 +
 STO 01
 RTN
-REM "entry 98 of the XEQ IND table (PSYS)"
 LBL 98
 R↓
 AGRAPH D
@@ -2540,7 +2507,6 @@ AGRAPH D
 R↓
 AGRAPH D
 RTN
-REM "entry 95 of the XEQ IND table (PSYS)"
 LBL 95
 RCL 10
 RCL 01
@@ -2548,7 +2514,6 @@ RCL 01
 R↓
 AGRAPH D
 RTN
-REM "entry 94 of the XEQ IND table (PSYS)"
 LBL 94
 R↓
 AGRAPH D
@@ -2556,11 +2521,8 @@ AGRAPH D
 R↓
 AGRAPH D
 END
-
-REM "======================================================================"
-REM "program ALLSKY"
 LBL "N62"
-REM "ALLSKY - view 5 ALLSKY: whole sky, over the horizon above, under the horizon below"
+  # ALLSKY - view 5 ALLSKY: whole sky, over the horizon above, under the horizon below
 STO 20
 R↓
 STO 17
@@ -2819,7 +2781,6 @@ RCL 66
 X<>Y
 XEQ "N63"
 RTN
-REM "routine 01 (ALLSKY): called by ALLSKY x3"
 LBL 01
 RCL 09
 RCL 51
@@ -2830,7 +2791,6 @@ RCL 51
 XEQ IND 22
 XEQ "N82"
 RTN
-REM "routine 02 (ALLSKY): called by ALLSKY x4"
 LBL 02
 RCL 05
 RCL+ 19
@@ -2852,83 +2812,65 @@ RCL "V4"
 IP
 STO 09
 RTN
-REM "routine 03 (ALLSKY): called by ALLSKY x1"
 LBL 03
 RCL 49
 STO- 12
 RTN
-REM "routine 04 (ALLSKY): called by ALLSKY x1"
 LBL 04
 "TWILIGHT"
 STO 05
 168
 STO 22
 RTN
-REM "routine 05 (ALLSKY): called by ALLSKY x1"
 LBL 05
 "DAY"
 STO 05
 186
 STO 22
 RTN
-REM "routine 06 (ALLSKY): called by ALLSKY x1"
 LBL 06
 "T"
 STO 22
 RTN
-REM "routine 07 (ALLSKY): called by ALLSKY x1"
 LBL 07
 "X"
 STO 22
 RTN
-REM "routine 08 (ALLSKY): called by ALLSKY x1"
 LBL 08
 RCL 62
 STO 19
 RTN
-REM "entry 24 of the XEQ IND table (ALLSKY)"
 LBL 24
 "S"
 STO 05
 RTN
-REM "entry 25 of the XEQ IND table (ALLSKY)"
 LBL 25
 "W"
 STO 05
 RTN
-REM "entry 61 of the XEQ IND table (ALLSKY)"
 LBL 61
 "@"
 RTN
-REM "entry 62 of the XEQ IND table (ALLSKY)"
 LBL 62
 "("
 RTN
-REM "entry 63 of the XEQ IND table (ALLSKY)"
 LBL 63
 "*"
 RTN
-REM "entry 71 of the XEQ IND table (ALLSKY)"
 LBL 71
 "<"
 RTN
-REM "entry 72 of the XEQ IND table (ALLSKY)"
 LBL 72
 ">"
 RTN
-REM "entry 73 of the XEQ IND table (ALLSKY)"
 LBL 73
 "="
 RTN
-REM "entry 74 of the XEQ IND table (ALLSKY)"
 LBL 74
 "?"
 END
-
-REM "======================================================================"
-REM "program PLN2"
 LBL "N29"
-REM "PLN3 - planet for the screens: quick position first, full series only if it can be above the horizon"
+  # PLN3 - planet for the screens: quick position first, full series only if it can be above the horizon
 FS? 10
 IF 01
   XEQ 01
@@ -2996,7 +2938,6 @@ RCL 15
 STO 09
 XEQ 02
 RTN
-REM "entry 11 of the XEQ IND table (PLN3)"
 LBL 11
 RCL "VNL"
 XEQ "N18"
@@ -3008,7 +2949,6 @@ RCL "VNR"
 XEQ "N18"
 STO 08
 RTN
-REM "entry 12 of the XEQ IND table (PLN3)"
 LBL 12
 RCL "MAL"
 XEQ "N18"
@@ -3020,7 +2960,6 @@ RCL "MAR"
 XEQ "N18"
 STO 08
 RTN
-REM "entry 13 of the XEQ IND table (PLN3)"
 LBL 13
 RCL "JUL"
 XEQ "N18"
@@ -3033,8 +2972,7 @@ XEQ "N18"
 STO 08
 RTN
 LBL "N28"
-REM "PLN2 - planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA"
-REM "routine 01 (PLN2): called by PLN3 x1"
+  # PLN2 - planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
 LBL 01
 STO 09
 FS? 10
@@ -3070,13 +3008,11 @@ RCL 46
 STO 08
 RCL 44
 STO 06
-REM "routine 02 (PLN2): called by PLN3 x1"
 LBL 02
 RCL 03
 RCL 50
 ÷
 STO 05
-REM "entry 31 of the XEQ IND table (PLN2)"
 LBL 31
 RCL 05
 RCL 30
@@ -3255,7 +3191,6 @@ RCL 25
 RCL 05
 RCL 15
 RTN
-REM "routine 03 (PLN2): called by PLN3 x1, PLN2 x1"
 LBL 03
 RCL 57
 +
@@ -3316,7 +3251,6 @@ STO 05
 X<>Y
 STO 09
 RTN
-REM "routine 04 (PLN2): called by PLN3 x1"
 LBL 04
 RCL 46
 XEQ 03
@@ -3329,7 +3263,6 @@ STO "P2"
 RCL 03
 STO "H2"
 RTN
-REM "routine 05 (PLN2): called by PLN3 x1, PLN2 x1"
 LBL 05
 X<>Y
 →REC
@@ -3342,7 +3275,6 @@ STO "H9"
 →POL
 X<>Y
 RTN
-REM "routine 06 (PLN2): called by PLN2 x2"
 LBL 06
 RCL "W5"
 RCL- 08
@@ -3353,7 +3285,6 @@ RCL- 08
 RCL 43
 →REC
 RTN
-REM "entry 14 of the XEQ IND table (PLN2)"
 LBL 14
 RCL "SAL"
 XEQ "N18"
@@ -3365,7 +3296,6 @@ RCL "SAR"
 XEQ "N18"
 STO 08
 RTN
-REM "entry 60 of the XEQ IND table (PLN2)"
 LBL 60
 5.62E-6
 RCL× 03
@@ -3395,7 +3325,6 @@ STO 26
 RCL 46
 STO 05
 RTN
-REM "entry 61 of the XEQ IND table (PLN2)"
 LBL 61
 3.9E-6
 RCL× 03
@@ -3428,7 +3357,6 @@ RCL× 03
 +
 STO 05
 RTN
-REM "entry 62 of the XEQ IND table (PLN2)"
 LBL 62
 1.847E-5
 RCL× 03
@@ -3461,7 +3389,6 @@ RCL× 03
 +
 STO 05
 RTN
-REM "entry 63 of the XEQ IND table (PLN2)"
 LBL 63
 -0.00011607
 RCL× 03
@@ -3494,7 +3421,6 @@ RCL× 03
 +
 STO 05
 RTN
-REM "entry 64 of the XEQ IND table (PLN2)"
 LBL 64
 -0.0012506
 RCL× 03
@@ -3527,17 +3453,13 @@ RCL× 03
 +
 STO 05
 RTN
-REM "routine 07 (PLN2): called by PLN3 x1, PLN2 x1"
 LBL 07
 0.0057755183
 ×
 STO 08
 END
-
-REM "======================================================================"
-REM "program HCZ"
 LBL "N32"
-REM "HCZ - sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ('SHC')"
+  # HCZ - sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ('SHC')
 RCL+ 13
 X<>Y
 RCL 43
@@ -3570,12 +3492,8 @@ STO 05
 RCL 09
 RTN
 END
-
-REM "======================================================================"
-REM "program SUNA"
 LBL "N18"
-REM "SER - sum of one series matrix with the matrix functions (COS, DOT)"
-REM "routine 01 (SER): called by SUNA x3"
+  # SER - sum of one series matrix with the matrix functions (COS, DOT)
 LBL 01
 ENTER
 X<>Y
@@ -3592,7 +3510,7 @@ DOT
 ×
 RTN
 LBL "N19"
-REM "SERT - the time vectors SV1 SV2 used by SER"
+  # SERT - the time vectors SV1 SV2 used by SER
 LBL 02
 RCL 88
 ENTER
@@ -3621,7 +3539,7 @@ RCL 05
 STOEL
 RTN
 LBL "N16"
-REM "SUNG - Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)"
+  # SUNG - Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
 FS? 10
 IF 01
   STO 07
@@ -3631,7 +3549,7 @@ IF 01
   RTN
   RCL 07
   LBL "N17"
-  REM "SUNF - Sun, low-precision formula (0.01 deg) for sunrise/twilight"
+    # SUNF - Sun, low-precision formula (0.01 deg) for sunrise/twilight
 ENDIF 01
 DEG
 RCL 90
@@ -3687,7 +3605,7 @@ RCL 45
 MOD
 RTN
 LBL "N15"
-REM "SUNA - Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries"
+  # SUNA - Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
 DEG
 STO 31
 2451544.999199074074074074074074074
@@ -3847,7 +3765,6 @@ RCL 02
 RCL 34
 RCL 35
 RTN
-REM "routine 03 (SUNA): called by SUNA x1"
 LBL 03
 9
 ENTER
@@ -3927,7 +3844,6 @@ Re
 XEQ 07
 STO 09
 RTN
-REM "routine 04 (SUNA): called by SUNA x1"
 LBL 04
 0.01801828
 RCL× 03
@@ -3979,7 +3895,6 @@ STO "W5"
 RCL 85
 STO "H2"
 RTN
-REM "routine 05 (SUNA): called by SUNA x1"
 LBL 05
 RCL 31
 RCL 46
@@ -3996,7 +3911,6 @@ X<0?
 RTN
 STO 02
 RTN
-REM "routine 06 (SUNA): called by SUNA x1"
 LBL 06
 RCL 31
 X<Y?
@@ -4007,7 +3921,6 @@ RCL 31
 X>Y?
 SF 12
 RTN
-REM "routine 07 (SUNA): called by SUNA x2"
 LBL 07
 RCL "NU"
 RCL "Q4"
@@ -4016,11 +3929,8 @@ DOT
 1E-4
 ×
 END
-
-REM "======================================================================"
-REM "program HDR"
 LBL "N83"
-REM "HDR - header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)"
+  # HDR - header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)
 LocR 06
 STO R.00
 R↓
@@ -4169,11 +4079,8 @@ RCL 66
 +
 X<>Y
 END
-
-REM "======================================================================"
-REM "program CSUN"
 LBL "N69"
-REM "CHCZ - Hc Zn from the cache for the body just read (else the real HCZ)"
+  # CHCZ - Hc Zn from the cache for the body just read (else the real HCZ)
 STO "V0"
 X<>Y
 STO "V1"
@@ -4201,7 +4108,6 @@ IF 01
 ENDIF 01
 XEQ 10
 RTN
-REM "routine 01 (CHCZ): called by CSQK x1"
 LBL 01
 RCL "Q1"
 RCL "V0"
@@ -4216,7 +4122,7 @@ ENDIF 03
 XEQ 10
 RTN
 LBL "N71"
-REM "CNTA - nautical twilight am from the cache (the five sun times: computed once per date and place)"
+  # CNTA - nautical twilight am from the cache (the five sun times: computed once per date and place)
 XEQ 03
 69
 RCL 43
@@ -4225,7 +4131,7 @@ STOIJ
 RCLEL
 RTN
 LBL "N68"
-REM "CSQK - star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks"
+  # CSQK - star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks
 INDEX "ALMC"
 STO "V0"
 RCL 93
@@ -4342,7 +4248,6 @@ STOIJ
 STOEL
 RCL 46
 RTN
-REM "routine 02 (CSQK): called by CSUN x1"
 LBL 02
 STO "W7"
 RCL 14
@@ -4484,35 +4389,35 @@ RCL "P4"
 STOEL
 RTN
 LBL "N72"
-REM "CRIS - sunrise from the cache"
+  # CRIS - sunrise from the cache
 XEQ 03
 69
 RCL 44
 XEQ 13
 RTN
 LBL "N73"
-REM "CTRN - meridian passage from the cache"
+  # CTRN - meridian passage from the cache
 XEQ 03
 69
 RCL 51
 XEQ 13
 RTN
 LBL "N74"
-REM "CSET - sunset from the cache"
+  # CSET - sunset from the cache
 XEQ 03
 69
 RCL 66
 XEQ 13
 RTN
 LBL "N75"
-REM "CNTP - nautical twilight pm from the cache"
+  # CNTP - nautical twilight pm from the cache
 XEQ 03
 70
 RCL 43
 XEQ 13
 RTN
 LBL "N77"
-REM "CEQQ - celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)"
+  # CEQQ - celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)
 STO "Q9"
 X<>Y
 STO "Q0"
@@ -4532,7 +4437,6 @@ IF 09
   RTN
 ENDIF 09
 RTN
-REM "routine 03 (CEQQ): called by CNTA x1, CRIS x1, CTRN x1, CSET x1, CNTP x1"
 LBL 03
 STO "V8"
 R↓
@@ -4593,7 +4497,6 @@ STOSEQ
 RCL "V8"
 STOEL
 RTN
-REM "routine 04 (CEQQ): called by CSQK x1"
 LBL 04
 RCL "U0"
 RCL "V0"
@@ -4607,7 +4510,6 @@ IF 13
 ENDIF 13
 XEQ 10
 RTN
-REM "routine 05 (CEQQ): called by CSQK x1"
 LBL 05
 RCL "U1"
 RCL "V0"
@@ -4622,7 +4524,7 @@ ENDIF 14
 XEQ 10
 RTN
 LBL "N65"
-REM "CMOO - Moon from the cache"
+  # CMOO - Moon from the cache
 INDEX "ALMC"
 65
 RCL 44
@@ -4648,7 +4550,7 @@ J-
 RCLEL
 RTN
 LBL "N64"
-REM "CSUN - Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place"
+  # CSUN - Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
 STO "W7"
 INDEX "ALMC"
 67
@@ -4673,7 +4575,6 @@ IF 15
 ENDIF 15
 RCL "W7"
 XEQ 02
-REM "routine 06 (CSUN): called by CSUN x1"
 LBL 06
 INDEX "ALMC"
 71
@@ -4725,7 +4626,6 @@ RCLEL
 J-
 RCLEL
 RTN
-REM "routine 07 (CSUN): called by CHCZ x1, CEQQ x2"
 LBL 07
 STO "G6"
 R↓
@@ -4771,7 +4671,6 @@ STO "V4"
 DROP
 STO 09
 RTN
-REM "routine 08 (CSUN): called by CSQK x3"
 LBL 08
 RCL 43
 STOIJ
@@ -4784,19 +4683,16 @@ STOSEQ
 RCL 05
 STOEL
 RTN
-REM "routine 09 (CSUN): called by CEQQ x5"
 LBL 09
 RCL "W0"
 RCL "V9"
 RCL "V8"
 RTN
-REM "routine 10 (CSUN): called by CHCZ x2, CEQQ x2"
 LBL 10
 RCL "V1"
 RCL "V0"
 XEQ "N32"
 RTN
-REM "routine 11 (CSUN): called by CEQQ x1"
 LBL 11
 9
 STO "G4"
@@ -4828,7 +4724,6 @@ STO "P7"
 XEQ 14
 STO "U3"
 RTN
-REM "routine 12 (CSUN): called by CEQQ x1"
 LBL 12
 6
 STO "G4"
@@ -4860,13 +4755,11 @@ STO "P9"
 XEQ 14
 STO "U2"
 RTN
-REM "routine 13 (CSUN): called by CRIS x1, CTRN x1, CSET x1, CNTP x1"
 LBL 13
 INDEX "ALMC"
 STOIJ
 RCLEL
 RTN
-REM "routine 14 (CSUN): called by CSUN x2"
 LBL 14
 STO "M0"
 10
@@ -4997,7 +4890,7 @@ DELITM "M1"
 DELITM "W2"
 RTN
 LBL "N78"
-REM "CEQR - celestial equator of the charts: next dot (from ALMQ, or HCZR and record)"
+  # CEQR - celestial equator of the charts: next dot (from ALMQ, or HCZR and record)
 RCL "G4"
 6
 X≠Y?
@@ -5020,32 +4913,26 @@ STO 05
 RCL 05
 RCL 09
 RTN
-REM "routine 15 (CEQR): called by CSQK x1"
 LBL 15
 RCL "W9"
 RCL 44
 +
 STO "W9"
 RTN
-REM "routine 16 (CEQR): called by CSQK x1"
 LBL 16
 RCL "W9"
 RCL 43
 +
 STO "W9"
 RTN
-REM "routine 17 (CEQR): called by CEQQ x2"
 LBL 17
 INDEX "ALMC"
 68
 RCL 43
 STOIJ
 END
-
-REM "======================================================================"
-REM "program MOO2"
 LBL "N25"
-REM "MOO2 - Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA"
+  # MOO2 - Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
 DEG
 FS? 10
 IF 01
@@ -5369,7 +5256,6 @@ RCL 01
 RCL 15
 RCL 09
 RTN
-REM "routine 01 (MOO2): called by MOO2 x1"
 LBL 01
 RCL 50
 ENTER
@@ -5408,7 +5294,6 @@ RCL 88
 XEQ 02
 INDEX "Q7"
 RCL 84
-REM "routine 02 (MOO2): called by MOO2 x2"
 LBL 02
 RCL 43
 STOIJ
@@ -5422,7 +5307,6 @@ RCL 01
 X↑2
 STOEL
 RTN
-REM "routine 03 (MOO2): called by MOO2 x2"
 LBL 03
 RCL 11
 STOEL
@@ -5436,32 +5320,29 @@ J+
 RCL 08
 STOEL
 END
-
-REM "======================================================================"
-REM "program RISE"
 LBL "N38"
-REM "RISE - sunrise time UT (SUNRISE program)"
+  # RISE - sunrise time UT (SUNRISE program)
 XEQ 03
 RCL 85
 STO 29
 XEQ 01
 RTN
 LBL "N39"
-REM "SET - sunset time UT"
+  # SET - sunset time UT
 XEQ 03
 RCL 43
 STO 29
 XEQ 01
 RTN
 LBL "N44"
-REM "TRAN - meridian passage of the Sun, UT"
+  # TRAN - meridian passage of the Sun, UT
 XEQ 02
 RCL 46
 STO 29
 XEQ 01
 RTN
 LBL "N40"
-REM "NTWA - nautical twilight, morning, UT"
+  # NTWA - nautical twilight, morning, UT
 XEQ 02
 -12
 STO 28
@@ -5470,7 +5351,7 @@ STO 29
 XEQ 01
 RTN
 LBL "N41"
-REM "NTWP - nautical twilight, evening, UT"
+  # NTWP - nautical twilight, evening, UT
 XEQ 02
 -12
 STO 28
@@ -5478,7 +5359,6 @@ RCL 43
 STO 29
 XEQ 01
 RTN
-REM "routine 01 (NTWP): called by RISE x1, SET x1, TRAN x1, NTWA x1, NTWP x1"
 LBL 01
 RCL 29
 RCL 93
@@ -5547,7 +5427,6 @@ WHILE 01
 ENDDO 01
 RCL 31
 RTN
-REM "routine 02 (NTWP): called by TRAN x1, NTWA x1, NTWP x1"
 LBL 02
 STO 13
 R↓
@@ -5555,7 +5434,6 @@ STO 14
 R↓
 STO 25
 RTN
-REM "routine 03 (NTWP): called by RISE x1, SET x1"
 LBL 03
 STO 13
 R↓
@@ -5565,15 +5443,11 @@ STO 25
 -0.8333333333333333
 STO 28
 RTN
-REM "routine 04 (NTWP): called by NTWP x1"
 LBL 04
 99
 END
-
-REM "======================================================================"
-REM "program PSYB"
 LBL "N81"
-REM "PSYB - SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol"
+  # PSYB - SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
 STO 01
 R↓
 STO 06
@@ -5592,7 +5466,6 @@ WSIZE 64
 RCL 07
 RCL 06
 RTN
-REM "entry 64 of the XEQ IND table (PSYB)"
 LBL 64
 RCL 07
 RCL 06
@@ -5614,7 +5487,6 @@ XEQ 04
 XEQ 07
 XEQ 05
 RTN
-REM "entry 42 of the XEQ IND table (PSYB)"
 LBL 42
 RCL 07
 RCL 06
@@ -5652,7 +5524,6 @@ RCL 44
 +
 STO 06
 RTN
-REM "entry 54 of the XEQ IND table (PSYB)"
 LBL 54
 XEQ 01
 111111111111#2
@@ -5660,7 +5531,6 @@ XEQ 08
 XEQ 12
 XEQ 06
 RTN
-REM "entry 60 of the XEQ IND table (PSYB)"
 LBL 60
 RCL 07
 RCL 06
@@ -5678,7 +5548,6 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-REM "entry 40 of the XEQ IND table (PSYB)"
 LBL 40
 RCL 07
 RCL 06
@@ -5694,7 +5563,6 @@ AGRAPH D
 XEQ 03
 XEQ 05
 RTN
-REM "routine 01 (PSYB): called by PSYB x4"
 LBL 01
 RCL 07
 RCL 06
@@ -5702,7 +5570,6 @@ XEQ 13
 XEQ 04
 XEQ 11
 RTN
-REM "routine 02 (PSYB): called by PSYB x2"
 LBL 02
 XEQ 09
 1100001100#2
@@ -5711,7 +5578,6 @@ AGRAPH D
 XEQ 13
 XEQ 05
 RTN
-REM "routine 03 (PSYB): called by PSYB x4"
 LBL 03
 110000000011#2
 R↓
@@ -5719,38 +5585,32 @@ XEQ 12
 AGRAPH D
 AGRAPH D
 RTN
-REM "routine 04 (PSYB): called by PSYB x5"
 LBL 04
 1111111100#2
 R↓
 AGRAPH D
 RTN
-REM "routine 05 (PSYB): called by PSYB x9"
 LBL 05
 RCL 44
 +
 STO 06
 RTN
-REM "routine 06 (PSYB): called by PSYB x3"
 LBL 06
 AGRAPH D
 AGRAPH D
 110000000011#2
 XEQ 02
 RTN
-REM "routine 07 (PSYB): called by PSYB x3"
 LBL 07
 11110000#2
 R↓
 AGRAPH D
 RTN
-REM "routine 08 (PSYB): called by PSYB x14"
 LBL 08
 R↓
 AGRAPH D
 AGRAPH D
 RTN
-REM "routine 09 (PSYB): called by PSYB x4"
 LBL 09
 R↓
 AGRAPH D
@@ -5758,7 +5618,6 @@ AGRAPH D
 R↓
 AGRAPH D
 RTN
-REM "routine 10 (PSYB): called by PSYB x2"
 LBL 10
 R↓
 AGRAPH D
@@ -5766,25 +5625,21 @@ AGRAPH D
 R↓
 AGRAPH D
 RTN
-REM "routine 11 (PSYB): called by PSYB x3"
 LBL 11
 11111111110#2
 R↓
 AGRAPH D
 RTN
-REM "routine 12 (PSYB): called by PSYB x3"
 LBL 12
 AGRAPH D
 100000000001#2
 R↓
 RTN
-REM "routine 13 (PSYB): called by PSYB x4"
 LBL 13
 111111000#2
 R↓
 AGRAPH D
 RTN
-REM "entry 62 of the XEQ IND table (PSYB)"
 LBL 62
 RCL 07
 RCL 06
@@ -5816,7 +5671,6 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-REM "entry 61 of the XEQ IND table (PSYB)"
 LBL 61
 RCL 07
 RCL 06
@@ -5847,7 +5701,6 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-REM "entry 63 of the XEQ IND table (PSYB)"
 LBL 63
 RCL 07
 RCL 06
@@ -5879,7 +5732,6 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-REM "entry 38 of the XEQ IND table (PSYB)"
 LBL 38
 RCL 07
 RCL 06
@@ -5895,13 +5747,11 @@ AGRAPH D
 XEQ 08
 XEQ 05
 RTN
-REM "entry 48 of the XEQ IND table (PSYB)"
 LBL 48
 XEQ 15
 XEQ 03
 XEQ 06
 RTN
-REM "entry 49 of the XEQ IND table (PSYB)"
 LBL 49
 XEQ 15
 XEQ 03
@@ -5911,7 +5761,6 @@ AGRAPH D
 R↓
 XEQ 14
 RTN
-REM "entry 50 of the XEQ IND table (PSYB)"
 LBL 50
 XEQ 15
 XEQ 03
@@ -5919,7 +5768,6 @@ XEQ 03
 XEQ 08
 XEQ 14
 RTN
-REM "entry 51 of the XEQ IND table (PSYB)"
 LBL 51
 XEQ 15
 110111111011#2
@@ -5931,7 +5779,6 @@ AGRAPH D
 AGRAPH D
 XEQ 14
 RTN
-REM "entry 52 of the XEQ IND table (PSYB)"
 LBL 52
 XEQ 01
 111111111111#2
@@ -5941,7 +5788,6 @@ AGRAPH D
 AGRAPH D
 XEQ 14
 RTN
-REM "entry 53 of the XEQ IND table (PSYB)"
 LBL 53
 XEQ 01
 111111111111#2
@@ -5952,7 +5798,6 @@ AGRAPH D
 110111111011#2
 XEQ 02
 RTN
-REM "entry 55 of the XEQ IND table (PSYB)"
 LBL 55
 XEQ 01
 111100001111#2
@@ -5962,7 +5807,6 @@ AGRAPH D
 AGRAPH D
 XEQ 06
 RTN
-REM "routine 14 (PSYB): called by PSYB x4"
 LBL 14
 AGRAPH D
 XEQ 11
@@ -5970,7 +5814,6 @@ XEQ 04
 XEQ 13
 XEQ 05
 RTN
-REM "routine 15 (PSYB): called by PSYB x4"
 LBL 15
 RCL 07
 RCL 06
@@ -5978,17 +5821,13 @@ XEQ 13
 1100001100#2
 XEQ 09
 RTN
-REM "routine 16 (PSYB): called by PSYB x2"
 LBL 16
 11111110#2
 R↓
 AGRAPH D
 END
-
-REM "======================================================================"
-REM "program HORZ"
 LBL "N04"
-REM "HORZ - view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)"
+  # HORZ - view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)
 STO 13
 R↓
 STO 14
@@ -6417,7 +6256,6 @@ X=0?
 RTN
 RCL 43
 STO 13
-REM "loop left only by RTN (0 X≠0? UNTIL is never true)"
 REPEAT 01
   INDEX "H1"
   RCL 13
@@ -6469,12 +6307,10 @@ REPEAT 01
   0
   X≠0?
 UNTIL 01
-REM "entry 01 of the XEQ IND table (HORZ)"
 LBL 01
 XEQ "N78"
 XEQ 04
 RTN
-REM "routine 02 (HORZ): called by HORZ x1"
 LBL 02
 XEQ 20
 "*"
@@ -6497,10 +6333,8 @@ XEQ "N80"
 RCL 22
 XEQ 09
 RTN
-REM "routine 03 (HORZ): called by HORZ x4"
 LBL 03
 XEQ "N69"
-REM "routine 04 (HORZ): called by HORZ x2"
 LBL 04
 RCL 05
 RCL+ 20
@@ -6522,13 +6356,11 @@ RCL 86
 IP
 STO 24
 RTN
-REM "routine 05 (HORZ): called by HORZ x1"
 LBL 05
 XEQ 20
 "@"
 XEQ "N82"
 RTN
-REM "routine 06 (HORZ): called by HORZ x1"
 LBL 06
 XEQ 20
 "("
@@ -6536,7 +6368,6 @@ XEQ "N82"
 RCL 85
 XEQ 09
 RTN
-REM "routine 07 (HORZ): called by HORZ x1"
 LBL 07
 1.004
 STO 19
@@ -6581,7 +6412,6 @@ DO 04
 WHILE 04
 ENDDO 04
 RTN
-REM "routine 08 (HORZ): called by HORZ x1"
 LBL 08
 RCL 09
 SIN
@@ -6623,7 +6453,6 @@ RCL 51
 STO 12
 XEQ 10
 RTN
-REM "routine 09 (HORZ): called by HORZ x4"
 LBL 09
 STO 22
 RCL 43
@@ -6641,7 +6470,6 @@ J+
 RCL 09
 STOEL
 RTN
-REM "routine 10 (HORZ): called by HORZ x3"
 LBL 10
 RCL 51
 STO 01
@@ -6659,21 +6487,18 @@ RCL 46
 STO 01
 GRMOD 01
 RTN
-REM "routine 11 (HORZ): called by HORZ x1"
 LBL 11
 "TWILIGHT"
 STO 19
 168
 STO 16
 RTN
-REM "routine 12 (HORZ): called by HORZ x1"
 LBL 12
 "DAY"
 STO 19
 186
 STO 16
 RTN
-REM "routine 13 (HORZ): called by HORZ x1"
 LBL 13
 RCL 22
 CHS
@@ -6682,7 +6507,6 @@ CHS
 STO 17
 XEQ IND 17
 STO 17
-REM "entry 15 of the XEQ IND table (HORZ)"
 LBL 15
 αLENG 17
 RCL 84
@@ -6699,12 +6523,10 @@ RCL 51
 STO 12
 XEQ 10
 RTN
-REM "routine 14 (HORZ): called by HORZ x1"
 LBL 14
 RCL 43
 STO 13
 RTN
-REM "routine 16 (HORZ): called by HORZ x2"
 LBL 16
 RCL 23
 28
@@ -6712,27 +6534,22 @@ RCL 23
 RCL- 12
 STO 06
 RTN
-REM "entry 59 of the XEQ IND table (HORZ)"
 LBL 59
 "S"
 STO 00
 RTN
-REM "entry 67 of the XEQ IND table (HORZ)"
 LBL 67
 "W"
 STO 00
 RTN
-REM "routine 17 (HORZ): called by HORZ x1"
 LBL 17
 "T"
 STO 19
 RTN
-REM "routine 18 (HORZ): called by HORZ x1"
 LBL 18
 "X"
 STO 19
 RTN
-REM "entry 54 of the XEQ IND table (HORZ)"
 LBL 54
 ABS
 RCL 57
@@ -6752,64 +6569,49 @@ RCL 57
 MOD
 XEQ "N80"
 RTN
-REM "entry 71 of the XEQ IND table (HORZ)"
 LBL 71
 "<"
 RTN
-REM "entry 72 of the XEQ IND table (HORZ)"
 LBL 72
 ">"
 RTN
-REM "entry 73 of the XEQ IND table (HORZ)"
 LBL 73
 "="
 RTN
-REM "entry 74 of the XEQ IND table (HORZ)"
 LBL 74
 "?"
 RTN
-REM "entry 81 of the XEQ IND table (HORZ)"
 LBL 81
 "MOON"
 RTN
-REM "entry 82 of the XEQ IND table (HORZ)"
 LBL 82
 "VENUS"
 RTN
-REM "entry 83 of the XEQ IND table (HORZ)"
 LBL 83
 "MARS"
 RTN
-REM "entry 84 of the XEQ IND table (HORZ)"
 LBL 84
 "JUPITER"
 RTN
-REM "entry 85 of the XEQ IND table (HORZ)"
 LBL 85
 "SATURN"
 RTN
-REM "routine 19 (HORZ): called by HORZ x1"
 LBL 19
 22
 STO- 06
 RTN
-REM "entry 91 of the XEQ IND table (HORZ)"
 LBL 91
 RCL 43
 RTN
-REM "entry 92 of the XEQ IND table (HORZ)"
 LBL 92
 RCL 51
 RTN
-REM "entry 93 of the XEQ IND table (HORZ)"
 LBL 93
 RCL 44
 RTN
-REM "entry 94 of the XEQ IND table (HORZ)"
 LBL 94
 RCL 66
 RTN
-REM "routine 20 (HORZ): called by HORZ x4"
 LBL 20
 RCL 91
 RCL- 24
@@ -6819,11 +6621,8 @@ RCL 23
 RCL 51
 -
 END
-
-REM "======================================================================"
-REM "program HALMH"
 LBL "N06"
-REM "HALMH - view 2 SPLIT: horizon chart on top, the bodies below (8 rows)"
+  # HALMH - view 2 SPLIT: horizon chart on top, the bodies below (8 rows)
 STO 19
 R↓
 STO 18
@@ -7230,7 +7029,6 @@ WHILE 03
 ENDDO 03
 XEQ 04
 RTN
-REM "routine 01 (HALMH): called by HALMH x4"
 LBL 01
 RCL 18
 138
@@ -7269,7 +7067,6 @@ XEQ 12
 14
 STO- 18
 RTN
-REM "routine 02 (HALMH): called by HALMH x1"
 LBL 02
 RCL 20
 IP
@@ -7293,7 +7090,6 @@ RCL 74
 XEQ IND 08
 XEQ "N50"
 XEQ 01
-REM "routine 04 (HALMH): called by HALMH x1"
 LBL 04
 RCL 46
 STO 19
@@ -7397,10 +7193,8 @@ RCL 66
 X<>Y
 XEQ "N63"
 RTN
-REM "routine 05 (HALMH): called by HALMH x4"
 LBL 05
 XEQ "N69"
-REM "entry 03 of the XEQ IND table (HALMH)"
 LBL 03
 RCL 05
 RCL+ 17
@@ -7422,13 +7216,11 @@ RCL "V4"
 IP
 STO 08
 RTN
-REM "routine 06 (HALMH): called by HALMH x1"
 LBL 06
 XEQ 13
 "@"
 XEQ "N82"
 RTN
-REM "routine 07 (HALMH): called by HALMH x1"
 LBL 07
 XEQ 13
 "("
@@ -7448,32 +7240,26 @@ RCL 66
 X<>Y
 XEQ 01
 RTN
-REM "routine 08 (HALMH): called by HALMH x1"
 LBL 08
 "S"
 STO 08
 RTN
-REM "routine 09 (HALMH): called by HALMH x1"
 LBL 09
 "T"
 STO 02
 RTN
-REM "routine 10 (HALMH): called by HALMH x1"
 LBL 10
 "X"
 STO 02
 RTN
-REM "entry 27 of the XEQ IND table (HALMH)"
 LBL 27
 "W"
 STO 00
 RTN
-REM "routine 11 (HALMH): called by HALMH x1"
 LBL 11
 22
 STO- 23
 RTN
-REM "routine 12 (HALMH): called by HALMH x1"
 LBL 12
 WSIZE 16
 RCL 51
@@ -7498,55 +7284,42 @@ STO 01
 GRMOD 01
 WSIZE 64
 RTN
-REM "entry 71 of the XEQ IND table (HALMH)"
 LBL 71
 "<"
 RTN
-REM "entry 72 of the XEQ IND table (HALMH)"
 LBL 72
 ">"
 RTN
-REM "entry 73 of the XEQ IND table (HALMH)"
 LBL 73
 "="
 RTN
-REM "entry 74 of the XEQ IND table (HALMH)"
 LBL 74
 "?"
 RTN
-REM "entry 82 of the XEQ IND table (HALMH)"
 LBL 82
 "VENUS"
 RTN
-REM "entry 83 of the XEQ IND table (HALMH)"
 LBL 83
 "MARS"
 RTN
-REM "entry 84 of the XEQ IND table (HALMH)"
 LBL 84
 "JUPITER"
 RTN
-REM "entry 85 of the XEQ IND table (HALMH)"
 LBL 85
 "SATURN"
 RTN
-REM "entry 91 of the XEQ IND table (HALMH)"
 LBL 91
 RCL 43
 RTN
-REM "entry 92 of the XEQ IND table (HALMH)"
 LBL 92
 RCL 51
 RTN
-REM "entry 93 of the XEQ IND table (HALMH)"
 LBL 93
 RCL 44
 RTN
-REM "entry 94 of the XEQ IND table (HALMH)"
 LBL 94
 RCL 66
 RTN
-REM "routine 13 (HALMH): called by HALMH x4"
 LBL 13
 RCL 08
 RCL 51
@@ -7555,11 +7328,8 @@ RCL 23
 RCL 51
 -
 END
-
-REM "======================================================================"
-REM "program ALMF"
 LBL "N01"
-REM "ALMF - view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon"
+  # ALMF - view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
 STO 24
 R↓
 STO 22
@@ -7746,7 +7516,6 @@ WHILE 01
 ENDDO 01
 XEQ 04
 RTN
-REM "routine 01 (ALMF): called by ALMF x3"
 LBL 01
 RCL 23
 138
@@ -7785,14 +7554,12 @@ XEQ 13
 RCL 47
 STO- 23
 RTN
-REM "routine 02 (ALMF): called by ALMF x2"
 LBL 02
 XEQ "N50"
 XEQ 01
 RCL 43
 STO+ 41
 RTN
-REM "routine 03 (ALMF): called by ALMF x1"
 LBL 03
 RCL 08
 IP
@@ -7812,7 +7579,6 @@ RCL 23
 RCL 74
 XEQ IND 08
 XEQ 02
-REM "routine 04 (ALMF): called by ALMF x1"
 LBL 04
 1.058
 STO 42
@@ -8031,7 +7797,6 @@ RCL 66
 X<>Y
 XEQ "N63"
 RTN
-REM "routine 05 (ALMF): called by ALMF x1"
 LBL 05
 RCL 23
 RCL 46
@@ -8042,7 +7807,6 @@ RCL 74
 "MOON"
 XEQ 02
 RTN
-REM "routine 06 (ALMF): called by ALMF x5"
 LBL 06
 RCL 23
 RCL 56
@@ -8053,42 +7817,34 @@ RCL 56
 RCL 22
 RCL 24
 RTN
-REM "routine 07 (ALMF): called by ALMF x1"
 LBL 07
 "S"
 STO 22
 RTN
-REM "routine 08 (ALMF): called by ALMF x1"
 LBL 08
 "WANING"
 STO 03
 RTN
-REM "routine 09 (ALMF): called by ALMF x1"
 LBL 09
 "T"
 STO 02
 RTN
-REM "routine 10 (ALMF): called by ALMF x1"
 LBL 10
 "X"
 STO 02
 RTN
-REM "routine 11 (ALMF): called by ALMF x1"
 LBL 11
 "FULL"
 STO 03
 RTN
-REM "routine 12 (ALMF): called by ALMF x1"
 LBL 12
 "NEW"
 STO 03
 RTN
-REM "entry 27 of the XEQ IND table (ALMF)"
 LBL 27
 "W"
 STO 00
 RTN
-REM "routine 13 (ALMF): called by ALMF x1"
 LBL 13
 WSIZE 16
 RCL 51
@@ -8113,97 +7869,73 @@ STO 01
 GRMOD 01
 WSIZE 64
 RTN
-REM "entry 71 of the XEQ IND table (ALMF)"
 LBL 71
 "<"
 RTN
-REM "entry 72 of the XEQ IND table (ALMF)"
 LBL 72
 ">"
 RTN
-REM "entry 73 of the XEQ IND table (ALMF)"
 LBL 73
 "="
 RTN
-REM "entry 74 of the XEQ IND table (ALMF)"
 LBL 74
 "?"
 RTN
-REM "entry 82 of the XEQ IND table (ALMF)"
 LBL 82
 "VENUS"
 RTN
-REM "entry 83 of the XEQ IND table (ALMF)"
 LBL 83
 "MARS"
 RTN
-REM "entry 84 of the XEQ IND table (ALMF)"
 LBL 84
 "JUPITER"
 RTN
-REM "entry 85 of the XEQ IND table (ALMF)"
 LBL 85
 "SATURN"
 RTN
-REM "entry 91 of the XEQ IND table (ALMF)"
 LBL 91
 RCL 43
 RTN
-REM "entry 92 of the XEQ IND table (ALMF)"
 LBL 92
 RCL 51
 RTN
-REM "entry 93 of the XEQ IND table (ALMF)"
 LBL 93
 RCL 44
 RTN
-REM "entry 94 of the XEQ IND table (ALMF)"
 LBL 94
 RCL 66
 RTN
-REM "entry 48 of the XEQ IND table (ALMF)"
 LBL 48
 "0"
 RTN
-REM "entry 49 of the XEQ IND table (ALMF)"
 LBL 49
 "1"
 RTN
-REM "entry 50 of the XEQ IND table (ALMF)"
 LBL 50
 "2"
 RTN
-REM "entry 51 of the XEQ IND table (ALMF)"
 LBL 51
 "3"
 RTN
-REM "entry 52 of the XEQ IND table (ALMF)"
 LBL 52
 "4"
 RTN
-REM "entry 53 of the XEQ IND table (ALMF)"
 LBL 53
 "5"
 RTN
-REM "entry 54 of the XEQ IND table (ALMF)"
 LBL 54
 "6"
 RTN
-REM "entry 55 of the XEQ IND table (ALMF)"
 LBL 55
 "7"
 RTN
-REM "routine 14 (ALMF): called by ALMF x4"
 LBL 14
 RCL 12
 RCL 26
 XEQ "N69"
 END
-
-REM "======================================================================"
-REM "program CSTA"
 LBL "N98"
-REM "CALL - ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)"
+  # CALL - ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)
 INDEX "ALMC"
 RCL 93
 +
@@ -8337,251 +8069,187 @@ DELITM "YB2"
 DELITM "YB3"
 DELITM "YB4"
 END
-
-REM "======================================================================"
-REM "program SNMU"
 LBL "N48"
-REM "SNMU - star name from its number"
+  # SNMU - star name from its number
 STO 01
 XEQ IND 01
 RTN
-REM "entry 01 of the XEQ IND table (SNMU)"
 LBL 01
 "ALPHERATZ"
 RTN
-REM "entry 02 of the XEQ IND table (SNMU)"
 LBL 02
 "ANKAA"
 RTN
-REM "entry 03 of the XEQ IND table (SNMU)"
 LBL 03
 "SCHEDAR"
 RTN
-REM "entry 04 of the XEQ IND table (SNMU)"
 LBL 04
 "DIPHDA"
 RTN
-REM "entry 05 of the XEQ IND table (SNMU)"
 LBL 05
 "ACHERNAR"
 RTN
-REM "entry 06 of the XEQ IND table (SNMU)"
 LBL 06
 "HAMAL"
 RTN
-REM "entry 07 of the XEQ IND table (SNMU)"
 LBL 07
 "ACAMAR"
 RTN
-REM "entry 08 of the XEQ IND table (SNMU)"
 LBL 08
 "MENKAR"
 RTN
-REM "entry 09 of the XEQ IND table (SNMU)"
 LBL 09
 "MIRFAK"
 RTN
-REM "entry 10 of the XEQ IND table (SNMU)"
 LBL 10
 "ALDEBARAN"
 RTN
-REM "entry 11 of the XEQ IND table (SNMU)"
 LBL 11
 "RIGEL"
 RTN
-REM "entry 12 of the XEQ IND table (SNMU)"
 LBL 12
 "CAPELLA"
 RTN
-REM "entry 13 of the XEQ IND table (SNMU)"
 LBL 13
 "BELLATRIX"
 RTN
-REM "entry 14 of the XEQ IND table (SNMU)"
 LBL 14
 "ELNATH"
 RTN
-REM "entry 15 of the XEQ IND table (SNMU)"
 LBL 15
 "ALNILAM"
 RTN
-REM "entry 16 of the XEQ IND table (SNMU)"
 LBL 16
 "BETELGEUSE"
 RTN
-REM "entry 17 of the XEQ IND table (SNMU)"
 LBL 17
 "CANOPUS"
 RTN
-REM "entry 18 of the XEQ IND table (SNMU)"
 LBL 18
 "SIRIUS"
 RTN
-REM "entry 19 of the XEQ IND table (SNMU)"
 LBL 19
 "ADHARA"
 RTN
-REM "entry 20 of the XEQ IND table (SNMU)"
 LBL 20
 "PROCYON"
 RTN
-REM "entry 21 of the XEQ IND table (SNMU)"
 LBL 21
 "POLLUX"
 RTN
-REM "entry 22 of the XEQ IND table (SNMU)"
 LBL 22
 "AVIOR"
 RTN
-REM "entry 23 of the XEQ IND table (SNMU)"
 LBL 23
 "SUHAIL"
 RTN
-REM "entry 24 of the XEQ IND table (SNMU)"
 LBL 24
 "MIAPLACIDU"
 RTN
-REM "entry 25 of the XEQ IND table (SNMU)"
 LBL 25
 "ALPHARD"
 RTN
-REM "entry 26 of the XEQ IND table (SNMU)"
 LBL 26
 "REGULUS"
 RTN
-REM "entry 27 of the XEQ IND table (SNMU)"
 LBL 27
 "DUBHE"
 RTN
-REM "entry 28 of the XEQ IND table (SNMU)"
 LBL 28
 "DENEBOLA"
 RTN
-REM "entry 29 of the XEQ IND table (SNMU)"
 LBL 29
 "GIENAH"
 RTN
-REM "entry 30 of the XEQ IND table (SNMU)"
 LBL 30
 "ACRUX"
 RTN
-REM "entry 31 of the XEQ IND table (SNMU)"
 LBL 31
 "GACRUX"
 RTN
-REM "entry 32 of the XEQ IND table (SNMU)"
 LBL 32
 "ALIOTH"
 RTN
-REM "entry 33 of the XEQ IND table (SNMU)"
 LBL 33
 "SPICA"
 RTN
-REM "entry 34 of the XEQ IND table (SNMU)"
 LBL 34
 "ALKAID"
 RTN
-REM "entry 35 of the XEQ IND table (SNMU)"
 LBL 35
 "HADAR"
 RTN
-REM "entry 36 of the XEQ IND table (SNMU)"
 LBL 36
 "MENKENT"
 RTN
-REM "entry 37 of the XEQ IND table (SNMU)"
 LBL 37
 "ARCTURUS"
 RTN
-REM "entry 38 of the XEQ IND table (SNMU)"
 LBL 38
 "RIGIL KENT"
 RTN
-REM "entry 39 of the XEQ IND table (SNMU)"
 LBL 39
 "ZUBENELGEN"
 RTN
-REM "entry 40 of the XEQ IND table (SNMU)"
 LBL 40
 "KOCHAB"
 RTN
-REM "entry 41 of the XEQ IND table (SNMU)"
 LBL 41
 "ALPHECCA"
 RTN
-REM "entry 42 of the XEQ IND table (SNMU)"
 LBL 42
 "ANTARES"
 RTN
-REM "entry 43 of the XEQ IND table (SNMU)"
 LBL 43
 "ATRIA"
 RTN
-REM "entry 44 of the XEQ IND table (SNMU)"
 LBL 44
 "SABIK"
 RTN
-REM "entry 45 of the XEQ IND table (SNMU)"
 LBL 45
 "SHAULA"
 RTN
-REM "entry 46 of the XEQ IND table (SNMU)"
 LBL 46
 "RASALHAGUE"
 RTN
-REM "entry 47 of the XEQ IND table (SNMU)"
 LBL 47
 "ELTANIN"
 RTN
-REM "entry 48 of the XEQ IND table (SNMU)"
 LBL 48
 "KAUS AUST"
 RTN
-REM "entry 49 of the XEQ IND table (SNMU)"
 LBL 49
 "VEGA"
 RTN
-REM "entry 50 of the XEQ IND table (SNMU)"
 LBL 50
 "NUNKI"
 RTN
-REM "entry 51 of the XEQ IND table (SNMU)"
 LBL 51
 "ALTAIR"
 RTN
-REM "entry 52 of the XEQ IND table (SNMU)"
 LBL 52
 "PEACOCK"
 RTN
-REM "entry 53 of the XEQ IND table (SNMU)"
 LBL 53
 "DENEB"
 RTN
-REM "entry 54 of the XEQ IND table (SNMU)"
 LBL 54
 "ENIF"
 RTN
-REM "entry 55 of the XEQ IND table (SNMU)"
 LBL 55
 "AL NAIR"
 RTN
-REM "entry 56 of the XEQ IND table (SNMU)"
 LBL 56
 "FOMALHAUT"
 RTN
-REM "entry 57 of the XEQ IND table (SNMU)"
 LBL 57
 "MARKAB"
 RTN
-REM "entry 58 of the XEQ IND table (SNMU)"
 LBL 58
 "POLARIS"
 END
-
-REM "======================================================================"
-REM "program PHA2"
 LBL "N46"
-REM "PHA2 - Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)"
+  # PHA2 - Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)
 DEG
 RCL 62
 RCL- 38
@@ -8767,12 +8435,8 @@ RCL 43
 50
 ×
 END
-
-REM "======================================================================"
-REM "program WPLS"
 LBL "N63"
-REM "WPLS - every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier"
-REM "loop left only by RTN (0 X≠0? UNTIL is never true)"
+  # WPLS - every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 REPEAT 01
   DO 01
     PAUSE 50
@@ -8799,11 +8463,8 @@ REPEAT 01
   X≠0?
 UNTIL 01
 END
-
-REM "======================================================================"
-REM "program CMN"
 LBL "N84"
-REM "CMN - compass row N E S W N of a chart (X row)"
+  # CMN - compass row N E S W N of a chart (X row)
 19
 "N"
 XEQ "N79"
@@ -8824,11 +8485,8 @@ DROP
 "N"
 XEQ "N79"
 END
-
-REM "======================================================================"
-REM "program OUT5"
 LBL "N90"
-REM "OUT5 - steps shared by several routines (tools/navmat.py outline)"
+  # OUT5 - steps shared by several routines (tools/navmat.py outline)
 RCL 44
 RCL 57
 XEQ "N80"
@@ -8846,11 +8504,8 @@ RCL 44
 RCL 71
 XEQ "N80"
 END
-
-REM "======================================================================"
-REM "program OUT4"
 LBL "N89"
-REM "OUT4 - steps shared by several routines (tools/navmat.py outline)"
+  # OUT4 - steps shared by several routines (tools/navmat.py outline)
 134
 RCL 48
 PIXEL
@@ -9071,11 +8726,8 @@ RCL 53
 RCL 76
 PIXEL
 END
-
-REM "======================================================================"
-REM "program TGET"
 LBL "N49"
-REM "TGET - almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)"
+  # TGET - almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)
 DEG
 STO 10
 R↓
@@ -9178,7 +8830,6 @@ ENDIF 03
 RCL 46
 RCL 33
 RTN
-REM "routine 01 (TGET): called by TGET x3"
 LBL 01
 STO 32
 RCL 10
@@ -9203,7 +8854,6 @@ RCL 16
 M.GETM
 DOT
 RTN
-REM "routine 02 (TGET): called by TGET x1"
 LBL 02
 RCL 43
 RCL 09
@@ -9239,53 +8889,43 @@ DO 01
 WHILE 01
 ENDDO 01
 RTN
-REM "entry 20 of the XEQ IND table (TGET)"
 LBL 20
 INDEX "TSU"
 RCL 43
 STO 27
 RTN
-REM "entry 21 of the XEQ IND table (TGET)"
 LBL 21
 INDEX "TVE"
 RCL 43
 STO 27
 RTN
-REM "entry 22 of the XEQ IND table (TGET)"
 LBL 22
 INDEX "TMA"
 RCL 43
 STO 27
 RTN
-REM "entry 23 of the XEQ IND table (TGET)"
 LBL 23
 INDEX "TJU"
 RCL 43
 STO 27
 RTN
-REM "entry 24 of the XEQ IND table (TGET)"
 LBL 24
 INDEX "TSA"
 RCL 43
 STO 27
 RTN
-REM "entry 25 of the XEQ IND table (TGET)"
 LBL 25
 INDEX "TMO"
 RCL 44
 STO 27
 RTN
-REM "entry 26 of the XEQ IND table (TGET)"
 LBL 26
 INDEX "TAR"
 RCL 46
 STO 27
 END
-
-REM "======================================================================"
-REM "program CMS"
 LBL "N85"
-REM "CMS - compass row S W N E S of a chart, south up (X row)"
+  # CMS - compass row S W N E S of a chart, south up (X row)
 19
 "S"
 XEQ "N79"

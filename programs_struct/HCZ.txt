@@ -7,13 +7,17 @@ X<>Y
 STO 05
 R↓
 →REC
+STO "V4"
+RCL× "W1"
 RCL 05
+RCL× "V6"
 X<>Y
-→POL
-X<>Y
-RCL- 14
-X<>Y
-→REC
+-
+RCL "V4"
+RCL× "V6"
+RCL 05
+RCL× "W1"
++
 STO "V4"
 ASIN
 STO 09
@@ -26,68 +30,4 @@ MOD
 STO 05
 RCL 09
 RTN
-LBL "N35"
-RCL "W6"
-RCL× "V6"
-STO 01
-ABS
-RCL 43
-X<Y?
-IF
-  RCL 01
-  SIGN
-  STO 01
-ENDIF
-RCL 01
-STO "V4"
-ASIN
-STO 01
-RCL "Q8"
-RCL "W1"
-RCL× "W6"
-CHS
-→POL
-X<>Y
-CHS
-RCL 45
-MOD
-STO 05
-RCL "W6"
-RCL× "G0"
-RCL "Q8"
-RCL× "G1"
--
-RCL "Q8"
-RCL× "G0"
-RCL "W6"
-RCL× "G1"
-+
-STO "Q8"
-X<>Y
-STO "W6"
-RCL 01
-RTN
-LBL "N36"
-RCL 14
-RCL 43
-→REC
-STO "V6"
-X<>Y
-STO "W1"
-X<>Y
-RTN
-LBL "N34"
-RCL 43
-→REC
-STO "G0"
-X<>Y
-STO "G1"
-R↓
-R↓
-RCL+ 13
-RCL 43
-→REC
-STO "W6"
-X<>Y
-STO "Q8"
 END

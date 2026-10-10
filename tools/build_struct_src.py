@@ -3,9 +3,13 @@
 
 programs_struct/ holds one file per program, written with the C47 STRUCT commands (IF ELSE ENDIF, DO WHILE ENDDO,
 REPEAT UNTIL) indented two spaces per level, without the partner numbers, code only (no REM). No GTO of any kind: every
-decision and loop is a structure, every other jump a call (XEQ) or a return; a code end shared by several branches is
-a small routine they call (XEQ nn then RTN), never a copy of its steps. Same screens as build/dev/struct/18_hourglass
-(tests/test_struct_src.py, pixel for pixel).
+decision and loop is a structure, every other jump a call (XEQ) or a return. The GTO -> STRUCT conversion copied
+nothing: a code end shared by several branches became a small routine they call (XEQ nn then RTN). The speed work of
+build/dev/struct steps 21-41 is in it (PIXEL line mode, the box in GRMOD 1, HCZ with 4 trig, ANIM's cached equator, the
+header text kept, PTXS and 13 small routines written in place, the box loops unrolled, integers in one alpha-IP, the
+equator on whole columns with M.GETM / M.PUTM, the menu without the star loop, the star order as the matrix SBR); those
+steps inline and unroll on purpose. Same screens as build/dev/struct/18_hourglass (tests/test_struct_src.py, pixel for
+pixel).
 
 The build: the indentation goes, every program is checked as VALID checks it (tools/c47struct.py
 check: closers of the right kind, nothing open at END or across RTN + LBL, a DO has its WHILE, a test before IF / WHILE
@@ -13,7 +17,7 @@ check: closers of the right kind, nothing open at END or across RTN + LBL, a DO 
 program of a file as it loads), and the programs go into one file in ORDER. The order of the programs, and of the
 routines inside each file, is the one build_struct.py layout() finds for the searches (labels, structure steps, the walk
 of a return from the program's start): the busiest first. The labels are numbered 01, 02 ... in the order they appear
-(the 228 that XEQ IND reaches keep their numbers), so the source and the calculator's listing match step for step.
+(the ones XEQ IND reaches keep their numbers), so the source and the calculator's listing match step for step.
 
 Free42 has no STRUCT: build_free42.py keeps its own sources (programs/). The old-hardware DM42 build of the firmware
 allows 10 structures of a kind per program: not for NAVLITTLE either.
@@ -35,9 +39,8 @@ import c47struct as C                                                         # 
 
 SRC = os.path.join(ROOT, 'programs_struct')
 OUT = os.path.join(ROOT, 'build', 'dev', 'struct_src')
-ORDER = ['NAV', 'CALC', 'PTXS', 'HANIM', 'OUT7', 'PSYS', 'ALLSKY', 'CSUN', 'HCZ', 'HDR', 'PLN2', 'SUNA', 'MOO2', 'HORZ', 'PSYB',
-         'RISE', 'HALMH', 'CSTA', 'ALMF', 'SBRT', 'OUT8', 'SNMU', 'PHA2', 'WPLS', 'CMN', 'OUT5', 'OUT6', 'OUT1', 'OUT2',
-         'OUT3', 'OUT4', 'TGET', 'CMS', 'OUT9']
+ORDER = ['NAV', 'CALC', 'PTXS', 'HANIM', 'PSYS', 'ALLSKY', 'PLN2', 'HCZ', 'SUNA', 'HDR', 'CSUN', 'MOO2', 'RISE', 'PSYB',
+         'HORZ', 'HALMH', 'ALMF', 'CSTA', 'SNMU', 'PHA2', 'WPLS', 'CMN', 'OUT5', 'OUT4', 'TGET', 'CMS']
 
 # the global labels: the name in the sources and the documentation (build/NAVFULL_LABELS.txt), what it does
 LABELS = {

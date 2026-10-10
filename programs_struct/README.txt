@@ -6,7 +6,9 @@ The comments are in a separate file, build/dev/struct_src/NAVFULL_COMMENTED.txt:
 indented, with REM lines (each program, each global label's original name and job, who calls each local routine,
 the XEQ IND tables).
 No GTO of any kind: decisions and loops are structures, a code end shared by several branches is a small routine they
-call (XEQ nn, then RTN), a program reached by name is called (XEQ "Nxx").
+call (XEQ nn, then RTN), a program reached by name is called (XEQ "Nxx"). The speed work of build/dev/struct steps
+21-41 is in it (PIXEL line mode, the box in GRMOD 1, HCZ with 4 trig, the equator on whole columns with M.GETM /
+M.PUTM, the star order as the matrix SBR, PTXS and small routines written in place, unrolled box loops ...).
 
 Rules the build checks (as the firmware's VALID): a test right before IF, WHILE and UNTIL; none right before ELSE,
 ENDIF, DO, ENDDO, REPEAT (the firmware never skips them); nothing open at END or across RTN + LBL; a DO has its WHILE.
@@ -18,6 +20,8 @@ appear; the ones XEQ IND reaches (star numbers, character codes, body numbers) k
 
   python3 tools/build_struct_src.py     -> build/dev/struct_src/NAVFULL.txt (the file for the calculator)
                                            build/dev/struct_src/NAVFULL_COMMENTED.txt (to read)
-  python3 tests/test_struct_src.py      the pages pixel for pixel build/dev/struct/18_hourglass
+  python3 tools/build_forum.py          -> build/forum/NAV.p47u, NAVINIT.p47u (for the PROGRAMS folder of the C47
+                                           release: '@' header, main label = file name, only the FAST matrices)
+  python3 tests/test_struct_src.py      the pages pixel for pixel build/dev/struct/18_hourglass; the forum files
 
 Free42 has no STRUCT: build_free42.py keeps its sources in programs/.

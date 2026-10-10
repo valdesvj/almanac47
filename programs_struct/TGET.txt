@@ -27,7 +27,7 @@ RCL- 30
 RCL÷ 32
 X<0?
 IF
-  XEQ 01
+  RCL 85
   RTN
 ENDIF
 IP
@@ -35,7 +35,7 @@ STO 26
 RCL 27
 X≤Y?
 IF
-  XEQ 01
+  RCL 85
   RTN
 ENDIF
 RCL 11
@@ -55,9 +55,9 @@ RCL 44
 STO 26
 RCL 09
 STO 16
-XEQ 03
-RCL 43
 XEQ 02
+RCL 43
+XEQ 01
 RCL 45
 MOD
 STO 33
@@ -67,7 +67,7 @@ IF
   RCL 09
   RCL 43
   +
-  XEQ 02
+  XEQ 01
   STO 06
   RCL 43
   RCL 27
@@ -80,7 +80,7 @@ IF
     ×
     RCL 43
     +
-    XEQ 02
+    XEQ 01
     STO 12
     RCL 57
     ÷
@@ -102,9 +102,6 @@ RCL 46
 RCL 33
 RTN
 LBL 01
-RCL 85
-RTN
-LBL 02
 STO 32
 RCL 10
 RCL 55
@@ -128,7 +125,7 @@ RCL 16
 M.GETM
 DOT
 RTN
-LBL 03
+LBL 02
 RCL 43
 RCL 09
 NEWMAT
