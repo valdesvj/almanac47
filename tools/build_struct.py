@@ -1142,11 +1142,41 @@ def layout(L):
     return c47struct.number(renumber(out))                 # the structures numbered again in their new order (VALID)
 
 
+# step 21: the horizontal line routine (N57 = PHLS: Z row, Y first column, X length)
+N57_OLD = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07', 'RCL 05', '400', 'X>Y?', 'IF', 'WSIZE 8', '1#2',
+           'STO 09', 'RCL 07', 'RCL 01', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'WSIZE 64', 'RCL 07', 'RCL 01',
+           'RTN', 'ENDIF', 'RCL 07', 'CHS', 'RCL 46', 'PIXEL', 'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']
+N57_NEW = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07',
+           'RCL 07', 'CHS', 'RCL 46', 'PIXEL',                          # the whole row: PIXEL with Y < 0 (fnPixel)
+           'RCL 05', '400', 'X>Y?', 'IF',                               # shorter: the columns outside it cleared
+           'WSIZE 8', '2', 'GRMOD', '1#2', 'STO 09',                    # AGRAPH in GRMOD 2 switches its pixel off
+           '400', 'RCL- 05', 'RCL- 01', 'STO 05', 'X≠0?', 'IF',         # right of the line: 400 - x - n columns
+           'RCL 07', '400', 'RCL- 05', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'ENDIF',
+           'RCL 01', 'STO 05', 'X≠0?', 'IF',                            # left of it: x columns from column 0
+           'RCL 07', 'RCL 46', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'ENDIF',
+           'RCL 46', 'GRMOD', 'ENDIF',
+           'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']
+
+
+def pixel_lines(L):
+    """Lines shorter than the screen in PIXEL line mode too: N57 draws the whole row with one PIXEL (Y < 0) and
+    switches off the columns outside the line (AGRAPH in GRMOD 2, one column a step), in place of one AGRAPH a column
+    of the line: the horizon of SKY and SPLIT (376 columns from column 20) 376 -> 24 AGRAPH. The full rows (top bar,
+    ALMANAC's table rule, the menu, the horizon of ANIM and ALLSKY) were PIXEL lines already."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N57"')
+    assert P[i:i + len(N57_OLD)] == N57_OLD, P[i:i + len(N57_OLD)]
+    out = P[:i] + N57_NEW + P[i + len(N57_OLD):]
+    print('  21_pixel: N57 (lines) in PIXEL line mode; %d -> %d steps' % (len(N57_OLD), len(N57_NEW)))
+    return c47struct.number(out)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
          ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass),
-         ('19_struct', struct), ('20_layout', layout))
+         ('19_struct', struct), ('20_layout', layout), ('21_pixel', pixel_lines))
 
 
 def _rtn_block(L, start, prog=None):

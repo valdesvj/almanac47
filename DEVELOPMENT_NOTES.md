@@ -839,4 +839,7 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   firmware searches (labels for GTO / XEQ nn, structure steps for STRUCT jumps, global labels for named calls, steps
   walked by RTN and named calls). Model of that work on the profiled pages: 18_hourglass 8.12 M, 19_struct 7.82 M,
   20_layout 5.64 M. Steps run +4.9 % (the WHILE after loop tests). Every program still starts with a global label.
+- Step 21_pixel: N57 draws every horizontal line with PIXEL line mode (Y < 0: the whole row) and clears the columns
+  outside it with AGRAPH in GRMOD 2: the SKY / SPLIT horizon 376 -> 24 AGRAPH (about 1400 steps a view). The full
+  rows were PIXEL lines already; the altitude axes are dotted, so they stay one PIXEL a dot.
 

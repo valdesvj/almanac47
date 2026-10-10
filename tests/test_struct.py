@@ -6,7 +6,7 @@ python/c47sim.py (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL as the firmware ru
   2. c47sim: each structure true and false, the key wait DO / PAUSE / KEY? / WHILE / ENDDO, a test before ENDIF
      (never skipped), a structure without its number (stops)
   3. the rules on small programs: the same results as the GTO version for many inputs
-  4. build/dev/struct/19_struct and 20_layout (the same steps in another order): every program VALID, numbers within 255, the same file again from
+  4. build/dev/struct/19_struct, 20_layout (the same steps in another order) and 21_pixel: every program VALID, numbers within 255, the same file again from
      18_hourglass; every page (FULL, FAST, three dates and places, hour arrows) and the menu's keys pixel for pixel
      18_hourglass, the stack clear at the end; how many structures the pages entered
 
@@ -133,8 +133,11 @@ def navfull(step='19_struct'):
     ok(not faults, 'every program VALID%s' % (': ' + '; '.join(faults[:3]) if faults else ''))
     import build_struct
     again = build_struct.struct(A)
-    if step == '20_layout':
+    if step in ('20_layout', '21_pixel'):
         again = build_struct.layout(again)
+    if step == '21_pixel':
+        again = build_struct.pixel_lines(again)
+    if step == '20_layout':
         P19 = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', '19_struct', 'NAVFULL.txt'))
         ok(len(B) == len(P19) and len(S.split(B)) == len(S.split(P19)), 'as many programs and steps as 19_struct')
     ok(again == B, 'the same file again from 18_hourglass (tools/build_struct.py)')
@@ -178,6 +181,7 @@ def main():
     rules()
     navfull('19_struct')
     navfull('20_layout')
+    navfull('21_pixel')
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 

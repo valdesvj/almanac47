@@ -122,11 +122,18 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            Steps run 409919 -> 430059 (+4.9 %: mostly the WHILE after each loop test, which the firmware
                            runs with its test as one action); jumps: GTO 26667 -> 3192, ENDDO 17997, UNTIL 1052 back.
                            Pages pixel for pixel 18_hourglass (tests/test_struct.py).
+  21_pixel/NAVFULL.txt     + the horizontal line routine N57 (PHLS) in PIXEL line mode for every line: one PIXEL with
+                           Y < 0 draws the whole row (fnPixel), then the columns outside the line are switched off (AGRAPH
+                           in GRMOD 2, one column a step) in place of one AGRAPH for each column of the line. The horizon
+                           of SKY and SPLIT (376 columns from column 20): 376 -> 24 AGRAPH, about 1400 steps less a view
+                           (SKY 29709 -> 28325, SPLIT 31553 -> 30169, sim, first view). The full rows (top bar, ALMANAC's
+                           table rule, the menu, the horizon of ANIM and ALLSKY) were PIXEL lines already; the altitude
+                           axes are dotted (a PIXEL every 3 rows): no line mode for them. Pages pixel for pixel.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct and 20_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+19_struct, 20_layout and 21_pixel: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
 were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
