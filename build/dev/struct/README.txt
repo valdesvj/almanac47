@@ -129,11 +129,27 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            (SKY 29709 -> 28325, SPLIT 31553 -> 30169, sim, first view). The full rows (top bar, ALMANAC's
                            table rule, the menu, the horizon of ANIM and ALLSKY) were PIXEL lines already; the altitude
                            axes are dotted (a PIXEL every 3 rows): no line mode for them. Pages pixel for pixel.
+  22_calls/NAVFULL.txt     + fewer calls and labels: a text that starts with a digit is CLα r + αIP r (was 48 + STO r +
+                           XEQ IND r into the table LBL 48 "0" RTN ... LBL 57 "9" RTN: a label search and a return each
+                           digit; the table goes); calls to plain routines replaced by their steps (c47struct.inline: a
+                           routine with one caller, of 2 steps, or of up to 6 steps called 10 times or more on the
+                           profiled pages; no call after a test unless the routine is one step): 52 calls, 28 routines
+                           gone. Numbered labels 424 -> 386 (553 in 18_hourglass).
+  23_box/NAVFULL.txt       + the SINKING box (drawn at each view and each hour arrow) with one AGRAPH a column in GRMOD 1
+                           at WSIZE 30 (fnAGraph writes the pattern, 0 bits white): it was a clear of 180 columns in
+                           GRMOD 2 and then the frame in GRMOD 0: 360 -> 180 AGRAPH a box. Checked pixel for pixel on a
+                           random screen (tests/test_struct.py), R03 R04 R07 and GRMOD left as before.
+  24_layout/NAVFULL.txt    + 20_layout's ordering again on the new steps.
+                           Python sim, the six pages with an hour arrow each, after a first run (the star vectors and the
+                           sky cache made): steps run 18_hourglass 199769, 21_pixel 208561, 24_layout 186261 (-6.8 %
+                           against 18); search work (labels + structure steps + walks, all pages and arrows) 8.12 M ->
+                           4.52 M (-44 %). Trig values unchanged (2876): the calculations already use the matrix
+                           commands where they pay (stars 8-11, the equator CEQQ, ANIM's Sun and Moon 7).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct, 20_layout and 21_pixel: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+19_struct to 24_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
 were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)

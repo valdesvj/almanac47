@@ -124,6 +124,38 @@ def rules():
         ok(same and left == 0 and not S.check(Q), '%-10s no GTO left, the same results  %s' % (name, ' '.join(sorted(stats))))
 
 
+def box():
+    """The SINKING box of step 23 (GRMOD 1) against the one before it (clear, then frame), on a random screen."""
+    import build_struct as B
+    print('== the SINKING box: step 23 against step 22')
+    E, O = B.EDGE30, B.ONES30
+    old = ['LBL "T"', 'WSIZE 32', 'RCL 44', 'XEQ 08', 'RCL 62', 'STO 04', 'R↓', 'DO 01', 'AGRAPH 03', 'DSE 04', 'WHILE 01',
+           'ENDDO 01', 'RCL 46', 'XEQ 08', 'AGRAPH 03', 'AGRAPH 03', E, 'STO 03', 'R↓', 'RCL 63', 'STO 07', 'R↓', 'DO 02',
+           'AGRAPH 03', 'DSE 07', 'WHILE 02', 'ENDDO 02', O, 'STO 03', 'R↓', 'AGRAPH 03', 'AGRAPH 03', 'WSIZE 64', 'RTN',
+           'LBL 08', 'STO 03', 'GRMOD 03', '105', '110', O, 'STO 03', 'R↓', 'RTN', 'END']
+    P = S.plain(V_lines('24_layout'))
+    k = P.index('"SINKING....ABOUT"')
+    a = k
+    while not P[a].startswith('LBL '):
+        a -= 1
+    new = ['LBL "T"'] + P[a + 1:k - 2] + ['RTN', 'END']
+    rnd = random.Random(1)
+    scr = [(y, x) for y in range(240) for x in range(400) if rnd.random() < 0.4]
+    res = []
+    for prog in (old, S.number(new)):
+        c = c47sim.Calc('\n'.join(prog)); c.pix = list(scr); c.frames = []; c.grmod = 0; c.ws = 64
+        for r, v in ((43, 1), (44, 2), (46, 0), (62, 180), (63, 176)):
+            c.rset(str(r), D(v))
+        c.run('T')
+        res.append((set(c.pix), c.grmod, c.rget('04'), c.rget('07'), c.rget('03')))
+    ok(res[0] == res[1], 'pixel for pixel on a random screen; GRMOD 0, R03 R04 R07 as before')
+
+
+def V_lines(step):
+    return [l for l in open(os.path.join(ROOT, 'build', 'dev', 'struct', step, 'NAVFULL.txt'), encoding='utf-8').read()
+            .split('\n') if l.strip()]
+
+
 def navfull(step='19_struct'):
     import test_v2 as V
     print('== build/dev/struct/%s against 18_hourglass' % step)
@@ -133,10 +165,11 @@ def navfull(step='19_struct'):
     ok(not faults, 'every program VALID%s' % (': ' + '; '.join(faults[:3]) if faults else ''))
     import build_struct
     again = build_struct.struct(A)
-    if step in ('20_layout', '21_pixel'):
-        again = build_struct.layout(again)
-    if step == '21_pixel':
-        again = build_struct.pixel_lines(again)
+    chain = ('20_layout', '21_pixel', '22_calls', '23_box', '24_layout')
+    for name, fn in (('20_layout', build_struct.layout), ('21_pixel', build_struct.pixel_lines),
+                     ('22_calls', build_struct.calls), ('23_box', build_struct.box), ('24_layout', build_struct.layout)):
+        if step in chain[chain.index(name):]:
+            again = fn(again)
     if step == '20_layout':
         P19 = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', '19_struct', 'NAVFULL.txt'))
         ok(len(B) == len(P19) and len(S.split(B)) == len(S.split(P19)), 'as many programs and steps as 19_struct')
@@ -181,7 +214,8 @@ def main():
     rules()
     navfull('19_struct')
     navfull('20_layout')
-    navfull('21_pixel')
+    navfull('24_layout')
+    box()
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 

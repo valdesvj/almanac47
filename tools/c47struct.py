@@ -536,3 +536,67 @@ def gotos(L):
             else:
                 dec += 1
     return dec, tail
+
+
+# --- fewer calls -------------------------------------------------------------------------------------------------
+
+def _routine(P, n):
+    """(a, b, body) of the routine LBL n ... RTN when it is plain: its body (between them) has no label, no jump, no
+    return, no structure, no local register, and does not end with a test; else None."""
+    a = _label(P, n)
+    b = a + 1
+    while b < len(P) and P[b] not in ('RTN', 'END'):
+        l = P[b]
+        if l.startswith(('LBL ', 'GTO ', 'LocR', 'PopLR')) or op(l) in STRUCT or 'R.' in l:
+            return None
+        b += 1
+    if b >= len(P) or P[b] != 'RTN' or (b > a + 1 and is_test(P[b - 1])):
+        return None
+    return a, b, P[a + 1:b]
+
+
+def inline(L, hot=None, short=2, small=6, often=10, single=40):
+    """XEQ n replaced by the steps of n (a plain routine of the same program, _routine) where the call is not after a
+    test (one step after a test is fine): when n has that one caller (up to `single` steps), when n has at most
+    `short` steps, or at most `small` steps and the call runs at least `often` times (hot: {line of L: times run},
+    the PROFILE). A routine no XEQ names any more goes (label, steps and RTN) when no step runs into it.
+    Returns (L, calls inlined, routines removed)."""
+    out, done, gone, base = [], 0, 0, 0
+    for P in split(plain(L)):
+        runs = {i: (hot or {}).get(base + i, 0) for i in range(len(P))}
+        base += len(P)
+        changed = True
+        while changed:
+            changed = False
+            for k, l in enumerate(P):
+                n = _num(l)
+                if not (n and l.startswith('XEQ ')) or 'LBL ' + n not in P:
+                    continue
+                r = _routine(P, n)
+                if not r:
+                    continue
+                a, b, body = r
+                if a <= k <= b or (k > 0 and is_test(P[k - 1]) and len(body) != 1) or not body:
+                    continue
+                callers = sum(1 for x in P if x == 'XEQ ' + n)
+                gotos = sum(1 for x in P if x == 'GTO ' + n)
+                if not ((callers == 1 and gotos == 0 and len(body) <= single) or len(body) <= short
+                        or (len(body) <= small and runs.get(k, 0) >= often)):
+                    continue
+                P = P[:k] + body + P[k + 1:]
+                runs = {(i if i < k else i + len(body) - 1): v for i, v in runs.items() if i != k}
+                done += 1
+                if _refs(P, n) == 0:
+                    a = _label(P, n)
+                    if a > 0 and _gone(P, a - 1):
+                        b = a + 1
+                        while P[b] != 'RTN':
+                            b += 1
+                        P = P[:a] + P[b + 1:]
+                        runs = {(i if i < a else i - (b + 1 - a)): v for i, v in runs.items() if not a <= i <= b}
+                        gone += 1
+                changed = True
+                break
+        out += P
+    return number(out), done, gone
+

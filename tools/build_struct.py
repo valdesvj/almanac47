@@ -1172,11 +1172,84 @@ def pixel_lines(L):
     return c47struct.number(out)
 
 
+def calls(L):
+    """Fewer calls and labels, numbers to text without the digit table:
+    1. a text that starts with a digit: CLα r + αIP r in place of 48 + STO r + XEQ IND r (LBL 48 "0" RTN ... LBL 57
+       "9" RTN, a label search among the program's labels and a return): the digit tables go with their last caller;
+    2. calls to plain routines replaced by their steps (c47struct.inline: a routine with one caller, of 2 steps, or of
+       6 steps called 10 times or more on the profiled pages), and the routines no call names any more;
+    3. labels 01, 02 ... and the structure numbers in order again."""
+    import c47struct
+    P = c47struct.plain(L)
+    out, digits = [], 0
+    for prog in split(P):
+        i = 0
+        while i < len(prog):
+            m = re.fullmatch(r'STO (\d\d)', prog[i + 3]) if i + 6 < len(prog) else None
+            if prog[i].startswith('LBL ') and prog[i + 1:i + 3] == ['48', '+'] and m and \
+                    prog[i + 4:i + 7] == ['XEQ IND ' + m.group(1), 'STO ' + m.group(1), 'RTN']:
+                prog[i + 1:i + 6] = ['CLα ' + m.group(1), 'αIP ' + m.group(1)]
+                digits += 1
+            i += 1
+        if digits and not [l for l in prog if re.match(r'(XEQ|GTO) IND', l)]:
+            used = {l[4:] for l in prog if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+            j = 1
+            while j < len(prog):                            # a table nothing can reach any more (no XEQ IND left)
+                if re.fullmatch(r'LBL \d\d', prog[j]) and prog[j][4:] not in used and c47struct._gone(prog, j - 1) \
+                        and j + 2 < len(prog) and prog[j + 2] == 'RTN':
+                    del prog[j:j + 3]
+                else:
+                    j += 1
+        out += prog
+    hot = profile(c47struct.number(out))['rtn']
+    out, n, gone = c47struct.inline(out, hot)
+    print('  22_calls: %d digit texts by CLα + αIP; %d calls replaced by the routine\'s steps, %d routines gone'
+          % (digits, n, gone))
+    return renumber(out)
+
+
+ONES30 = '1' * 30 + '#2'
+EDGE30 = '11' + '0' * 26 + '11#2'
+
+
+def box(L):
+    """The SINKING box with one AGRAPH a column in GRMOD 1 (fnAGraph writes the pattern exactly, 0 bits white) at
+    WSIZE 30 (its 30 rows): 2 full columns, 176 columns of the edge pattern (2 rows at the top and the bottom, white
+    between), 2 full columns. It was a clear (180 columns in GRMOD 2) and then the frame drawn (180 columns in GRMOD 0):
+    180 AGRAPH less each time the box is drawn (each view, each hour arrow). Same screen."""
+    import c47struct
+    P = c47struct.plain(L)
+    k = P.index('"SINKING....ABOUT"')
+    a = k
+    while not (P[a].startswith('LBL ') and c47struct._gone(P, a - 1)):
+        a -= 1
+    old = P[a + 1:k + 4]
+    x = old[2][4:]
+    want = ['WSIZE 32', 'RCL 44', 'XEQ ' + x, 'RCL 62', 'STO 04', 'R↓', 'DO', 'AGRAPH 03', 'DSE 04', 'WHILE', 'ENDDO',
+            'RCL 46', 'XEQ ' + x, 'AGRAPH 03', 'AGRAPH 03', EDGE30, 'STO 03', 'R↓', 'RCL 63', 'STO 07', 'R↓', 'DO',
+            'AGRAPH 03', 'DSE 07', 'WHILE', 'ENDDO', ONES30, 'STO 03', 'R↓', 'AGRAPH 03', 'AGRAPH 03', 'WSIZE 64', '114',
+            '140', '"SINKING....ABOUT"', 'XEQ "N50"', 'PAUSE 0', 'RTN']
+    assert old == want, old
+    i = P.index('LBL ' + x)
+    assert P[i:i + 9] == ['LBL ' + x, 'STO 03', 'GRMOD 03', '105', '110', ONES30, 'STO 03', 'R↓', 'RTN'], P[i:i + 9]
+    new = ['WSIZE 30', 'RCL 43', 'GRMOD', '105', '110', ONES30, 'STO 03', 'R↓', 'AGRAPH 03', 'AGRAPH 03', EDGE30,
+           'STO 03', 'R↓', 'RCL 63', 'STO 07', 'R↓', 'DO', 'AGRAPH 03', 'DSE 07', 'WHILE', 'ENDDO', ONES30, 'STO 03', 'R↓',
+           'AGRAPH 03', 'AGRAPH 03', 'RCL 46', 'GRMOD', 'STO 04', 'WSIZE 64', '114', '140', '"SINKING....ABOUT"',
+           'XEQ "N50"', 'PAUSE 0', 'RTN']
+    P = P[:a + 1] + new + P[k + 4:]
+    if sum(1 for l in P if l == 'XEQ ' + x) == 0:
+        i = P.index('LBL ' + x)
+        P = P[:i] + P[i + 9:]
+    print('  23_box: the SINKING box in GRMOD 1, %d -> %d AGRAPH a box' % (360, 180))
+    return c47struct.number(renumber(P))
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
          ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass),
-         ('19_struct', struct), ('20_layout', layout), ('21_pixel', pixel_lines))
+         ('19_struct', struct), ('20_layout', layout), ('21_pixel', pixel_lines),
+         ('22_calls', calls), ('23_box', box), ('24_layout', layout))
 
 
 def _rtn_block(L, start, prog=None):

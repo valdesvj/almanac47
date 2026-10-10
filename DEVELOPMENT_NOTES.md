@@ -842,4 +842,8 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
 - Step 21_pixel: N57 draws every horizontal line with PIXEL line mode (Y < 0: the whole row) and clears the columns
   outside it with AGRAPH in GRMOD 2: the SKY / SPLIT horizon 376 -> 24 AGRAPH (about 1400 steps a view). The full
   rows were PIXEL lines already; the altitude axes are dotted, so they stay one PIXEL a dot.
+- Steps 22_calls (digit texts by CLα + αIP, the digit table gone; 52 calls inlined by c47struct.inline, 28 routines
+  gone; labels 424 -> 386), 23_box (the SINKING box in GRMOD 1: 360 -> 180 AGRAPH a box), 24_layout (the ordering
+  again). Sim, six pages + an arrow each after a first run: steps 18_hourglass 199769 -> 24_layout 186261 (-6.8 %);
+  search work 8.12 M -> 4.52 M. Trig values unchanged (2876): most of the steps left are drawing and text.
 
