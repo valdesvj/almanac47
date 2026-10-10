@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """build_moon47_struct.py - MOON47 (C47 / R47 only) with the label rules of build/dev/struct (steps 12-15).
 
-The input is build/dev/moon/0_speed/MOON47.txt: build/MOON47.txt of the branch moon47-speed (59d01b4, the disc
+The input is build/dev/struct/moon/0_speed/MOON47.txt: build/MOON47.txt of the branch moon47-speed (59d01b4, the disc
 routine first, -17 % CPU), three programs: MOON47 (the page), M7TX (the text printers M7TX M7IN M7F1 M7HM M7DT
 M7HL) and M7SY (the eight Moon phase symbols). Each step goes to its own folder:
 
@@ -26,7 +26,7 @@ sys.path.insert(0, HERE)
 import build_navopt as N                                                     # noqa: E402
 import build_struct as B                                                     # noqa: E402
 
-OUT = os.path.join(ROOT, 'build', 'dev', 'moon')
+OUT = os.path.join(ROOT, 'build', 'dev', 'struct', 'moon')
 SRC = os.path.join(OUT, '0_speed', 'MOON47.txt')
 TABLES = {'MOON47': {'%02d' % n for n in list(range(60, 68)) + list(range(90, 98))},
           'M7TX': {'%02d' % n for n in range(48, 58)},

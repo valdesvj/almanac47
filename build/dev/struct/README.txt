@@ -85,6 +85,10 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            old view while the box is there; it goes with the box (the new view or the menu clears the
                            screen). Firmware sim: the finished pages = 17_topbar.
 
+  moon/                    MOON47 (C47 only) with the label rules of steps 12-15: 0_speed (the input), 1_labels
+                           (CHOSEN), 2_compact (the test record). Its own README.txt; build again with
+                           python3 tools/build_moon47_struct.py
+
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926.
@@ -163,5 +167,5 @@ Step 11. Firmware sim CPU of the page (vectors kept), release / 7 / 10 / 11: ALM
 
 Not done yet
   - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.
-  - NAVLITTLE (DM42) and MOON47: the same passes, once a step has shown it pays.
+  - NAVLITTLE (DM42): the same passes, once a step has shown it pays (MOON47: moon/, the label steps).
   - Names: worth it only in loops with many named RCL/STO and little calculation.
