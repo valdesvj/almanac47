@@ -908,3 +908,5 @@ without copied code, all at once.
   build/forum/MOON47.p47u. Inlining the two small routines c47struct.inline finds: +5 steps for -3 % search: not done.
 - The forum file NAV.p47u is now ALMA47.p47u (Victor): its main label LBL "NAV" written as LBL "ALMA47" (nothing calls
   it by name), the headers say XEQ 'ALMA47'. The source and build/dev/struct_src keep NAV.
+- build/forum/C64FX.p47u (Victor's buzzer demo, written by hand, not built): the two GTO loops as DO ... DSE WHILE
+  ENDDO (the steps are those c47struct.structure gives), the REM text of C64FX_rem as the '@' header and '#' lines.

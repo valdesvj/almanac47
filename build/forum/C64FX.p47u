@@ -1,0 +1,281 @@
+@ Index:   Commodore 64 sound tricks on the buzzer
+@ Author:  Victor Valdes
+@ Version: 1
+@ Tested:  on the calculator: the three parts in turn, about 15 s (8.6 s of chords, 3 s of lead, 3.4 s plucked)
+@ Input:   none
+@ Output:  sound only; the stack cleared, your buzzer volume given back
+@
+@ The C64's SID chip had 3 voices, 4 waveforms, ADSR envelopes and a filter. The C47 has ONE buzzer that plays
+@ one square-ish note at a time. C64 musicians used three tricks to sound richer than the hardware; this demo
+@ plays all three, in A minor (an original tune):
+@   1. Fake chords (arpeggio): the three notes of a chord in turn, 30 ms each, so fast that the ear hears
+@      one chord.
+@   2. Vibrato: one long note cut into 25 ms pieces whose pitch goes up and down 1.2 % along a sine
+@      (about 6.7 times a second).
+@   3. Envelope: one note cut into 5 pieces of 40 ms at volume 11 8 6 4 2, so it sounds plucked
+@      (loud attack, fading tail).
+@
+@ Sound commands (C47 firmware, c47-dmcp/hal/audio.c):
+@   BUZZ   Y = frequency in Hz (whole Hz, 0 = silence), X = length in ms (max 2000); the program waits
+@          until the note ends. The stack is unchanged.
+@   VOL n  buzzer volume 0-11; VOL# puts the current volume in X; VOL IND "KVOL" sets it from a variable
+@          (used here to give yours back).
+@   TONE n / BEEP play fixed 250 ms notes (not used here).
+@ The PC simulator plays TONE and BEEP only: BUZZ is silent there, so run C64FX on the calculator.
+@
+@ Notes are given as semitones from A4 (440 Hz): 0 = A4, 3 = C5, 7 = E5, -4 = F4 ...
+@ LBL 05 turns them into Hz: f = 440 x 2^(s/12).
+@ Uses local registers only (LocR) and the variable KVOL (deleted at the end).
+@ Side effect: the angle mode is set to DEG (for the vibrato's SIN).
+@ Written with the STRUCT commands (DO WHILE ENDDO), no GTO; one program, C64FX its only global label.
+@
+LBL "C64FX"
+  # ---- main: your volume kept, the three parts in turn, then your volume back
+  VOL#
+  STO "KVOL"
+  DEG
+  # ---- PART 1: fake chords Am F G E Am F Dm E (Z Y X = the chord's three semitones from A4)
+  0
+  3
+  7
+  # Am: A4 C5 E5
+  XEQ 01
+  -4
+  0
+  3
+  # F: F4 A4 C5
+  XEQ 01
+  -2
+  2
+  5
+  # G: G4 B4 D5
+  XEQ 01
+  -5
+  -1
+  2
+  # E: E4 G#4 B4
+  XEQ 01
+  0
+  3
+  7
+  # Am
+  XEQ 01
+  -4
+  0
+  3
+  # F
+  XEQ 01
+  -7
+  -3
+  0
+  # Dm: D4 F4 A4
+  XEQ 01
+  -5
+  -1
+  2
+  # E
+  XEQ 01
+  # ---- PART 2: the lead, 9 notes with vibrato (Y = length in ms, X = semitone)
+  300
+  0
+  # A4
+  XEQ 03
+  150
+  3
+  # C5
+  XEQ 03
+  150
+  2
+  # B4
+  XEQ 03
+  300
+  0
+  # A4
+  XEQ 03
+  600
+  -5
+  # E4
+  XEQ 03
+  300
+  -4
+  # F4
+  XEQ 03
+  150
+  -5
+  # E4
+  XEQ 03
+  150
+  -7
+  # D4
+  XEQ 03
+  900
+  -5
+  # E4, the long one
+  XEQ 03
+  # ---- PART 3: 17 plucked notes (a broken-chord line), 200 ms each
+  0
+  XEQ 04
+  7
+  XEQ 04
+  12
+  XEQ 04
+  7
+  XEQ 04
+  3
+  XEQ 04
+  7
+  XEQ 04
+  12
+  XEQ 04
+  15
+  XEQ 04
+  -4
+  XEQ 04
+  3
+  XEQ 04
+  8
+  XEQ 04
+  3
+  XEQ 04
+  -5
+  XEQ 04
+  -1
+  XEQ 04
+  2
+  XEQ 04
+  7
+  XEQ 04
+  0
+  XEQ 04
+  # ---- the end: your volume back, KVOL deleted, the stack cleared
+  VOL IND "KVOL"
+  DELITM "KVOL"
+  CLSTK
+  RTN
+
+LBL 01
+  # ---- FAKE CHORD. In: Z Y X = three semitones. 12 rounds of the three notes,
+  # ---- 30 ms each = 1.08 s of one chord (36 notes)
+  # R.00 R.01 R.02 the three frequencies, R.03 the round counter
+  LocR 04
+  XEQ 05
+  # X's note in Hz
+  STO R.00
+  R↓
+  XEQ 05
+  # Y's note
+  STO R.01
+  R↓
+  XEQ 05
+  # Z's note
+  STO R.02
+  12
+  # 12 rounds
+  STO R.03
+  DO 01
+    RCL R.02
+    30
+    # lowest note, 30 ms
+    BUZZ
+    RCL R.01
+    30
+    # middle note
+    BUZZ
+    RCL R.00
+    30
+    # top note
+    BUZZ
+    CLSTK
+    # one round less: true while rounds are left
+    DSE R.03
+  WHILE 01
+  ENDDO 01
+  RTN
+
+LBL 03
+  # ---- VIBRATO. In: Y = length in ms, X = semitone. The note is cut into ms/25 pieces of 25 ms;
+  # ---- piece k has pitch f x (1 + 0.012 sin(60k)): a full wobble every 6 pieces (150 ms = 6.7 Hz),
+  # ---- +-1.2 % = +-20 cents
+  # R.00 the frequency, R.01 the pieces left, R.02 k
+  LocR 03
+  XEQ 05
+  STO R.00
+  R↓
+  25
+  ÷
+  IP
+  # ms / 25 pieces
+  STO R.01
+  0
+  # k = 0
+  STO R.02
+  DO 02
+    RCL R.02
+    60
+    ×
+    SIN
+    0.012
+    ×
+    1
+    +
+    RCL R.00
+    # f x (1 + 0.012 sin(60k))
+    ×
+    25
+    # one piece, 25 ms
+    BUZZ
+    CLSTK
+    1
+    # k + 1
+    STO+ R.02
+    # one piece less: true while pieces are left
+    DSE R.01
+  WHILE 02
+  ENDDO 02
+  RTN
+
+LBL 04
+  # ---- PLUCK (volume envelope). In: X = semitone. Five pieces of 40 ms with the volume
+  # ---- stepping down 11 8 6 4 2 (200 ms a note); unrolled, one piece after the other
+  # R.00 the frequency
+  LocR 01
+  XEQ 05
+  STO R.00
+  # attack
+  VOL 11
+  RCL R.00
+  40
+  BUZZ
+  CLSTK
+  VOL 8
+  RCL R.00
+  40
+  BUZZ
+  CLSTK
+  VOL 6
+  RCL R.00
+  40
+  BUZZ
+  CLSTK
+  VOL 4
+  RCL R.00
+  40
+  BUZZ
+  CLSTK
+  # the fading tail
+  VOL 2
+  RCL R.00
+  40
+  BUZZ
+  CLSTK
+  RTN
+
+LBL 05
+  # ---- SEMITONES -> Hz. X = s from A4  ->  X = 440 x 2^(s/12)
+  12
+  ÷
+  2ˣ
+  440
+  ×
+  RTN
+END
