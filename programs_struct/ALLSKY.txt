@@ -1,5 +1,4 @@
 LBL "N62"
-REM "ALLSKY - view 5 ALLSKY: whole sky, over the horizon above, under the horizon below"
 STO 20
 R↓
 STO 17

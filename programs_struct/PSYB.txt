@@ -1,5 +1,4 @@
 LBL "N81"
-REM "PSYB - SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol"
 STO 01
 R↓
 STO 06

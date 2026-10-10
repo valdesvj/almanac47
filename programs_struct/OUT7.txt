@@ -1,5 +1,4 @@
 LBL "N92"
-REM "OUT7 - steps shared by several routines (tools/navmat.py outline)"
 RCL 45
 MOD
 375

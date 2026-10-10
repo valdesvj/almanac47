@@ -1,5 +1,4 @@
 LBL "N97"
-REM "CSTA - star X: GHA Dec Hc Zn from its rows of SXE / SXH (4 ->POL) into its ALMC row"
 DEG
 STO 07
 INDEX "SXE"
@@ -71,7 +70,6 @@ RCL 05
 STOEL
 RTN
 LBL "N98"
-REM "CALL - ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)"
 INDEX "ALMC"
 RCL 93
 +

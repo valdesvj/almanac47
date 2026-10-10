@@ -1,5 +1,4 @@
 LBL "N48"
-REM "SNMU - star name from its number"
 STO 01
 XEQ IND 01
 RTN

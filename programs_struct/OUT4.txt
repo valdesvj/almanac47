@@ -1,5 +1,4 @@
 LBL "N89"
-REM "OUT4 - steps shared by several routines (tools/navmat.py outline)"
 XEQ "N88"
 RCL 83
 PIXEL

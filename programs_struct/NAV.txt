@@ -1,5 +1,4 @@
 LBL "NAV"
-REM "NAV - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program"
 1
 STO 43
 2

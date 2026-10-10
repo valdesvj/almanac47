@@ -1,5 +1,4 @@
 LBL "N18"
-REM "SER - sum of one series matrix with the matrix functions (COS, DOT)"
 LBL 01
 ENTER
 X<>Y
@@ -16,7 +15,6 @@ DOT
 ×
 RTN
 LBL "N19"
-REM "SERT - the time vectors SV1 SV2 used by SER"
 LBL 02
 RCL 88
 ENTER
@@ -45,7 +43,6 @@ RCL 05
 STOEL
 RTN
 LBL "N16"
-REM "SUNG - Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)"
 FS? 10
 IF
   STO 07
@@ -55,7 +52,6 @@ IF
   RTN
   RCL 07
   LBL "N17"
-  REM "SUNF - Sun, low-precision formula (0.01 deg) for sunrise/twilight"
 ENDIF
 DEG
 RCL 90
@@ -111,7 +107,6 @@ RCL 45
 MOD
 RTN
 LBL "N15"
-REM "SUNA - Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries"
 DEG
 STO 31
 2451544.999199074074074074074074074

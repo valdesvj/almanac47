@@ -1,5 +1,4 @@
 LBL "N32"
-REM "HCZ - sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ('SHC')"
 RCL+ 13
 X<>Y
 RCL 43
@@ -28,7 +27,6 @@ STO 05
 RCL 09
 RTN
 LBL "N35"
-REM "HCZR - celestial equator: next point by rotation (no trig)"
 RCL "W6"
 RCL× "V6"
 STO 01
@@ -70,7 +68,6 @@ STO "W6"
 RCL 01
 RTN
 LBL "N36"
-REM "HCZI - keeps sin/cos of the latitude for HCZ"
 RCL 14
 RCL 43
 →REC
@@ -80,7 +77,6 @@ STO "W1"
 X<>Y
 RTN
 LBL "N34"
-REM "HCZQ - celestial equator: start of the dot-by-dot rotation"
 RCL 43
 →REC
 STO "G0"

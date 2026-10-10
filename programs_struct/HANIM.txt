@@ -1,5 +1,4 @@
 LBL "N61"
-REM "HANIM - view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)"
 STO 24
 R↓
 STO 17

@@ -1,5 +1,4 @@
 LBL "N47"
-REM "SBRT - star number by brightness rank (1st brightest ... 58th)"
 STO 01
 XEQ IND 01
 RTN

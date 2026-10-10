@@ -1,5 +1,4 @@
 LBL "N01"
-REM "ALMF - view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon"
 STO 24
 R↓
 STO 22

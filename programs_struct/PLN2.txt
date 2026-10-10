@@ -1,5 +1,4 @@
 LBL "N29"
-REM "PLN3 - planet for the screens: quick position first, full series only if it can be above the horizon"
 FS? 10
 IF
   XEQ 02
@@ -104,7 +103,6 @@ X<>Y
 STO 26
 RTN
 LBL "N28"
-REM "PLN2 - planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA"
 LBL 02
 STO 09
 FS? 10

@@ -1,5 +1,4 @@
 LBL "N04"
-REM "HORZ - view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)"
 STO 13
 R↓
 STO 14
@@ -292,7 +291,6 @@ X=0?
 RTN
 RCL 43
 STO 13
-REM "loop left only by RTN (0 X≠0? UNTIL is never true)"
 REPEAT
   INDEX "H1"
   RCL 13

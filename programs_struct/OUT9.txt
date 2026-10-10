@@ -1,5 +1,4 @@
 LBL "N94"
-REM "OUT9 - steps shared by several routines (tools/navmat.py outline)"
 WSIZE 16
 RCL 51
 STO 01

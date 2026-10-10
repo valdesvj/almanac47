@@ -1,5 +1,4 @@
 LBL "N82"
-REM "PSYS - SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol"
 STO 07
 R↓
 STO 01

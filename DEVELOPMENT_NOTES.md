@@ -882,3 +882,7 @@ without copied code, all at once.
 - 8346 steps (18_hourglass 8318, 19_struct 8520), 495 labels, 124 structures (IF 82, DO 33, REPEAT 9), 0 GTO.
   Sim with an hour arrow: steps run +3-10 % on 18_hourglass (ENDIF / ENDDO and the RTN after a shared end count as
   steps), search work 8.17 M -> 6.33 M (20_layout 5.80 M). The speed steps 21-41 are not in it yet.
+- Then (Victor): the source code only, the comments in a separate file. programs_struct/ has no REM lines; the build
+  writes build/dev/struct_src/NAVFULL_COMMENTED.txt, the numbered, indented listing with REM lines (each program, the
+  global labels' names and jobs from LABELS in tools/build_struct_src.py, the callers of each local routine, the XEQ
+  IND tables, the loops only RTN leaves). Without its REM lines it is NAVFULL.txt step for step (tested).

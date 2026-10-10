@@ -1,5 +1,4 @@
 LBL "N84"
-REM "CMN - compass row N E S W N of a chart (X row)"
 19
 "N"
 XEQ "N79"

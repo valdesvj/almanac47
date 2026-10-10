@@ -1,5 +1,4 @@
 LBL "N95"
-REM "CALC - the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks"
 DEG
 0
 STO+ "SXK"

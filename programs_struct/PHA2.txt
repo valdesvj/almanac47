@@ -1,5 +1,4 @@
 LBL "N46"
-REM "PHA2 - Moon phase after SUNA: illumination % and age in days"
 DEG
 RCL 62
 RCL- 38
@@ -144,7 +143,6 @@ REPEAT
   RCL 11
   X≠0?
   IF
-    REM "second pass: a negative age takes the one before"
     RCL 07
     X<0?
     IF

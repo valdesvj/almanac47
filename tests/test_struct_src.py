@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """test_struct_src.py - the STRUCT source programs_struct/ (tools/build_struct_src.py) against 18_hourglass.
 
-  1. the source: one program a file, every program VALID, no GTO of any kind, no partner numbers written in it,
-     indented two spaces per open structure; build/dev/struct_src/NAVFULL.txt is the build of it
+  1. the source: one program a file, code only (no REM), every program VALID, no GTO of any kind, no partner numbers
+     written in it, indented two spaces per open structure; build/dev/struct_src/NAVFULL.txt is the build of it and
+     NAVFULL_COMMENTED.txt the same steps with REM lines
   2. every page (FULL, FAST, three dates and places, hour arrows) and the menu's keys pixel for pixel
      build/dev/struct/18_hourglass, the stack clear at the end; how many structures the pages entered
   3. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
@@ -36,16 +37,22 @@ def source():
     built = lines(os.path.join(B.OUT, 'NAVFULL.txt'))
     ok(L == built, 'build/dev/struct_src/NAVFULL.txt is the build of programs_struct/ (tools/build_struct_src.py)')
     ok(S.number(L) == L, 'numbered as VALID numbers them')
-    gto = numbered = indent = 0
+    com = lines(os.path.join(B.OUT, 'NAVFULL_COMMENTED.txt'))
+    ok(com == [l for l in B.commented(L) if l.strip()], 'build/dev/struct_src/NAVFULL_COMMENTED.txt is the commented build')
+    ok([l.strip() for l in com if not l.strip().startswith('REM ')] == L,
+       'NAVFULL_COMMENTED.txt without its REM lines is NAVFULL.txt step for step')
+    gto = numbered = indent = rem = 0
     for name in B.ORDER:
         src = open(os.path.join(B.SRC, name + '.txt'), encoding='utf-8').read().split('\n')
         steps = [l for l in src if l.strip()]
         gto += sum(1 for l in steps if l.strip().startswith('GTO'))
+        rem += sum(1 for l in steps if l.strip().startswith('REM '))
         numbered += sum(1 for l in steps if S.op(l) in S.STRUCT and l.strip() != S.op(l))
         code = [l for l in steps if not l.strip().startswith('REM ')]
         want = S.indent([l.strip() for l in code])
         indent += sum(1 for a, b in zip(code, want) if a != b)
     ok(gto == 0, 'no GTO of any kind in the source')
+    ok(rem == 0, 'no REM in the source (code only; the comments are in NAVFULL_COMMENTED.txt)')
     ok(numbered == 0, 'no partner numbers in the source (the build writes them)')
     ok(indent == 0, 'two spaces per open structure (ELSE and WHILE on their opener\'s column): %d lines off' % indent)
     st = B.stats(L)

@@ -1,5 +1,4 @@
 LBL "N93"
-REM "OUT8 - steps shared by several routines (tools/navmat.py outline)"
 IP
 XEQ "N47"
 STO 22

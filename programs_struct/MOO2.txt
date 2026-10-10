@@ -1,5 +1,4 @@
 LBL "N26"
-REM "MOOQ - Moon, quick low-precision formula (BODY list, ANIM)"
 DEG
 RCL 08
 481267.881
@@ -177,7 +176,6 @@ X↑2
 STOEL
 RTN
 LBL "N25"
-REM "MOO2 - Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA"
 DEG
 FS? 10
 IF

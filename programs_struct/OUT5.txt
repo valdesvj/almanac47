@@ -1,5 +1,4 @@
 LBL "N90"
-REM "OUT5 - steps shared by several routines (tools/navmat.py outline)"
 RCL 44
 RCL 57
 XEQ "N80"

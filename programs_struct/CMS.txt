@@ -1,5 +1,4 @@
 LBL "N85"
-REM "CMS - compass row S W N E S of a chart, south up (X row)"
 19
 "S"
 XEQ "N79"

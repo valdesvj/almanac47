@@ -1,5 +1,4 @@
 LBL "N49"
-REM "TGET - almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)"
 DEG
 STO 10
 R↓

@@ -1,5 +1,4 @@
 LBL "N06"
-REM "HALMH - view 2 SPLIT: horizon chart on top, the bodies below (8 rows)"
 STO 19
 R↓
 STO 18

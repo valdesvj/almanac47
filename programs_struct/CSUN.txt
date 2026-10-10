@@ -1,5 +1,4 @@
 LBL "N67"
-REM "CSTR - star R82 from the cache"
 XEQ 06
 XEQ 05
 RCLEL
@@ -7,7 +6,6 @@ J-
 RCLEL
 RTN
 LBL "N78"
-REM "CEQR - celestial equator of the charts: next dot (from ALMQ, or HCZR and record)"
 RCL "G4"
 6
 X≠Y?
@@ -31,7 +29,6 @@ RCL 05
 RCL 09
 RTN
 LBL "N68"
-REM "CSQK - star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks"
 INDEX "ALMC"
 STO "V0"
 RCL 93
@@ -81,7 +78,6 @@ STOEL
 RCL 46
 RTN
 LBL "N69"
-REM "CHCZ - Hc Zn from the cache for the body just read (else the real HCZ)"
 STO "V0"
 X<>Y
 STO "V1"
@@ -110,14 +106,12 @@ ENDIF
 XEQ 18
 RTN
 LBL "N71"
-REM "CNTA - nautical twilight am from the cache (the five sun times: computed once per date and place)"
 XEQ 04
 69
 RCL 43
 XEQ 17
 RTN
 LBL "N66"
-REM "CPLN - planet from the cache"
 INDEX "ALMC"
 RCL 44
 +
@@ -261,7 +255,6 @@ RCL "P4"
 STOEL
 RTN
 LBL "N65"
-REM "CMOO - Moon from the cache"
 XEQ 16
 RCLSEQ
 STO "V7"
@@ -282,35 +275,30 @@ J-
 RCLEL
 RTN
 LBL "N72"
-REM "CRIS - sunrise from the cache"
 XEQ 04
 69
 RCL 44
 XEQ 17
 RTN
 LBL "N73"
-REM "CTRN - meridian passage from the cache"
 XEQ 04
 69
 RCL 51
 XEQ 17
 RTN
 LBL "N74"
-REM "CSET - sunset from the cache"
 XEQ 04
 69
 RCL 66
 XEQ 17
 RTN
 LBL "N75"
-REM "CNTP - nautical twilight pm from the cache"
 XEQ 04
 70
 RCL 43
 XEQ 17
 RTN
 LBL "N64"
-REM "CSUN - Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place"
 STO "W7"
 XEQ 12
 RCLSEQ
@@ -476,7 +464,6 @@ ENDIF
 XEQ 18
 RTN
 LBL "N77"
-REM "CEQQ - celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)"
 STO "Q9"
 X<>Y
 STO "Q0"
@@ -497,7 +484,6 @@ IF
 ENDIF
 RTN
 LBL "N70"
-REM "CPHA - Moon phase from the cache"
 INDEX "ALMC"
 66
 RCL 44

@@ -1,5 +1,4 @@
 LBL "N50"
-REM "PTXS - TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text"
 LBL 01
 ⇄ zyxt
 RCL 66
@@ -28,7 +27,6 @@ RCL 07
 XEQ 10
 RTN
 LBL "N80"
-REM "PTNT - TEXT: whole number in the tinyFont"
 STO 07
 R↓
 STO 01
@@ -48,7 +46,6 @@ X<>Y
 XEQ 06
 RTN
 LBL "N52"
-REM "PF1S - TEXT: number with one decimal"
 XEQ 08
 RCL 07
 ABS
@@ -106,7 +103,6 @@ RCL 16
 XEQ 02
 RTN
 LBL "N51"
-REM "PINS - TEXT: whole number (one ATEXT)"
 XEQ 08
 RCL 07
 ABS
@@ -117,7 +113,6 @@ XEQ 05
 XEQ 04
 RTN
 LBL "N55"
-REM "PDTS - TEXT: date 'dd-mm-yyyy' from a Julian Date"
 STO 07
 R↓
 STO 01
@@ -162,7 +157,6 @@ XEQ 03
 XEQ 04
 RTN
 LBL "N53"
-REM "PHMS - TEXT: hh:mm from hours"
 STO 07
 R↓
 STO 01
@@ -206,7 +200,6 @@ ENDIF
 XEQ 04
 RTN
 LBL "N54"
-REM "PDMS - TEXT: degrees and minutes 'ddd mm.m' with sign"
 STO 07
 R↓
 STO 01
@@ -264,7 +257,6 @@ MOD
 XEQ 04
 RTN
 LBL "N56"
-REM "PZNS - TEXT: azimuth 'ddd.d'"
 XEQ 08
 RCL 07
 RCL 50
@@ -295,7 +287,6 @@ XEQ 10
 XEQ 04
 RTN
 LBL "N79"
-REM "PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text"
 ⇄ zyxt
 X<>Y
 LBL 06
@@ -308,7 +299,6 @@ GRFNT
 DROP
 RTN
 LBL "N57"
-REM "PHLS - horizontal line (X = length in pixels)"
 STO 05
 R↓
 STO 01

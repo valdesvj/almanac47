@@ -1,6 +1,4 @@
 LBL "N63"
-REM "WPLS - every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier"
-REM "loop left only by RTN (0 X≠0? UNTIL is never true)"
 REPEAT
   DO
     PAUSE 50

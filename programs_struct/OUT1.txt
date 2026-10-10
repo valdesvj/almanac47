@@ -1,5 +1,4 @@
 LBL "N86"
-REM "OUT1 - steps shared by several routines (tools/navmat.py outline)"
 162
 RCL 44
 RCL 75

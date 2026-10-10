@@ -1,5 +1,4 @@
 LBL "N83"
-REM "HDR - header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)"
 LocR 06
 STO R.00
 R↓
