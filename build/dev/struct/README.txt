@@ -166,11 +166,29 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            ENDDO and the code after it, so the loop's normal end ran that block too: on ALMANAC the
                            planets' loop drew a line it should not (when no planet was above the horizon at its end).
                            Found with random dates; the three fixed places of the tests had not shown it.
+  30_named/NAVFULL.txt     + calls by name written in place (c47struct-like plain code that can move to another program,
+                           at most 10 steps or one caller): N92 (azimuth to column, 660 calls a run of the pages), N36,
+                           N67, N66, N70, N26, N97, N93, N91, N86, N87, N88, N94 gone as names. 31_layout: the order again.
+  32_format/NAVFULL.txt    + an unpadded integer is CLα + αIP (αIP appends the whole integer part; the routine took 1-3
+                           digits one by one: 31 -> 4 steps), the year of a date one αIP.
+  33_dots, 34_dots         + the celestial equator of ANIM, ALLSKY, SKY and SPLIT on whole columns: CEQQ's cached
+                           [Hc, sin Hc, Zn] taken a column at a time (M.GETM), the screen column and row of every dot at
+                           once (+, MOD, ×, ÷, IP element by element; c47sim: IP on a matrix), side by side in QP, then
+                           RCLSEQ RCLSEQ POINT a dot (SKY, SPLIT: RCLSEQ Hc, X<Y? 1E-4, else J+ J+). Was a call by name
+                           to CEQR and one to the view's routine a dot. The routines left without a caller go
+                           (c47struct.prune). 35_layout: the order again.
+  36_menu/NAVFULL.txt      + the menu no longer runs CSQK over the 58 stars (its answer was dropped: it only filled the
+                           stars' rows of the cache ahead of the pages, which ask CSQK for their own stars). 37_layout.
+                           Sim, warm, one view each (no arrow), steps 18_hourglass -> 37_layout: ALMANAC 13800 -> 9036,
+                           SPLIT 17738 -> 10372, SKY 15626 -> 7742, ANIM 31032 -> 19407, ALLSKY 23650 -> 15557; six
+                           pages + an hour arrow each: 199769 -> 131253 (-34 %); trig values 2876 -> 2587 (the pages now
+                           compute their own stars: +20 on ALMANAC, SPLIT, SKY; the menu none). Search work 8.12 M ->
+                           2.91 M. 8865 steps in the file (8318 in 18: the routines written in place).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct to 29_unroll: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+19_struct to 37_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
 were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)

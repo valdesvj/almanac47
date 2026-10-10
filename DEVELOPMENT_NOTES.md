@@ -851,4 +851,8 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   in place at 56 calls, the box and highlight AGRAPH loops 8 / 10 columns a round. Sim, warm: steps 199769 (18) ->
   162636, trig 2876 -> 2527, search work 8.12 M -> 3.98 M. FIXED: step 19's 'break' rule could move a block into a
   loop's exit path (ALMANAC's planet loop drew an extra line at some dates); random dates are now in the tests.
+- Steps 30-37: calls by name written in place (13 routines), integers and years in one αIP, the equator of the four
+  charts on whole columns (M.GETM, element by element, M.PUTM, then RCLSEQ RCLSEQ POINT; c47sim: IP on a matrix),
+  the menu without its CSQK loop over the 58 stars, the order twice more. Warm, one view each: ALMANAC 13800 -> 9036
+  steps, SPLIT 17738 -> 10372, SKY 15626 -> 7742, ANIM 31032 -> 19407, ALLSKY 23650 -> 15557. 8865 steps in the file.
 

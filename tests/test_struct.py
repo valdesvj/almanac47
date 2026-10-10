@@ -20,7 +20,7 @@ import c47sim                                                        # noqa: E40
 import c47struct as S                                                # noqa: E402
 
 BAD = []
-LAST = '29_unroll'                      # the last step of build/dev/struct
+LAST = '37_layout'                      # the last step of build/dev/struct
 
 
 def ok(cond, what):

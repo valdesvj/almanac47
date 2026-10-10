@@ -32,7 +32,8 @@ class Mat:
 # C47 simulator): element by element on a matrix, except M × M (matrix product)
 # the STRUCT commands (structured.c, items 2920-2936), each with its partner number
 STRUCT = {'IF', 'ELSE', 'ENDIF', 'DO', 'WHILE', 'ENDDO', 'REPEAT', 'UNTIL'}
-MATOPS = {'COMPLEX', 'Re', 'Im', '∡', 'x²', 'eˣ', 'ABS', 'CONJ', '+', '-', '×', '÷', 'MOD', 'ASIN', 'CHS', 'RCL×', 'M.PUTM', 'M.GETM'}
+MATOPS = {'COMPLEX', 'Re', 'Im', '∡', 'x²', 'eˣ', 'ABS', 'CONJ', '+', '-', '×', '÷', 'MOD', 'ASIN', 'CHS', 'RCL×', 'M.PUTM', 'M.GETM',
+          'IP'}
 
 
 def _mc(v):
@@ -178,6 +179,7 @@ class Calc:
             m = self.mats[self.cur]; r, c = int(y), int(x)
             self.binary(lambda y, x: Mat([row[self.J - 1:self.J - 1 + c] for row in m[self.I - 1:self.I - 1 + r]])); return True
         if not (_mc(x) or (two and _mc(y)) or op in ('COMPLEX', 'Re', 'Im', '∡')): return False
+        if op == 'IP' and not isinstance(x, Mat): return False             # a number: the ordinary IP
         X, Y = _num(x), _num(y)
         if op == 'COMPLEX' and isinstance(X, Mat) != isinstance(Y, Mat):
             raise ValueError('COMPLEX of a matrix and a number: the firmware refuses it')
@@ -189,7 +191,7 @@ class Calc:
         fn1 = {'Re': lambda a: a.real, 'Im': lambda a: a.imag, '∡': lambda a: deg(math.atan2(a.imag, a.real)),
                'x²': lambda a: a * a, 'ASIN': lambda a: deg(math.asin(a)), 'CHS': lambda a: -a,
                'eˣ': lambda a: cmath.exp(a) if isinstance(a, complex) else math.exp(a), 'ABS': abs,
-               'CONJ': lambda a: a.conjugate()}
+               'CONJ': lambda a: a.conjugate(), 'IP': lambda a: float(int(a))}
         if two:
             self.binary(lambda y_, x_: _out(_ew(fn2[op], Y, X)))
         else:

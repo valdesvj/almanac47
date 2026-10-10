@@ -596,3 +596,33 @@ def inline(L, hot=None, short=2, small=6, often=10, single=40):
         out += P
     return number(out), done, gone
 
+
+def prune(before, after):
+    """Labels that `before` named by XEQ / GTO nn and `after` names no more (so no XEQ / GTO IND target either: step 13
+    numbers such labels freely): the label goes, and its block too when no step runs into it (up to the step that
+    always leaves). Again until nothing changes. Program by program; returns (listing, labels removed)."""
+    out, gone = [], 0
+    for B, P in zip(split(plain(before)), split(plain(after))):
+        named = {l[4:] for l in B if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+        changed = True
+        while changed:
+            changed = False
+            for k, l in enumerate(P):
+                n = _num(l)
+                if not (n and l.startswith('LBL ') and n in named and _refs(P, n) == 0):
+                    continue
+                if k > 0 and _gone(P, k - 1):
+                    j = k + 1
+                    while P[j] != 'END' and not _gone(P, j) and not P[j].startswith('LBL ') and op(P[j]) not in STRUCT:
+                        j += 1
+                    if P[j] == 'END' or P[j].startswith('LBL ') or op(P[j]) in STRUCT:
+                        j -= 1
+                    P = P[:k] + P[j + 1:]
+                else:
+                    P = P[:k] + P[k + 1:]
+                gone += 1
+                changed = True
+                break
+        out += P
+    return out, gone
+

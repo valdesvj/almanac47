@@ -1358,6 +1358,205 @@ def unroll(L):
     return c47struct.number(P)
 
 
+def named_inline(L, short=10):
+    """Calls by name (XEQ "x", the slowest call: the global labels compared, then a walk from the program's start, and a
+    return) replaced by the routine's steps when its code is plain (no label, jump, structure, local register, XEQ nn
+    or IND: it can move to another program) and it has at most `short` steps or one caller. A routine no call names
+    any more goes: its whole program, or its block after a step that always leaves. GTO "x" (tail calls) stay."""
+    import c47struct as C
+    P = C.plain(L)
+    done, gone = [], []
+    names = [l[5:-1] for l in P if l.startswith('LBL "') and l != 'LBL "NAV"']
+    for n in names:
+        i = P.index('LBL "%s"' % n)
+        j = i + 1
+        ok = True
+        while P[j] not in ('RTN', 'END'):
+            x = P[j]
+            if x.startswith(('LBL', 'GTO', 'LocR', 'PopLR')) or C.op(x) in C.STRUCT or 'R.' in x or \
+                    re.fullmatch(r'XEQ (\d\d|IND .*)', x):
+                ok = False
+                break
+            j += 1
+        body = P[i + 1:j]
+        sites = [k for k, l in enumerate(P) if l == 'XEQ "%s"' % n]
+        if not ok or not body or not sites or C.is_test(body[-1]) or 'GTO "%s"' % n in P:
+            continue
+        if not (len(body) <= short or len(sites) == 1):
+            continue
+        if any(k > 0 and C.is_test(P[k - 1]) for k in sites) and len(body) > 1:
+            continue
+        for k in reversed(sites):
+            P = P[:k] + body + P[k + 1:]
+        done.append(n)
+        i = P.index('LBL "%s"' % n)
+        j = i + 1
+        while P[j] not in ('RTN', 'END'):
+            j += 1
+        if i > 0 and P[i - 1] == 'END' and P[j] == 'END':          # its own program
+            P = P[:i] + P[j + 1:]
+            gone.append(n)
+        elif i > 0 and C._gone(P, i - 1) and P[j] == 'RTN':        # a block nothing runs into
+            P = P[:i] + P[j + 1:]
+            gone.append(n)
+        else:
+            P = P[:i] + P[i + 1:]                                  # only the name goes
+            gone.append(n + '(name)')
+    print('  30_named: calls by name written in place: %s; gone: %s' % (', '.join(done), ', '.join(gone)))
+    return C.number(renumber(P))
+
+
+def formats(L):
+    """Numbers to text in one αIP where the digits were taken one by one: αIP appends the whole integer part (fnAlphaIP),
+    so an unpadded integer (PTNT, PINS, PF1S: the routine that wrote 1, 2 or 3 digits with two tests and one call or
+    two) is CLα + αIP, and the year of a date (2000-2099, always 4 digits; was its hundreds and its units, two digits
+    each by one more routine) is one αIP. The zero-padded fields (minutes, hours, day, month) stay as they are."""
+    import c47struct
+    P = c47struct.plain(L)
+    s = P.index('LBL "N50"')
+    while s > 0 and P[s - 1] != 'END':
+        s -= 1
+    e = P.index('END', s)
+    prog = P[s:e + 1]
+    a = [k for k in range(len(prog)) if prog[k:k + 4] == ['STO 16', 'RCL 50', 'RCL 16', 'X≥Y?'] and prog[k - 1].startswith('LBL ')]
+    assert len(a) == 1, a
+    a = a[0]
+    b = a
+    while prog[b] != 'RTN' and not (prog[b].startswith('GTO ') and prog[b + 1].startswith('LBL ')):
+        b += 1
+    old_len = b - a + 1
+    prog = prog[:a] + ['STO 16', 'CLα 11', 'αIP 11', 'RTN'] + prog[b + 1:]
+    y = [k for k in range(len(prog) - 9) if prog[k:k + 9] == ['RCL 16', 'RCL 64', '÷', 'IP', prog[k + 4], 'RCL 16', 'RCL 64', 'MOD',
+                                                          prog[k + 4]] and prog[k + 4].startswith('XEQ ')]
+    assert len(y) == 1, y
+    prog = prog[:y[0]] + ['RCL 16', 'αIP 11'] + prog[y[0] + 9:]
+    assert not [l for l in prog if re.match(r'(XEQ|GTO) IND', l)]
+    k = 1
+    while k < len(prog):                         # a routine no XEQ / GTO names any more (no IND in this program)
+        m = re.fullmatch(r'LBL (\d\d)', prog[k])
+        if m and c47struct._refs(prog, m.group(1)) == 0 and c47struct._gone(prog, k - 1):
+            j = k + 1
+            while not (prog[j] == 'END' or prog[j].startswith('LBL ')):
+                j += 1
+            del prog[k:j]
+        else:
+            k += 1
+    P = P[:s] + prog + P[e + 1:]
+    print('  32_format: integers in one αIP (the digit routine %d -> 4 steps), the year of a date in one αIP' % old_len)
+    return c47struct.number(renumber(c47struct.structure(P, quiet=True)))
+
+
+def dots(L):
+    """The celestial equator of ANIM (60 dots) and ALLSKY (40) with the matrix commands: CEQQ's cached [Hc, sin Hc, Zn]
+    (U2 / U3) taken a column at a time (M.GETM), the screen columns IP((Zn + offset) MOD 360 * 375 / 360 + 20) and
+    rows IP(sin Hc * 94 + 118) for all the dots at once (+, MOD, ×, ÷, IP element by element), put side by side in QP
+    (M.PUTM); then each dot is RCLSEQ, RCLSEQ, POINT. It was a call to CEQR (by name) and one to the view's routine
+    for each dot."""
+    import c47struct as C
+    P = C.plain(L)
+    done = []
+    for prog, step, mat, n, cnt in (('N61', '6', 'U2', 60, '02'), ('N62', '9', 'U3', 40, '01')):
+        s = P.index('LBL "%s"' % prog)
+        while s > 0 and P[s - 1] != 'END':
+            s -= 1
+        e = P.index('END', s)
+        i = [k for k in range(s, e) if P[k:k + 3] == ['RCL 46', step, 'XEQ "N77"'] and P[k + 5:k + 7] == ['DO', 'XEQ "N78"']]
+        assert len(i) == 1, prog
+        i = i[0]
+        conv = P[i + 7]
+        y_reg, x_reg = P[i + 8][4:], P[i + 9][4:]
+        assert P[i + 4] == 'STO ' + cnt and \
+            P[i + 10:i + 14] == ['POINT', 'ISG ' + cnt, 'WHILE', 'ENDDO'], P[i:i + 14]
+        lab = conv[4:]
+        a = P.index('LBL ' + lab, s)
+        body = P[a + 1:P.index('RTN', a)]
+        off = body[1]                                                   # RCL+ rr: this view's offset
+        assert body[:1] == ['RCL 05'] and off.startswith('RCL+ ') and body[2:11] == \
+            ['RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP'] and body[11] == 'STO ' + x_reg and \
+            body[12:14] == ['RCL "V4"', '94'] and body[14:18] == ['×', '118', '+', 'IP'] and body[18] == 'STO ' + y_reg, body
+        new = ['RCL 46', step, 'XEQ "N77"', str(n), 'ENTER', '2', 'NEWMAT', 'STO "QP"',
+               'INDEX "%s"' % mat, '1', 'ENTER', '3', 'STOIJ', str(n), 'ENTER', '1', 'M.GETM',
+               'RCL ' + off[5:], '+', 'RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP', 'STO "QX"',
+               'INDEX "%s"' % mat, '1', 'ENTER', '2', 'STOIJ', str(n), 'ENTER', '1', 'M.GETM', '94', '×', '118', '+', 'IP', 'STO "QY"',
+               'INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QY"', 'M.PUTM', '1', 'ENTER', '2', 'STOIJ', 'RCL "QX"', 'M.PUTM',
+               '1', 'ENTER', 'STOIJ', str(n), 'STO ' + cnt,
+               'DO', 'RCLSEQ', 'RCLSEQ', 'POINT', 'DSE ' + cnt, 'WHILE', 'ENDDO', 'DELITM "QP"', 'DELITM "QX"',
+               'DELITM "QY"']
+        P = P[:i] + new + P[i + 14:]
+        done.append(prog)
+    P, gone = C.prune(L, P)
+    print('  33_dots: the equator of %s on whole columns; %d labels gone' % (' and '.join(done), gone))
+    return C.number(renumber(C.structure(P, quiet=True)))
+
+
+def dots_visible(L):
+    """The celestial equator of SKY (60 dots) and SPLIT (40) like step 33, with the dots under the horizon left out as
+    before (Hc > 1E-4): QP holds [Hc, row, column] for every dot; each dot is RCLSEQ Hc, the test, then RCLSEQ RCLSEQ
+    POINT or J+ J+. SKY's row: R91 - IP(213 - sin Hc * R86), SPLIT's: IP(sin Hc * 68 + 144)."""
+    import c47struct as C
+    P = C.plain(L)
+    done = []
+    for prog, step, mat, n, cnt, call, plot in (('N04', '6', 'U2', 60, '10', 'XEQ 03', 'XEQ 08'),
+                                                ('N06', '9', 'U3', 40, '01', 'XEQ 04', 'XEQ 10')):
+        s = P.index('LBL "%s"' % prog)
+        while s > 0 and P[s - 1] != 'END':
+            s -= 1
+        e = P.index('END', s)
+        old = ['RCL 46', step, 'XEQ "N77"', None, 'STO ' + cnt, 'DO', call, 'RCL 09', '1E-4', 'X<Y?', plot, 'ISG ' + cnt,
+               'WHILE', 'ENDDO']
+        i = [k for k in range(s, e) if all(o is None or P[k + j] == o for j, o in enumerate(old))]
+        assert len(i) == 1, prog
+        i = i[0]
+        lab = P[P.index('LBL ' + call[4:], s) + 2][4:]                  # LBL 03: XEQ "N78", GTO 07 (the conversion)
+        conv = P.index('LBL ' + lab, s)
+        body = P[conv + 1:P.index('RTN', conv)]
+        off = body[1]
+        assert body[0] == 'RCL 05' and off.startswith('RCL+ ') and body[2:11] == \
+            ['RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP'] and body[11] == 'STO 23', body
+        if prog == 'N04':
+            assert body[12:] == ['213', 'RCL "V4"', 'RCL 86', '×', '-', 'IP', 'STO 24']
+            pl = P.index('LBL ' + plot[4:], s)
+            assert P[pl + 1:pl + 7] == ['RCL 91', 'RCL- 24', 'STO 06', 'RCL 23', 'POINT', 'RTN']
+            row = ['RCL 86', '×', '213', 'X<>Y', '-', 'IP', 'RCL 91', 'X<>Y', '-']
+        else:
+            assert body[12:] == ['RCL "V4"', '68', '×', '144', '+', 'IP', 'STO 08']
+            pl = P.index('LBL ' + plot[4:], s)
+            assert P[pl + 1:pl + 5] == ['RCL 08', 'RCL 23', 'POINT', 'RTN']
+            row = ['68', '×', '144', '+', 'IP']
+        col = lambda j: ['INDEX "%s"' % mat, '1', 'ENTER', str(j), 'STOIJ', str(n), 'ENTER', '1', 'M.GETM']
+        new = (['RCL 46', step, 'XEQ "N77"', str(n), 'ENTER', '3', 'NEWMAT', 'STO "QP"']
+               + col(3) + ['RCL ' + off[5:], '+', 'RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP', 'STO "QX"']
+               + col(2) + row + ['STO "QY"'] + col(1) + ['STO "QH"']
+               + ['INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QH"', 'M.PUTM', '1', 'ENTER', '2', 'STOIJ', 'RCL "QY"',
+                  'M.PUTM', '1', 'ENTER', '3', 'STOIJ', 'RCL "QX"', 'M.PUTM', '1', 'ENTER', 'STOIJ', str(n), 'STO ' + cnt,
+                  'DO', 'RCLSEQ', '1E-4', 'X<Y?', 'IF', 'RCLSEQ', 'RCLSEQ', 'POINT', 'ELSE', 'J+', 'J+', 'ENDIF',
+                  'DSE ' + cnt, 'WHILE', 'ENDDO']
+               + ['DELITM "%s"' % v for v in ('QP', 'QX', 'QY', 'QH')])
+        P = P[:i] + new + P[i + len(old):]
+        done.append(prog)
+    P, gone = C.prune(L, P)
+    print('  34_dots: the equator of %s on whole columns, the dots under the horizon left out; %d labels gone'
+          % (' and '.join(done), gone))
+    return C.number(renumber(C.structure(P, quiet=True)))
+
+
+def menu_stars(L):
+    """The menu no longer runs CSQK for the 58 stars (it kept nothing of it: the call's answer was dropped; it only
+    filled the stars' rows of the cache ahead of the pages). Each page asks CSQK for the stars it shows, as it did
+    already (ALMANAC 6 of them, SKY those over the horizon, ALLSKY all 58 at once by matrix): the menu comes faster,
+    and a page computes only its own stars."""
+    import c47struct as C
+    P = C.plain(L)
+    s = P.index('LBL "NAV"')
+    e = P.index('END', s)
+    old = ['REPEAT', 'RCL 22', 'XEQ "N68"', 'RCL 43', 'STO+ 22', '58', 'RCL 22', 'X>Y?', 'UNTIL']
+    i = [k for k in range(s, e) if P[k:k + 9] == old]
+    assert len(i) == 1
+    P = P[:i[0]] + P[i[0] + 9:]
+    print('  36_menu: the menu without the loop of CSQK over the 58 stars')
+    return C.number(P)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
@@ -1365,7 +1564,9 @@ STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), (
          ('19_struct', struct), ('20_layout', layout), ('21_pixel', pixel_lines),
          ('22_calls', calls), ('23_box', box), ('24_layout', layout),
          ('25_hcz', hcz), ('26_anim', anim_equator), ('27_header', header),
-         ('28_text', text_inline), ('29_unroll', unroll))
+         ('28_text', text_inline), ('29_unroll', unroll), ('30_named', named_inline), ('31_layout', layout),
+         ('32_format', formats), ('33_dots', dots), ('34_dots', dots_visible),
+         ('35_layout', layout), ('36_menu', menu_stars), ('37_layout', layout))
 
 
 def _rtn_block(L, start, prog=None):
