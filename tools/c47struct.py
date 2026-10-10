@@ -362,13 +362,9 @@ def _candidates(P):
                 e = _closer(P, o)
                 tag = P[o].partition(' ')[2]
                 if P[e + 1:e + 2] == ['LBL ' + n]:
-                    # break: T GTO x inside DO ... ENDDO LBL x -> T' WHILE (a DO may hold several WHILE)
+                    # break: T GTO x inside DO ... ENDDO LBL x -> T' WHILE (a DO may hold several WHILE). Only when
+                    # x is right after the ENDDO: the loop's own end goes there too (no block may be moved in between)
                     yield 'break', _drop_label(P[:k - 1] + [invert(P[k - 1]), ('WHILE ' + tag).strip()] + P[k + 1:], n)
-                else:
-                    blk = _block(P, _label(P, n))
-                    if blk and blk[0] > e:
-                        # the exit block moved right after the ENDDO first
-                        yield 'break', P[:e + 1] + P[blk[0]:blk[1] + 1] + P[e + 1:blk[0]] + P[blk[1] + 1:]
         if n and l.startswith('GTO ') and k > 0 and is_test(P[k - 1]) and _refs(P, n) == 1:
             a = _label(P, n)
             g = k + 1
@@ -477,7 +473,7 @@ def _rewrite(P, stats):
       dead          the steps after one that always leaves, up to a label or a structure step: gone
       thread        GTO x to LBL x GTO y: GTO y
       dup           GTO x (always taken) to a shared tail of at most DUPMAX steps: the tail's steps
-      break         T GTO x in a DO ... ENDDO with x right after it (or x's detached block moved there): T' WHILE;
+      break         T GTO x in a DO ... ENDDO with x right after it: T' WHILE;
                     the firmware takes several WHILE in one DO (fnWhile: the nearest ENDDO of its number)
       pull          T GTO a B GTO b with b inside a's detached block: the block right after GTO b (for if-else)
     A test right before the test is left alone (it can skip the test). A label goes when nothing names it any more."""

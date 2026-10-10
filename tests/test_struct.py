@@ -20,6 +20,7 @@ import c47sim                                                        # noqa: E40
 import c47struct as S                                                # noqa: E402
 
 BAD = []
+LAST = '29_unroll'                      # the last step of build/dev/struct
 
 
 def ok(cond, what):
@@ -125,30 +126,64 @@ def rules():
 
 
 def box():
-    """The SINKING box of step 23 (GRMOD 1) against the one before it (clear, then frame), on a random screen."""
+    """The SINKING box (steps 23, 29) and the menu's highlight bar (step 29) of the last step against the code they
+    replace, on a random screen: the same pixels, GRMOD and counters."""
     import build_struct as B
-    print('== the SINKING box: step 23 against step 22')
+    print('== the SINKING box and the highlight bar: the last step against the code before 23')
     E, O = B.EDGE30, B.ONES30
     old = ['LBL "T"', 'WSIZE 32', 'RCL 44', 'XEQ 08', 'RCL 62', 'STO 04', 'R↓', 'DO 01', 'AGRAPH 03', 'DSE 04', 'WHILE 01',
            'ENDDO 01', 'RCL 46', 'XEQ 08', 'AGRAPH 03', 'AGRAPH 03', E, 'STO 03', 'R↓', 'RCL 63', 'STO 07', 'R↓', 'DO 02',
            'AGRAPH 03', 'DSE 07', 'WHILE 02', 'ENDDO 02', O, 'STO 03', 'R↓', 'AGRAPH 03', 'AGRAPH 03', 'WSIZE 64', 'RTN',
            'LBL 08', 'STO 03', 'GRMOD 03', '105', '110', O, 'STO 03', 'R↓', 'RTN', 'END']
-    P = S.plain(V_lines('24_layout'))
+    P = S.plain(V_lines(LAST))
     k = P.index('"SINKING....ABOUT"')
     a = k
     while not P[a].startswith('LBL '):
         a -= 1
-    new = ['LBL "T"'] + P[a + 1:k - 2] + ['RTN', 'END']
+    new = ['LBL "T"'] + P[a + 1:k] + ['RTN', 'END']
+    bar_old = ['LBL "T"', 'WSIZE 18', 'RCL 51', 'STO 01', 'GRMOD 01', '1111111111111111#2', 'STO 01', 'RCL 12', 'RCL 02',
+               '170', 'STO 02', 'R↓', 'DO 01', 'AGRAPH 01', 'DSE 02', 'WHILE 01', 'ENDDO 01', 'RCL 46', 'STO 01',
+               'GRMOD 01', 'WSIZE 64', 'RTN', 'END']
+    b = P.index('1111111111111111#2') - 4
+    e = b
+    while P[e] != 'RTN':
+        e += 1
+    bar_new = ['LBL "T"'] + P[b:e + 1] + ['END']
     rnd = random.Random(1)
     scr = [(y, x) for y in range(240) for x in range(400) if rnd.random() < 0.4]
-    res = []
-    for prog in (old, S.number(new)):
-        c = c47sim.Calc('\n'.join(prog)); c.pix = list(scr); c.frames = []; c.grmod = 0; c.ws = 64
-        for r, v in ((43, 1), (44, 2), (46, 0), (62, 180), (63, 176)):
-            c.rset(str(r), D(v))
-        c.run('T')
-        res.append((set(c.pix), c.grmod, c.rget('04'), c.rget('07'), c.rget('03')))
-    ok(res[0] == res[1], 'pixel for pixel on a random screen; GRMOD 0, R03 R04 R07 as before')
+    for what, pair in (('the SINKING box', (old, new)), ('the highlight bar (XOR, 170 columns)', (bar_old, bar_new))):
+        res = []
+        for prog in pair:
+            c = c47sim.Calc('\n'.join(S.number(prog))); c.pix = list(scr); c.frames = []; c.grmod = 0; c.ws = 64
+            for r, v in ((43, 1), (44, 2), (46, 0), (51, 3), (62, 180), (63, 176), (12, 160), (2, 202)):
+                c.rset(str(r), D(v))
+            c.run('T')
+            res.append((set(c.pix), c.grmod, c.rget('04') if what.startswith('the S') else 0, c.rget('07'), c.rget('03'),
+                        c.rget('02'), c.rget('01')))
+        ok(res[0] == res[1], '%s: pixel for pixel on a random screen; GRMOD and the registers as before' % what)
+
+
+def places(n=8):
+    """The last step against 18_hourglass at random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST:
+    ALMANAC, SPLIT, SKY, ANIM, ALLSKY with an hour arrow, pixel for pixel (the planets / stars below the horizon, the
+    loops' ends: what three fixed places can miss)."""
+    import test_v2 as V
+    print('== %s against 18_hourglass at %d random dates and places' % (LAST, n))
+    A = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', '18_hourglass', 'NAVFULL.txt'))
+    B = V_lines(LAST)
+    rnd = random.Random(7)
+    for t in range(n):
+        inp = (('DATE', '%d.%02d%02d' % (rnd.randint(2000, 2049), rnd.randint(1, 12), rnd.randint(1, 28))),
+               ('UTC', '%d.%02d' % (rnd.randint(0, 23), rnd.randint(0, 59))), ('LAT', '%.2f' % rnd.uniform(-65, 65)),
+               ('LON', '%.2f' % rnd.uniform(-179, 179)))
+        init = 'FAST' if t % 2 else 'FULL'
+        same = []
+        for p in (1, 2, 3, 4, 5):
+            keys = [V.K[p], V.K['up'], V.K['+'], V.K[0]]
+            a = V.session(A, keys, init, False, inp, marks=False)
+            b = V.session(B, keys, init, False, inp, marks=False)
+            same.append(a[0] == b[0] and b[2])
+        ok(all(same), '%s %s %s %s %s: pages 1-5 pixel for pixel' % ((init,) + tuple(v for _, v in inp)))
 
 
 def V_lines(step):
@@ -165,9 +200,9 @@ def navfull(step='19_struct'):
     ok(not faults, 'every program VALID%s' % (': ' + '; '.join(faults[:3]) if faults else ''))
     import build_struct
     again = build_struct.struct(A)
-    chain = ('20_layout', '21_pixel', '22_calls', '23_box', '24_layout')
-    for name, fn in (('20_layout', build_struct.layout), ('21_pixel', build_struct.pixel_lines),
-                     ('22_calls', build_struct.calls), ('23_box', build_struct.box), ('24_layout', build_struct.layout)):
+    steps = [x for x in build_struct.STEPS if int(x[0].split('_')[0]) >= 20]
+    chain = tuple(x[0] for x in steps)
+    for name, fn in [(x[0], x[1]) for x in steps]:
         if step in chain[chain.index(name):]:
             again = fn(again)
     if step == '20_layout':
@@ -214,8 +249,9 @@ def main():
     rules()
     navfull('19_struct')
     navfull('20_layout')
-    navfull('24_layout')
+    navfull(LAST)
     box()
+    places()
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 

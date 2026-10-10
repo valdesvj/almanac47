@@ -846,4 +846,9 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   gone; labels 424 -> 386), 23_box (the SINKING box in GRMOD 1: 360 -> 180 AGRAPH a box), 24_layout (the ordering
   again). Sim, six pages + an arrow each after a first run: steps 18_hourglass 199769 -> 24_layout 186261 (-6.8 %);
   search work 8.12 M -> 4.52 M. Trig values unchanged (2876): most of the steps left are drawing and text.
+- Victor checked 24_layout on the calculator: works, looks faster. Then steps 25-29: HCZ with 4 trig (V6 / W1 of
+  HCZI), ANIM's equator from the CEQQ cache (HCZQ / HCZR gone), HDR's DR text kept in HT for the run, PTXS written
+  in place at 56 calls, the box and highlight AGRAPH loops 8 / 10 columns a round. Sim, warm: steps 199769 (18) ->
+  162636, trig 2876 -> 2527, search work 8.12 M -> 3.98 M. FIXED: step 19's 'break' rule could move a block into a
+  loop's exit path (ALMANAC's planet loop drew an extra line at some dates); random dates are now in the tests.
 

@@ -145,11 +145,32 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            against 18); search work (labels + structure steps + walks, all pages and arrows) 8.12 M ->
                            4.52 M (-44 %). Trig values unchanged (2876): the calculations already use the matrix
                            commands where they pay (stars 8-11, the equator CEQQ, ANIM's Sun and Moon 7).
+  25_hcz/NAVFULL.txt       + HCZ (N32) with 4 trigonometric functions (was 6): the turn by the latitude with cos B / sin B
+                           that HCZI (N36) keeps in V6 / W1 for every view (NAV calls it before the menu's sky). ANIM
+                           computes it for the Sun and the Moon at every frame.
+  26_anim/NAVFULL.txt      + ANIM's celestial equator from the charts' cache (CEQQ / CEQR, the 60 dots of SKY, kept for
+                           the place) in place of HCZQ / HCZR (2 trigonometric functions a dot); HCZQ, HCZR gone.
+  27_header/NAVFULL.txt    + HDR builds its 'DR   N 25 20.0   E 55 12.0' text once a run and keeps it in HT (NAV stores a
+                           number there as it starts, STRI? tells HDR to build it, NAV deletes HT as it ends): about 95
+                           steps less each top bar (every view, every ANIM frame).
+  28_text/NAVFULL.txt      + PTXS (N50) written in place at its 56 calls whose row, column and text are one step each: the
+                           text, the row less 4, the column, ATEXT Z, the row given back (no named call, no return).
+  29_unroll/NAVFULL.txt    + the SINKING box's frame (176 columns) 8 AGRAPH a round, the menu's highlight bar (170) 10 a
+                           round: one DSE / WHILE / ENDDO for 8 or 10 columns.
+                           Sim, six pages + an hour arrow after a first run: steps 18_hourglass 199769, 24_layout 186265,
+                           29_unroll 162636 (-18.6 % against 18); trig values 2876 -> 2527; ANIM alone 31032 -> 24535 steps.
+                           Search work 8.12 M (18) -> 3.98 M. tests/test_struct.py: every step from 20 on built again,
+                           the box and the bar pixel for pixel on a random screen, and 8 random dates and places (pages
+                           1-5, FULL and FAST) pixel for pixel 18_hourglass.
+                           FIXED in 19_struct (so in every step after it): a 'break' rule moved a block between a loop's
+                           ENDDO and the code after it, so the loop's normal end ran that block too: on ALMANAC the
+                           planets' loop drew a line it should not (when no planet was above the horizon at its end).
+                           Found with random dates; the three fixed places of the tests had not shown it.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct to 24_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+19_struct to 29_unroll: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
 were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)

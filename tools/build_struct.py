@@ -1244,12 +1244,128 @@ def box(L):
     return c47struct.number(renumber(P))
 
 
+HCZ_OLD = ['LBL "N32"', 'RCL+ 13', 'X<>Y', 'RCL 43', '→REC', 'X<>Y', 'STO 05', 'R↓', '→REC', 'RCL 05', 'X<>Y', '→POL',
+           'X<>Y', 'RCL- 14', 'X<>Y', '→REC', 'STO "V4"', 'ASIN', 'STO 09', 'R↓', '→POL', 'X<>Y', 'CHS', 'RCL 45', 'MOD',
+           'STO 05', 'RCL 09', 'RTN']
+HCZ_NEW = ['LBL "N32"', 'RCL+ 13', 'X<>Y', 'RCL 43', '→REC', 'X<>Y', 'STO 05', 'R↓', '→REC',   # x = cos d cos t, e
+           'STO "V4"', 'RCL× "W1"', 'RCL 05', 'RCL× "V6"', 'X<>Y', '-',                  # y cos B - x sin B
+           'RCL "V4"', 'RCL× "V6"', 'RCL 05', 'RCL× "W1"', '+',                           # sin Hc = x cos B + y sin B
+           'STO "V4"', 'ASIN', 'STO 09', 'R↓', '→POL', 'X<>Y', 'CHS', 'RCL 45', 'MOD', 'STO 05', 'RCL 09', 'RTN']
+
+
+def hcz(L):
+    """HCZ (N32: Hc and Zn of a body from its GHA and Dec) with 4 trigonometric functions in place of 6: the turn by
+    the latitude (→POL, minus the latitude, →REC) is now the rotation with cos B and sin B that HCZI (N36) keeps in V6
+    and W1 for every view (NAV calls it before the menu's sky): sin Hc = x cos B + y sin B, and y cos B - x sin B for
+    the azimuth. Same results to the last digits; ANIM computes it for the Sun and the Moon at every frame."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N32"')
+    assert P[i:i + len(HCZ_OLD)] == HCZ_OLD, P[i:i + len(HCZ_OLD)]
+    P = P[:i] + HCZ_NEW + P[i + len(HCZ_OLD):]
+    print('  25_hcz: HCZ with 4 trigonometric functions (was 6)')
+    return c47struct.number(P)
+
+
+def anim_equator(L):
+    """ANIM's celestial equator from the charts' cache (CEQQ N77 / CEQR N78, every 6 degrees, as SKY: the same 60 dots,
+    kept for the place and computed with the matrix commands when missing) in place of its own HCZQ / HCZR (N34 /
+    N35: 2 trigonometric functions a dot, 120 each time ANIM is drawn). HCZQ and HCZR go (ANIM was their only user)."""
+    import c47struct
+    P = c47struct.plain(L)
+    old = ['RCL 46', '6', 'XEQ "N34"', '0.05901', 'STO 02', 'DO', 'XEQ "N35"']
+    i = [k for k in range(len(P)) if P[k:k + 7] == old]
+    assert len(i) == 1 and sum(1 for l in P if l in ('XEQ "N34"', 'XEQ "N35"')) == 2
+    P[i[0] + 2], P[i[0] + 6] = 'XEQ "N77"', 'XEQ "N78"'
+    for g, end in (('N35', 'RTN'), ('N34', 'END')):
+        a = P.index('LBL "%s"' % g)
+        b = a + 1
+        while P[b] not in ('RTN', 'END'):
+            b += 1
+        assert P[b] == end and P[a - 1] == 'RTN'
+        P = P[:a] + P[b + (1 if end == 'RTN' else 0):]
+    print('  26_anim: ANIM\'s equator from the CEQQ cache; HCZQ and HCZR gone')
+    return c47struct.number(renumber(P))
+
+
+def header(L):
+    """HDR (N83, the top bar of every view and of each ANIM frame) builds its 'DR   N 25 20.0   E 55 12.0' text once a
+    run: NAV stores a number in HT as it starts; HDR keeps the text in HT (STRI? true: use it, else build it as before
+    and keep it), NAV deletes HT as it ends. The position is NAV's for the whole run (the same for every caller). About
+    95 steps less each top bar after the first (24 a turn of ANIM)."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N83"')
+    e = P.index('END', i)
+    a = P.index('"DR   N"', i)
+    assert P[e - 4:e] == ['RCL R.00', 'RCL 60', 'RCL R.04', 'XEQ "N50"'], P[e - 4:e]
+    build = P[a:e - 4]
+    P = P[:a] + ['RCL "HT"', 'STRI?', 'IF', 'ELSE'] + build + ['RCL R.04', 'STO "HT"', 'ENDIF',
+                                                              'RCL R.00', 'RCL 60', 'RCL "HT"', 'XEQ "N50"'] + P[e:]
+    s = P.index('LBL "NAV"')
+    j = P.index('STO "ALMQ"', s)
+    assert P[j + 1] == 'DELITM "ALMQ"'
+    P = P[:j + 1] + ['STO "HT"'] + P[j + 1:]                    # a number in HT: HDR builds the text again
+    k = P.index('DELITM "C2"', s)
+    P = P[:k + 1] + ['DELITM "HT"'] + P[k + 1:]
+    print('  27_header: HDR keeps its DR text in HT for the run')
+    return c47struct.number(P)
+
+
+def text_inline(L):
+    """PTXS (N50: X text, Y column, Z row of the base line) written in place where the three are one step each (a
+    number, a RCL, a text): the text, the row less 4 (the glyph box's bottom: R66 = 4), the column, ATEXT Z, then the
+    row given back as PTXS gives it (X<>Y RCL 66 + X<>Y). No call: no named label to find, no return to walk back to,
+    and no ⇄ zyxt. Not after a test (it would skip only the first step)."""
+    import c47struct
+    P = c47struct.plain(L)
+    push = lambda l: bool(re.fullmatch(r'-?\d+(\.\d+)?|RCL \d\d|RCL "[^"]+"|"[^"]*"|RCL R\.\d\d', l))
+    out, n, i = [], 0, 0
+    while i < len(P):
+        if P[i + 3:i + 4] == ['XEQ "N50"'] and all(push(x) for x in P[i:i + 3]) and not (out and c47struct.is_test(out[-1])):
+            row, col, txt = P[i:i + 3]
+            r = [str(int(row) - 4)] if re.fullmatch(r'-?\d+', row) and int(row) >= 4 else [row, 'RCL- 66']
+            out += [txt] + r + [col, 'ATEXT Z', 'X<>Y', 'RCL 66', '+', 'X<>Y']
+            n += 1
+            i += 4
+            continue
+        out.append(P[i])
+        i += 1
+    print('  28_text: %d calls of PTXS written in place' % n)
+    return c47struct.number(out)
+
+
+def unroll(L):
+    """The two AGRAPH loops that run at every view: the SINKING box's 176 frame columns (8 AGRAPH a round, 22 rounds) and
+    the menu's highlight bar (170 columns, 10 a round, 17 rounds): one DSE, WHILE and ENDDO for 8 / 10 columns in
+    place of each column. The counters end at 0 as before."""
+    import c47struct
+    P = c47struct.plain(L)
+    s = P.index('LBL "NAV"')
+    e = P.index('END', s)
+    done = 0
+    for count, reg, pat, times in (('RCL 63', '07', '03', 8), ('170', '02', '01', 10)):
+        old = [count, 'STO ' + reg, 'R↓', 'DO', 'AGRAPH ' + pat, 'DSE ' + reg, 'WHILE', 'ENDDO']
+        i = [k for k in range(s, e) if P[k:k + 8] == old]
+        assert len(i) == 1, (count, i)
+        n = 176 if count == 'RCL 63' else 170
+        assert n % times == 0
+        P = P[:i[0]] + [str(n // times), 'STO ' + reg, 'R↓', 'DO'] + ['AGRAPH ' + pat] * times + \
+            ['DSE ' + reg, 'WHILE', 'ENDDO'] + P[i[0] + 8:]
+        e = P.index('END', s)
+        done += 1
+    print('  29_unroll: %d AGRAPH loops of NAV 8 / 10 columns a round' % done)
+    return c47struct.number(P)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
          ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass),
          ('19_struct', struct), ('20_layout', layout), ('21_pixel', pixel_lines),
-         ('22_calls', calls), ('23_box', box), ('24_layout', layout))
+         ('22_calls', calls), ('23_box', box), ('24_layout', layout),
+         ('25_hcz', hcz), ('26_anim', anim_equator), ('27_header', header),
+         ('28_text', text_inline), ('29_unroll', unroll))
 
 
 def _rtn_block(L, start, prog=None):

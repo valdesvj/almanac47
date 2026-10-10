@@ -517,6 +517,8 @@ class Calc:
                 # the firmware (store.c _storeOp, addRemaReal ...): a matrix variable and a number, element by element
                 x = self.s[0]; g = {'STO+': lambda v, y: v + y, 'STO-': lambda v, y: v - y, 'STO×': lambda v, y: v * y, 'STO÷': lambda v, y: v / y}[op]
                 self.mats[arg] = [[g(v, D(x) if isinstance(v, D) else float(x)) for v in r] for r in self.mats[arg]]; self.lift = True; continue
+            if op == 'STRI?':                                   # fnCheckType dtString: true when X is a text
+                pc = self.test(isinstance(self.s[0], str), pc); continue
             if op == 'MATR?':                                   # fnCheckMatrix: true when X is a real or complex matrix
                 pc = self.test(_mc(self.s[0]) and not isinstance(self.s[0], complex), pc); continue
             if op == '42DIM#':                                  # fnGetMatrixDimensions42: X (a matrix) -> Y rows, X columns
