@@ -238,8 +238,147 @@ def _entered(P):
     return False
 
 
+DUPMAX = 5                        # dup: a shared tail of at most this many steps is copied in place of a GTO to it
+
+
+def _tailcode(P, x):
+    """The steps of x's block after its label, up to and with the step that always leaves, when it is short enough to
+    copy (no label, no structure step in it, not a jump back to itself): else None."""
+    a = _label(P, x)
+    j = a + 1
+    while j < len(P) and P[j] != 'END' and not _gone(P, j):
+        if P[j].startswith('LBL ') or op(P[j]) in STRUCT:
+            return None
+        j += 1
+    if j >= len(P) or P[j] == 'END' or j - a > DUPMAX or P[j] == 'GTO ' + x:
+        return None
+    return P[a + 1:j + 1]
+
+
+def _allof(P, x, ks):
+    """The GTO x in ks (each after a test with an opposite) before one step U that always leaves:
+    T1 GTO x A T2 GTO x B ... U  ->  T1' IF A T2' IF B ... U ENDIF ENDIF ..., then x's code: it was right after U,
+    or its detached block moves there (ks are all that name x), else one GTO x."""
+    for k in ks:
+        if not (k > 1 and is_test(P[k - 1]) and invert(P[k - 1]) and not is_test(P[k - 2])):
+            return None
+    u = ks[-1] + 1
+    while u < len(P) and not _gone(P, u):
+        if P[u] == 'END':
+            return None
+        u += 1
+    if u >= len(P) or P[u] == 'END':
+        return None
+    lx = _label(P, x)
+    if ks[0] <= lx <= u:
+        return None
+    every = _refs(P, x) == len(ks)
+    Q = list(P)
+    for k in ks:
+        Q[k - 1:k + 1] = [invert(P[k - 1]), 'IF']
+    tail = ['ENDIF'] * len(ks)
+    if lx == u + 1 and every:
+        return Q[:u + 1] + tail + Q[u + 2:]
+    blk = _block(P, lx)
+    if every and blk and not (blk[0] <= ks[0] <= blk[1]):
+        body = Q[blk[0] + 1:blk[1] + 1]
+        if blk[0] > u:
+            return Q[:u + 1] + tail + body + Q[u + 1:blk[0]] + Q[blk[1] + 1:]
+        return Q[:blk[0]] + Q[blk[1] + 1:u + 1] + tail + body + Q[u + 1:]
+    if len(ks) < 2 and not _tailcode(P, x):
+        return None                                     # one GTO for one GTO: only when that one can be copied (dup)
+    return Q[:u + 1] + tail + ['GTO ' + x] + Q[u + 1:]
+
+
+def _groups(P, x):
+    """The GTO x after a test, in runs that no step that always leaves divides (one all-of each)."""
+    ks = [k for k, l in enumerate(P) if l == 'GTO ' + x and k > 0 and is_test(P[k - 1])]
+    out = []
+    while ks:
+        u = ks[0] + 1
+        while u < len(P) and P[u] != 'END' and not _gone(P, u):
+            u += 1
+        g = [k for k in ks if k < u]
+        out.append(g)
+        ks = ks[len(g):]
+    return out
+
+
+def _opener(P, k):
+    """The index of the innermost structure open at P[k] (None at depth 0)."""
+    stack = []
+    for i in range(k):
+        o = op(P[i])
+        if o in OPENERS:
+            stack.append(i)
+        elif o in ('ENDIF', 'ENDDO', 'UNTIL'):
+            stack.pop()
+    return stack[-1] if stack else None
+
+
+def _closer(P, a):
+    """The index of the step that closes the structure opened at P[a]."""
+    d = 0
+    for i in range(a, len(P)):
+        o = op(P[i])
+        if o in OPENERS:
+            d += 1
+        elif o in ('ENDIF', 'ENDDO', 'UNTIL'):
+            d -= 1
+            if d == 0:
+                return i
+    return None
+
+
 def _candidates(P):
     """Every rewrite that applies, as (rule, new program); the caller keeps the first one VALID accepts."""
+    for k, l in enumerate(P):
+        # steps no jump reaches: after a step that always leaves, up to the next label or structure step
+        if _gone(P, k) and k + 1 < len(P) and P[k + 1] != 'END' and not P[k + 1].startswith('LBL ') \
+                and op(P[k + 1]) not in STRUCT:
+            j = k + 1
+            while P[j] != 'END' and not P[j].startswith('LBL ') and op(P[j]) not in STRUCT:
+                j += 1
+            Q = P[:k + 1] + P[j:]
+            for x in {_num(m) for m in P[k + 1:j] if _num(m) and not m.startswith('LBL ')}:
+                Q = _drop_label(Q, x)                           # a label only the dead steps named goes too
+            yield 'dead', Q
+    for x in sorted({_num(l) for l in P if re.fullmatch(r'GTO \d\d', l)}):
+        for g in _groups(P, x):
+            Q = _allof(P, x, g)
+            if Q:
+                yield 'all-of', Q
+    for k, l in enumerate(P):
+        n = _num(l)
+        if n and l.startswith('GTO ') and not (k > 0 and is_test(P[k - 1])):
+            code = _tailcode(P, n)
+            if code:
+                # dup: GTO x to a short shared tail -> the tail's steps
+                yield 'dup', _drop_label(P[:k] + code + P[k + 1:], n)
+        if n and l.startswith('GTO ') and k > 1 and is_test(P[k - 1]) and invert(P[k - 1]) and not is_test(P[k - 2]) \
+                and _refs(P, n) == 1:
+            o = _opener(P, k)
+            if o is not None and op(P[o]) == 'DO':
+                e = _closer(P, o)
+                tag = P[o].partition(' ')[2]
+                if P[e + 1:e + 2] == ['LBL ' + n]:
+                    # break: T GTO x inside DO ... ENDDO LBL x -> T' WHILE (a DO may hold several WHILE)
+                    yield 'break', _drop_label(P[:k - 1] + [invert(P[k - 1]), ('WHILE ' + tag).strip()] + P[k + 1:], n)
+                else:
+                    blk = _block(P, _label(P, n))
+                    if blk and blk[0] > e:
+                        # the exit block moved right after the ENDDO first
+                        yield 'break', P[:e + 1] + P[blk[0]:blk[1] + 1] + P[e + 1:blk[0]] + P[blk[1] + 1:]
+        if n and l.startswith('GTO ') and k > 0 and is_test(P[k - 1]) and _refs(P, n) == 1:
+            a = _label(P, n)
+            g = k + 1
+            while g < len(P) and P[g] != 'END' and not _gone(P, g):
+                g += 1
+            blk = _block(P, a) if a > g else None
+            if blk and P[g].startswith('GTO ') and a != g + 1 and _num(P[g]) and \
+                    any(P[i] == 'LBL ' + _num(P[g]) for i in range(blk[0], blk[1] + 1)):
+                # pull: T GTO a B GTO b ... LBL a C LBL b D: a's block right after GTO b (then if-else)
+                yield 'pull', P[:g + 1] + P[blk[0]:blk[1] + 1] + P[g + 1:blk[0]] + P[blk[1] + 1:]
     for k, l in enumerate(P):
         n = _num(l)
         if not n or not l.startswith('GTO '):
@@ -250,9 +389,12 @@ def _candidates(P):
         chained = cond and k > 1 and is_test(P[k - 2])               # a test before the test: it can skip the test
         if chained:
             continue
-        if a + 1 < len(P) and P[a + 1] == 'RTN' and P[k + 1:k + 2] != ['RTN']:
+        if a + 1 < len(P) and P[a + 1] == 'RTN':
             # GTO x to LBL x RTN -> RTN
             yield 'rtn', _drop_label(P[:k] + ['RTN'] + P[k + 1:], n)
+        if a + 1 < len(P) and re.fullmatch(r'GTO (\d\d|".+")', P[a + 1]) and P[a + 1] != l:
+            # GTO x to LBL x GTO y -> GTO y
+            yield 'thread', _drop_label(P[:k] + [P[a + 1]] + P[k + 1:], n)
         if not cond and a > k:
             blk = _block(P, a)
             # R5 fall-through: GTO x to a block only it names -> the block in its place
@@ -315,7 +457,8 @@ def _candidates(P):
                 yield 'if block', Q
 
 
-ORDER = ('next', 'rtn', 'fall-through', 'loop', 'while', 'if-else', 'if', 'if block')
+ORDER = ('dead', 'next', 'rtn', 'thread', 'dup', 'fall-through', 'loop', 'while', 'break', 'if-else', 'all-of', 'if',
+         'pull', 'if block')
 
 
 def _rewrite(P, stats):
@@ -329,6 +472,14 @@ def _rewrite(P, stats):
       if-else       T GTO a B GTO b LBL a C LBL b: T' IF B ELSE C ENDIF, else T IF C ELSE B ENDIF
       if            T GTO a A LBL a: T' IF A ENDIF, else T IF ELSE A ENDIF
       if block      T GTO x to a detached block only it names: T IF block ENDIF
+      all-of        T1 GTO x A T2 GTO x ... U: T1' IF A T2' IF ... U ENDIF ENDIF, then x's code (right after U, or
+                    its block moved there) or one GTO x
+      dead          the steps after one that always leaves, up to a label or a structure step: gone
+      thread        GTO x to LBL x GTO y: GTO y
+      dup           GTO x (always taken) to a shared tail of at most DUPMAX steps: the tail's steps
+      break         T GTO x in a DO ... ENDDO with x right after it (or x's detached block moved there): T' WHILE;
+                    the firmware takes several WHILE in one DO (fnWhile: the nearest ENDDO of its number)
+      pull          T GTO a B GTO b with b inside a's detached block: the block right after GTO b (for if-else)
     A test right before the test is left alone (it can skip the test). A label goes when nothing names it any more."""
     tried, stack, T = set(), [], []
     for l in P:                                   # the structures already there: tagged as VALID pairs them
@@ -368,7 +519,20 @@ def structure(L, quiet=False):
 
 
 def gotos(L):
-    """GTO nn left: (decisions and loops, tail calls = GTO nn with RTN right after it)."""
-    g = [i for i, l in enumerate(L) if re.fullmatch(r'GTO \d\d', l)]
-    tail = [i for i in g if L[i + 1] == 'RTN']
-    return len(g) - len(tail), len(tail)
+    """GTO nn left: (decisions and loops, tail calls). A tail call is a GTO no test can skip, to a routine: a label
+    right after a step that always leaves, whose code ends with RTN (XEQ x + RTN made shorter, build_struct step 1)."""
+    dec = tail = 0
+    for P in split(plain(L)):
+        for k, l in enumerate(P):
+            n = _num(l)
+            if not (n and l.startswith('GTO ')):
+                continue
+            a = _label(P, n)
+            j = a + 1
+            while not _gone(P, j):
+                j += 1
+            if not is_test(P[k - 1]) and _gone(P, a - 1) and (P[j] in ('RTN', 'END') or P[j].startswith('GTO "')):
+                tail += 1
+            else:
+                dec += 1
+    return dec, tail

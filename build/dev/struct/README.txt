@@ -92,24 +92,42 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            (arrows (56 - key) / 5 = +1 / -1; a view when |column - 3| <= 1 and |row - 6.5| = 0.5, view
                            (7 - row) * 3 + column - 1, its box at column 202 - 28 * view), a view and its hour arrows one
                            more DO ... ENDDO: no GTO left in NAV. The other programs by the rules of tools/c47struct.py
-                           (each result checked as VALID checks it, no structure entered from outside): GTO nn for
-                           decisions and loops 198 -> 81, the tail calls (GTO nn + a RTN that never runs) 56 -> 51;
-                           numbered labels 553 -> 454, 209 structure steps, 8319 -> 8281 steps. The partner numbers
-                           are written into the file ("IF 01", rejig with the STRUCT patch): the C47 checks only the
-                           last program of a file as it loads. Key wait: DO / PAUSE 50 / KEY? r / WHILE / ENDDO.
+                           (each result checked as VALID checks it, no structure entered from outside): if, if-else,
+                           loop (REPEAT ... T' UNTIL, or DO ... T WHILE ENDDO when T has no opposite: ISG DSE KEY?),
+                           while, break (a second WHILE in a DO: the firmware takes it, fnWhile goes past the nearest
+                           ENDDO of its number), all-of (T1 GTO x ... T2 GTO x ... RTN -> nested IF, x after the ENDIFs),
+                           dup (a shared tail of at most 5 steps copied in place of the GTO), thread, dead steps.
+                           GTO nn for decisions and loops 196 -> 38, tail calls (a GTO no test skips, to a routine that
+                           ends with RTN) 58 -> 23; numbered labels 553 -> 424; 263 structure steps (68 IF, 13 ELSE, 32
+                           DO, 38 WHILE, 6 REPEAT); 8318 -> 8337 steps (the tails copied). The partner numbers are written
+                           into the file ("IF 01", rejig with the STRUCT patch): the C47 checks only the last program of a
+                           file as it loads. Key wait: DO / PAUSE 50 / KEY? r / WHILE / ENDDO.
                            Python sim (tests/test_struct.py): every page, the hour arrows and the menu's keys pixel for
-                           pixel 18_hourglass, the stack clear at the end. Steps run on the six pages + arrows 288393 ->
-                           303044 (+5 %: WHILE after every loop test); the jumps: GTO 19258 -> 3904, ENDDO 13228 (the
-                           ISG / DSE loops: no opposite test, so DO ... ISG WHILE ENDDO), ELSE 126. A STRUCT jump is a
-                           search of the structure steps recorded after the labels (structFindPartner), ENDDO makes two:
-                           time it on the calculator before it goes further. Left: N64 25, N50 11, N04 9, N38 7, N06 6,
-                           N01 5, N28 4, N46 4, N62 3, N25 2, N49 2, N63 2, N61 1 (loops with two ways back or out, jumps
-                           into a block another way reaches too: by hand, like NAV).
+                           pixel 18_hourglass, the stack clear at the end. Left: PTXS 9, HORZ 7, CSUN 4, PHA2 4, HALMH 3,
+                           and 1-2 in ALMF, PLN2, TGET, WPLS, HANIM, ALLSKY, RISE: jumps into a block another way reaches
+                           too, loops with two ways back.
+  20_layout/NAVFULL.txt    + the same steps in another order, for the searches the firmware makes: each program's blocks
+                           (a block starts at a label after a step that always leaves, at structure depth 0) and the
+                           programs ordered by what the pages run (build_struct.profile: the Python sim on the six pages
+                           with the hour arrows and the menu's arrows). A block or program costs every search that passes
+                           over it: its labels for each GTO / XEQ nn landing later (fnGoto scans the labels from the first
+                           program), its structure steps for each STRUCT jump later (structFindPartner; ENDDO / UNTIL scan
+                           twice), its global labels for each named call later, its steps for each return to and named
+                           call into a later place of the same program (fnReturn and goToGlobalStep walk from the
+                           program's start; a named call twice). Adjacent blocks / programs swap while the total falls.
+                           NAV stays first and starts with LBL "NAV"; every program starts with one of its global labels
+                           (the cheapest); labels 01, 02 ... and the structure numbers again in the new order.
+                           Model of that search work on the profiled pages (labels + structure steps + walks):
+                             18_hourglass 8.12 M, 19_struct 7.82 M, 20_layout 5.64 M (-31 % against 18).
+                           Steps run 409919 -> 430059 (+4.9 %: mostly the WHILE after each loop test, which the firmware
+                           runs with its test as one action); jumps: GTO 26667 -> 3192, ENDDO 17997, UNTIL 1052 back.
+                           Pages pixel for pixel 18_hourglass (tests/test_struct.py).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when it was made.
+19_struct and 20_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -186,6 +204,6 @@ Step 11. Firmware sim CPU of the page (vectors kept), release / 7 / 10 / 11: ALM
 Not done yet
   - Free42 and the Python versions of 5_equator, if it is kept (c47sim runs POINT since 19_struct).
   - NAVLITTLE (DM42) and MOON47: the same passes, once a step has shown it pays.
-  - 19_struct: the 81 GTO left (by hand), the program order for the STRUCT jumps (2_order counts real labels), the
-    timing on the C47 (ENDDO against GTO), tests/test_fw.py in the firmware (it knows the STRUCT key wait).
+  - 19_struct / 20_layout: the 38 GTO left (by hand), the timing on the C47 (the model weighs a label, a structure step
+    and a walked step alike; the firmware may not), tests/test_fw.py in the firmware (it knows the STRUCT key wait).
   - Names: worth it only in loops with many named RCL/STO and little calculation.

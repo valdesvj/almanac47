@@ -6,7 +6,7 @@ python/c47sim.py (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL as the firmware ru
   2. c47sim: each structure true and false, the key wait DO / PAUSE / KEY? / WHILE / ENDDO, a test before ENDIF
      (never skipped), a structure without its number (stops)
   3. the rules on small programs: the same results as the GTO version for many inputs
-  4. build/dev/struct/19_struct/NAVFULL.txt: every program VALID, numbers within 255, the same file again from
+  4. build/dev/struct/19_struct and 20_layout (the same steps in another order): every program VALID, numbers within 255, the same file again from
      18_hourglass; every page (FULL, FAST, three dates and places, hour arrows) and the menu's keys pixel for pixel
      18_hourglass, the stack clear at the end; how many structures the pages entered
 
@@ -105,6 +105,12 @@ TOYS = {
     'exit block': ['LBL "T"', 'ABS', 'STO 01', 'LBL 01', 'RCL 01', '10', 'X<Y?', 'GTO 02', 'R↓', '2', '+', 'STO 01',
                    'GTO 01', 'LBL 02', 'R↓', 'RTN', 'END'],
     'rtn': ['LBL "T"', 'X<0?', 'GTO 01', '5', '+', 'LBL 01', 'RTN', 'END'],
+    'break': ['LBL "T"', 'ABS', 'STO 02', '1.010', 'STO 01', '0', 'LBL 01', 'RCL 01', 'IP', '+', 'RCL 02', 'X<Y?', 'GTO 02',
+              'R↓', 'ISG 01', 'GTO 01', 'LBL 02', 'RTN', 'END'],
+    'all-of': ['LBL "T"', 'STO 01', 'X<0?', 'GTO 05', '5', 'X<Y?', 'GTO 05', 'RCL 01', '2', '×', 'RTN', 'LBL 05', 'RCL 01',
+               'CHS', 'RTN', 'END'],
+    'dup': ['LBL "T"', 'X<0?', 'XEQ 01', 'X≥0?', 'XEQ 02', 'RTN', 'LBL 01', '1', '+', 'GTO 03', 'LBL 02', '2', '+', 'LBL 03',
+            '10', '×', 'RTN', 'END'],
 }
 
 
@@ -118,15 +124,20 @@ def rules():
         ok(same and left == 0 and not S.check(Q), '%-10s no GTO left, the same results  %s' % (name, ' '.join(sorted(stats))))
 
 
-def navfull():
+def navfull(step='19_struct'):
     import test_v2 as V
-    print('== build/dev/struct/19_struct against 18_hourglass')
+    print('== build/dev/struct/%s against 18_hourglass' % step)
     A = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', '18_hourglass', 'NAVFULL.txt'))
-    B = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', '19_struct', 'NAVFULL.txt'))
+    B = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', step, 'NAVFULL.txt'))
     faults = [f for P in S.split(B) for f in S.check(P)]
     ok(not faults, 'every program VALID%s' % (': ' + '; '.join(faults[:3]) if faults else ''))
     import build_struct
-    ok(build_struct.struct(A) == B, 'the same file again from 18_hourglass (tools/build_struct.py struct)')
+    again = build_struct.struct(A)
+    if step == '20_layout':
+        again = build_struct.layout(again)
+        P19 = V.lines(os.path.join(ROOT, 'build', 'dev', 'struct', '19_struct', 'NAVFULL.txt'))
+        ok(len(B) == len(P19) and len(S.split(B)) == len(S.split(P19)), 'as many programs and steps as 19_struct')
+    ok(again == B, 'the same file again from 18_hourglass (tools/build_struct.py)')
     ok(S.number(B) == B, 'numbered as VALID numbers them')
     print('  GTO nn for decisions and loops %d -> %d, tail calls %d -> %d'
           % (S.gotos(A)[0], S.gotos(B)[0], S.gotos(A)[1], S.gotos(B)[1]))
@@ -165,7 +176,8 @@ def main():
     unit()
     sim()
     rules()
-    navfull()
+    navfull('19_struct')
+    navfull('20_layout')
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 

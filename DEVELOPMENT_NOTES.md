@@ -832,4 +832,11 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   menu's keys, pixel for pixel; stack clear. tests/test_fw.py replaces the STRUCT key wait in its test copy too.
 - Not run here: rejig with the STRUCT patch (bytes, .p47), the firmware simulator and the calculator (time ENDDO
   against GTO: 13228 ENDDO for 19258 GTO on the test pages).
+- Optimized more (same day): new rules (break: a second WHILE in a DO, which fnWhile handles; all-of: the cache
+  checks T1 GTO x ... T2 GTO x ... RTN as nested IF; dup: shared tails of up to 5 steps copied; thread; dead steps,
+  with the labels only they named) -> GTO for decisions and loops 196 -> 38, tail calls 58 -> 23. And step
+  20_layout (build_struct.layout, profile): blocks and programs ordered by the Python sim's counts of what the
+  firmware searches (labels for GTO / XEQ nn, structure steps for STRUCT jumps, global labels for named calls, steps
+  walked by RTN and named calls). Model of that work on the profiled pages: 18_hourglass 8.12 M, 19_struct 7.82 M,
+  20_layout 5.64 M. Steps run +4.9 % (the WHILE after loop tests). Every program still starts with a global label.
 

@@ -972,11 +972,181 @@ def struct(L):
     return renumber(L)
 
 
+# the pages profiled for step 20: each page with the hour arrows, and the menu's arrows (keys as tests/test_v2.K)
+PROFILE = [[k, 51, 61, 85, 82] for k in (72, 73, 74, 62, 63, 64)] + [[51, 61, 82]]
+STRUCT_TARGETS = ('ELSE', 'ENDIF', 'DO', 'ENDDO', 'REPEAT', 'UNTIL')       # recorded after the labels (structured.c)
+
+
+def profile(L):
+    """What the firmware searches, per line of L, on the PROFILE pages (Python simulator): {kind: Counter(line)}.
+      label   GTO / XEQ nn reaching that label: a scan of the labels before it, from the first program
+      named   XEQ / GTO "name" reaching it: the global labels before it, then twice a walk from its program's start
+      rtn     a return to the step after that XEQ: a walk from its program's start
+      struct  a STRUCT jump to that structure step: a scan of the structure steps before it (from the first program)
+      back    ENDDO / UNTIL going back from that line: two scans of the structure steps before it"""
+    import test_v2 as V
+    import c47sim
+    from decimal import Decimal as D
+    out = {k: collections.Counter() for k in ('label', 'named', 'rtn', 'struct', 'back')}
+    for keys in PROFILE:
+        c = V.T.load(L, 'FULL')
+        for k, v in V.INPUTS:
+            c.reg[k] = D(v)
+        a = c.lines.index(L[0])
+        assert len(c.lines) - a == len(L)
+        calls = []
+
+        def count(op, x, c=c):
+            i = c.at
+            if op in ('GTO', 'XEQ') and not c.lines[i][4:].startswith('IND'):
+                arg = c.lines[i][4:]
+                out['named' if arg.startswith('"') else 'label'][c.labels[arg.strip('"')] - a] += 1
+            if op == 'XEQ':
+                calls.append(i)
+            if op in ('RTN', 'END') and calls:
+                out['rtn'][calls.pop() - a] += 1
+        c.count = count
+        jump = c.struct
+
+        def struct(op, arg, pc, c=c, jump=jump):
+            r = jump(op, arg, pc)
+            if r != pc:
+                if op in ('ENDDO', 'UNTIL'):
+                    out['back'][pc - 1 - a] += 1
+                else:
+                    out['struct'][r - 1 - a] += 1
+            return r
+        c.struct = struct
+        c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+    return out
+
+
+def _depth0_blocks(P):
+    """A program's blocks that can move: each starts with a label right after a step that always leaves (at structure
+    depth 0) and runs to the next such label. [(start, end)] over P[1:-1]; the first (entry) and a last one that runs
+    into END stay where they are."""
+    import c47struct as C
+    starts, d = [], 0
+    for i, l in enumerate(P):
+        o = C.op(l)
+        if o in C.OPENERS:
+            d += 1
+        elif o in ('ENDIF', 'ENDDO', 'UNTIL'):
+            d -= 1
+        if d == 0 and i > 1 and l.startswith('LBL ') and C._gone(P, i - 1):
+            starts.append(i)
+    bounds = [0] + starts + [len(P) - 1]
+    return [(bounds[j], bounds[j + 1]) for j in range(len(bounds) - 1)]
+
+
+def layout(L):
+    """The searches of step 19 made shorter, without changing a step: the programs ordered, and inside each program
+    its blocks (_depth0_blocks; NAV's first stays first, a last one that runs into END stays last), by the PROFILE
+    counts. A block or program costs every search that passes over
+    it: its labels for each GTO / XEQ nn that lands later, its structure steps for each STRUCT jump later (ENDDO /
+    UNTIL twice), its global labels for each named call later, its steps for each return to and named call into a
+    later place in the same program (a named call twice). Adjacent blocks (programs) swap while that lowers the total; then the cost of the whole is printed."""
+    import c47struct as C
+    import c47struct
+    TGT = lambda l: C.op(l) in STRUCT_TARGETS
+
+    def weights(P, off, prof):
+        """Per line of P: (step events, label events, structure events) that pay for what lies before them."""
+        w = []
+        for i in range(len(P)):
+            g = off + i
+            w.append((prof['rtn'][g] + 2 * prof['named'][g], prof['label'][g], prof['struct'][g] + 2 * prof['back'][g],
+                      prof['named'][g]))
+        return w
+
+    def size(seg):
+        return (len(seg), sum(1 for l in seg if l.startswith('LBL ')), sum(1 for l in seg if TGT(l)),
+                sum(1 for l in seg if l.startswith('LBL "')))
+
+    def wsum(ws):
+        return tuple(sum(x[k] for x in ws) for k in range(4))
+
+    def better_first(a, b):
+        """True when unit a before unit b costs less than b before a (each unit: (size, weight))."""
+        (sa, wa), (sb, wb) = a, b
+        return sum(wb[k] * sa[k] for k in range(4)) < sum(wa[k] * sb[k] for k in range(4))
+
+    def inner(units):
+        """The cost of one program's block order: each block's weights times the sizes of the blocks before it."""
+        c, before = 0, [0, 0, 0, 0]
+        for _, sz, ws in units:
+            c += sum(ws[k] * before[k] for k in range(4))
+            before = [before[k] + sz[k] for k in range(4)]
+        return c
+
+    def order(units, fixed_first, fixed_last):
+        u = list(units)
+        lo, hi = (1 if fixed_first else 0), len(u) - (1 if fixed_last else 0)
+        changed = True
+        while changed:
+            changed = False
+            for j in range(lo, hi - 1):
+                if better_first((u[j + 1][1], u[j + 1][2]), (u[j][1], u[j][2])) and \
+                        not better_first((u[j][1], u[j][2]), (u[j + 1][1], u[j + 1][2])):
+                    u[j], u[j + 1] = u[j + 1], u[j]
+                    changed = True
+        return u
+
+    def cost(Lx):
+        prof = profile(Lx)
+        total, pos = 0, collections.Counter()
+        lab = ent = glob = 0
+        progstart = 0
+        for i, l in enumerate(Lx):
+            if i and Lx[i - 1] == 'END':
+                progstart = i
+            total += prof['label'][i] * lab + (prof['struct'][i] + 2 * prof['back'][i]) * ent
+            total += prof['rtn'][i] * (i - progstart) + prof['named'][i] * (glob + 2 * (i - progstart))
+            lab += l.startswith('LBL ')
+            glob += l.startswith('LBL "')
+            ent += TGT(l)
+        return total, prof
+
+    before, prof = cost(L)
+    progs, off = [], 0
+    for P in split(L):
+        w = weights(P, off, prof)
+        blocks = _depth0_blocks(P)
+        units = [(P[a:b], size(P[a:b]), wsum(w[a:b])) for a, b in blocks]
+        last_runs_on = not C._gone(P, len(P) - 2)
+        if P[0] == 'LBL "NAV"':                                          # NAV starts with LBL "NAV": what you run
+            units = order(units, True, last_runs_on)
+        else:                                                            # a program starts with a global label: the
+            best = None                                                  # best one first, the rest ordered after it
+            for g in [j for j, x in enumerate(units) if x[0][0].startswith('LBL "')]:
+                if last_runs_on and g == len(units) - 1 and len(units) > 1:
+                    continue
+                cand = order([units[g]] + units[:g] + units[g + 1:], True, last_runs_on)
+                c = inner(cand)
+                if best is None or c < best[0]:
+                    best = (c, cand)
+            units = best[1]
+        Q = [l for seg, _, _ in units for l in seg] + ['END']
+        assert sorted(Q) == sorted(P) and not C.check(Q), name(P)
+        progs.append((Q, size(Q), wsum(w)))
+        off += len(P)
+    # programs: what an earlier program costs a later one: its labels, its global labels (named calls), its
+    # structure steps; NAV stays first (its LBL "NAV" is what the user runs)
+    units = [(Q, (0, sz[1], sz[2], sz[3]), (0, ws[1], ws[2], ws[3])) for Q, sz, ws in progs]
+    units = order(units, True, False)
+    out = [l for Q, _, _ in units for l in Q]
+    after, _ = cost(out)
+    print('  20_layout: search work (labels, structure steps, walks) on the profiled pages %d -> %d (%+.1f %%)'
+          % (before, after, 100.0 * (after - before) / before))
+    return c47struct.number(renumber(out))                 # the structures numbered again in their new order (VALID)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
          ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass),
-         ('19_struct', struct))
+         ('19_struct', struct), ('20_layout', layout))
 
 
 def _rtn_block(L, start, prog=None):
