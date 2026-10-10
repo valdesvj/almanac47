@@ -262,6 +262,14 @@ def _allof(P, x, ks):
     for k in ks:
         if not (k > 1 and is_test(P[k - 1]) and invert(P[k - 1]) and not is_test(P[k - 2])):
             return None
+    lx = _label(P, x)
+    if _refs(P, x) == len(ks) and lx > ks[-1] and not any(
+            _gone(P, j) or P[j].startswith('LBL ') or P[j] == 'END' for j in range(ks[-1] + 1, lx)):
+        # the code after the last GTO x runs into LBL x: the ENDIFs stand where the label was
+        Q = list(P)
+        for k in ks:
+            Q[k - 1:k + 1] = [invert(P[k - 1]), 'IF']
+        return Q[:lx] + ['ENDIF'] * len(ks) + Q[lx + 1:]
     u = ks[-1] + 1
     while u < len(P) and not _gone(P, u):
         if P[u] == 'END':
@@ -469,7 +477,8 @@ def _rewrite(P, stats):
       if            T GTO a A LBL a: T' IF A ENDIF, else T IF ELSE A ENDIF
       if block      T GTO x to a detached block only it names: T IF block ENDIF
       all-of        T1 GTO x A T2 GTO x ... U: T1' IF A T2' IF ... U ENDIF ENDIF, then x's code (right after U, or
-                    its block moved there) or one GTO x
+                    its block moved there) or one GTO x; or T1 GTO x A T2 GTO x B LBL x (B runs into x): the
+                    ENDIFs in the label's place
       dead          the steps after one that always leaves, up to a label or a structure step: gone
       thread        GTO x to LBL x GTO y: GTO y
       dup           GTO x (always taken) to a shared tail of at most DUPMAX steps: the tail's steps

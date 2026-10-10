@@ -184,11 +184,19 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            pages + an hour arrow each: 199769 -> 131253 (-34 %); trig values 2876 -> 2587 (the pages now
                            compute their own stars: +20 on ALMANAC, SPLIT, SKY; the menu none). Search work 8.12 M ->
                            2.91 M. 8865 steps in the file (8318 in 18: the routines written in place).
+  38_stars/NAVFULL.txt     + the star cache's lists (ALMANAC, SPLIT, SKY: the stars by brightness until enough are over
+                           the horizon): the order SBRT (N47, rank -> star by GTO IND into 58 labels, called by name)
+                           is now the 58 x 1 matrix SBR, read with INDEX / STOIJ / RCLEL. NAV makes SBR when it is not a
+                           matrix (0 STO+ "SBR", MATR?) and keeps it like ALMC and the star vectors. And in 19_struct the
+                           lists' 'skip this star' jumps (T GTO x ... T GTO x ... LBL x before the loop's ISG) are nested
+                           IF: c47struct's all-of rule takes GTOs that meet at the label the code runs into. 39_layout.
+                           Labels 437 -> 378 (the 58 of SBRT); search work 3.08 M -> 3.03 M; ALMANAC's star loop has no
+                           GTO left. Pages pixel for pixel (fixed places and 8 random ones).
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct to 37_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+19_struct to 39_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
 were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)

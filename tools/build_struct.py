@@ -1496,17 +1496,17 @@ def dots_visible(L):
     import c47struct as C
     P = C.plain(L)
     done = []
-    for prog, step, mat, n, cnt, call, plot in (('N04', '6', 'U2', 60, '10', 'XEQ 03', 'XEQ 08'),
-                                                ('N06', '9', 'U3', 40, '01', 'XEQ 04', 'XEQ 10')):
+    for prog, step, mat, n in (('N04', '6', 'U2', 60), ('N06', '9', 'U3', 40)):
         s = P.index('LBL "%s"' % prog)
         while s > 0 and P[s - 1] != 'END':
             s -= 1
         e = P.index('END', s)
-        old = ['RCL 46', step, 'XEQ "N77"', None, 'STO ' + cnt, 'DO', call, 'RCL 09', '1E-4', 'X<Y?', plot, 'ISG ' + cnt,
-               'WHILE', 'ENDDO']
+        old = ['RCL 46', step, 'XEQ "N77"', None, None, 'DO', None, 'RCL 09', '1E-4', 'X<Y?', None, None, 'WHILE', 'ENDDO']
         i = [k for k in range(s, e) if all(o is None or P[k + j] == o for j, o in enumerate(old))]
         assert len(i) == 1, prog
         i = i[0]
+        cnt, call, plot = P[i + 4][4:], P[i + 6], P[i + 10]
+        assert P[i + 4].startswith('STO ') and P[i + 11] == 'ISG ' + cnt and call.startswith('XEQ ') and plot.startswith('XEQ ')
         lab = P[P.index('LBL ' + call[4:], s) + 2][4:]                  # LBL 03: XEQ "N78", GTO 07 (the conversion)
         conv = P.index('LBL ' + lab, s)
         body = P[conv + 1:P.index('RTN', conv)]
@@ -1557,6 +1557,44 @@ def menu_stars(L):
     return C.number(P)
 
 
+def star_order(L):
+    """SBRT (N47: the stars by brightness, rank -> star number) as a 58 x 1 matrix SBR in place of GTO IND into 58
+    labels (a search through as many labels as the rank, and a call by name and a return each time). NAV makes SBR
+    when it is not a matrix (0 STO+ "SBR" creates it as a number the first time; MATR?) and keeps it like ALMC and the
+    star vectors. The star lists of ALMANAC, SPLIT and SKY read it with INDEX / STOIJ / RCLEL. N47 and its 58 labels go."""
+    import c47struct as C
+    P = C.plain(L)
+    const = {}
+    s = P.index('LBL "NAV"')
+    for i in range(s + 1, s + 200):
+        m = re.fullmatch(r'STO (\d\d)', P[i])
+        if m and re.fullmatch(r'-?[\d.]+', P[i - 1]):
+            const[m.group(1)] = P[i - 1]
+    a = P.index('LBL "N47"')
+    assert P[a - 1] == 'END' and P[a + 1:a + 3] == ['STO 01', 'GTO IND 01']
+    e = P.index('END', a)
+    tab = {}
+    for k in range(a, e):
+        m = re.fullmatch(r'LBL (\d\d)', P[k])
+        if m:
+            v = P[k + 1]
+            tab[int(m.group(1))] = const[v[4:]] if v.startswith('RCL ') else v
+            assert P[k + 2] in ('RTN', 'END')
+    assert sorted(tab) == list(range(1, 59)) and sorted(int(v) for v in tab.values()) == list(range(1, 59))
+    P = P[:a] + P[e + 1:]
+    sites = [k for k, l in enumerate(P) if l == 'XEQ "N47"']
+    assert len(sites) == 3
+    for k in reversed(sites):
+        assert re.fullmatch(r'RCL \d\d', P[k - 2]) and P[k - 1] == 'IP' and P[k + 1:k + 3] == ['STO 22', 'XEQ "N68"']
+        P = P[:k - 2] + ['INDEX "SBR"', P[k - 2], 'IP', '1', 'STOIJ', 'RCLEL'] + P[k + 1:]
+    j = P.index('DELITM "ALMQ"', s)
+    make = (['0', 'STO+ "SBR"', 'RCL "SBR"', 'MATR?', 'IF', 'ELSE', '58', 'ENTER', '1', 'NEWMAT', 'STO "SBR"',
+             'INDEX "SBR"', '1', 'ENTER', 'STOIJ'] + [x for r in range(1, 59) for x in (tab[r], 'STOSEQ')] + ['ENDIF'])
+    P = P[:j + 1] + make + P[j + 1:]
+    print('  38_stars: the stars by brightness as the matrix SBR (N47 and its 58 labels gone)')
+    return C.number(P)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
@@ -1566,7 +1604,8 @@ STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), (
          ('25_hcz', hcz), ('26_anim', anim_equator), ('27_header', header),
          ('28_text', text_inline), ('29_unroll', unroll), ('30_named', named_inline), ('31_layout', layout),
          ('32_format', formats), ('33_dots', dots), ('34_dots', dots_visible),
-         ('35_layout', layout), ('36_menu', menu_stars), ('37_layout', layout))
+         ('35_layout', layout), ('36_menu', menu_stars), ('37_layout', layout),
+         ('38_stars', star_order), ('39_layout', layout))
 
 
 def _rtn_block(L, start, prog=None):

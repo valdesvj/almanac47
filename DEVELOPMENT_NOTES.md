@@ -855,4 +855,6 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   charts on whole columns (M.GETM, element by element, M.PUTM, then RCLSEQ RCLSEQ POINT; c47sim: IP on a matrix),
   the menu without its CSQK loop over the 58 stars, the order twice more. Warm, one view each: ALMANAC 13800 -> 9036
   steps, SPLIT 17738 -> 10372, SKY 15626 -> 7742, ANIM 31032 -> 19407, ALLSKY 23650 -> 15557. 8865 steps in the file.
+- Steps 38-39 (star cache): SBRT as the matrix SBR (NAV makes it once, kept), N47 and its 58 labels gone; the
+  'skip this star' GTOs of the star lists as nested IF (all-of rule: GTOs that meet at the label the code runs into).
 
