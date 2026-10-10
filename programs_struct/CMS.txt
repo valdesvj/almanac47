@@ -1,0 +1,22 @@
+LBL "N85"
+REM "CMS - compass row S W N E S of a chart, south up (X row)"
+19
+"S"
+XEQ "N79"
+DROP
+112
+"W"
+XEQ "N79"
+DROP
+206
+"N"
+XEQ "N79"
+DROP
+300
+"E"
+XEQ "N79"
+DROP
+394
+"S"
+XEQ "N79"
+END

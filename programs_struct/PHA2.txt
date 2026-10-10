@@ -1,0 +1,188 @@
+LBL "N46"
+REM "PHA2 - Moon phase after SUNA: illumination % and age in days"
+DEG
+RCL 62
+RCL- 38
+RCL 36
+SIN
+6.289
+×
+-
+RCL 05
+SIN
+2.1
+×
++
+RCL 38
+RCL 44
+×
+RCL- 36
+SIN
+1.274
+×
+-
+RCL 38
+RCL 44
+×
+SIN
+0.658
+×
+-
+RCL 36
+RCL 44
+×
+SIN
+0.214
+×
+-
+RCL 38
+SIN
+0.11
+×
+-
+COS
+STO 09
+RCL 38
+RCL 45
+MOD
+12.190749
+÷
+STO 10
+RCL 46
+STO 11
+REPEAT
+  RCL 05
+  RCL 10
+  0.98560028
+  ×
+  -
+  STO 07
+  RCL 36
+  RCL 10
+  13.064993
+  ×
+  -
+  STO 15
+  RCL 37
+  RCL 10
+  13.2293505
+  ×
+  -
+  STO 16
+  RCL 15
+  SIN
+  -0.4072
+  ×
+  RCL 07
+  SIN
+  0.17241
+  ×
+  +
+  RCL 15
+  RCL 44
+  ×
+  SIN
+  0.01608
+  ×
+  +
+  RCL 16
+  RCL 44
+  ×
+  SIN
+  0.01039
+  ×
+  +
+  RCL 15
+  RCL- 07
+  SIN
+  0.00739
+  ×
+  +
+  RCL 15
+  RCL+ 07
+  SIN
+  -0.00514
+  ×
+  +
+  RCL 07
+  RCL 44
+  ×
+  SIN
+  0.00208
+  ×
+  +
+  RCL 15
+  RCL 16
+  RCL 44
+  ×
+  -
+  SIN
+  -0.00111
+  ×
+  +
+  RCL 15
+  RCL 16
+  RCL 44
+  ×
+  +
+  SIN
+  -0.00057
+  ×
+  +
+  RCL 15
+  RCL 44
+  ×
+  RCL+ 07
+  SIN
+  0.00056
+  ×
+  +
+  RCL 10
+  X<>Y
+  -
+  STO 07
+  RCL 11
+  X≠0?
+  IF
+    REM "second pass: a negative age takes the one before"
+    RCL 07
+    X<0?
+    IF
+      RCL 01
+      STO 07
+    ENDIF
+    1
+  ELSE
+    RCL 07
+    X≥0?
+    IF
+      RCL 65
+      X≥Y?
+      IF
+        1
+      ELSE
+        RCL 44
+        STO 11
+        RCL 07
+        STO 01
+        RCL 95
+        STO- 10
+        0
+      ENDIF
+    ELSE
+      RCL 43
+      STO 11
+      RCL 95
+      STO+ 10
+      0
+    ENDIF
+  ENDIF
+  X≠0?
+UNTIL
+RCL 07
+RCL 09
+RCL 43
++
+50
+×
+END

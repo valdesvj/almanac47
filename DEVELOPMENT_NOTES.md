@@ -862,3 +862,23 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   FIXED: _tag gave one tag to all the structures of one rewrite (a later crossing could pass check()). 40_nogoto: the
   tail calls by name and SNMU's GTO IND as calls too (no GTO at all; +2.6 % search work). Steps 32-34 made shape-free.
 
+
+## Oct 10, 2026 - The STRUCT source: programs_struct/ (branch c47-struct-src)
+Victor: Elements 47 uses STRUCT better (the source written in it); here every routine in STRUCT in the source, indented,
+without copied code, all at once.
+- programs_struct/: the 34 programs of the C47 NAVFULL, one file each (named after the program: NAV, CSUN, ALMF ...),
+  written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, two spaces per level, without partner numbers, REM lines for
+  every global label (name and what it does). No GTO of any kind: a code end shared by several branches is a routine
+  they call (XEQ nn then RTN), never copied in place (no 'dup' rule); the tail calls by name and SNMU's GTO IND are
+  calls. Same behaviour as build/dev/struct/18_hourglass (its optimizations 1-18 are in it).
+- Made from 18_hourglass by tools/c47struct.py without its copying rules (dup, if dup), then by hand: PHA2's new-moon
+  search one REPEAT ... UNTIL (the converter had left a GTO back into it), NAV's main part and WPLS as in 19_struct.
+  The order of the programs and of the routines in each file is build_struct.py layout()'s (the searches), labels
+  01, 02 ... in order, so the source and the calculator's listing match step for step.
+- tools/build_struct_src.py: REM and indentation out, every program checked as VALID checks it, no GTO, numbers
+  written -> build/dev/struct_src/NAVFULL.txt. tests/test_struct_src.py: the build of the source, no GTO, no numbers,
+  the indentation; every page (3 places, FULL / FAST, arrows), the menu's keys and 16 random dates and places pixel
+  for pixel 18_hourglass, the stack clear.
+- 8346 steps (18_hourglass 8318, 19_struct 8520), 495 labels, 124 structures (IF 82, DO 33, REPEAT 9), 0 GTO.
+  Sim with an hour arrow: steps run +3-10 % on 18_hourglass (ENDIF / ENDDO and the RTN after a shared end count as
+  steps), search work 8.17 M -> 6.33 M (20_layout 5.80 M). The speed steps 21-41 are not in it yet.

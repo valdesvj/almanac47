@@ -1,0 +1,22 @@
+LBL "N84"
+REM "CMN - compass row N E S W N of a chart (X row)"
+19
+"N"
+XEQ "N79"
+DROP
+112
+"E"
+XEQ "N79"
+DROP
+206
+"S"
+XEQ "N79"
+DROP
+300
+"W"
+XEQ "N79"
+DROP
+394
+"N"
+XEQ "N79"
+END

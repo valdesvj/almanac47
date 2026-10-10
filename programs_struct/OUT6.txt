@@ -1,0 +1,8 @@
+LBL "N91"
+REM "OUT6 - steps shared by several routines (tools/navmat.py outline)"
+RCL 73
+XEQ "N83"
+-221
+RCL 46
+PIXEL
+END

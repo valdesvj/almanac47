@@ -1,0 +1,122 @@
+LBL "N38"
+REM "RISE - sunrise time UT (SUNRISE program)"
+XEQ 01
+RCL 85
+STO 29
+XEQ 02
+RTN
+LBL "N39"
+REM "SET - sunset time UT"
+XEQ 01
+RCL 43
+STO 29
+XEQ 02
+RTN
+LBL "N44"
+REM "TRAN - meridian passage of the Sun, UT"
+XEQ 03
+RCL 46
+STO 29
+XEQ 02
+RTN
+LBL "N40"
+REM "NTWA - nautical twilight, morning, UT"
+XEQ 03
+-12
+STO 28
+RCL 85
+STO 29
+XEQ 02
+RTN
+LBL "N41"
+REM "NTWP - nautical twilight, evening, UT"
+XEQ 03
+-12
+STO 28
+RCL 43
+STO 29
+XEQ 02
+RTN
+LBL 01
+XEQ 03
+-0.8333333333333333
+STO 28
+RTN
+LBL 02
+RCL 29
+RCL 93
+×
+12
++
+STO 31
+RCL 50
+STO 05
+DO
+  RCL 31
+  RCL 70
+  ÷
+  RCL+ 25
+  XEQ "N16"
+  STO 08
+  R↓
+  STO 09
+  RCL 46
+  RCL 29
+  X≠0?
+  IF
+    RCL 28
+    SIN
+    RCL 14
+    SIN
+    RCL 09
+    SIN
+    ×
+    -
+    RCL 14
+    COS
+    RCL 09
+    COS
+    ×
+    ÷
+    STO 09
+    ABS
+    RCL 43
+    X<Y?
+    IF
+      XEQ 04
+      RTN
+    ENDIF
+    RCL 09
+    ACOS
+    RCL× 29
+  ENDIF
+  RCL- 08
+  RCL- 13
+  540
+  +
+  RCL 45
+  MOD
+  RCL 62
+  -
+  RCL 48
+  ÷
+  STO+ 31
+  ABS
+  0.0003
+  X<Y?
+WHILE
+  DSE 05
+WHILE
+ENDDO
+RCL 31
+RTN
+LBL 03
+STO 13
+R↓
+STO 14
+R↓
+STO 25
+RTN
+LBL 04
+99
+END

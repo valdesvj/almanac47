@@ -1,0 +1,822 @@
+LBL "N67"
+REM "CSTR - star R82 from the cache"
+XEQ 06
+XEQ 05
+RCLEL
+J-
+RCLEL
+RTN
+LBL "N78"
+REM "CEQR - celestial equator of the charts: next dot (from ALMQ, or HCZR and record)"
+RCL "G4"
+6
+X≠Y?
+IF
+  INDEX "U3"
+ELSE
+  INDEX "U2"
+ENDIF
+RCL "U9"
+RCL 43
+STOIJ
++
+STO "U9"
+RCLSEQ
+STO 09
+RCLSEQ
+STO "V4"
+RCLEL
+STO 05
+RCL 05
+RCL 09
+RTN
+LBL "N68"
+REM "CSQK - star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks"
+INDEX "ALMC"
+STO "V0"
+RCL 93
++
+RCL 51
+STOIJ
+RCLEL
+-98
+X≠Y?
+IF
+  X<>Y
+  -99
+  X≠Y?
+  IF
+    X<>Y
+    8.999740983204436
+    X≤Y?
+    IF
+      RCL 43
+      RTN
+    ENDIF
+  ENDIF
+  RCL 46
+  RTN
+ENDIF
+INDEX "SXH"
+RCL "V0"
+RCL 51
+STOIJ
+RCLEL
+RCL 92
+X≤Y?
+IF
+  RCL "V0"
+  XEQ "N97"
+  RCL 43
+  RTN
+ENDIF
+INDEX "ALMC"
+RCL 22
+RCL 93
++
+RCL 51
+STOIJ
+-99
+STOEL
+RCL 46
+RTN
+LBL "N69"
+REM "CHCZ - Hc Zn from the cache for the body just read (else the real HCZ)"
+STO "V0"
+X<>Y
+STO "V1"
+INDEX "ALMC"
+RCL "KR"
+RCL 43
+STOIJ
+RCLSEQ
+RCL "V0"
+X=Y?
+IF
+  RCLSEQ
+  RCL "V1"
+  X=Y?
+  IF
+    RCLSEQ
+    STO 09
+    SIN
+    STO "V4"
+    RCLEL
+    STO 05
+    RCL 09
+    RTN
+  ENDIF
+ENDIF
+XEQ 18
+RTN
+LBL "N71"
+REM "CNTA - nautical twilight am from the cache (the five sun times: computed once per date and place)"
+XEQ 04
+69
+RCL 43
+XEQ 17
+RTN
+LBL "N66"
+REM "CPLN - planet from the cache"
+INDEX "ALMC"
+RCL 44
++
+XEQ 05
+RCLEL
+J-
+RCLEL
+RTN
+LBL 01
+RCL "Q1"
+RCL "V0"
+X=Y?
+IF
+  RCL "H8"
+  RCL "H7"
+  RCL "H9"
+  XEQ 09
+  RTN
+ENDIF
+XEQ 18
+RTN
+LBL 02
+STO "W7"
+RCL 14
+STO "P3"
+RCL 13
+STO "P4"
+RCL 85
+STO "U0"
+DROP
+RCL "W7"
+XEQ "N15"
+XEQ 15
+RCL 46
+STO "W9"
+FS? 12
+XEQ 22
+XEQ 13
+RCL 39
+STOSEQ
+RCL 34
+STOSEQ
+RCL 02
+STOSEQ
+RCL 35
+STOSEQ
+RCL 03
+STOSEQ
+RCL 04
+STOSEQ
+RCL 15
+STOSEQ
+RCL "U7"
+STOSEQ
+RCL "W5"
+STOSEQ
+RCL "U4"
+STOSEQ
+RCL "U5"
+STOSEQ
+RCL "U6"
+STOEL
+INDEX "ALMC"
+65
+RCL 43
+STOIJ
+RCL "V7"
+STOEL
+RCL 02
+RCL+ 13
+RCL 43
+→REC
+STO "G2"
+X<>Y
+STO "G3"
+XEQ "N95"
+XEQ "N46"
+STO "W8"
+X<>Y
+STO "P5"
+INDEX "ALMC"
+66
+RCL 43
+STOIJ
+RCL "W8"
+STOSEQ
+RCL "P5"
+STOEL
+XEQ 07
+INDEX "ALMC"
+RCL 43
+XEQ 10
+RCL 85
+STO "U1"
+DROP
+XEQ "N25"
+XEQ 15
+R↓
+STO "W8"
+FS? 11
+XEQ 23
+XEQ 08
+INDEX "ALMC"
+RCL 44
+XEQ 10
+XEQ 16
+RCL "V7"
+STOSEQ
+RCL "W8"
+STOSEQ
+RCL "W9"
+STOEL
+RCL 43
+STO 07
+REPEAT
+  RCL 85
+  STO "Q1"
+  DROP
+  RCL 07
+  XEQ "N29"
+  XEQ 11
+  X<>Y
+  XEQ 01
+  INDEX "ALMC"
+  RCL 07
+  RCL 44
+  +
+  XEQ 10
+  RCL 43
+  STO+ 07
+  RCL 66
+  RCL 07
+  X>Y?
+UNTIL
+XEQ 12
+RCL "W7"
+STOSEQ
+RCL "P3"
+STOSEQ
+RCL "P4"
+STOEL
+RTN
+LBL "N65"
+REM "CMOO - Moon from the cache"
+XEQ 16
+RCLSEQ
+STO "V7"
+RCLSEQ
+STO "W8"
+CF 11
+RCLEL
+RCL 44
+MOD
+X≠0?
+SF 11
+RCL 44
+XEQ 05
+RCL "W8"
+RCL "V7"
+RCLEL
+J-
+RCLEL
+RTN
+LBL "N72"
+REM "CRIS - sunrise from the cache"
+XEQ 04
+69
+RCL 44
+XEQ 17
+RTN
+LBL "N73"
+REM "CTRN - meridian passage from the cache"
+XEQ 04
+69
+RCL 51
+XEQ 17
+RTN
+LBL "N74"
+REM "CSET - sunset from the cache"
+XEQ 04
+69
+RCL 66
+XEQ 17
+RTN
+LBL "N75"
+REM "CNTP - nautical twilight pm from the cache"
+XEQ 04
+70
+RCL 43
+XEQ 17
+RTN
+LBL "N64"
+REM "CSUN - Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place"
+STO "W7"
+XEQ 12
+RCLSEQ
+RCL "W7"
+X=Y?
+IF
+  RCLSEQ
+  RCL 14
+  X=Y?
+  IF
+    RCLEL
+    RCL 13
+    X=Y?
+    IF
+      XEQ 03
+      RTN
+    ENDIF
+  ENDIF
+ENDIF
+RCL "W7"
+XEQ 02
+LBL 03
+XEQ 13
+RCLSEQ
+STO 05
+RCLSEQ
+STO 01
+RCLSEQ
+STO 02
+RCLSEQ
+STO 07
+RCLSEQ
+STO 03
+RCLSEQ
+STO 04
+RCLSEQ
+STO 15
+RCLSEQ
+STO "U7"
+RCLSEQ
+STO "W5"
+RCLSEQ
+STO "U4"
+RCLSEQ
+STO "U5"
+RCLEL
+STO "U6"
+CF 12
+65
+RCL 66
+STOIJ
+RCLEL
+RCL 44
+X≤Y?
+SF 12
+65
+RCL 43
+STOIJ
+RCLEL
+STO "V7"
+RCL 43
+XEQ 05
+RCL "V7"
+RCLEL
+J-
+RCLEL
+RTN
+LBL 04
+STO "V8"
+R↓
+STO "V9"
+R↓
+STO "W0"
+XEQ 25
+RCLSEQ
+RCL "W0"
+X=Y?
+IF
+  RCLSEQ
+  RCL "V9"
+  X=Y?
+  IF
+    RCLEL
+    RCL "V8"
+    X=Y?
+    IF
+      RTN
+    ENDIF
+  ENDIF
+ENDIF
+XEQ 14
+XEQ "N40"
+STO "K1"
+XEQ 14
+XEQ "N38"
+STO "K2"
+XEQ 14
+XEQ "N44"
+STO "K3"
+XEQ 14
+XEQ "N39"
+STO "K4"
+XEQ 14
+XEQ "N41"
+STO "K5"
+INDEX "ALMC"
+69
+RCL 43
+STOIJ
+RCL "K1"
+STOSEQ
+RCL "K2"
+STOSEQ
+RCL "K3"
+STOSEQ
+RCL "K4"
+STOSEQ
+RCL "K5"
+STOEL
+XEQ 25
+RCL "W0"
+STOSEQ
+RCL "V9"
+STOSEQ
+RCL "V8"
+STOEL
+RTN
+LBL 05
+STO "KR"
+RCL 44
+STOIJ
+RTN
+LBL 06
+INDEX "ALMC"
+RCL 22
+RCL 93
++
+RTN
+LBL 07
+RCL "U0"
+RCL "V0"
+X=Y?
+IF
+  RCL "F2"
+  RCL "F1"
+  RCL "F3"
+  XEQ 09
+  RTN
+ENDIF
+XEQ 18
+RTN
+LBL 08
+RCL "U1"
+RCL "V0"
+X=Y?
+IF
+  RCL "F8"
+  RCL "F7"
+  RCL "F9"
+  XEQ 09
+  RTN
+ENDIF
+XEQ 18
+RTN
+LBL "N77"
+REM "CEQQ - celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)"
+STO "Q9"
+X<>Y
+STO "Q0"
+X<>Y
+RCL "Q9"
+9
+X=Y?
+IF
+  XEQ 19
+  RTN
+ENDIF
+RCL "Q9"
+6
+X=Y?
+IF
+  XEQ 20
+  RTN
+ENDIF
+RTN
+LBL "N70"
+REM "CPHA - Moon phase from the cache"
+INDEX "ALMC"
+66
+RCL 44
+STOIJ
+RCLEL
+J-
+RCLEL
+RTN
+LBL 09
+STO "G6"
+R↓
+STO "G7"
+R↓
+STO "G8"
+RCL "G6"
+RCL× "G2"
+RCL "G7"
+RCL× "G3"
++
+STO "M2"
+RCL× "V6"
+RCL "G8"
+RCL× "W1"
++
+STO "G9"
+RCL "G8"
+RCL× "V6"
+RCL "M2"
+RCL× "W1"
+-
+RCL "G6"
+RCL× "G3"
+RCL "G7"
+RCL× "G2"
+-
+X<>Y
+→POL
+X<>Y
+CHS
+RCL 45
+MOD
+STO 05
+DROP
+RCL "G9"
+X<>Y
+→POL
+RCL "G9"
+X<>Y
+÷
+STO "V4"
+DROP
+STO 09
+RTN
+LBL 10
+RCL 43
+STOIJ
+RCL "V0"
+STOSEQ
+RCL "V1"
+STOSEQ
+RCL 09
+STOSEQ
+RCL 05
+STOEL
+RTN
+LBL 11
+STO "V0"
+X<>Y
+STO "V1"
+RTN
+LBL 12
+INDEX "ALMC"
+67
+RCL 43
+STOIJ
+RTN
+LBL 13
+INDEX "ALMC"
+71
+RCL 43
+STOIJ
+RTN
+LBL 14
+RCL "W0"
+RCL "V9"
+RCL "V8"
+RTN
+LBL 15
+STO "V0"
+R↓
+STO "V1"
+R↓
+STO "V7"
+RTN
+LBL 16
+INDEX "ALMC"
+65
+RCL 44
+STOIJ
+RTN
+LBL 17
+INDEX "ALMC"
+STOIJ
+RCLEL
+RTN
+LBL 18
+RCL "V1"
+RCL "V0"
+XEQ "N32"
+RTN
+LBL 19
+9
+STO "G4"
+RCL 43
+STO "U9"
+RCL 14
+RCL "KQA3"
+X=Y?
+IF
+  RCL 13
+  RCL "P6"
+  X=Y?
+  IF
+    RCL "Q0"
+    RCL "P7"
+    X=Y?
+    IF
+      RTN
+    ENDIF
+  ENDIF
+ENDIF
+RCL 14
+STO "KQA3"
+RCL 13
+STO "P6"
+RCL "Q0"
+STO "P7"
+40
+XEQ 21
+STO "U3"
+RTN
+LBL 20
+6
+STO "G4"
+RCL 43
+STO "U9"
+RCL 14
+RCL "KQA2"
+X=Y?
+IF
+  RCL 13
+  RCL "P8"
+  X=Y?
+  IF
+    RCL "Q0"
+    RCL "P9"
+    X=Y?
+    IF
+      RTN
+    ENDIF
+  ENDIF
+ENDIF
+RCL 14
+STO "KQA2"
+RCL 13
+STO "P8"
+RCL "Q0"
+STO "P9"
+60
+XEQ 21
+STO "U2"
+RTN
+LBL 21
+STO "M0"
+10
+÷
+STO "G5"
+RCL "Q9"
+RCL 43
+→REC
+X<>Y
+COMPLEX
+STO "M1"
+STO "W2"
+RCL "Q0"
+RCL+ 13
+RCL 43
+→REC
+X<>Y
+COMPLEX
+RCL 43
+RCL 43
+NEWMAT
+X<>Y
++
+STO "V2"
+RCL 43
+STO "V5"
+REPEAT
+  RCL "V5"
+  RCL 44
+  ×
+  RCL 43
+  NEWMAT
+  ENTER
+  COMPLEX
+  STO "W3"
+  INDEX "W3"
+  RCL "V2"
+  M.PUTM
+  RCL "V5"
+  RCL 43
+  +
+  RCL 43
+  STOIJ
+  RCL "V2"
+  RCL× "W2"
+  M.PUTM
+  RCL "W2"
+  x²
+  STO "W2"
+  RCL "V5"
+  RCL 44
+  ×
+  STO "V5"
+  RCL "W3"
+  STO "V2"
+  10
+  RCL "V5"
+  X≥Y?
+UNTIL
+INDEX "V2"
+10
+RCL 43
+M.GETM
+STO "V2"
+RCL "Q9"
+10
+×
+RCL 43
+→REC
+X<>Y
+COMPLEX
+STO "W2"
+RCL "M0"
+RCL 51
+NEWMAT
+STO "W3"
+RCL 43
+STO "V5"
+REPEAT
+  INDEX "W3"
+  RCL "V5"
+  RCL 43
+  STOIJ
+  RCL "V2"
+  Re
+  RCL× "V6"
+  0.99999999999999999999999999999
+  ×
+  ASIN
+  M.PUTM
+  RCL "V5"
+  RCL 44
+  STOIJ
+  RCL "V2"
+  Re
+  RCL× "V6"
+  M.PUTM
+  RCL "V5"
+  RCL 51
+  STOIJ
+  RCL "V2"
+  Re
+  RCL× "W1"
+  CHS
+  RCL "V2"
+  Im
+  COMPLEX
+  ∡
+  CHS
+  RCL 45
+  MOD
+  M.PUTM
+  RCL "V2"
+  RCL× "W2"
+  STO "V2"
+  10
+  STO+ "V5"
+  RCL "G5"
+  RCL 43
+  -
+  STO "G5"
+  X=0?
+UNTIL
+RCL "W3"
+DELITM "W3"
+DELITM "V2"
+DELITM "M1"
+DELITM "W2"
+RTN
+LBL 22
+RCL "W9"
+RCL 44
++
+STO "W9"
+RTN
+LBL 23
+RCL "W9"
+RCL 43
++
+STO "W9"
+RTN
+LBL 24
+XEQ 18
+RTN
+LBL 25
+INDEX "ALMC"
+68
+RCL 43
+STOIJ
+END

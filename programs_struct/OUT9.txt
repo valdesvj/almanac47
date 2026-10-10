@@ -1,0 +1,9 @@
+LBL "N94"
+REM "OUT9 - steps shared by several routines (tools/navmat.py outline)"
+WSIZE 16
+RCL 51
+STO 01
+GRMOD 01
+11111111111111#2
+STO 01
+END

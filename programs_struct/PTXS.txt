@@ -1,0 +1,395 @@
+LBL "N50"
+REM "PTXS - TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text"
+LBL 01
+⇄ zyxt
+RCL 66
+-
+X<>Y
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+RTN
+LBL 02
+48
++
+STO 11
+XEQ IND 11
+STO 11
+RTN
+LBL 03
+STO 07
+RCL 50
+÷
+IP
+αIP 11
+RCL 07
+XEQ 10
+RTN
+LBL "N80"
+REM "PTNT - TEXT: whole number in the tinyFont"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+ABS
+RCL 56
++
+IP
+XEQ 05
+RCL 10
+RCL 01
+RCL 11
+⇄ zyxt
+X<>Y
+XEQ 06
+RTN
+LBL "N52"
+REM "PF1S - TEXT: number with one decimal"
+XEQ 08
+RCL 07
+ABS
+RCL 50
+×
+RCL 56
++
+IP
+STO 06
+RCL 50
+÷
+IP
+XEQ 05
+"."
+x→α 11
+RCL 06
+XEQ 10
+LBL 04
+RCL 10
+RCL 01
+RCL 11
+XEQ 01
+RTN
+LBL 05
+STO 16
+RCL 50
+RCL 16
+X≥Y?
+IF
+  RCL 64
+  RCL 16
+  X≥Y?
+  IF
+    RCL 16
+    RCL 64
+    ÷
+    IP
+    XEQ 02
+    RCL 16
+    RCL 64
+    MOD
+    XEQ 03
+    RTN
+  ENDIF
+  RCL 16
+  RCL 50
+  ÷
+  IP
+  XEQ 02
+  RCL 16
+  XEQ 10
+  RTN
+ENDIF
+RCL 16
+XEQ 02
+RTN
+LBL "N51"
+REM "PINS - TEXT: whole number (one ATEXT)"
+XEQ 08
+RCL 07
+ABS
+RCL 56
++
+IP
+XEQ 05
+XEQ 04
+RTN
+LBL "N55"
+REM "PDTS - TEXT: date 'dd-mm-yyyy' from a Julian Date"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+J→ⅅℸ
+R↓
+STO 11
+DAY
+STO 06
+RCL 11
+MONTH
+STO 07
+RCL 11
+YEAR
+STO 16
+RCL 06
+RCL 50
+÷
+IP
+XEQ 02
+RCL 06
+RCL 50
+MOD
+αIP 11
+"-"
+x→α 11
+RCL 07
+XEQ 03
+"-"
+x→α 11
+RCL 16
+RCL 64
+÷
+IP
+XEQ 03
+RCL 16
+RCL 64
+MOD
+XEQ 03
+XEQ 04
+RTN
+LBL "N53"
+REM "PHMS - TEXT: hh:mm from hours"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+98
+X≥Y?
+IF
+  RCL 07
+  RCL 57
+  ×
+  RCL 56
+  +
+  IP
+  STO 06
+  RCL 57
+  ÷
+  IP
+  RCL 70
+  MOD
+  STO 16
+  RCL 50
+  ÷
+  IP
+  XEQ 02
+  RCL 16
+  RCL 50
+  MOD
+  αIP 11
+  ":"
+  x→α 11
+  RCL 06
+  RCL 57
+  MOD
+  XEQ 03
+ELSE
+  "--:--"
+  STO 11
+ENDIF
+XEQ 04
+RTN
+LBL "N54"
+REM "PDMS - TEXT: degrees and minutes 'ddd mm.m' with sign"
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RCL 07
+ABS
+600
+×
+RCL 56
++
+IP
+STO 16
+600
+÷
+IP
+STO 06
+600
+×
+STO- 16
+99
+RCL 06
+X≤Y?
+IF
+  " "
+  STO 11
+  9
+  RCL 06
+  X≤Y?
+  IF
+    " "
+    x→α 11
+  ENDIF
+  XEQ 07
+  x→α 11
+ELSE
+  XEQ 07
+  STO 11
+ENDIF
+RCL 06
+αIP 11
+" "
+x→α 11
+RCL 16
+RCL 50
+÷
+IP
+XEQ 03
+"."
+x→α 11
+RCL 16
+RCL 50
+MOD
+αIP 11
+XEQ 04
+RTN
+LBL "N56"
+REM "PZNS - TEXT: azimuth 'ddd.d'"
+XEQ 08
+RCL 07
+RCL 50
+×
+RCL 56
++
+IP
+STO 16
+RCL 54
+X≤Y?
+XEQ 09
+RCL 16
+1000
+÷
+IP
+XEQ 02
+RCL 16
+RCL 50
+÷
+IP
+RCL 64
+MOD
+XEQ 03
+"."
+x→α 11
+RCL 16
+XEQ 10
+XEQ 04
+RTN
+LBL "N79"
+REM "PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text"
+⇄ zyxt
+X<>Y
+LBL 06
+RCL 50
+GRFNT
+DROP
+ATEXT Z
+21
+GRFNT
+DROP
+RTN
+LBL "N57"
+REM "PHLS - horizontal line (X = length in pixels)"
+STO 05
+R↓
+STO 01
+R↓
+STO 07
+RCL 05
+400
+X>Y?
+IF
+  WSIZE 8
+  1#2
+  STO 09
+  RCL 07
+  RCL 01
+  DO
+    AGRAPH 09
+    DSE 05
+  WHILE
+  ENDDO
+ELSE
+  RCL 07
+  CHS
+  RCL 46
+  PIXEL
+ENDIF
+WSIZE 64
+RCL 07
+RCL 01
+RTN
+LBL 07
+RCL 07
+X≥0?
+IF
+  " "
+  RTN
+ENDIF
+"-"
+RTN
+LBL 08
+STO 07
+R↓
+STO 01
+R↓
+STO 10
+RTN
+LBL 09
+RCL 46
+STO 16
+RTN
+LBL 48
+"0"
+RTN
+LBL 49
+"1"
+RTN
+LBL 50
+"2"
+RTN
+LBL 51
+"3"
+RTN
+LBL 52
+"4"
+RTN
+LBL 53
+"5"
+RTN
+LBL 54
+"6"
+RTN
+LBL 55
+"7"
+RTN
+LBL 56
+"8"
+RTN
+LBL 57
+"9"
+RTN
+LBL 10
+RCL 50
+MOD
+αIP 11
+END

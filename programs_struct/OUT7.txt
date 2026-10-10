@@ -1,0 +1,12 @@
+LBL "N92"
+REM "OUT7 - steps shared by several routines (tools/navmat.py outline)"
+RCL 45
+MOD
+375
+×
+RCL 45
+÷
+RCL 55
++
+IP
+END

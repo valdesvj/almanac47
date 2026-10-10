@@ -1,0 +1,716 @@
+LBL "NAV"
+REM "NAV - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program"
+1
+STO 43
+2
+STO 44
+360
+STO 45
+0
+STO 46
+16
+STO 47
+15
+STO 48
+17
+STO 49
+10
+STO 50
+3
+STO 51
+117
+STO 52
+116
+STO 53
+3600
+STO 54
+20
+STO 55
+0.5
+STO 56
+60
+STO 57
+212
+STO 58
+207
+STO 59
+143
+STO 60
+142
+STO 61
+180
+STO 62
+176
+STO 63
+100
+STO 64
+27
+STO 65
+4
+STO 66
+51
+STO 67
+26
+STO 68
+25
+STO 69
+24
+STO 70
+90
+STO 71
+238
+STO 72
+226
+STO 73
+34
+STO 74
+30
+STO 75
+395
+STO 76
+363
+STO 77
+360.98564736629
+STO 78
+332
+STO 79
+301
+STO 80
+270
+STO 81
+145
+STO 82
+113
+STO 83
+8
+STO 84
+-1
+STO 85
+184
+STO 86
+82
+STO 87
+5
+STO 88
+280.46061837
+STO 89
+2451545
+STO 90
+241
+STO 91
+0.15643
+STO 92
+6
+STO 93
+388
+STO 94
+29.530589
+STO 95
+199
+STO 96
+164
+STO 97
+150
+STO 98
+SSIZE#
+STO "F0"
+SSIZE8
+RCL 85
+STO "U0"
+STO "U1"
+STO "H0"
+STO "Q1"
+RCL 46
+STO "Q2"
+STO "U2"
+STO "U3"
+RCL 46
+RCL 43
+COMPLEX
+STO "C1"
+RCL 46
+𝜋
+RCL 62
+÷
+COMPLEX
+STO "C2"
+STO "ALMQ"
+DELITM "ALMQ"
+0
+STO+ "ALMC"
+RCL "ALMC"
+MATR?
+42DIM#
+×
+292
+X≠Y?
+IF
+  73
+  ENTER
+  RCL 66
+  NEWMAT
+  STO "ALMC"
+ENDIF
+RCL 43
+STO "KR"
+999
+STO "KQA3"
+STO "KQA2"
+RCL 46
+STO "W4"
+XEQ 12
+21
+GRFNT
+DROP
+CLLCD
+XEQ 05
+XEQ 01
+XEQ 03
+DO
+  DO
+    PAUSE 50
+    KEY? 08
+  WHILE
+  ENDDO
+  RCL 08
+  RCL 87
+  X≠Y?
+WHILE
+  RCL 08
+  54
+  X=Y?
+  IF
+    SNAP
+  ELSE
+    RCL 08
+    56
+    -
+    ABS
+    5
+    X=Y?
+    IF
+      56
+      RCL- 08
+      5
+      ÷
+      STO+ "W4"
+      XEQ 05
+      XEQ 01
+      XEQ 03
+    ELSE
+      RCL 08
+      RCL 50
+      MOD
+      STO 12
+      3
+      -
+      ABS
+      1
+      X≥Y?
+      IF
+        RCL 08
+        RCL 50
+        ÷
+        IP
+        STO 02
+        6.5
+        -
+        ABS
+        0.5
+        X=Y?
+        IF
+          7
+          RCL- 02
+          RCL 51
+          ×
+          RCL+ 12
+          RCL 43
+          -
+          STO 02
+          STO "V3"
+          6
+          X=Y?
+          IF
+            174
+            STO 12
+            202
+            STO 02
+            XEQ 13
+            PAUSE 0
+            XEQ 05
+          ELSE
+            RCL 02
+            28
+            ×
+            202
+            X<>Y
+            -
+            XEQ 07
+          ENDIF
+          DO
+            RCL 46
+            STO 08
+            RCL 43
+            RCL "V3"
+            X=Y?
+            IF
+              XEQ 06
+              XEQ "N01"
+            ELSE
+              RCL 44
+              RCL "V3"
+              X=Y?
+              IF
+                XEQ 06
+                XEQ "N06"
+              ELSE
+                RCL 51
+                RCL "V3"
+                X=Y?
+                IF
+                  XEQ 06
+                  XEQ "N04"
+                ELSE
+                  RCL 66
+                  RCL "V3"
+                  X=Y?
+                  IF
+                    XEQ 06
+                    XEQ "N61"
+                  ELSE
+                    RCL 88
+                    RCL "V3"
+                    X=Y?
+                    IF
+                      XEQ 06
+                      XEQ "N62"
+                    ELSE
+                      CLLCD
+                      216
+                      RCL 84
+                      "ALMANAC 47 - INFO"
+                      XEQ "N50"
+                      RCL 86
+                      RCL 84
+                      "GITHUB.COM/VALDESVJ/ALMANAC47"
+                      XEQ "N50"
+                      168
+                      RCL 84
+                      "COPYRIGHT 2026 VICTOR VALDES"
+                      XEQ "N50"
+                      152
+                      RCL 84
+                      "FREE SOFTWARE: GNU GPL V3 OR LATER"
+                      XEQ "N50"
+                      120
+                      RCL 84
+                      "NO WARRANTY - IT MAY HAVE BUGS AND"
+                      XEQ "N50"
+                      104
+                      RCL 84
+                      "ALWAYS CROSS-CHECK THE VALUES"
+                      XEQ "N50"
+                      88
+                      RCL 84
+                      "WITH THE NAUTICAL ALMANAC"
+                      XEQ "N50"
+                      56
+                      RCL 84
+                      "THE ANTS ARE WAITING FOR A FLAG"
+                      XEQ "N50"
+                      36
+                      RCL 44
+                      "+ MENU"
+                      XEQ 02
+                      XEQ "N63"
+                    ENDIF
+                  ENDIF
+                ENDIF
+              ENDIF
+            ENDIF
+            RCL 08
+            56
+            -
+            ABS
+            5
+            X=Y?
+            IF
+              56
+              RCL- 08
+              5
+              ÷
+              STO+ "W4"
+            ENDIF
+            XEQ 05
+            RCL 08
+            56
+            -
+            ABS
+            5
+            X=Y?
+          WHILE
+          ENDDO
+          XEQ 03
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+ENDDO
+CLLCD
+DELITM "Q2"
+DELITM "U2"
+DELITM "U3"
+DELITM "C1"
+DELITM "C2"
+XEQ 11
+CLREGS
+CLSTK
+RTN
+LBL 01
+XEQ 06
+STO 13
+R↓
+STO 14
+R↓
+STO 17
+XEQ "N36"
+RCL 17
+XEQ "N64"
+RCL 17
+RCL 56
+-
+IP
+RCL 56
++
+RCL 14
+RCL 13
+XEQ "N71"
+RCL 43
+STO 22
+REPEAT
+  RCL 22
+  XEQ "N68"
+  RCL 43
+  STO+ 22
+  58
+  RCL 22
+  X>Y?
+UNTIL
+RTN
+LBL 02
+XEQ "N50"
+22
+RCL 46
+400
+XEQ "N57"
+RCL 88
+RCL 44
+"DOES NOT REPLACE THE NAUTICAL ALMANAC"
+XEQ "N50"
+RTN
+LBL 03
+XEQ 06
+CLLCD
+224
+RCL 44
+"ALMANAC 47"
+XEQ "N50"
+224
+230
+"VALID "
+XEQ "N50"
+RCL "VAL"
+XEQ "N50"
+RCL 04
+RCL 03
+RCL 02
+206
+XEQ "N83"
+200
+RCL 46
+400
+XEQ "N57"
+RCL 63
+RCL 47
+"1 ALMANAC"
+XEQ "N50"
+148
+RCL 47
+"2 SPLIT"
+XEQ "N50"
+120
+RCL 47
+"3 SKY"
+XEQ "N50"
+92
+RCL 47
+"4 ANIM"
+XEQ "N50"
+64
+RCL 47
+"5 ALLSKY"
+XEQ "N50"
+RCL 63
+206
+"6 INFO"
+XEQ "N50"
+148
+206
+"0 END"
+XEQ "N50"
+36
+RCL 44
+"KEY A NUMBER   + MENU   ↑↓ ±1 HOUR   9 SNAP"
+XEQ 02
+RTN
+LBL 04
+WSIZE 32
+RCL 44
+XEQ 09
+RCL 62
+STO 04
+R↓
+DO
+  AGRAPH 03
+  DSE 04
+WHILE
+ENDDO
+RCL 46
+XEQ 09
+AGRAPH 03
+AGRAPH 03
+110000000000000000000000000011#2
+STO 03
+R↓
+RCL 63
+STO 07
+R↓
+DO
+  AGRAPH 03
+  DSE 07
+WHILE
+ENDDO
+XEQ 10
+AGRAPH 03
+AGRAPH 03
+WSIZE 64
+114
+140
+"SINKING....ABOUT"
+XEQ "N50"
+PAUSE 0
+RTN
+LBL 05
+RCL 73
+370
+"⌛"
+XEQ "N50"
+RCL 46
+FS? 47
+RCL 55
+STO 02
+XEQ 04
+RCL 02
+X=0?
+RTN
+DO
+  XEQ 14
+  PAUSE 1
+  DSE 02
+WHILE
+ENDDO
+RTN
+LBL 06
+RCL "DATE"
+x→ⅅ
+ⅅ→J
+RCL 56
+-
+STO 02
+RCL "UTC"
+10000
+×
+RCL 56
++
+IP
+STO 03
+RCL 64
+MOD
+RCL 54
+÷
+RCL 03
+RCL 64
+÷
+IP
+RCL 64
+MOD
+RCL 57
+÷
++
+RCL 03
+10000
+÷
+IP
++
+STO 03
+RCL 70
+÷
+STO+ 02
+RCL "W4"
+RCL 70
+÷
+STO+ 02
+RCL "LAT"
+XEQ 08
+STO 03
+RCL "LON"
+XEQ 08
+STO 04
+RCL 02
+RCL 03
+RCL 04
+RTN
+LBL 07
+STO 12
+12
+STO 02
+XEQ 13
+PAUSE 0
+XEQ 05
+RTN
+LBL 08
+STO 04
+IP
+RCL 04
+FP
+RCL 64
+×
+RCL 57
+÷
++
+RTN
+LBL 09
+STO 03
+GRMOD 03
+105
+110
+111111111111111111111111111111#2
+STO 03
+R↓
+RTN
+LBL 10
+111111111111111111111111111111#2
+STO 03
+R↓
+RTN
+LBL 11
+RCL 55
+GRFNT
+DROP
+RCL "F0"
+RCL 66
+X=Y?
+SSIZE4
+RTN
+LBL 12
+"DATE YYYY.MMDD"
+STO 02
+FS? 'DMY'
+XEQ 18
+FS? 'MDY'
+XEQ 19
+CLSTK
+RCL 02
+INPUT "DATE"
+CLSTK
+"UT HH.MMSS"
+INPUT "UTC"
+CLSTK
+"LAT DD.MMm  S -"
+INPUT "LAT"
+CLSTK
+"LON DDD.MMm  W -"
+INPUT "LON"
+CLSTK
+RTN
+LBL 13
+WSIZE 18
+RCL 51
+STO 01
+GRMOD 01
+1111111111111111#2
+STO 01
+RCL 12
+RCL 02
+170
+STO 02
+R↓
+DO
+  AGRAPH 01
+  DSE 02
+WHILE
+ENDDO
+RCL 46
+STO 01
+GRMOD 01
+WSIZE 64
+RTN
+LBL 14
+XEQ 16
+RAN#
+390
+×
+IP
+STO 06
+RAN#
+RCL 62
+×
+IP
+RCL 55
++
+STO 12
+RCL 12
+RCL 06
+XEQ 15
+XEQ 17
+RTN
+LBL 15
+XEQ 20
+00111100111111#2
+STO 03
+R↓
+AGRAPH 03
+AGRAPH 03
+AGRAPH 03
+AGRAPH 03
+AGRAPH 03
+AGRAPH 03
+XEQ 20
+RTN
+LBL 16
+WSIZE 16
+RCL 51
+STO 03
+GRMOD 03
+RTN
+LBL 17
+RCL 46
+STO 03
+GRMOD 03
+WSIZE 64
+RTN
+LBL 18
+"DATE DD.MMYYYY"
+STO 02
+RTN
+LBL 19
+"DATE MM.DDYYYY"
+STO 02
+RTN
+LBL 20
+11000000000000#2
+STO 03
+R↓
+AGRAPH 03
+AGRAPH 03
+END
