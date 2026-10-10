@@ -800,3 +800,36 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
 - tools/tests_calc/TSTRUCT.txt (gen_tstruct.py, TSTRUCT_README.txt): near against far GTO / XEQ, local against
   global XEQ, RCL / STO numbered, named and local, timed with TICKS. Runs in c47sim (flow only). To run on the
   C47 and the DM42n with NAVFULL / NAVLITTLE loaded; the results decide whether a reordered dev build is worth it.
+
+## Oct 10, 2026 - STRUCT: the C47's IF / DO / REPEAT in NAVFULL (branch c47-struct)
+
+- From the Elements 47 hand-off (elements47 PR #6): the control flow in the C47 STRUCT commands, C47 only. Here
+  as a step of build/dev/struct (19_struct, from 18_hourglass), not in programs/: Free42 has no STRUCT and its
+  build is not touched. The old-hardware DM42 build of the firmware allows 10 structures of a kind per program
+  (STRUCT_MAX_NUMBER 10, nesting 10), so NAVLITTLE stays as it is.
+- The firmware (c43 master eb8fd0a, src/c47/programming/structured.c): IF / WHILE / UNTIL read the answer of the test
+  right before them (fused: the test does not skip); ELSE ENDIF DO ENDDO REPEAT UNTIL are never skipped by a test
+  (structNoLegacySkip), so no test right before ELSE ENDIF DO ENDDO REPEAT (UNTIL takes one, like WHILE: the
+  hand-off's list had UNTIL in it). A STRUCT jump searches the structure steps recorded after the labels
+  (structFindPartner: those of the earlier programs, then its own); ENDDO and UNTIL search twice. Partner numbers
+  1-255 per program, IF / DO / REPEAT in three series in the order of the openers; VALID refuses a structure across
+  RTN + LBL.
+- tools/c47struct.py: check() as VALID (+ the no-skip rule), number(), plain(), indent(), and structure(): GTO
+  decisions and loops -> STRUCT by rules (fall-through of a block only one GTO names, GTO to LBL RTN -> RTN, the
+  loop LBL ... T GTO -> REPEAT ... T' UNTIL or DO ... T WHILE ENDDO when T has no opposite (ISG DSE KEY? MATR?),
+  the while loop with its exit block moved after it, if-else, if, T GTO block -> T IF block ENDIF); each result
+  must pass check() and no structure may be entered by a GTO / XEQ from outside it. The new structure steps carry
+  a tag while it works, so that two structures that would cross (and pair the other way under VALID) are refused.
+- build_struct.nav_main: NAV's main part by hand (the key loop as one DO ... ENDDO, the end key before its WHILE,
+  the keys by arithmetic, a view and its arrows one DO ... ENDDO). 0 GTO in NAV, 81 left elsewhere (N64 25, N50 11
+  ...), 51 tail calls (GTO nn + a dead RTN) kept on purpose.
+- python/c47sim.py: IF ELSE ENDIF DO WHILE ENDDO REPEAT UNTIL with their numbers (a missing number stops, as on
+  the calculator), every test through Calc.test() (the fused answer, no skip of a structure step), KEY? as a test;
+  POINT (3 x 3, fnPoint), [M]⊤, CLREGS; CLLCDxy clears from column |X| to the right and from row |Y| up (fnClLcd;
+  it cleared whole rows). Steps 8-18 now run in c47sim too (they needed [M]⊤ and POINT).
+- tests/test_struct.py: the checker, the simulator's structures, the rules on small programs against their GTO
+  versions, and 19_struct against 18_hourglass: every page, FULL / FAST, three places, the hour arrows and the
+  menu's keys, pixel for pixel; stack clear. tests/test_fw.py replaces the STRUCT key wait in its test copy too.
+- Not run here: rejig with the STRUCT patch (bytes, .p47), the firmware simulator and the calculator (time ENDDO
+  against GTO: 13228 ENDDO for 19258 GTO on the test pages).
+

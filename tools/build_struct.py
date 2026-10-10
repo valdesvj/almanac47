@@ -395,7 +395,7 @@ def mstars(L):
     os.makedirs(d, exist_ok=True)
     for init in ('NAVINIT_FULL', 'NAVINIT_FAST'):
         n = navinit_mstars(os.path.join(ROOT, 'build', init + '.txt'), os.path.join(d, init + '.txt'))
-        print('  8_mstars: %s with SXA SXD, %d bytes' % (init, n))
+        print('  8_mstars: %s with SXA SXD, %s bytes' % (init, n or '? (no rejig)'))
     print('  8_mstars: stars by matrix in CALC (N95), CSQK reads the exact Hc')
     return L + P
 
@@ -748,10 +748,235 @@ def hourglass(L):
     return L
 
 
+# NAV's main part with STRUCT (step 19): the menu's key loop as one DO ... ENDDO (the end key tested before its WHILE),
+# the keys decoded by arithmetic, a view and its hour arrows as one more DO ... ENDDO. The routines stay as they are.
+NAV_MAIN = """XEQ 14
+XEQ 05
+XEQ 09
+DO
+  DO
+    PAUSE 50
+    KEY? 08
+  WHILE
+  ENDDO
+  RCL 08
+  RCL 87
+  X≠Y?
+WHILE
+  RCL 08
+  54
+  X=Y?
+  IF
+    SNAP
+  ELSE
+    RCL 08
+    56
+    -
+    ABS
+    5
+    X=Y?
+    IF
+      56
+      RCL- 08
+      5
+      ÷
+      STO+ "W4"
+      XEQ 14
+      XEQ 05
+      XEQ 09
+    ELSE
+      RCL 08
+      RCL 50
+      MOD
+      STO 12
+      3
+      -
+      ABS
+      1
+      X≥Y?
+      IF
+        RCL 08
+        RCL 50
+        ÷
+        IP
+        STO 02
+        6.5
+        -
+        ABS
+        0.5
+        X=Y?
+        IF
+          7
+          RCL- 02
+          RCL 51
+          ×
+          RCL+ 12
+          RCL 43
+          -
+          STO 02
+          STO "V3"
+          6
+          X=Y?
+          IF
+            174
+            STO 12
+            202
+            STO 02
+            XEQ 42
+            PAUSE 0
+            XEQ 14
+          ELSE
+            RCL 02
+            28
+            ×
+            202
+            X<>Y
+            -
+            XEQ 13
+          ENDIF
+          DO
+            RCL 46
+            STO 08
+            RCL 43
+            RCL "V3"
+            X=Y?
+            IF
+              XEQ 16
+              XEQ "N01"
+            ELSE
+              RCL 44
+              RCL "V3"
+              X=Y?
+              IF
+                XEQ 16
+                XEQ "N06"
+              ELSE
+                RCL 51
+                RCL "V3"
+                X=Y?
+                IF
+                  XEQ 16
+                  XEQ "N04"
+                ELSE
+                  RCL 66
+                  RCL "V3"
+                  X=Y?
+                  IF
+                    XEQ 16
+                    XEQ "N61"
+                  ELSE
+                    RCL 88
+                    RCL "V3"
+                    X=Y?
+                    IF
+                      XEQ 16
+                      XEQ "N62"
+                    ELSE
+%s
+                    ENDIF
+                  ENDIF
+                ENDIF
+              ENDIF
+            ENDIF
+            RCL 08
+            56
+            -
+            ABS
+            5
+            X=Y?
+            IF
+              56
+              RCL- 08
+              5
+              ÷
+              STO+ "W4"
+            ENDIF
+            XEQ 14
+            RCL 08
+            56
+            -
+            ABS
+            5
+            X=Y?
+          WHILE
+          ENDDO
+          XEQ 09
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+ENDDO
+CLLCD
+DELITM "Q2"
+DELITM "U2"
+DELITM "U3"
+DELITM "C1"
+DELITM "C2"
+XEQ 29
+CLREGS
+CLSTK
+RTN"""
+
+
+def _block_of(P, lab):
+    """The lines from LBL lab to the first RTN or GTO after it (a routine or a jump target's block)."""
+    a = P.index(lab)
+    b = a + 1
+    while not (P[b] == 'RTN' or P[b].startswith('GTO ')):
+        b += 1
+    return a, b
+
+
+def nav_main(L):
+    """NAV's main part in STRUCT (NAV_MAIN): the same screens as step 18 (tests/test_struct.py), the stack and the
+    scratch registers along the way may differ (CLREGS and CLSTK at the end). The keys: 0 ends, 9 SNAP, ↑ ↓ the hour
+    ((56 - key) / 5 = +1 / -1) and the sky again, a digit key (row r = key / 10, column c = key mod 10) is a view
+    when |c - 3| <= 1 and |r - 6.5| = 0.5: view (7 - r) * 3 + c - 1 = 1-6 (a 7-9 key, row 5: none); its box at
+    column 202 - 28 * view (6: the whole bar). In a view the arrows draw it again one hour on, any other key goes back
+    to the menu. Then labels 01, 02 ... again (step 13)."""
+    s = L.index('LBL "NAV"')
+    e = L.index('END', s)
+    P = L[s:e + 1]
+    i = P.index('XEQ 14')
+    assert P[i - 1] == 'CLLCD' and P[i + 1:i + 6] == ['XEQ 05', 'LBL 02', 'XEQ 09', 'LBL 03', 'PAUSE 50'], P[i - 1:i + 6]
+    a05 = P.index('LBL 05')
+    assert P[a05 - 2:a05] == ['LBL 04', 'GTO 03']
+    a17 = P.index('LBL 17')
+    routines = P[a05:a17]                                            # LBL 05 ... LBL 16 (the calculation, the menu)
+    a29, b29 = _block_of(P, 'LBL 29')
+    a38 = P.index('LBL 38')
+    a33, b33 = _block_of(P, 'LBL 33')
+    info = P[a33 + 1:b33]                                            # the INFO page, up to its GTO 21
+    assert info[-2:] == ['XEQ 08', 'XEQ "N63"'] and P[b33] == 'GTO 21'
+    gone = {l[4:] for l in P[i:a38] if re.fullmatch(r'LBL \d\d', l)} - {l[4:] for l in routines + P[a29:b29 + 1] if l.startswith('LBL ')}
+    assert gone == {'%02d' % n for n in [2, 3, 4] + list(range(17, 29)) + list(range(30, 38))}, sorted(gone)
+    main = (NAV_MAIN % '\n'.join('                      ' + l for l in info)).split('\n')
+    new = P[:i] + [l.strip() for l in main] + routines + P[a29:b29 + 1] + P[a38:]
+    left = {l[4:] for l in new if re.fullmatch(r'(XEQ|GTO) \d\d', l)} - {l[4:] for l in new if l.startswith('LBL ')}
+    assert not left, left
+    print('  19_struct: NAV main %d -> %d steps (menu, keys, views)' % (len(P), len(new)))
+    return renumber(L[:s] + new + L[e + 1:])
+
+
+def struct(L):
+    """The C47 STRUCT commands in place of the GTO decisions and loops: NAV's main part by hand (nav_main), then every
+    program by the rules of tools/c47struct.py (VALID's check and numbers); labels 01, 02 ... again. C47 only:
+    Free42 has no STRUCT. GTO "name" and GTO nn followed by a RTN (tail calls) stay."""
+    import c47struct
+    before = c47struct.gotos(L)
+    L = nav_main(L)
+    L, stats = c47struct.structure(L)
+    after = c47struct.gotos(L)
+    print('  19_struct: GTO nn for decisions and loops %d -> %d (tail calls %d -> %d); %s'
+          % (before[0], after[0], before[1], after[1], ', '.join('%s %d' % kv for kv in sorted(stats.items()))))
+    return renumber(L)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
-         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass))
+         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass),
+         ('19_struct', struct))
 
 
 def _rtn_block(L, start, prog=None):
@@ -918,7 +1143,7 @@ def main():
         os.makedirs(d, exist_ok=True)
         f = os.path.join(d, fname)
         open(f, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
-        print('  %s: %d steps, %d bytes' % (f[len(ROOT) + 1:], len(L), N.p47(f)))
+        print('  %s: %d steps, %s bytes' % (f[len(ROOT) + 1:], len(L), N.p47(f) or '? (no rejig)'))
 
 
 if __name__ == '__main__':
