@@ -1,0 +1,1457 @@
+@ Index:   Moon phase, age and the next phases
+@ Author:  Victor Valdes
+@ Version: 2.2
+@ Source:  https://github.com/valdesvj/almanac47
+@ Tested:  C47 simulator (python/c47sim.py): the page pixel for pixel the Python reference (python/moon47.py),
+@ Tested:  16 dates 2000-2050, time zones, north and south (and the three-program version checked on the firmware)
+@ Input:   none: the date and time from the clock (UT; for a clock on local time UT+4: 4 STO 'TZ')
+@ Output:  clock 03-10-2026 12:00 UT: LAST QUARTER, 51 % lit, age 22.4 days, HP 59.2', SD 16.1';
+@ Output:  next phases (UT) 03-10 13:25 last quarter, 10-10 15:50 new, 18-10 16:13 first quarter, 26-10 04:13 full
+@
+@ MOON47: the Moon phase on its own, from the calculator's clock. The phase as a disc, % lit, age, horizontal
+@ parallax HP and semi-diameter SD, the next four phases (UT) with their symbols.
+@ Keys: +/- turns the picture to the view from the south, any other key ends.
+@ 20 terms of Meeus ch. 47 (phases within 4 minutes, HP 0.03'); the terms as matrices, their cos and sin from one
+@ complex e^x. Needs no other program and no NAVINIT; ends with a clear stack. It changes the registers R03-R53
+@ (save yours first); its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).
+@
+@ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
+@ One program, MOON47 the only global label (the text printers and the phase symbols are numbered routines in it);
+@ written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, no GTO.
+@
+LBL 01
+STO 45
+X<>Y
+STO 44
+RCL 45
+X<Y?
+RTN
+RCL 44
+X≠0?
+IF 01
+  120
+  RCL 44
+  +
+  120
+  RCL 45
+  +
+  XEQ 02
+  XEQ 04
+  RCL 44
+  -
+  XEQ 02
+  RTN
+ENDIF 01
+XEQ 04
+RCL 45
++
+LBL 02
+STO 47
+R↓
+STO 46
+REPEAT 01
+  RCL 47
+  RCL 46
+  -
+  1
+  +
+  60
+  X>Y?
+  X<>Y
+  STO 39
+  2ˣ
+  1
+  -
+  SINT
+  STO 48
+  RCL 46
+  RCL 40
+  80
+  +
+  AGRAPH 48
+  DROP
+  DROP
+  RCL 39
+  STO+ 46
+  RCL 46
+  RCL 47
+  X<Y?
+UNTIL 01
+RTN
+LBL 03
+RCL 24
+29.530589
+÷
+360
+×
+COS
+X=0?
+1E-30
+STO 26
+1
+STO 27
+RCL 24
+29.530589
+2
+÷
+X<Y?
+XEQ 34
+RCL 28
+X≠0?
+XEQ 34
+-62
+STO 40
+REPEAT 02
+  62.3
+  X↑2
+  RCL 40
+  X↑2
+  -
+  SQRT
+  IP
+  STO 41
+  60.8
+  X↑2
+  RCL 40
+  X↑2
+  -
+  0
+  X≤Y?
+  IF 02
+    X<>Y
+    SQRT
+    IP
+    1
+    +
+  ENDIF 02
+  RCL 41
+  XEQ 01
+  RCL 27
+  RCL 40
+  ×
+  STO 42
+  3844
+  RCL 42
+  RCL 26
+  ÷
+  X↑2
+  -
+  STO 43
+  RCL 26
+  X≥0?
+  IF 03
+    RCL 42
+    X>0?
+    IF 04
+      RCL 43
+      X≥0?
+      IF 05
+        SQRT
+        IP
+        1
+        +
+      ELSE 05
+        0
+      ENDIF 05
+      RCL 41
+      XEQ 01
+    ENDIF 04
+  ELSE 03
+    RCL 42
+    X≥0?
+    IF 06
+      0
+      RCL 41
+      XEQ 01
+    ELSE 06
+      RCL 43
+      X>0?
+      IF 07
+        SQRT
+        IP
+        RCL 41
+        X>Y?
+        X<>Y
+        0
+        X<>Y
+        XEQ 01
+      ENDIF 07
+    ENDIF 06
+  ENDIF 03
+  1
+  STO+ 40
+  62
+  RCL 40
+  X>Y?
+UNTIL 02
+RTN
+LBL 04
+120
+RCL 45
+-
+120
+RTN
+LBL 05
+RCL 31
+RCL 30
+RCL 49
+XEQ 26
+RTN
+LBL 06
+XEQ 28
+CLα 49
+RCL 34
+ABS
+0.5
++
+αIP 49
+XEQ 05
+RTN
+LBL 07
+XEQ 09
+110000000011#2
+XEQ 46
+RTN
+LBL 08
+XEQ 10
+XEQ 45
+AGRAPH D
+RTN
+LBL 09
+RCL 31
+RCL 30
+XEQ 42
+1100001100#2
+XEQ 43
+RTN
+LBL 10
+RCL 31
+RCL 30
+XEQ 42
+1111111100#2
+R↓
+XEQ 44
+RTN
+LBL 11
+XEQ 43
+1100001100#2
+R↓
+AGRAPH D
+XEQ 42
+2
++
+STO 30
+RTN
+LBL 12
+XEQ 44
+1111111100#2
+R↓
+AGRAPH D
+XEQ 42
+2
++
+STO 30
+RTN
+LBL 13
+XEQ 19
+"'"
+XEQ 25
+RTN
+LBL 14
+STO 48
+DROP
+RCL 48
+10
+X>Y?
+IF 08
+  DROP
+  DROP
+  "0"
+  XEQ 25
+ELSE 08
+  DROP
+  DROP
+ENDIF 08
+RCL 48
+XEQ 06
+RTN
+LBL 15
+XEQ 28
+RCL 34
+98
+X≥Y?
+IF 09
+  RCL 34
+  60
+  ×
+  0.5
+  +
+  IP
+  STO 36
+  CLα 49
+  60
+  ÷
+  IP
+  24
+  MOD
+  XEQ 36
+  ":"
+  x→α 49
+  RCL 36
+  60
+  MOD
+  XEQ 36
+ELSE 09
+  "--:--"
+  STO 49
+ENDIF 09
+XEQ 05
+RTN
+LBL 16
+0
+STO 05
+REPEAT 03
+  26
+  RCL 05
+  29
+  ×
+  168
+  +
+  RCL 05
+  90
+  +
+  STO 46
+  DROP
+  XEQ IND 46
+  XEQ 41
+  RCL 05
+  RCL 25
+  X=Y?
+  XEQ 35
+  1
+  STO+ 05
+  8
+  RCL 05
+  X≥Y?
+UNTIL 03
+RTN
+LBL 17
+0.5
++
+1
+MOD
+24
+×
+XEQ 15
+RTN
+LBL 18
+RCL 06
+RCL 03
+24
+÷
++
+STO 37
+226
+2
+RCL 37
+XEQ 21
+226
+79
+RCL 37
+XEQ 17
+226
+118
+XEQ 37
+XEQ 25
+226
+143
+"TZ="
+XEQ 25
+XEQ 29
+DROP
+DROP
+-221
+0
+PIXEL
+XEQ 03
+200
+168
+RCL 25
+60
++
+STO 37
+DROP
+XEQ IND 37
+XEQ 25
+183
+168
+"LIT "
+XEQ 25
+RCL 18
+XEQ 06
+"%   AGE "
+XEQ 25
+RCL 24
+XEQ 19
+" DAYS"
+XEQ 25
+166
+168
+"HP "
+XEQ 25
+RCL 19
+XEQ 13
+"  SD "
+XEQ 25
+RCL 20
+XEQ 13
+156
+168
+230
+XEQ 40
+139
+168
+"NEXT PHASES (UT)"
+XEQ 25
+XEQ 20
+XEQ 16
+6
+168
+XEQ 38
+XEQ 25
+RTN
+LBL 19
+XEQ 28
+RCL 34
+ABS
+10
+×
+0.5
++
+IP
+STO 36
+CLα 49
+10
+÷
+αIP 49
+"."
+x→α 49
+RCL 36
+10
+MOD
+αIP 49
+XEQ 05
+RTN
+LBL 20
+0
+STO 05
+REPEAT 04
+  RCL 05
+  54
+  +
+  STO 39
+  RCL IND 39
+  STO 44
+  4
+  STO+ 39
+  RCL IND 39
+  STO 37
+  121
+  RCL 05
+  16
+  ×
+  -
+  STO 43
+  RCL 43
+  168
+  RCL 37
+  2
+  ×
+  60
+  +
+  STO 42
+  DROP
+  XEQ IND 42
+  XEQ 25
+  RCL 44
+  0.5
+  +
+  IP
+  STO 40
+  1867216.25
+  -
+  36524.25
+  ÷
+  IP
+  STO 41
+  4
+  ÷
+  IP
+  RCL 41
+  X<>Y
+  -
+  RCL 40
+  +
+  1525
+  +
+  STO 42
+  122.1
+  -
+  365.25
+  ÷
+  IP
+  365.25
+  ×
+  IP
+  STO 45
+  RCL 42
+  X<>Y
+  -
+  30.6001
+  ÷
+  IP
+  STO 41
+  RCL 42
+  RCL 45
+  -
+  RCL 41
+  30.6001
+  ×
+  IP
+  -
+  STO 46
+  RCL 41
+  1
+  -
+  STO 47
+  12
+  X<Y?
+  STO- 47
+  RCL 43
+  300
+  RCL 46
+  XEQ 14
+  "-"
+  XEQ 25
+  RCL 47
+  XEQ 14
+  " "
+  XEQ 25
+  RCL 44
+  XEQ 17
+  1
+  STO+ 05
+  4
+  RCL 05
+  X≥Y?
+UNTIL 04
+RTN
+LBL 21
+XEQ 28
+RCL 34
+J→ⅅℸ
+R↓
+STO 36
+DAY
+CLα 49
+XEQ 36
+"-"
+x→α 49
+RCL 36
+MONTH
+XEQ 36
+"-"
+x→α 49
+RCL 36
+YEAR
+αIP 49
+XEQ 05
+RTN
+LBL 22
+STO 26
+R↓
+STO 50
+XEQ 33
+LBL 23
+RCL 26
+X<>Y
+-
+360
+MOD
+STO 51
+12.190749
+÷
+RCL 50
++
+STO 27
+RCL 51
+CHS
+STO 51
+3
+STO 09
+DO 01
+  RCL 27
+  XEQ 33
+  RCL 26
+  -
+  180
+  +
+  360
+  MOD
+  180
+  -
+  STO 52
+  RCL 51
+  X≠Y?
+WHILE 01
+  -
+  STO 53
+  RCL 27
+  RCL 50
+  -
+  RCL× 52
+  RCL÷ 53
+  RCL 27
+  STO 50
+  X<>Y
+  -
+  STO 27
+  RCL 52
+  STO 51
+  DSE 09
+WHILE 01
+ENDDO 01
+RCL 27
+RTN
+LBL 24
+0
+𝜋
+180
+÷
+COMPLEX
+STO "M7C"
+20
+ENTER
+10
+NEWMAT
+STO "M7T"
+10
+ENTER
+1
+NEWMAT
+XEQ 39
+INDEX "M7W"
+5
+1
+STOIJ
+1
+STOEL
+INDEX "M7V"
+8
+1
+STOIJ
+1
+STOEL
+1
+STO 21
+132
+6288774
+-20905355
+XEQ 32
+2112
+1274027
+-3699111
+XEQ 32
+2122
+658314
+-2955968
+XEQ 32
+142
+213618
+-569925
+XEQ 32
+222
+-185116
+48888
+XEQ 32
+124
+-114332
+0
+XEQ 32
+2102
+58793
+246158
+XEQ 32
+2012
+57066
+-152138
+XEQ 32
+2132
+53322
+-170733
+XEQ 32
+2022
+45758
+-204586
+XEQ 32
+212
+-40923
+-129620
+XEQ 32
+1122
+-34720
+108743
+XEQ 32
+232
+-30383
+104755
+XEQ 32
+2120
+15327
+0
+XEQ 32
+134
+-12528
+0
+XEQ 32
+130
+10980
+79661
+XEQ 32
+4112
+10675
+0
+XEQ 32
+152
+10034
+0
+XEQ 32
+4102
+8548
+0
+XEQ 32
+2212
+-7888
+0
+XEQ 32
+RTN
+LBL 25
+LBL 26
+⇄ zyxt
+4
+-
+X<>Y
+ATEXT Z
+X<>Y
+4
++
+X<>Y
+RTN
+LBL 50
+XEQ 07
+XEQ 45
+XEQ 12
+RTN
+LBL 27
+AGRAPH D
+AGRAPH D
+110000000011#2
+XEQ 11
+RTN
+LBL 28
+STO 34
+R↓
+STO 30
+R↓
+STO 31
+RTN
+LBL 29
+RCL 03
+X=0?
+IF 10
+  XEQ 06
+  RTN
+ENDIF 10
+X≥0?
+IF 11
+  DROP
+  "+"
+ELSE 11
+  DROP
+  "-"
+ENDIF 11
+XEQ 25
+RCL 03
+ABS
+60
+×
+0.5
++
+IP
+STO 21
+60
+÷
+IP
+XEQ 06
+RCL 21
+60
+MOD
+STO 21
+X≠0?
+IF 12
+  DROP
+  ":"
+  XEQ 25
+  RCL 21
+  XEQ 14
+  RTN
+ENDIF 12
+DROP
+RTN
+LBL 30
+RCL 15
+90
+÷
+IP
+1
++
+STO 38
+0
+STO 05
+REPEAT 05
+  RCL 38
+  RCL 05
+  +
+  4
+  MOD
+  STO 37
+  RCL 37
+  90
+  ×
+  STO 26
+  RCL 06
+  STO 50
+  RCL 15
+  XEQ 23
+  STO 44
+  RCL 06
+  X<>Y
+  X<Y?
+  XEQ 56
+  RCL 05
+  54
+  +
+  STO 39
+  RCL 44
+  STO IND 39
+  4
+  STO+ 39
+  RCL 37
+  STO IND 39
+  1
+  STO+ 05
+  4
+  RCL 05
+  X≥Y?
+UNTIL 05
+RTN
+LBL "MOON47"
+SSIZE#
+STO 29
+SSIZE8
+DEG
+WSIZE 64
+0
+STO+ "TZ"
+RCL "TZ"
+STO 03
+Date→ⅅ
+Time→ℸ
+ⅅℸ→J
+RCL 03
+24
+÷
+-
+STO 06
+0
+STO 28
+XEQ 24
+21
+GRFNT
+DROP
+XEQ 31
+REPEAT 06
+  CLLCD
+  XEQ 18
+  DO 02
+    PAUSE 50
+    KEY? 39
+  WHILE 02
+  ENDDO 02
+  RCL 39
+  43
+  X≠Y?
+  IF 13
+    CLLCD
+    20
+    GRFNT
+    DROP
+    RCL 29
+    4
+    X=Y?
+    SSIZE4
+    0
+    STO "M7T"
+    XEQ 39
+    STO "M7C"
+    CLSTK
+    RTN
+  ENDIF 13
+  1
+  RCL 28
+  -
+  STO 28
+  0
+  X≠0?
+UNTIL 06
+LBL 31
+RCL 06
+XEQ 33
+STO 15
+RCL 15
+RCL 22
+COS
+→REC
+ACOS
+STO 16
+RCL 11
+COS
+ENTER
+ENTER
+-0.000282
+×
+-0.016708
++
+×
+1.000281
++
+149597870.7
+×
+STO 17
+RCL 16
+X<>Y
+→REC
+RCL 41
+X<>Y
+-
+STO 19
+X↑2
+X<>Y
+X↑2
++
+SQRT
+RCL 19
+X<>Y
+÷
+1
++
+50
+×
+STO 18
+6378.14
+RCL 41
+÷
+ASIN
+60
+×
+STO 19
+358473400
+RCL 41
+÷
+60
+÷
+STO 20
+RCL 06
+RCL 15
+12.190749
+÷
+-
+1
+-
+0
+XEQ 22
+STO 23
+RCL 06
+X<Y?
+XEQ 47
+RCL 06
+RCL 23
+-
+STO 24
+29.530589
+÷
+8
+×
+0.5
++
+IP
+8
+MOD
+STO 25
+XEQ 30
+RTN
+LBL 32
+STO 43
+R↓
+STO 42
+R↓
+STO 44
+INDEX "M7T"
+RCL 21
+1
+STOIJ
+RCL 44
+1000
+÷
+IP
+STOEL
+J+
+RCL 44
+100
+÷
+IP
+10
+MOD
+1
+-
+STO 45
+STOEL
+J+
+RCL 44
+10
+÷
+IP
+10
+MOD
+2
+-
+STOEL
+J+
+RCL 44
+10
+MOD
+2
+-
+STOEL
+RCL 21
+RCL 45
+ABS
+5
++
+STOIJ
+RCL 42
+STOEL
+RCL 21
+RCL 45
+ABS
+8
++
+STOIJ
+RCL 43
+STOEL
+1
+STO+ 21
+RTN
+LBL 33
+2451544.999201389
+-
+36525
+÷
+STO 14
+445267.1114
+×
+297.8501921
++
+STO 10
+35999.05029
+RCL× 14
+357.5291092
++
+STO 11
+477198.8675
+RCL× 14
+134.9633964
++
+STO 12
+483202.0175
+RCL× 14
+93.272095
++
+STO 13
+RCL 11
+1
+→REC
+2
+×
+STO 47
+0.000289
+×
+0.019993
++
+RCL× 47
+-0.000289
++
+1.914602
++
+-0.004817
+RCL× 14
++
+×
+STO 48
+-0.002516
+RCL× 14
+1
++
+STO 14
+INDEX "M7A"
+RCL 10
+STOEL
+J+
+RCL 11
+STOEL
+J+
+RCL 12
+STOEL
+J+
+RCL 13
+STOEL
+INDEX "M7W"
+6
+1
+STOIJ
+RCL 14
+STOEL
+J+
+RCL 14
+X↑2
+STOEL
+INDEX "M7V"
+9
+1
+STOIJ
+RCL 14
+STOEL
+J+
+RCL 14
+X↑2
+STOEL
+RCL "M7T"
+RCL "M7A"
+×
+RCL× "M7C"
+eˣ
+ENTER
+Im
+RCL "M7T"
+RCL "M7W"
+×
+DOT
+STO 40
+R↓
+Re
+RCL "M7T"
+RCL "M7V"
+×
+DOT
+STO 41
+RCL 41
+1000
+÷
+385000.56
++
+STO 41
+RCL 13
+SIN
+5.128189
+×
+STO 22
+RCL 40
+1000000
+÷
+RCL 10
++
+RCL 48
+-
+0.00569
++
+360
+MOD
+RTN
+LBL 34
+1
+CHS
+STO× 27
+RTN
+LBL 35
+3
+STO 46
+GRMOD 46
+111111111111111111#2
+STO 46
+23
+RCL 05
+29
+×
+165
++
+18
+STO 47
+R↓
+DO 03
+  AGRAPH 46
+  DSE 47
+WHILE 03
+ENDDO 03
+DROP
+DROP
+0
+STO 46
+GRMOD 46
+RTN
+LBL 36
+STO 33
+10
+X>Y?
+IF 14
+  "0"
+  x→α 49
+ENDIF 14
+RCL 33
+αIP 49
+RTN
+LBL 37
+RCL 03
+X=0?
+IF 15
+  DROP
+  "UT"
+  RTN
+ENDIF 15
+DROP
+"LT"
+RTN
+LBL 38
+RCL 28
+X=0?
+IF 16
+  DROP
+  "AS SEEN FROM THE NORTH"
+  RTN
+ENDIF 16
+DROP
+"AS SEEN FROM THE SOUTH"
+RTN
+LBL 39
+STO "M7A"
+STO "M7W"
+STO "M7V"
+RTN
+LBL 40
+STO 34
+R↓
+STO 30
+R↓
+STO 31
+RCL 34
+400
+X>Y?
+IF 17
+  WSIZE 8
+  1#2
+  STO 32
+  RCL 31
+  RCL 30
+  DO 04
+    AGRAPH 32
+    DSE 34
+  WHILE 04
+  ENDDO 04
+ELSE 17
+  RCL 31
+  CHS
+  0
+  PIXEL
+ENDIF 17
+WSIZE 64
+RCL 31
+RCL 30
+RTN
+LBL 41
+STO 33
+R↓
+STO 30
+R↓
+STO 31
+WSIZE 16
+DO 05
+  αLENG 33
+  X≠0?
+WHILE 05
+  α→𝑥 33
+  STO 32
+  XEQ IND 32
+ENDDO 05
+WSIZE 64
+RCL 31
+RCL 30
+RTN
+LBL 42
+111111000#2
+R↓
+AGRAPH D
+RTN
+LBL 48
+XEQ 07
+XEQ 27
+RTN
+LBL 55
+XEQ 10
+111100001111#2
+XEQ 46
+XEQ 27
+RTN
+LBL 52
+XEQ 08
+AGRAPH D
+AGRAPH D
+XEQ 12
+RTN
+LBL 54
+XEQ 08
+100000000001#2
+R↓
+XEQ 27
+RTN
+LBL 51
+XEQ 09
+110111111011#2
+R↓
+AGRAPH D
+XEQ 45
+AGRAPH D
+AGRAPH D
+XEQ 12
+RTN
+LBL 53
+XEQ 08
+AGRAPH D
+AGRAPH D
+110111111011#2
+XEQ 11
+RTN
+LBL 49
+XEQ 07
+AGRAPH D
+AGRAPH D
+111100001111#2
+R↓
+XEQ 12
+RTN
+LBL 43
+R↓
+AGRAPH D
+11000000110#2
+R↓
+AGRAPH D
+RTN
+LBL 44
+AGRAPH D
+11111111110#2
+R↓
+AGRAPH D
+RTN
+LBL 45
+111111111111#2
+R↓
+AGRAPH D
+AGRAPH D
+RTN
+LBL 46
+R↓
+AGRAPH D
+100000000001#2
+R↓
+AGRAPH D
+AGRAPH D
+RTN
+LBL 47
+RCL 23
+29.530589
+-
+1
+-
+0
+XEQ 22
+STO 23
+RTN
+LBL 56
+RCL 44
+29.530589
++
+2
+-
+RCL 37
+90
+×
+XEQ 22
+STO 44
+RTN
+LBL 60
+"NEW MOON"
+RTN
+LBL 61
+"WAXING CRESCENT"
+RTN
+LBL 62
+"FIRST QUARTER"
+RTN
+LBL 63
+"WAXING GIBBOUS"
+RTN
+LBL 64
+"FULL MOON"
+RTN
+LBL 65
+"WANING GIBBOUS"
+RTN
+LBL 66
+"LAST QUARTER"
+RTN
+LBL 67
+"WANING CRESCENT"
+RTN
+LBL 90
+"0"
+RTN
+LBL 91
+"1"
+RTN
+LBL 92
+"2"
+RTN
+LBL 93
+"3"
+RTN
+LBL 94
+"4"
+RTN
+LBL 95
+"5"
+RTN
+LBL 96
+"6"
+RTN
+LBL 97
+"7"
+RTN
+END

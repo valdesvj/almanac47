@@ -8,10 +8,12 @@ The release's res/PROGRAMS/BUILD.md: one .p47u per program, named after its main
                             label is NAV; indented, the STRUCT partner numbers written, a '#' line under each global
                             label (its original name and job)
   build/forum/NAVINIT.p47u  build/NAVINIT_FAST.txt with its label INIT named NAVINIT (the file name is the main label)
+  build/forum/MOON47.p47u   MOON47 on its own (build/dev/struct_src/MOON47.txt): ONE program, LBL "MOON47" its only
+                            global label, STRUCT, no GTO; indented, the partner numbers written
 
 Only the FAST matrices (2026-2030) are supplied: NAVINIT_FULL (2000-2050) and the almanac tables TBL need more memory.
 
-  python3 tools/build_forum.py      -> build/forum/NAV.p47u, build/forum/NAVINIT.p47u (and .p47 with rejig)
+  python3 tools/build_forum.py      -> build/forum/NAV.p47u, NAVINIT.p47u, MOON47.p47u
 """
 import os, re, sys
 
@@ -81,6 +83,29 @@ INIT_HEAD = """@ Index:   Matrices for NAV, valid 2026-2030
 @
 """
 
+MOON_HEAD = """@ Index:   Moon phase, age and the next phases
+@ Author:  %(author)s
+@ Version: %(version)s
+@ Source:  %(source)s
+@ Tested:  C47 simulator (python/c47sim.py): the page pixel for pixel the Python reference (python/moon47.py),
+@ Tested:  16 dates 2000-2050, time zones, north and south (and the three-program version checked on the firmware)
+@ Input:   none: the date and time from the clock (UT; for a clock on local time UT+4: 4 STO 'TZ')
+@ Output:  clock 03-10-2026 12:00 UT: LAST QUARTER, 51 %% lit, age 22.4 days, HP 59.2', SD 16.1';
+@ Output:  next phases (UT) 03-10 13:25 last quarter, 10-10 15:50 new, 18-10 16:13 first quarter, 26-10 04:13 full
+@
+@ MOON47: the Moon phase on its own, from the calculator's clock. The phase as a disc, %% lit, age, horizontal
+@ parallax HP and semi-diameter SD, the next four phases (UT) with their symbols.
+@ Keys: +/- turns the picture to the view from the south, any other key ends.
+@ 20 terms of Meeus ch. 47 (phases within 4 minutes, HP 0.03'); the terms as matrices, their cos and sin from one
+@ complex e^x. Needs no other program and no NAVINIT; ends with a clear stack. It changes the registers R03-R53
+@ (save yours first); its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).
+@
+@ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
+@ One program, MOON47 the only global label (the text printers and the phase symbols are numbered routines in it);
+@ written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, no GTO.
+@
+"""
+
 
 def nav():
     L = B.build()
@@ -102,10 +127,15 @@ def navinit():
     return ['LBL "NAVINIT"'] + L[1:]
 
 
+def moon():
+    return C.indent(B.build_moon())
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     f = {'author': AUTHOR, 'version': VERSION, 'source': SOURCE}
-    for fname, head, body in (('NAV.p47u', NAV_HEAD, nav()), ('NAVINIT.p47u', INIT_HEAD, navinit())):
+    for fname, head, body in (('NAV.p47u', NAV_HEAD, nav()), ('NAVINIT.p47u', INIT_HEAD, navinit()),
+                              ('MOON47.p47u', MOON_HEAD, moon())):
         p = os.path.join(OUT, fname)
         open(p, 'w', encoding='utf-8').write(head % f + '\n'.join(body) + '\n')
         print('  %s: %d steps' % (p[len(ROOT) + 1:], sum(1 for l in body if l.strip() and not l.strip().startswith('#'))))

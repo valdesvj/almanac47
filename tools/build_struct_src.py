@@ -27,8 +27,14 @@ written from LABELS (each global label: its original name and what it does) and 
 routine: who calls it; the XEQ IND tables; the loops only RTN leaves). Only to read: without its REM lines it is
 NAVFULL.txt step for step (tests/test_struct_src.py).
 
+MOON47 (programs_struct/MOON47.txt): the Moon phase on its own, ONE program with LBL "MOON47" its only global label
+(the printers and symbols are numbered routines in it), STRUCT, no GTO. From build/dev/moon/1_labels (the three
+programs MOON47, M7TX, M7SY), converted without copies and merged; the disc loop by hand (no jump into its end); the
+digit table gone (numbers by alpha-IP, two digits by one test); the routines ordered for the searches (LBL "MOON47"
+need not be first). Screens pixel for pixel 1_labels (tests/test_struct_src.py).
+
   python3 tools/build_struct_src.py      -> build/dev/struct_src/NAVFULL.txt (and its bytes when rejig is installed),
-                                            build/dev/struct_src/NAVFULL_COMMENTED.txt
+                                            build/dev/struct_src/NAVFULL_COMMENTED.txt, MOON47.txt, MOON47_COMMENTED.txt
 """
 import os, re, sys
 
@@ -116,6 +122,21 @@ LABELS = {
     'N98': ('CALL', 'ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)'),
 }
 
+# MOON47: one program on its own (no NAV, no NAVINIT), only LBL "MOON47" global; its routines are numbered labels
+MOON = 'MOON47'
+MOON_LABELS = {
+    '25': 'M7TX - TEXT: Z row of the base line, Y column, X text -> Y row, X next column (ATEXT Z)',
+    '05': 'the text in R49 at row R31, column R30 (M7TX)',
+    '28': 'Z row, Y column, X value -> R31, R30, R34',
+    '36': 'X (0-99) appended to R49 as two digits',
+    '06': 'M7IN - TEXT: whole number (|X| rounded)',
+    '19': 'M7F1 - TEXT: number with one decimal (|X|)',
+    '15': 'M7HM - TEXT: hh:mm from hours (--:-- when X > 98: no event)',
+    '21': 'M7DT - TEXT: date dd-mm-yyyy from a Julian Date',
+    '40': 'M7HL - horizontal line, X = length in pixels',
+    '41': 'M7SY - SYMBOLS: the Moon phase glyphs of the string X (XEQ IND of each character code, 48-55)',
+}
+
 
 def source(name):
     """The steps of programs_struct/NAME.txt: no indentation, no partner numbers."""
@@ -125,7 +146,7 @@ def source(name):
 
 def build():
     """The listing (numbered), or SystemExit with the faults."""
-    left = sorted(set(f[:-4] for f in os.listdir(SRC) if f.endswith('.txt') and f != 'README.txt') - set(ORDER))
+    left = sorted(set(f[:-4] for f in os.listdir(SRC) if f.endswith('.txt') and f != 'README.txt') - set(ORDER) - {MOON})
     if left:
         raise SystemExit('build_struct_src: %s not in ORDER' % ', '.join(left))
     L, faults = [], []
@@ -201,6 +222,52 @@ def commented(L):
     return out
 
 
+def build_moon():
+    """MOON47 (numbered), or SystemExit with the faults: one program, LBL "MOON47" its only global label, no GTO, no REM,
+    VALID."""
+    P = source(MOON)
+    faults = ['%s: %s' % (MOON, f) for f in C.check(P)]
+    if len(C.split(P)) != 1:
+        faults.append('%s: %d programs (one)' % (MOON, len(C.split(P))))
+    glob = [l for l in P if l.startswith('LBL "')]
+    if glob != ['LBL "MOON47"']:
+        faults.append('%s: global labels %s (only LBL "MOON47")' % (MOON, glob))
+    faults += ['%s: %s' % (MOON, l) for l in P if l.startswith(('GTO', 'REM ', 'XEQ "'))]
+    if faults:
+        raise SystemExit('build_struct_src:\n  ' + '\n  '.join(faults))
+    return C.number(P)
+
+
+def commented_moon(L):
+    """MOON47 indented with REM lines: the printers' names, the callers of each routine, the XEQ IND tables."""
+    out = ['REM "MOON47 (C47 / R47) in STRUCT - the commented listing of build/dev/struct_src/MOON47.txt"',
+           'REM "built by tools/build_struct_src.py from programs_struct/MOON47.txt (code only); only to read"',
+           'REM "without the REM lines it is MOON47.txt step for step"']
+    Q = C.plain(L)
+    callers = {}
+    for l in Q:
+        m = re.fullmatch(r'XEQ (\d\d)', l)
+        if m:
+            callers[m.group(1)] = callers.get(m.group(1), 0) + 1
+    tables = {'%02d' % n: 'phase name' for n in range(60, 68)}
+    tables.update({'%02d' % n: 'symbol code' for n in range(90, 98)})
+    tables.update({'%02d' % n: 'M7SY glyph' for n in range(48, 56)})
+    for l in C.indent(L):
+        pad = l[:len(l) - len(l.lstrip())]
+        m = re.fullmatch(r'LBL (\d\d)', l.strip())
+        if l.strip() == 'LBL "MOON47"':
+            out += [l, pad + 'REM "MOON47 - the Moon phase from the clock: disc, % lit, age, HP, SD, the next four phases (UT);'
+                    ' +/- north / south, any other key ends"']
+            continue
+        if m and m.group(1) in tables:
+            out.append(pad + 'REM "entry %s of the XEQ IND table (%s)"' % (m.group(1), tables[m.group(1)]))
+        elif m:
+            what = MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))
+            out.append(pad + 'REM "%s: called %d times"' % (what, callers.get(m.group(1), 0)))
+        out.append(l)
+    return out
+
+
 def stats(L):
     P = C.plain(L)
     return {'steps': len(P), 'programs': len(C.split(P)), 'labels': sum(1 for l in P if l.startswith('LBL ')),
@@ -219,6 +286,10 @@ def main():
         size = N.p47(f)
     except Exception:
         size = None
+    M = build_moon()
+    m = os.path.join(OUT, 'MOON47.txt')
+    open(m, 'w', encoding='utf-8').write('\n'.join(M) + '\n')
+    open(os.path.join(OUT, 'MOON47_COMMENTED.txt'), 'w', encoding='utf-8').write('\n'.join(commented_moon(M)) + '\n')
     g = os.path.join(OUT, 'NAVFULL_COMMENTED.txt')
     open(g, 'w', encoding='utf-8').write('\n'.join(commented(L)) + '\n')
     s = stats(L)
@@ -226,6 +297,13 @@ def main():
           % (f[len(ROOT) + 1:], s['steps'], s['programs'], s['labels'], s['IF'], s['DO'], s['REPEAT'], s['GTO'],
              s['XEQ'], size or '? (no rejig)'))
     print('  %s: the same with comments (only to read)' % g[len(ROOT) + 1:])
+    try:
+        msize = N.p47(m)
+    except Exception:
+        msize = None
+    t = stats(M)
+    print('  %s: %d steps, one program, %d labels, IF %d DO %d REPEAT %d, GTO %d; %s bytes; MOON47_COMMENTED.txt'
+          % (m[len(ROOT) + 1:], t['steps'], t['labels'], t['IF'], t['DO'], t['REPEAT'], t['GTO'], msize or '? (no rejig)'))
 
 
 if __name__ == '__main__':

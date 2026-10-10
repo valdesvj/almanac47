@@ -24,4 +24,8 @@ appear; the ones XEQ IND reaches (star numbers, character codes, body numbers) k
                                            release: '@' header, main label = file name, only the FAST matrices)
   python3 tests/test_struct_src.py      the pages pixel for pixel build/dev/struct/18_hourglass; the forum files
 
+MOON47.txt is MOON47 on its own (the Moon phase from the clock, no NAV, no NAVINIT): ONE program, LBL "MOON47" its
+only global label; the text printers and the phase symbols are numbered routines in it. The build writes
+build/dev/struct_src/MOON47.txt and MOON47_COMMENTED.txt, and build_forum.py build/forum/MOON47.p47u.
+
 Free42 has no STRUCT: build_free42.py keeps its sources in programs/.

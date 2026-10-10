@@ -895,3 +895,14 @@ without copied code, all at once.
 - tools/build_forum.py: build/forum/NAV.p47u and NAVINIT.p47u for the PROGRAMS folder of the C47 release (res/PROGRAMS
   /BUILD.md: '@ Index:' ... header, the file named after its main label: INIT is NAVINIT there). Only NAVINIT_FAST
   (2026-2030); the header says NAVINIT_FULL and TBL exist but need more memory.
+- MOON47 (Victor: the same optimization, pure STRUCT, compact, only one main label, to a .p47u):
+  programs_struct/MOON47.txt from build/dev/moon/1_labels (the three programs MOON47, M7TX, M7SY checked on the
+  firmware): each converted without copies, merged into ONE program (the printers' and symbols' entries numbered
+  labels, M7TX's digit table moved out of M7SY's 48-55), then by hand: the disc loop without the jump into its end;
+  the printers with alpha-IP (whole numbers, one decimal, hh:mm, the date) and one routine for two digits, so the
+  digit table 48-57 and six digit routines are gone; the routines ordered for the searches (the returns walk from
+  the program's start: LBL "MOON47" in the middle, the busy routines first). 1436 steps (1540 in three programs),
+  73 labels, 28 structures, 0 GTO, no call by name. Sim, 7 dates: steps run 416016 -> 426120 (+2.4 %: ENDIF / ENDDO
+  are steps), search work 3.62 M -> 2.59 M (-28 %; 2_compact, the old one-program try with letter labels, 7.34 M).
+  Pixel for pixel 1_labels and python/moon47.py at 16 dates, time zones, north and south.
+  build/forum/MOON47.p47u. Inlining the two small routines c47struct.inline finds: +5 steps for -3 % search: not done.
