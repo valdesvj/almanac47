@@ -160,10 +160,24 @@ _ids = [0]
 
 
 def _tag(seq):
-    """The new structure steps of one rewrite with a tag of their own (~n), so that check() sees a structure that
-    would cross another one (VALID would pair them the other way)."""
-    _ids[0] += 1
-    return [('%s ~%d' % (l, _ids[0]) if l in STRUCT else l) for l in seq]
+    """The new structure steps of one rewrite tagged (~n): each new opener a tag of its own, each new closer its
+    opener's (as VALID pairs them), so that check() sees a later rewrite that would make two structures cross."""
+    out, stack = [], []
+    for l in seq:
+        o, _, t = l.partition(' ')
+        if o in STRUCT and not t:
+            if o in OPENERS:
+                _ids[0] += 1
+                t = '~%d' % _ids[0]
+            else:
+                t = stack[-1] if stack else '~0'
+            l = '%s %s' % (o, t)
+        if o in OPENERS:
+            stack.append(l.partition(' ')[2])
+        elif o in ('ENDIF', 'ENDDO', 'UNTIL') and stack:
+            stack.pop()
+        out.append(l)
+    return out
 
 
 def _num(l):
@@ -238,7 +252,7 @@ def _entered(P):
     return False
 
 
-DUPMAX = 5                        # dup: a shared tail of at most this many steps is copied in place of a GTO to it
+DUPMAX = 10                       # dup: a shared tail of at most this many steps is copied in place of a GTO to it
 
 
 def _tailcode(P, x):
@@ -250,8 +264,10 @@ def _tailcode(P, x):
         if P[j].startswith('LBL ') or op(P[j]) in STRUCT:
             return None
         j += 1
-    if j >= len(P) or P[j] == 'END' or j - a > DUPMAX or P[j] == 'GTO ' + x:
+    if j >= len(P) or j - a > DUPMAX or P[j] == 'GTO ' + x:
         return None
+    if P[j] == 'END':                                   # it runs into END: a copy ends with RTN (END returns like RTN)
+        return P[a + 1:j] + ['RTN']
     return P[a + 1:j + 1]
 
 
@@ -336,6 +352,55 @@ def _closer(P, a):
             if d == 0:
                 return i
     return None
+
+
+def _reach(P, a):
+    """The steps the run can reach from P[a] in this program (a call counts as the next step; RTN, END and a jump by
+    name end a path): a set, or None when a GTO IND is on the way (no telling where it goes)."""
+    pair, stack = {}, []
+    for i, l in enumerate(P):
+        o = op(l)
+        if o in OPENERS:
+            stack.append([i])
+        elif o in CLOSERS and stack:
+            stack[-1].append(i)
+            if o in ('ENDIF', 'ENDDO', 'UNTIL'):
+                g = stack.pop()
+                for j in g:
+                    pair[j] = g
+    seen, todo = set(), [a]
+    while todo:
+        i = todo.pop()
+        if i in seen or i >= len(P):
+            continue
+        seen.add(i)
+        l = P[i]
+        o = op(l)
+        if l in ('RTN', 'END') or l.startswith('GTO "'):
+            continue
+        if l.startswith('GTO IND'):
+            return None
+        n = _num(l)
+        if n and l.startswith('GTO '):
+            todo.append(_label(P, n))
+            continue
+        g = pair.get(i, [i])
+        if o == 'IF':
+            nxt = [j for j in g if op(P[j]) in ('ELSE', 'ENDIF') and j > i]
+            todo += [i + 1] + [nxt[0] + 1] if nxt else [i + 1]
+        elif o == 'ELSE':
+            todo.append(g[-1] + 1)
+        elif o == 'WHILE':
+            todo += [i + 1, g[-1] + 1]
+        elif o == 'ENDDO':
+            todo.append(g[0] + 1)
+        elif o == 'UNTIL':
+            todo += [i + 1, g[0] + 1]
+        elif is_test(l) and i + 1 < len(P) and op(P[i + 1]) not in STRUCT:
+            todo += [i + 1, i + 2]
+        else:
+            todo.append(i + 1)
+    return seen
 
 
 def _candidates(P):
@@ -452,17 +517,51 @@ def _candidates(P):
                 new = [inv, 'IF'] + A + ['ENDIF'] if inv else [T, 'IF', 'ELSE'] + A + ['ENDIF']
                 if A:
                     yield 'if', P[:k - 1] + new + P[a + 1:]
-            # R6 T GTO x to a block only it names -> T IF block ENDIF
+        if cond:
+            # R6 T GTO x to a block only it names (before or after) -> T IF block ENDIF
             blk = _block(P, a)
             if blk and _refs(P, n) == 1 and not (blk[0] <= k <= blk[1]):
                 body = P[blk[0] + 1:blk[1] + 1]
                 Q = P[:k] + ['IF'] + body + ['ENDIF'] + P[k + 1:]
                 Q = Q[:blk[0] + len(body) + 1] + Q[blk[1] + len(body) + 2:] if blk[0] > k else Q[:blk[0]] + Q[blk[1] + 1:]
                 yield 'if block', Q
+            # cond dup: T GTO x to a short tail (others name it too) -> T IF tail ENDIF
+            code = _tailcode(P, n)
+            if code and len(code) <= 4 and code[-1] != 'GTO ' + n:
+                yield 'if dup', _drop_label(P[:k] + ['IF'] + code + ['ENDIF'] + P[k + 1:], n)
+        if not cond and a < k and _refs(P, n) == 1 and not chained:
+            # forever: LBL a ... GTO a (the loop leaves by RTN only) -> REPEAT ... 0 X≠0? UNTIL (never true)
+            yield 'forever', P[:a] + ['REPEAT'] + P[a + 1:k] + ['0', 'X≠0?', 'UNTIL'] + P[k + 1:]
+        b = a + 1
+        while b < len(P) and P[b] != 'END' and not _gone(P, b):
+            b += 1
+        seen = _reach(P, a)
+        plain_x = seen is not None and k not in seen and not any('R.' in P[j] or P[j].startswith(('LocR', 'PopLR'))
+                                                                for j in seen)
+        # (nothing x leads to comes back to this GTO, and no local register on the way: as a call it returns)
+        if plain_x and not (a <= k <= b):
+            # call: GTO x (a shared tail) -> XEQ x RTN; T GTO x -> T IF XEQ x RTN ENDIF
+            if cond:
+                yield 'call', _drop_label(P[:k] + ['IF', 'XEQ ' + n, 'RTN', 'ENDIF'] + P[k + 1:], n)
+            else:
+                yield 'call', P[:k] + ['XEQ ' + n, 'RTN'] + P[k + 1:]
+        if not cond and k + 1 < len(P) and op(P[k + 1]) == 'ENDIF':
+            # both ends: IF A GTO x ENDIF B GTO x -> IF A ELSE B ENDIF GTO x
+            e = k + 1
+            j = e + 1
+            while j < len(P) and not (_gone(P, j) or P[j].startswith('LBL ') or P[j] == 'END' or op(P[j]) in STRUCT):
+                j += 1
+            if j < len(P) and P[j] == l and j > e + 1:
+                yield 'if-else', P[:k] + [P[e].replace('ENDIF', 'ELSE')] + P[e + 1:j] + [P[e], l] + P[j + 1:]
+        if not cond and a > k and _refs(P, n) == 1 and k + 1 < len(P) and op(P[k + 1]) == 'ENDIF':
+            # if-else: IF A GTO x ENDIF B LBL x (B runs into x) -> IF A ELSE B ENDIF
+            e = k + 1
+            if all(not (_gone(P, j) or P[j].startswith('LBL ') or P[j] == 'END') for j in range(e + 1, a)):
+                yield 'if-else', P[:k] + [P[e].replace('ENDIF', 'ELSE')] + P[e + 1:a] + [P[e]] + P[a + 1:]
 
 
 ORDER = ('dead', 'next', 'rtn', 'thread', 'dup', 'fall-through', 'loop', 'while', 'break', 'if-else', 'all-of', 'if',
-         'pull', 'if block')
+         'pull', 'if block', 'if dup', 'forever', 'call')
 
 
 def _rewrite(P, stats):
@@ -482,6 +581,10 @@ def _rewrite(P, stats):
       dead          the steps after one that always leaves, up to a label or a structure step: gone
       thread        GTO x to LBL x GTO y: GTO y
       dup           GTO x (always taken) to a shared tail of at most DUPMAX steps: the tail's steps
+      if dup        T GTO x to a tail of at most 4 steps: T IF tail ENDIF
+      if-else       (also) IF A GTO x ENDIF B LBL x, B running into x: IF A ELSE B ENDIF
+      forever       LBL a ... GTO a, a loop that leaves by RTN only: REPEAT ... 0 X≠0? UNTIL
+      call          the GTO x left (x a shared tail that ends by leaving): XEQ x RTN, or T IF XEQ x RTN ENDIF
       break         T GTO x in a DO ... ENDDO with x right after it: T' WHILE;
                     the firmware takes several WHILE in one DO (fnWhile: the nearest ENDDO of its number)
       pull          T GTO a B GTO b with b inside a's detached block: the block right after GTO b (for if-else)

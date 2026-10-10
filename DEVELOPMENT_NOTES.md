@@ -857,4 +857,8 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
   steps, SPLIT 17738 -> 10372, SKY 15626 -> 7742, ANIM 31032 -> 19407, ALLSKY 23650 -> 15557. 8865 steps in the file.
 - Steps 38-39 (star cache): SBRT as the matrix SBR (NAV makes it once, kept), N47 and its 58 labels gone; the
   'skip this star' GTOs of the star lists as nested IF (all-of rule: GTOs that meet at the label the code runs into).
+- STRUCT everywhere: new c47struct rules (if-else variants, if block both ways, if dup, dup up to 10, forever, call
+  with a reachability check so a call never loops back into itself) and WPLS by hand: 0 GTO nn from 19_struct on.
+  FIXED: _tag gave one tag to all the structures of one rewrite (a later crossing could pass check()). 40_nogoto: the
+  tail calls by name and SNMU's GTO IND as calls too (no GTO at all; +2.6 % search work). Steps 32-34 made shape-free.
 

@@ -958,6 +958,23 @@ def nav_main(L):
     return renumber(L[:s] + new + L[e + 1:])
 
 
+WPLS_OLD = ['LBL "N63"', 'LBL 01', 'PAUSE 50', 'KEY? 08', 'GTO 01', 'RCL 08', '85', 'X=Y?', 'RTN', 'RCL 08', 'RCL 67',
+            'X=Y?', 'RTN', 'RCL 08', '61', 'X=Y?', 'RTN', 'RCL 08', '54', 'X=Y?', 'SNAP', 'GTO 01', 'END']
+WPLS_NEW = ['LBL "N63"', 'REPEAT', 'DO', 'PAUSE 50', 'KEY? 08', 'WHILE', 'ENDDO', 'RCL 08', '85', 'X=Y?', 'RTN',
+            'RCL 08', 'RCL 67', 'X=Y?', 'RTN', 'RCL 08', '61', 'X=Y?', 'RTN', 'RCL 08', '54', 'X=Y?', 'SNAP', '0', 'X≠0?',
+            'UNTIL', 'END']
+
+
+def wpls(L):
+    """WPLS (N63, a view's key wait: + ↑ ↓ leave, 9 SNAP, any other key waits again) by hand: the key wait one
+    DO ... ENDDO inside a REPEAT that only RTN leaves (its two GTO 01 went back to the same label)."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N63"')
+    assert P[i:i + len(WPLS_OLD)] == WPLS_OLD, P[i:i + len(WPLS_OLD)]
+    return c47struct.number(P[:i] + WPLS_NEW + P[i + len(WPLS_OLD):])
+
+
 def struct(L):
     """The C47 STRUCT commands in place of the GTO decisions and loops: NAV's main part by hand (nav_main), then every
     program by the rules of tools/c47struct.py (VALID's check and numbers); labels 01, 02 ... again. C47 only:
@@ -966,6 +983,7 @@ def struct(L):
     before = c47struct.gotos(L)
     L = nav_main(L)
     L, stats = c47struct.structure(L)
+    L = wpls(L)
     after = c47struct.gotos(L)
     print('  19_struct: GTO nn for decisions and loops %d -> %d (tail calls %d -> %d); %s'
           % (before[0], after[0], before[1], after[1], ', '.join('%s %d' % kv for kv in sorted(stats.items()))))
@@ -1185,10 +1203,9 @@ def calls(L):
     for prog in split(P):
         i = 0
         while i < len(prog):
-            m = re.fullmatch(r'STO (\d\d)', prog[i + 3]) if i + 6 < len(prog) else None
-            if prog[i].startswith('LBL ') and prog[i + 1:i + 3] == ['48', '+'] and m and \
-                    prog[i + 4:i + 7] == ['XEQ IND ' + m.group(1), 'STO ' + m.group(1), 'RTN']:
-                prog[i + 1:i + 6] = ['CLα ' + m.group(1), 'αIP ' + m.group(1)]
+            m = re.fullmatch(r'STO (\d\d)', prog[i + 2]) if i + 5 < len(prog) else None
+            if prog[i:i + 2] == ['48', '+'] and m and prog[i + 3:i + 5] == ['XEQ IND ' + m.group(1), 'STO ' + m.group(1)]:
+                prog[i:i + 5] = ['CLα ' + m.group(1), 'αIP ' + m.group(1)]     # (in a routine or written in place)
                 digits += 1
             i += 1
         if digits and not [l for l in prog if re.match(r'(XEQ|GTO) IND', l)]:
@@ -1421,8 +1438,10 @@ def formats(L):
     a = [k for k in range(len(prog)) if prog[k:k + 4] == ['STO 16', 'RCL 50', 'RCL 16', 'X≥Y?'] and prog[k - 1].startswith('LBL ')]
     assert len(a) == 1, a
     a = a[0]
-    b = a
-    while prog[b] != 'RTN' and not (prog[b].startswith('GTO ') and prog[b + 1].startswith('LBL ')):
+    b, d = a, 0
+    while not (d == 0 and (prog[b] == 'RTN' or (prog[b].startswith('GTO ') and prog[b + 1].startswith('LBL ')))):
+        o = c47struct.op(prog[b])                          # the routine's end: at structure depth 0
+        d += 1 if o in c47struct.OPENERS else -1 if o in ('ENDIF', 'ENDDO', 'UNTIL') else 0
         b += 1
     old_len = b - a + 1
     prog = prog[:a] + ['STO 16', 'CLα 11', 'αIP 11', 'RTN'] + prog[b + 1:]
@@ -1446,98 +1465,74 @@ def formats(L):
     return c47struct.number(renumber(c47struct.structure(P, quiet=True)))
 
 
-def dots(L):
-    """The celestial equator of ANIM (60 dots) and ALLSKY (40) with the matrix commands: CEQQ's cached [Hc, sin Hc, Zn]
-    (U2 / U3) taken a column at a time (M.GETM), the screen columns IP((Zn + offset) MOD 360 * 375 / 360 + 20) and
-    rows IP(sin Hc * 94 + 118) for all the dots at once (+, MOD, ×, ÷, IP element by element), put side by side in QP
-    (M.PUTM); then each dot is RCLSEQ, RCLSEQ, POINT. It was a call to CEQR (by name) and one to the view's routine
-    for each dot."""
+# the celestial equator of the charts: (program, CEQQ step, cache matrix, dots, offset register of the azimuth,
+# the row of a dot from sin Hc, whether dots under the horizon are left out)
+DOTS = (('N61', '6', 'U2', 60, '23', ['94', '×', '118', '+', 'IP'], False),
+        ('N62', '9', 'U3', 40, '19', ['94', '×', '118', '+', 'IP'], False),
+        ('N04', '6', 'U2', 60, '20', ['RCL 86', '×', '213', 'X<>Y', '-', 'IP', 'RCL 91', 'X<>Y', '-'], True),
+        ('N06', '9', 'U3', 40, '17', ['68', '×', '144', '+', 'IP'], True))
+
+
+def _dots(L, which):
+    """The equator loops of `which` (DOTS) on whole columns: CEQQ's cached [Hc, sin Hc, Zn] taken a column at a time
+    (M.GETM), the screen column IP((Zn + offset) MOD 360 * 375 / 360 + 20) and the row for all the dots at once (+,
+    MOD, ×, ÷, IP element by element), side by side in QP (M.PUTM); then each dot is RCLSEQ RCLSEQ POINT (with the
+    horizon: RCLSEQ Hc, X<Y? 1E-4, else J+ J+). The loop it replaces (from XEQ "N77" to its ENDDO) called CEQR and the
+    view's routine for each dot. The routines left without a caller go (c47struct.prune)."""
     import c47struct as C
     P = C.plain(L)
     done = []
-    for prog, step, mat, n, cnt in (('N61', '6', 'U2', 60, '02'), ('N62', '9', 'U3', 40, '01')):
+    for prog, step, mat, n, off, row, horizon in DOTS:
+        if prog not in which:
+            continue
         s = P.index('LBL "%s"' % prog)
         while s > 0 and P[s - 1] != 'END':
             s -= 1
         e = P.index('END', s)
-        i = [k for k in range(s, e) if P[k:k + 3] == ['RCL 46', step, 'XEQ "N77"'] and P[k + 5:k + 7] == ['DO', 'XEQ "N78"']]
+        i = [k for k in range(s, e) if P[k:k + 3] == ['RCL 46', step, 'XEQ "N77"'] and P[k + 5] == 'DO']
         assert len(i) == 1, prog
         i = i[0]
-        conv = P[i + 7]
-        y_reg, x_reg = P[i + 8][4:], P[i + 9][4:]
-        assert P[i + 4] == 'STO ' + cnt and \
-            P[i + 10:i + 14] == ['POINT', 'ISG ' + cnt, 'WHILE', 'ENDDO'], P[i:i + 14]
-        lab = conv[4:]
-        a = P.index('LBL ' + lab, s)
-        body = P[a + 1:P.index('RTN', a)]
-        off = body[1]                                                   # RCL+ rr: this view's offset
-        assert body[:1] == ['RCL 05'] and off.startswith('RCL+ ') and body[2:11] == \
-            ['RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP'] and body[11] == 'STO ' + x_reg and \
-            body[12:14] == ['RCL "V4"', '94'] and body[14:18] == ['×', '118', '+', 'IP'] and body[18] == 'STO ' + y_reg, body
-        new = ['RCL 46', step, 'XEQ "N77"', str(n), 'ENTER', '2', 'NEWMAT', 'STO "QP"',
-               'INDEX "%s"' % mat, '1', 'ENTER', '3', 'STOIJ', str(n), 'ENTER', '1', 'M.GETM',
-               'RCL ' + off[5:], '+', 'RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP', 'STO "QX"',
-               'INDEX "%s"' % mat, '1', 'ENTER', '2', 'STOIJ', str(n), 'ENTER', '1', 'M.GETM', '94', '×', '118', '+', 'IP', 'STO "QY"',
-               'INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QY"', 'M.PUTM', '1', 'ENTER', '2', 'STOIJ', 'RCL "QX"', 'M.PUTM',
-               '1', 'ENTER', 'STOIJ', str(n), 'STO ' + cnt,
-               'DO', 'RCLSEQ', 'RCLSEQ', 'POINT', 'DSE ' + cnt, 'WHILE', 'ENDDO', 'DELITM "QP"', 'DELITM "QX"',
-               'DELITM "QY"']
-        P = P[:i] + new + P[i + 14:]
+        cnt = P[i + 4][4:]
+        assert P[i + 4].startswith('STO ') and re.fullmatch(r'0\.%03d01' % (n - 1), P[i + 3]), P[i:i + 6]
+        d, j = 0, i + 5
+        while True:                                                   # the loop's ENDDO
+            o = C.op(P[j])
+            d += 1 if o in C.OPENERS else -1 if o in ('ENDIF', 'ENDDO', 'UNTIL') else 0
+            if d == 0:
+                break
+            j += 1
+        loop = P[i + 5:j + 1]
+        assert 'XEQ "N78"' in loop and loop[-3:] == ['ISG ' + cnt, 'WHILE', 'ENDDO'], loop
+        assert any(P[k:k + 2] == ['RCL 05', 'RCL+ ' + off] for k in range(s, e)), (prog, off)
+        col = lambda c: ['INDEX "%s"' % mat, '1', 'ENTER', str(c), 'STOIJ', str(n), 'ENTER', '1', 'M.GETM']
+        new = (['RCL 46', step, 'XEQ "N77"', str(n), 'ENTER', '3' if horizon else '2', 'NEWMAT', 'STO "QP"']
+               + col(3) + ['RCL ' + off, '+', 'RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP', 'STO "QX"']
+               + col(2) + row + ['STO "QY"'])
+        if horizon:
+            new += col(1) + ['STO "QH"', 'INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QH"', 'M.PUTM', '1', 'ENTER', '2',
+                             'STOIJ', 'RCL "QY"', 'M.PUTM', '1', 'ENTER', '3', 'STOIJ', 'RCL "QX"', 'M.PUTM']
+            dot = ['RCLSEQ', '1E-4', 'X<Y?', 'IF', 'RCLSEQ', 'RCLSEQ', 'POINT', 'ELSE', 'J+', 'J+', 'ENDIF']
+        else:
+            new += ['INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QY"', 'M.PUTM', '1', 'ENTER', '2', 'STOIJ', 'RCL "QX"',
+                    'M.PUTM']
+            dot = ['RCLSEQ', 'RCLSEQ', 'POINT']
+        new += (['1', 'ENTER', 'STOIJ', str(n), 'STO ' + cnt, 'DO'] + dot + ['DSE ' + cnt, 'WHILE', 'ENDDO']
+                + ['DELITM "%s"' % v for v in (('QP', 'QX', 'QY', 'QH') if horizon else ('QP', 'QX', 'QY'))])
+        P = P[:i] + new + P[j + 1:]
         done.append(prog)
     P, gone = C.prune(L, P)
-    print('  33_dots: the equator of %s on whole columns; %d labels gone' % (' and '.join(done), gone))
+    print('  dots: the equator of %s on whole columns; %d labels gone' % (' and '.join(done), gone))
     return C.number(renumber(C.structure(P, quiet=True)))
+
+
+def dots(L):
+    """Step 33: the equator of ANIM and ALLSKY on whole columns (_dots)."""
+    return _dots(L, ('N61', 'N62'))
 
 
 def dots_visible(L):
-    """The celestial equator of SKY (60 dots) and SPLIT (40) like step 33, with the dots under the horizon left out as
-    before (Hc > 1E-4): QP holds [Hc, row, column] for every dot; each dot is RCLSEQ Hc, the test, then RCLSEQ RCLSEQ
-    POINT or J+ J+. SKY's row: R91 - IP(213 - sin Hc * R86), SPLIT's: IP(sin Hc * 68 + 144)."""
-    import c47struct as C
-    P = C.plain(L)
-    done = []
-    for prog, step, mat, n in (('N04', '6', 'U2', 60), ('N06', '9', 'U3', 40)):
-        s = P.index('LBL "%s"' % prog)
-        while s > 0 and P[s - 1] != 'END':
-            s -= 1
-        e = P.index('END', s)
-        old = ['RCL 46', step, 'XEQ "N77"', None, None, 'DO', None, 'RCL 09', '1E-4', 'X<Y?', None, None, 'WHILE', 'ENDDO']
-        i = [k for k in range(s, e) if all(o is None or P[k + j] == o for j, o in enumerate(old))]
-        assert len(i) == 1, prog
-        i = i[0]
-        cnt, call, plot = P[i + 4][4:], P[i + 6], P[i + 10]
-        assert P[i + 4].startswith('STO ') and P[i + 11] == 'ISG ' + cnt and call.startswith('XEQ ') and plot.startswith('XEQ ')
-        lab = P[P.index('LBL ' + call[4:], s) + 2][4:]                  # LBL 03: XEQ "N78", GTO 07 (the conversion)
-        conv = P.index('LBL ' + lab, s)
-        body = P[conv + 1:P.index('RTN', conv)]
-        off = body[1]
-        assert body[0] == 'RCL 05' and off.startswith('RCL+ ') and body[2:11] == \
-            ['RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP'] and body[11] == 'STO 23', body
-        if prog == 'N04':
-            assert body[12:] == ['213', 'RCL "V4"', 'RCL 86', '×', '-', 'IP', 'STO 24']
-            pl = P.index('LBL ' + plot[4:], s)
-            assert P[pl + 1:pl + 7] == ['RCL 91', 'RCL- 24', 'STO 06', 'RCL 23', 'POINT', 'RTN']
-            row = ['RCL 86', '×', '213', 'X<>Y', '-', 'IP', 'RCL 91', 'X<>Y', '-']
-        else:
-            assert body[12:] == ['RCL "V4"', '68', '×', '144', '+', 'IP', 'STO 08']
-            pl = P.index('LBL ' + plot[4:], s)
-            assert P[pl + 1:pl + 5] == ['RCL 08', 'RCL 23', 'POINT', 'RTN']
-            row = ['68', '×', '144', '+', 'IP']
-        col = lambda j: ['INDEX "%s"' % mat, '1', 'ENTER', str(j), 'STOIJ', str(n), 'ENTER', '1', 'M.GETM']
-        new = (['RCL 46', step, 'XEQ "N77"', str(n), 'ENTER', '3', 'NEWMAT', 'STO "QP"']
-               + col(3) + ['RCL ' + off[5:], '+', 'RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP', 'STO "QX"']
-               + col(2) + row + ['STO "QY"'] + col(1) + ['STO "QH"']
-               + ['INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QH"', 'M.PUTM', '1', 'ENTER', '2', 'STOIJ', 'RCL "QY"',
-                  'M.PUTM', '1', 'ENTER', '3', 'STOIJ', 'RCL "QX"', 'M.PUTM', '1', 'ENTER', 'STOIJ', str(n), 'STO ' + cnt,
-                  'DO', 'RCLSEQ', '1E-4', 'X<Y?', 'IF', 'RCLSEQ', 'RCLSEQ', 'POINT', 'ELSE', 'J+', 'J+', 'ENDIF',
-                  'DSE ' + cnt, 'WHILE', 'ENDDO']
-               + ['DELITM "%s"' % v for v in ('QP', 'QX', 'QY', 'QH')])
-        P = P[:i] + new + P[i + len(old):]
-        done.append(prog)
-    P, gone = C.prune(L, P)
-    print('  34_dots: the equator of %s on whole columns, the dots under the horizon left out; %d labels gone'
-          % (' and '.join(done), gone))
-    return C.number(renumber(C.structure(P, quiet=True)))
+    """Step 34: the equator of SKY and SPLIT on whole columns, the dots under the horizon left out (_dots)."""
+    return _dots(L, ('N04', 'N06'))
 
 
 def menu_stars(L):
@@ -1595,6 +1590,26 @@ def star_order(L):
     return C.number(P)
 
 
+def no_goto(L):
+    """No GTO at all: the tail calls by name (GTO "x", made in step 1 from XEQ "x" RTN) are XEQ "x" and RTN again (only
+    XEQ "x" before END, which returns like RTN), and SNMU's GTO IND into its table of star names XEQ IND + RTN. Every jump is then a call, a return or a STRUCT step. Each costs a
+    return more (the walk from the program's start to the step after the XEQ)."""
+    import c47struct as C
+    P = C.plain(L)
+    out, n = [], 0
+    for i, l in enumerate(P):
+        if l.startswith(('GTO "', 'GTO IND')):              # GTO IND: SNMU's star names (a table of labels)
+            assert not C.is_test(P[i - 1]), P[i - 1:i + 1]
+            out.append('XEQ ' + l[4:])
+            if P[i + 1] != 'END':
+                out.append('RTN')
+            n += 1
+        else:
+            out.append(l)
+    print('  40_nogoto: %d GTO "name" / GTO IND -> XEQ (RTN)' % n)
+    return C.number(out)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
@@ -1605,7 +1620,7 @@ STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), (
          ('28_text', text_inline), ('29_unroll', unroll), ('30_named', named_inline), ('31_layout', layout),
          ('32_format', formats), ('33_dots', dots), ('34_dots', dots_visible),
          ('35_layout', layout), ('36_menu', menu_stars), ('37_layout', layout),
-         ('38_stars', star_order), ('39_layout', layout))
+         ('38_stars', star_order), ('39_layout', layout), ('40_nogoto', no_goto), ('41_layout', layout))
 
 
 def _rtn_block(L, start, prog=None):

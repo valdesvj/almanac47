@@ -192,11 +192,28 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            IF: c47struct's all-of rule takes GTOs that meet at the label the code runs into. 39_layout.
                            Labels 437 -> 378 (the 58 of SBRT); search work 3.08 M -> 3.03 M; ALMANAC's star loop has no
                            GTO left. Pages pixel for pixel (fixed places and 8 random ones).
+  STRUCT everywhere (19_struct and every step after it): the Sun cache (CSUN), the planets (PLN2 / PLN3), the Moon and
+                           its phase (PHA2), RISE / SET, the text printers, the views: no GTO nn left (196 for
+                           decisions and loops and 58 tail calls in 18_hourglass). New rules of c47struct.py:
+                           if-else (IF A GTO x ENDIF B LBL x, and IF A GTO x ENDIF B GTO x), if block both ways,
+                           if dup (T GTO x to a tail of up to 4 steps), dup up to 10 steps (a tail that runs into END
+                           ends with RTN in the copy), forever (LBL a ... GTO a that only RTN leaves: REPEAT ...
+                           0 X≠0? UNTIL), call (a GTO x left whose code, followed through every jump and structure,
+                           never comes back to that GTO and uses no local register: XEQ x RTN, or T IF XEQ x RTN
+                           ENDIF: a call, never a loop by recursion; deepest call level on the pages: 7). WPLS (a view's
+                           key wait) by hand (wpls). FIXED: one rewrite made several structures with one tag, so a
+                           later rewrite could make two of them cross unseen (now each new structure has its own).
+                           Steps 32-34 follow the code whatever shape the rules give it (the digit text anywhere, the
+                           routine's end at structure depth 0, the equator loop from XEQ "N77" to its ENDDO).
+  40_nogoto/NAVFULL.txt    + no GTO at all: the 21 tail calls by name (GTO "x", step 1) are XEQ "x" + RTN again (XEQ
+                           "x" before END) and SNMU's GTO IND into its star names XEQ IND + RTN. Each costs a return
+                           (search work 3.11 M in 39_layout -> 3.19 M; steps the same within 70). 41_layout: the order.
+                           39_layout: STRUCT for every decision and loop, the tail calls kept; 41_layout: no GTO.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
 12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
-19_struct to 39_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+19_struct to 41_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
 were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
