@@ -910,3 +910,5 @@ without copied code, all at once.
   it by name), the headers say XEQ 'ALMA47'. The source and build/dev/struct_src keep NAV.
 - build/forum/C64FX.p47u (Victor's buzzer demo, written by hand, not built): the two GTO loops as DO ... DSE WHILE
   ENDDO (the steps are those c47struct.structure gives), the REM text of C64FX_rem as the '@' header and '#' lines.
+- C64FX.p47u back to the original code (Victor): the two loops LBL 02 / LBL 06 with DSE + GTO again, no STRUCT;
+  the steps are exactly C64FX.txt's (195), the header and '#' comments kept.

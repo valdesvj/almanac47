@@ -27,7 +27,7 @@
 @ LBL 05 turns them into Hz: f = 440 x 2^(s/12).
 @ Uses local registers only (LocR) and the variable KVOL (deleted at the end).
 @ Side effect: the angle mode is set to DEG (for the vibrato's SIN).
-@ Written with the STRUCT commands (DO WHILE ENDDO), no GTO; one program, C64FX its only global label.
+@ One program, C64FX its only global label; the loops are LBL / DSE / GTO (no STRUCT commands needed).
 @
 LBL "C64FX"
   # ---- main: your volume kept, the three parts in turn, then your volume back
@@ -172,7 +172,8 @@ LBL 01
   12
   # 12 rounds
   STO R.03
-  DO 01
+  # the round loop: three notes, then DSE
+  LBL 02
     RCL R.02
     30
     # lowest note, 30 ms
@@ -186,10 +187,9 @@ LBL 01
     # top note
     BUZZ
     CLSTK
-    # one round less: true while rounds are left
+    # one round less; DSE skips the GTO when no round is left
     DSE R.03
-  WHILE 01
-  ENDDO 01
+    GTO 02
   RTN
 
 LBL 03
@@ -209,7 +209,8 @@ LBL 03
   0
   # k = 0
   STO R.02
-  DO 02
+  # the piece loop: one 25 ms piece, then DSE
+  LBL 06
     RCL R.02
     60
     ×
@@ -228,10 +229,9 @@ LBL 03
     1
     # k + 1
     STO+ R.02
-    # one piece less: true while pieces are left
+    # one piece less; DSE skips the GTO when no piece is left
     DSE R.01
-  WHILE 02
-  ENDDO 02
+    GTO 06
   RTN
 
 LBL 04
