@@ -950,3 +950,8 @@ without copied code, all at once.
   NAVINIT_FULL and ALMA47 do not fit together: NAVINIT runs alone, its program is spliced out of the saved state
   (as ~/almanac47-fwtest/fwstate.py). The DSL's [reg X] gives <unsupported> for a matrix in X: that is how the
   out-of-memory showed. Ephemeris in the firmware, 20 + 20 instants: all within the limits (OPTIMIZATIONS.md section 8).
+- DROPPED from the release (Victor): the old-DM42 zip. The firmware: the published old-DM42 firmware is pkg4 only
+  (GitLab release assets; Makefile DMCP_PACKAGE = 4, CI make dist_dmcp), and pkg4 has #undef OPTION_STRUCTURED_PGM;
+  ATEXT / GRFNT are in the block common to packages 1-4 (C47.pgm of the published zip holds the GRFNT font names).
+  Local c43 master b160a7b60 (8 Oct) had all three off for the old DM42; origin/master 9fb8f6316 (10 Oct, git fetch
+  only) is as the release. The STRUCT DM42 builds moved to build/dev/struct_src/dm42/ (README.txt, not released).

@@ -14,6 +14,7 @@
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @
 @ Needs a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
+@ Not for the old DM42: its published C47 firmware has ATEXT and GRFNT but not STRUCT (the DM42n has it all).
 @
 @ Two files: ALMA47.p47u (the programs that stay on the calculator) and NAVINIT.p47u (builds the matrices once).
 @ The comments after ';' say what each part and each routine does (rejig drops them: they take no memory).

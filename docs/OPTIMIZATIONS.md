@@ -258,10 +258,13 @@ the firmware, the cache ALMC after the ALMANAC page, 20 random instants and plac
 2026–2030 all within the limits; largest error Sun 0.015′, Moon GHA 0.10′ (FULL; FAST 0.03′), planets 0.044′, stars
 0.003′, Hc / Zn 0.08′, Moon HP 0.006′ — the accuracy of v2.1.0.
 
-**NAVLITTLE** (the old DM42 with the C47 firmware, 64 KiB): v2.1.0's build in STRUCT (`tools/build_little_struct.py`,
+**The old DM42 (C47 firmware, 64 KiB): not in v2.2.0.** The firmware published for it (pkg4 of 00.109.05.00a0.ALPHA)
+has ATEXT and GRFNT but no STRUCT (packages 1–3, not published, have STRUCT with at most 10 IF / DO / REPEAT a
+program and 10 open). Ready for a DM42 firmware with STRUCT, not released (`build/dev/struct_src/dm42/`):
+**NAVLITTLE**, v2.1.0's build in STRUCT (`tools/build_little_struct.py`,
 source `programs_struct/little/`): `c47struct.structure`, four jumps by hand, the layout for its own pages. Within the
 DM42 build's limits (10 a series per program, 10 open at once; the largest program has 6 IF). The same page pixel for
 pixel; search work 1.73 M -> 0.74 M (-57 %), steps run +2 % (ENDIF / ENDDO are steps); 7 302 bytes (7 173).
-MOON47 v2.2.0 has 17 IF in its one program: the DM42 zip has its own build (`build_release_c47.moon_dm42`): 4 IF
+MOON47 v2.2.0 has 17 IF in its one program: a DM42 build (`build_release_c47.moon_dm42`): 4 IF
 without ELSE or RTN become T XEQ nn (the body a routine), LBL 37 / 38 and LBL 14 pick their text with T XEQ nn; 10 IF,
 5 DO, 6 REPEAT, 1 446 steps, 4 487 bytes, the page pixel for pixel the STRUCT MOON47 at 16 dates.

@@ -4,7 +4,7 @@ simulator built from the firmware sources, headless with its script (--script).
 
   1. runs: ALMA47 (NAVINIT_FAST) each page, + menu, 0 end: no error, X = 0, the registers cleared (CLREGS);
      NAVLITTLE (NAVINIT_LITTLE): up, down, + end: no error, your registers kept; MOON47 and MOON47 for the old DM42
-     (build/c47/dm42/) without TZ and with TZ = -5
+     (build/dev/struct_src/dm42/, not released) without TZ and with TZ = -5
   2. ephemeris: ALMA47 against JPL DE421 + ERFA, the reference and the limits of tests/test_ephem.py. Random instants
      (FULL 2000-2050, FAST 2026-2030) and positions: NAVINIT, ALMA47, the inputs, 1 ALMANAC, + and 0; then the cache
      ALMC is read: rows 1 Sun, 2 Moon, 3-6 Venus Mars Jupiter Saturn (GHA Dec Hc Zn), 7-64 the stars (-98: not asked,
@@ -44,6 +44,7 @@ def testcopy(src, dst):
 SIM = os.environ.get('C47SIM', os.path.expanduser('~/.cache/c47fw/c47'))
 RES = os.path.join(os.path.dirname(SIM), 'res')
 C47 = os.path.join(ROOT, 'build', 'c47')
+DM42 = os.path.join(ROOT, 'build', 'dev', 'struct_src', 'dm42')    # not released (the simulator has STRUCT)
 ONLY = os.environ.get('ONLY', 'runs,FULL,FAST').split(',')
 
 
@@ -131,7 +132,7 @@ def runs():
         shutil.rmtree(d, ignore_errors=True)
     print('== NAVLITTLE (the old DM42 with the C47 firmware): up, down, + end')
     d = tmp()
-    files = [p47(os.path.join(C47, 'NAVINIT_LITTLE.txt'), d, copy=True), p47(os.path.join(C47, 'NAVLITTLE.txt'), d),
+    files = [p47(os.path.join(DM42, 'NAVINIT_LITTLE.txt'), d, copy=True), p47(os.path.join(DM42, 'NAVLITTLE.txt'), d),
              helper(d, INPUTS, [51, 61, 85])]
     tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET'] + ['reg %02d %d.25' % (r, 4000 + r) for r in range(100)]
     tcl += ['xeq ALMA47'] + ['press R/S'] * 4 + ['puts "X=[reg X]"'] + ['puts "R%02d=[reg %02d]"' % (r, r) for r in range(100)]
@@ -141,15 +142,15 @@ def runs():
     bad += not (not err and kept)
     print('  NAVLITTLE  registers %s  %s' % ('kept' if kept else 'CHANGED', err[:2] or 'no error'))
     print('== MOON47 and MOON47 for the old DM42: without TZ, with TZ = -5')
-    for src, tz, setup in [(f, t, st) for f in ('MOON47.txt', 'dm42/MOON47.txt')
+    for src, tz, setup in [(f, t, st) for f in (os.path.join(C47, 'MOON47.txt'), os.path.join(DM42, 'MOON47.txt'))
                            for t, st in (('none', []), ('-5', ['-5', 'STO "TZ"']))]:
         d = tmp()
-        files = [p47(os.path.join(C47, src), d), helper(d, setup, [43, 82])]
+        files = [p47(src, d), helper(d, setup, [43, 82])]
         out, err = sim(d, ['readp %s' % f for f in files] + ['xeq TSET', 'xeq MOON47', 'puts "TZ=[var TZ]"'])
         t = next((l[3:] for l in out if l.startswith('TZ=')), None)
         good = not err and t == ('0' if tz == 'none' else '-5')
         bad += not good
-        print('  %-16s TZ before %-4s -> TZ %s  %s' % (src, tz, t, err[:2] or 'no error'))
+        print('  %-16s TZ before %-4s -> TZ %s  %s' % (os.path.relpath(src, ROOT)[-16:], tz, t, err[:2] or 'no error'))
     return bad
 
 

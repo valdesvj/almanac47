@@ -18,9 +18,9 @@ THE FILES (.p47 ready to load; the .txt are the same programs as listings)
   ALMA47_LABELS.txt the labels of ALMA47, and the routines you can call yourself
   p47u/             the same programs as rejig sources, with comments (for the C47 PROGRAMS folder)
   C47_Nav_User_Manual.pdf   the manual: every view, the labels, MOON47
-The old DM42 with the C47 firmware (64 KiB): Almanac47_DM42_C47firmware_v2.2.0.zip (NAVLITTLE, Sun and
-stars, and a MOON47 of its own: the DM42 firmware takes at most 10 IF / DO / REPEAT in a program; see its
-README_DM42.txt). The almanac tables (TBL) of earlier versions are not part of v2.2.0.
+The old DM42 with the C47 firmware is NOT part of v2.2.0: its published firmware (pkg4) has ATEXT and GRFNT
+but no STRUCT. Old-DM42 users keep NAVLITTLE without STRUCT (v2.0.0, "DM42 with the C47 firmware"); the DM42n
+has the full firmware and runs ALMA47. The almanac tables (TBL) of earlier versions are not part of v2.2.0.
 
 1. LOAD   ALMA47.p47 and NAVINIT_FAST.p47 (or NAVINIT_FULL.p47): copy them to the calculator
           (USB disk) and load them (I/O menu, READP).

@@ -200,15 +200,15 @@ def moon(n):
 
 
 def little(n):
-    """NAVLITTLE in STRUCT (tools/build_release_c47.little, build/c47/NAVLITTLE.txt) against v2.1.0's
+    """NAVLITTLE in STRUCT (tools/build_release_c47.little, build/dev/struct_src/dm42/, not released) against v2.1.0's
     build/dm42/NAVLITTLE.txt: the ALMANAC screen, an hour later, two earlier, + end, pixel for pixel; your registers
     kept, the stack clear; within the DM42 limits (checked by the build)."""
     import build_release_c47 as R
     import test_v2 as V
     print('== NAVLITTLE (DM42 with the C47 firmware) in STRUCT against v2.1.0')
     S, I = R.little()
-    ok(lines(os.path.join(R.OUT, 'NAVLITTLE.txt')) == S and lines(os.path.join(R.OUT, 'NAVINIT_LITTLE.txt')) == I,
-       'build/c47/NAVLITTLE.txt, NAVINIT_LITTLE.txt are the build')
+    ok(lines(os.path.join(R.DM42, 'NAVLITTLE.txt')) == S and lines(os.path.join(R.DM42, 'NAVINIT_LITTLE.txt')) == I,
+       'build/dev/struct_src/dm42/NAVLITTLE.txt, NAVINIT_LITTLE.txt are the build')
     ok(not [l for l in S if l.startswith('GTO')], 'no GTO')
     back = ['LBL "NAV"' if l == 'LBL "ALMA47"' else '"INIT"' if l == '"NAVINIT"' else l for l in S]
     ib = ['LBL "INIT"'] + I[1:]
@@ -229,7 +229,7 @@ def little(n):
 
 
 def moon_dm42(n):
-    """MOON47 for the old DM42 (build_release_c47.moon_dm42, build/c47/dm42/MOON47.txt): at most 10 IF / DO / REPEAT,
+    """MOON47 for the old DM42 (build_release_c47.moon_dm42, build/dev/struct_src/dm42/MOON47.txt, not released): at most 10 IF / DO / REPEAT,
     no GTO; the page pixel for pixel the STRUCT MOON47 at n dates, time zones, north and south; X = Y = 0."""
     import tempfile
     import c47sim
@@ -237,7 +237,7 @@ def moon_dm42(n):
     import build_release_c47 as R
     print('== MOON47 for the old DM42 (10 IF at most)')
     D_ = R.moon_dm42()
-    ok(lines(os.path.join(R.OUT, 'dm42', 'MOON47.txt')) == D_, 'build/c47/dm42/MOON47.txt is the build')
+    ok(lines(os.path.join(R.DM42, 'MOON47.txt')) == D_, 'build/dev/struct_src/dm42/MOON47.txt is the build')
     P = S.plain(D_)
     ok(all(sum(l == o for l in P) <= 10 for o in S.OPENERS) and not [l for l in P if l.startswith('GTO')],
        'IF %d DO %d REPEAT %d (10 at most), no GTO' % tuple(sum(l == o for l in P) for o in ('IF', 'DO', 'REPEAT')))

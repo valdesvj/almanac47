@@ -10,11 +10,10 @@ From the STRUCT source (programs_struct/, tools/build_struct_src.py) and the for
   build/c47/ALMA47_LABELS.txt   the global labels of ALMA47, the ones you can call yourself, the numbers in R43-R98
   build/c47/*.p47               the .txt converted by rejig: steps only, the smallest file (not in git)
   build/forum/*.p47u            the rejig sources with the '@' header and the comments after ';'
-  build/c47/NAVLITTLE.txt       the old DM42 (64 KiB) with the C47 firmware: from programs_struct/little/ (STRUCT)
-  build/c47/NAVINIT_LITTLE.txt  its matrices (build/dm42/NAVINIT_LITTLE.txt, INIT named NAVINIT)
   build/Almanac47_C47_R47_v2.2.0.zip   the release zip (not in git), with the manual of build/manuals/
-  build/c47/dm42/MOON47.txt     MOON47 for the old DM42: 10 IF in its one program (the DM42 limit), the same page
-  build/Almanac47_DM42_C47firmware_v2.2.0.zip   NAVLITTLE, its NAVINIT, MOON47 for the DM42, build/c47/dm42/README_DM42.txt
+  build/dev/struct_src/dm42/    NOT RELEASED: NAVLITTLE, NAVINIT_LITTLE, MOON47 in STRUCT for the old DM42 within its
+                                limit of 10 IF / DO / REPEAT a program; the published old-DM42 firmware (pkg4) has
+                                ATEXT and GRFNT but no STRUCT (README.txt there)
 
 The almanac tables (TBL) are not in this release. Free42 / DM42 stay on v2.1.0 (build/, build/free42/): Free42 has no
 STRUCT. Build the manual first (python3 tools/generators/build_manual.py -> build/manuals/C47_Nav_User_Manual.pdf).
@@ -33,7 +32,7 @@ VERSION = '2.2.0'
 NAME = 'Struct on Attack'
 OUT = os.path.join(ROOT, 'build', 'c47')
 ZIP = os.path.join(ROOT, 'build', 'Almanac47_C47_R47_v%s.zip' % VERSION)
-ZIP_DM42 = os.path.join(ROOT, 'build', 'Almanac47_DM42_C47firmware_v%s.zip' % VERSION)
+DM42 = os.path.join(ROOT, 'build', 'dev', 'struct_src', 'dm42')    # STRUCT builds for the old DM42: not released
 FOLDER = 'Almanac47_C47'                       # the folder inside the zip (as in v2.1.0)
 MANUAL = os.path.join(ROOT, 'build', 'manuals', 'C47_Nav_User_Manual.pdf')
 MAIN = 'ALMA47'
@@ -240,12 +239,12 @@ def main():
         write('NAVINIT_%s.txt' % kind, ['LBL "NAVINIT"'] + I[1:])
     write('MOON47.txt', B.build_moon())
     write('ALMA47_LABELS.txt', labels_file(L))
-    S, I = little()
-    write('NAVLITTLE.txt', S)
-    write('NAVINIT_LITTLE.txt', I)
-    write(os.path.join('dm42', 'MOON47.txt'), moon_dm42())
+    S, I = little()                        # the old DM42: not in the release (its published firmware has no STRUCT)
+    for name, L_ in (('NAVLITTLE.txt', S), ('NAVINIT_LITTLE.txt', I), ('MOON47.txt', moon_dm42())):
+        with open(os.path.join(DM42, name), 'w', encoding='utf-8') as fh:
+            fh.write('\n'.join(L_) + '\n')
     have_rejig = shutil.which('rejig')
-    for name in ('ALMA47', 'NAVINIT_FAST', 'NAVINIT_FULL', 'MOON47', 'NAVLITTLE', 'NAVINIT_LITTLE', 'dm42/MOON47'):
+    for name in ('ALMA47', 'NAVINIT_FAST', 'NAVINIT_FULL', 'MOON47'):
         size = p47(name) if have_rejig else None
         print('  build/c47/%s.txt: %d steps; .p47 %s bytes' % (name, len(lines(os.path.join(OUT, name + '.txt'))),
                                                                size or '? (no rejig)'))
@@ -263,14 +262,7 @@ def main():
         for src, arc in files:
             z.write(src, '%s/%s' % (FOLDER, arc))
     print('  %s: %d files' % (os.path.relpath(ZIP, ROOT), len(files)))
-    dm = [(os.path.join(OUT, n), n) for n in ('NAVLITTLE.p47', 'NAVLITTLE.txt', 'NAVINIT_LITTLE.p47', 'NAVINIT_LITTLE.txt')]
-    dm += [(os.path.join(OUT, 'dm42', n), n) for n in ('MOON47.p47', 'MOON47.txt')]
-    dm += [(os.path.join(OUT, 'dm42', 'README_DM42.txt'), 'README_DM42.txt'), (MANUAL, 'C47_Nav_User_Manual.pdf')]
-    dm += [(os.path.join(ROOT, n), n) for n in ('LICENSE', 'NOTICE', 'AI_ASSISTANCE.md')]
-    with zipfile.ZipFile(ZIP_DM42, 'w', zipfile.ZIP_DEFLATED) as z:
-        for src, arc in dm:
-            z.write(src, 'Almanac47_DM42_C47/%s' % arc)
-    print('  %s: %d files' % (os.path.relpath(ZIP_DM42, ROOT), len(dm)))
+
 
 
 if __name__ == '__main__':
