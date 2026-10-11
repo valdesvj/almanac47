@@ -955,3 +955,6 @@ without copied code, all at once.
   ATEXT / GRFNT are in the block common to packages 1-4 (C47.pgm of the published zip holds the GRFNT font names).
   Local c43 master b160a7b60 (8 Oct) had all three off for the old DM42; origin/master 9fb8f6316 (10 Oct, git fetch
   only) is as the release. The STRUCT DM42 builds moved to build/dev/struct_src/dm42/ (README.txt, not released).
+- Then back in (Victor: c43 pulled, STRUCT is there): the DM42 zip again from build/c47/dm42/ (NAVLITTLE, its reduced
+  NAVINIT_LITTLE, MOON47 of moon_dm42, README_DM42.txt). The docs say STRUCT is in DM42 packages 1-3 (c43 9fb8f6316
+  defines.h) and not in package 4, the one in the 05.00a0.ALPHA release assets.

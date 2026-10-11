@@ -54,9 +54,9 @@ S += [P('Almanac 47', title),
           ['ALMA47_LABELS.txt', 'the labels of ALMA47 and the routines you can call yourself'],
           ['p47u/', 'the same programs as rejig sources (.p47u) with comments, for the PROGRAMS folder of the C47']],
           [32 * mm, 148 * mm]),
-      P('Each comes as .p47 (load it as it is) and as .txt (the listing). The old DM42 with the C47 firmware is not '
-        'part of v2.2.0: its published firmware has no STRUCT (section 9). The almanac tables (TBL) of earlier versions '
-        'are not part of v2.2.0 either (they stay in the repository).', small),
+      P('Each comes as .p47 (load it as it is) and as .txt (the listing). The old DM42 with the C47 firmware (64 KiB) has '
+        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2.0 '
+        '(they stay in the repository).', small),
       P('2. First start', h2)] + B([
       'The C47 needs a firmware with <b>ATEXT</b>, <b>GRFNT</b> and the <b>STRUCT</b> commands: 00.109.05.00a0.ALPHA '
       '(5 Oct 2026) or later. The screens write their text with ATEXT in GRFNT 21 (the tinyFont, GRFNT 10, on the '
@@ -223,21 +223,31 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'Free42 (build/free42/MOON47.raw), the old DM42, the NumWorks and the HP Prime have their own MOON47 with the same '
       'page (v2.1.0): see their manuals.'])
 
-# ---- the old DM42: not in v2.2.0 (its published firmware has no STRUCT)
-S += [P('9. The old DM42 with the C47 firmware: not in v2.2.0', h2),
-      P('v2.2.0 needs the STRUCT commands. The C47 firmware published for the old DM42 (64 KiB) has ATEXT and GRFNT, '
-        'but not STRUCT: to fit in its flash, the only DM42 package of the release (pkg4) leaves structured programming '
-        'out. The firmware sources say so (src/c47/defines.h), and the published file was checked.'),
+# ---- NAVLITTLE: the old DM42 with the C47 firmware
+S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
+      P('The C47 firmware on the old DM42 has 64 KiB for programs, registers and matrices (the DM42n and the R47 have '
+        '256 KiB and run ALMA47). A version made only for the old DM42 keeps the Sun and the 58 stars: <b>NAVLITTLE</b> '
+        '(the program ALMA47) with its own reduced <b>NAVINIT_LITTLE</b> (only the Sun series, valid 2000–2050, the '
+        'nutation and the stars: 8.7 KB instead of 28.5 or 57.8 KB) and a <b>MOON47</b> of its own. No menu: the '
+        'ALMANAC page straight after the inputs (the Moon and planet rows taken by the next stars), ▲ / ▼ one hour later / '
+        'earlier, 9 SNAP, + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.2.0.zip, with README_DM42.txt.'),
       prose_tbl([['Firmware', 'ATEXT', 'GRFNT', 'STRUCT'],
                  ['00.109.05.00a0.ALPHA or later: C47, R47, DM42n', 'in', 'in', 'in (255 a series per program)'],
-                 ['the same release, old DM42: pkg4 (the one published)', 'in', 'in', '<b>out</b>'],
-                 ['old DM42 packages 1–3 (built from the sources, not published)', 'in', 'in',
-                  'in, at most 10 IF, 10 DO and 10 REPEAT a program'],
+                 ['old DM42, packages 1, 2, 3', 'in', 'in', 'in, at most 10 IF, 10 DO and 10 REPEAT a program'],
+                 ['old DM42, package 4 (the one in the 05.00a0.ALPHA release assets)', 'in', 'in', '<b>out</b>'],
                  ['00.109.04.00b0 and older', 'out', 'out', 'out']],
                 [86 * mm, 18 * mm, 18 * mm, 58 * mm])] + B([
-      '<b>Old DM42 users:</b> keep NAVLITTLE without STRUCT (the "DM42 with the C47 firmware" zip of v2.0.0, or '
-      'build/dm42/ in the repository): the Sun and the 58 stars on the ALMANAC page; it needs ATEXT and GRFNT, so the '
-      '05.00a0.ALPHA firmware or later.',
-      'STRUCT versions of NAVLITTLE and MOON47 within the limit of 10 a program are ready in the repository '
-      '(build/dev/struct_src/dm42/, checked pixel for pixel) for a DM42 firmware that includes STRUCT.',
-      'The DM42n has the full firmware (STRUCT included) and 256 KiB: it runs ALMA47 like the C47 and the R47.'])
+      '<b>Firmware:</b> a DM42 package with STRUCT (1, 2 or 3; see PACKAGES.txt of the firmware). With package 4 '
+      'IF / DO / REPEAT only say that they are not available: keep the NAVLITTLE of v2.0.0 there.',
+      '<b>Structured programming on the little memory.</b> The DM42 firmware keeps its tables for the STRUCT commands '
+      'small: at most <b>10 IF, 10 DO and 10 REPEAT in each program</b> and 10 structures open at once (the R47, the '
+      'DM42n and the C47 take 255 and 63). NAVLITTLE is written within it (its largest program: 6 IF, 2 DO, 1 REPEAT). '
+      'The main MOON47 has 17 IF, so the DM42 MOON47 is a build of its own: 10 IF, 5 DO, 6 REPEAT, 7 of the IF written as '
+      'a test and an XEQ of a small routine — the same steps run, the same page pixel for pixel.',
+      '<b>Load NAVINIT_LITTLE alone first</b> (NAVINIT and its matrices together need the most memory): XEQ "NAVINIT" '
+      '(MATRICES READY: SUN STARS 2000-2050), GTO "NAVINIT", DELP; then load NAVLITTLE and XEQ "ALMA47".',
+      '<b>v2.2.0:</b> STRUCT, no GTO, its routines ordered for the searches: about 57 % less time looking for labels '
+      'and returns than v2.1.0 (simulator), the same page pixel for pixel. It saves your registers R00–R35 while it runs '
+      'and gives them back at the end. Memory: NAVLITTLE 7.3 KB, NAVINIT_LITTLE 8.7 KB (delete it after use), MOON47 '
+      '4.5 KB; NAVLITTLE with its matrices about 31 KB.',
+      'Checked in the simulators; not yet on an old DM42: please report the free memory and any problem.'])

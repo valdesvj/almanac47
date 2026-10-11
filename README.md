@@ -6,8 +6,8 @@ version and the base for a phone app (**Almanac 47**).
 - **v2.2.0 "Struct on Attack" (C47 / R47 only):** `build/c47/` - ALMA47, NAVINIT_FAST / _FULL, MOON47,
   written with the C47 STRUCT commands (no GTO), much faster than v2.1.0; `build/c47/QUICKSTART.txt`,
   `build/c47/ALMA47_LABELS.txt`, the commented rejig sources `build/forum/*.p47u`, the source `programs_struct/`.
-  Not for the old DM42: its published C47 firmware (pkg4) has ATEXT and GRFNT but no STRUCT; STRUCT builds within
-  its 10-a-program limit wait in `build/dev/struct_src/dm42/` (not released).
+  The old DM42 (64 KiB): `build/c47/dm42/` - NAVLITTLE with its reduced NAVINIT_LITTLE and a MOON47 of its own, in
+  STRUCT within the DM42 firmware's 10 IF / DO / REPEAT a program (firmware packages 1-3; package 4 has no STRUCT).
   Build: `python3 tools/build_release_c47.py`; in the firmware and against DE421: `tests/test_fw_c47.py`.
   Free42 / DM42 stock firmware / Plus42 stay on v2.1.0 (below).
 - **Install and run (v2.1.0):** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the

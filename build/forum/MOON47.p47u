@@ -16,7 +16,7 @@
 @ (save yours first); its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).
 @
 @ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
-@ Not for the old DM42: its published C47 firmware has ATEXT and GRFNT but not STRUCT (the DM42n has it all).
+@ The old DM42 has a MOON47 of its own in the release (10 IF a program: the DM42 firmware's limit).
 @ One program, MOON47 the only global label (the text printers and the phase symbols are numbered routines in it);
 @ written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, no GTO.
 @

@@ -49,7 +49,7 @@ NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reducti
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @
 @ Needs a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
-@ Not for the old DM42: its published C47 firmware has ATEXT and GRFNT but not STRUCT (the DM42n has it all).
+@ The old DM42 (64 KiB) has its own version, NAVLITTLE, in the release (DM42 firmware packages 1-3 have STRUCT).
 @
 @ Two files: ALMA47.p47u (the programs that stay on the calculator) and NAVINIT.p47u (builds the matrices once).
 @ The comments after ';' say what each part and each routine does (rejig drops them: they take no memory).
@@ -127,7 +127,7 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ (save yours first); its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).
 @
 @ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
-@ Not for the old DM42: its published C47 firmware has ATEXT and GRFNT but not STRUCT (the DM42n has it all).
+@ The old DM42 has a MOON47 of its own in the release (10 IF a program: the DM42 firmware's limit).
 @ One program, MOON47 the only global label (the text printers and the phase symbols are numbered routines in it);
 @ written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, no GTO.
 @

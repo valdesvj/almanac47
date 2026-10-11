@@ -4,7 +4,7 @@ simulator built from the firmware sources, headless with its script (--script).
 
   1. runs: ALMA47 (NAVINIT_FAST) each page, + menu, 0 end: no error, X = 0, the registers cleared (CLREGS);
      NAVLITTLE (NAVINIT_LITTLE): up, down, + end: no error, your registers kept; MOON47 and MOON47 for the old DM42
-     (build/dev/struct_src/dm42/, not released) without TZ and with TZ = -5
+     (build/c47/dm42/) without TZ and with TZ = -5
   2. ephemeris: ALMA47 against JPL DE421 + ERFA, the reference and the limits of tests/test_ephem.py. Random instants
      (FULL 2000-2050, FAST 2026-2030) and positions: NAVINIT, ALMA47, the inputs, 1 ALMANAC, + and 0; then the cache
      ALMC is read: rows 1 Sun, 2 Moon, 3-6 Venus Mars Jupiter Saturn (GHA Dec Hc Zn), 7-64 the stars (-98: not asked,
@@ -44,7 +44,7 @@ def testcopy(src, dst):
 SIM = os.environ.get('C47SIM', os.path.expanduser('~/.cache/c47fw/c47'))
 RES = os.path.join(os.path.dirname(SIM), 'res')
 C47 = os.path.join(ROOT, 'build', 'c47')
-DM42 = os.path.join(ROOT, 'build', 'dev', 'struct_src', 'dm42')    # not released (the simulator has STRUCT)
+DM42 = os.path.join(C47, 'dm42')                 # the old DM42 (the simulator has STRUCT, 255 a program)
 ONLY = os.environ.get('ONLY', 'runs,FULL,FAST').split(',')
 
 
