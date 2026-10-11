@@ -149,7 +149,7 @@ S += [P('6. Speed and memory', h2)] + B([
       'AGRAPH, the header text kept for the run, the text routines written in place where they are called most;',
       '— <b>calculation:</b> Hc and Zn with four trigonometric functions, the equator of the charts a whole column at a '
       'time (M.GETM / M.PUTM), the star order as a matrix (SBR), whole numbers into text with one αIP.',
-      'ALMA47 is 27.6 KB (8 859 steps; v2.1.0\'s NAVFULL 24.2 KB): the unrolled loops and the code written in place '
+      'ALMA47 is 27.2 KB (8 734 steps; v2.1.0\'s NAVFULL 24.2 KB): the unrolled loops and the code written in place '
       'make it bigger, for speed. MOON47 is 4.5 KB. NAVINIT while it is loaded: FAST 28.5 KB, FULL 57.8 KB; the '
       'matrices FAST about 55 KB, FULL about 95 KB.',
       'History: v2.0.0 was faster and smaller than v1.1 (Horner\'s method, n-vectors, the nutation as matrix products, '

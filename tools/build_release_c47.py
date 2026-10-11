@@ -39,12 +39,14 @@ CALLABLE = [
     ('N17', 'SUNF', 'X = JD (UT)', 'X GHA of the Sun, Y Dec (low precision, 0.01 deg)'),
     ('N25', 'MOO2', 'right after N15, same JD', "X GHA of the Moon, Y Dec, Z HP ('), T SD (')"),
     ('N28', 'PLN2', 'right after N15; X = planet 1-4 (Venus, Mars, Jupiter, Saturn)', "X GHA, Y Dec, Z SHA, T HP (')"),
-    ('N32', 'HCZ', 'Y = Dec, X = GHA', 'X Hc, Y Zn for the DR of the last run'),
-    ('N38', 'RISE', 'Z = JD at 0 h UT, Y = lat, X = lon', 'X sunrise (UT hours; 99 = none that day)'),
-    ('N39', 'SET', 'Z = JD at 0 h UT, Y = lat, X = lon', 'X sunset (UT hours; 99 = none)'),
-    ('N44', 'TRAN', 'Z = JD at 0 h UT, Y = lat, X = lon', 'X meridian passage of the Sun (UT hours)'),
-    ('N40', 'NTWA', 'Z = JD at 0 h UT, Y = lat, X = lon', 'X nautical twilight, morning (UT hours; 99 = none)'),
-    ('N41', 'NTWP', 'Z = JD at 0 h UT, Y = lat, X = lon', 'X nautical twilight, evening (UT hours; 99 = none)'),
+    ('N29', 'PLN3', 'right after N15; X = planet 1-4', 'X GHA, Y Dec (a quick position, the full series only when the planet '
+     'can be above the horizon)'),
+    ('N32', 'HCZ', 'Y = Dec, X = GHA (decimal degrees)', 'X Hc, Y Zn for the DR of the last run'),
+    ('N38', 'RISE', 'Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)', 'X sunrise (UT hours; 99 = none that day)'),
+    ('N39', 'SET', 'Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)', 'X sunset (UT hours; 99 = none)'),
+    ('N44', 'TRAN', 'Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)', 'X meridian passage of the Sun (UT hours)'),
+    ('N40', 'NTWA', 'Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)', 'X nautical twilight, morning (UT hours; 99 = none)'),
+    ('N41', 'NTWP', 'Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)', 'X nautical twilight, evening (UT hours; 99 = none)'),
     ('N48', 'SNMU', 'X = star number 1-58', 'the star\'s name in ALPHA'),
 ]
 

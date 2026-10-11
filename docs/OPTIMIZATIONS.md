@@ -208,8 +208,11 @@ v2.1.0; the pages are v2.1.0's with the top bar in one line (date, UT, DR) and t
   those) and writes the partner numbers (IF 01 ...).
 - **No GTO of any kind:** decisions and loops are structures; a code end shared by several branches is a small
   routine they call; the key loop of the menu is one DO ... ENDDO with the end key before its WHILE; keys 1-6 by
-  arithmetic on the key code (row and column); a view and its arrows one DO ... ENDDO. 8 859 steps, 26 programs,
-  370 labels, 126 structures (IF 85, DO 33, REPEAT 8).
+  arithmetic on the key code (row and column); a view and its arrows one DO ... ENDDO. 8 734 steps, 26 programs,
+  353 labels, 125 structures (IF 84, DO 33, REPEAT 8).
+- **No dead code:** 13 labels nothing reached (left by older versions: unused symbol characters, old S / W
+  letters, an old copy of the box border, an old axis label) and N78 CEQR (the equator one dot at a time, replaced by
+  the whole columns) are gone, with the 3 labels no step jumped to: 125 steps, 398 bytes.
 - **The order of the code** (`tools/build_struct.py` layout): the C47 finds a label, a structure step and the place
   a RTN goes back to by walking the program memory (a RTN walks from the start of its program). The routines are
   ordered by how often the profiled pages reach them, the busiest first, and the programs in the order of use.
@@ -230,12 +233,12 @@ and 0 (the profile of `tools/build_struct.py`; FULL matrices, 4 Oct 2026 09:30 U
 | | ALMANAC | SPLIT | SKY | ANIM | ALLSKY | INFO | menu arrows | all |
 |---|---|---|---|---|---|---|---|---|
 | steps run, v2.1.0 | 53 293 | 80 032 | 81 455 | 142 787 | 102 294 | 21 951 | 42 159 | 523 971 |
-| steps run, v2.2.0 | 43 479 | 46 696 | 38 260 | 65 577 | 61 482 | 15 759 | 23 173 | 294 426 |
+| steps run, v2.2.0 | 43 470 | 46 650 | 38 239 | 65 562 | 61 461 | 15 756 | 23 164 | 294 302 |
 | change | -18 % | -42 % | -53 % | -54 % | -40 % | -28 % | -45 % | -44 % |
 
 The search work on those pages (labels and structure steps scanned, steps walked by returns and calls by name, the
 model of `tools/build_struct.py`): 21.2 M -> 3.2 M (-85 %). Program size: NAVFULL v2.1.0 24 160 bytes, ALMA47
-27 565 bytes (+14 %: the unrolled loops and the code written in place).
+27 167 bytes (+12 %: the unrolled loops and the code written in place).
 
 MOON47: one program with MOON47 its only global label (its printers and symbols numbered labels in it), STRUCT, no
 GTO; the disc loop by hand, numbers into text by alpha-IP: 1 436 steps, 4 491 bytes (4 844 before), search work

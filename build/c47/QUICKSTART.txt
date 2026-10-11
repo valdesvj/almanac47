@@ -58,7 +58,7 @@ REGISTERS AND STACK: ALMA47 uses the numbered registers (R00-R98) and the 8-leve
   An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
   A body below the horizon (in practice the Sun) has its Hc shown white on black.
 
-MEMORY (program bytes, measured with rejig): ALMA47 27.6 KB, MOON47 4.5 KB; NAVINIT while loaded:
+MEMORY (program bytes, measured with rejig): ALMA47 27.2 KB, MOON47 4.5 KB; NAVINIT while loaded:
   FAST 28.5 KB, FULL 57.8 KB. The matrices: FAST about 55 KB, FULL about 95 KB; the cache ALMC about 6 KB.
 
 WHAT IS NEW IN v2.2.0: the same screens and results as the v2.1.0 views (with the new top bar and the

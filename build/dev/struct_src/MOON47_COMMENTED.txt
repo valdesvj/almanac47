@@ -756,6 +756,7 @@ X<>Y
 X<>Y
 RTN
 REM "XEQ IND table: the eight phase symbols (characters 0-7)"
+REM "2 first quarter"
 LBL 50
 XEQ 07
 XEQ 45
@@ -1336,28 +1337,33 @@ LBL 42
 R↓
 AGRAPH D
 RTN
+REM "0 new Moon"
 LBL 48
 XEQ 07
 XEQ 27
 RTN
+REM "7 waning crescent"
 LBL 55
 XEQ 10
 111100001111#2
 XEQ 46
 XEQ 27
 RTN
+REM "4 full Moon"
 LBL 52
 XEQ 08
 AGRAPH D
 AGRAPH D
 XEQ 12
 RTN
+REM "6 last quarter"
 LBL 54
 XEQ 08
 100000000001#2
 R↓
 XEQ 27
 RTN
+REM "3 waxing gibbous"
 LBL 51
 XEQ 09
 110111111011#2
@@ -1368,6 +1374,7 @@ AGRAPH D
 AGRAPH D
 XEQ 12
 RTN
+REM "5 waning gibbous"
 LBL 53
 XEQ 08
 AGRAPH D
@@ -1375,6 +1382,7 @@ AGRAPH D
 110111111011#2
 XEQ 11
 RTN
+REM "1 waxing crescent"
 LBL 49
 XEQ 07
 AGRAPH D
@@ -1464,27 +1472,35 @@ LBL 67
 "WANING CRESCENT"
 RTN
 REM "XEQ IND table: the characters of the phase symbols"
+REM "phase 0"
 LBL 90
 "0"
 RTN
+REM "phase 1"
 LBL 91
 "1"
 RTN
+REM "phase 2"
 LBL 92
 "2"
 RTN
+REM "phase 3"
 LBL 93
 "3"
 RTN
+REM "phase 4"
 LBL 94
 "4"
 RTN
+REM "phase 5"
 LBL 95
 "5"
 RTN
+REM "phase 6"
 LBL 96
 "6"
 RTN
+REM "phase 7"
 LBL 97
 "7"
 RTN

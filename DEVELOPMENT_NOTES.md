@@ -929,7 +929,9 @@ without copied code, all at once.
   same .p47 as the plain listing (27 565 bytes). C64FX.p47u (53 '#' lines) still has REMs.
 - tools/struct_comments.py: what each numbered routine does (149 in NAVFULL, MOON47's), the XEQ IND tables, the
   labels nothing reaches (NAV 09, PSYS 94 95 98, PSYB 38, ALLSKY 24 25, HORZ 01 54 59 67, HALMH / ALMF 27; HORZ 01 is
-  the only caller of N78 CEQR, so CEQR is dead too). Left in the code (the tested build); a clean-up for later.
+  the only caller of N78 CEQR, so CEQR is dead too). Then removed (Victor), with the labels no step jumped to (HORZ
+  15, HALMH 03, PLN2 31) and CSUN's stores of "G4" / "U9" that only CEQR read: 125 steps, ALMA47 8 734 steps, 27 167
+  bytes; every test as before (pixel for pixel 18_hourglass, stack clear); the callable routines give the same values.
 - Simulator steps, each page with its arrows (build_struct.PROFILE), v2.1.0 -> v2.2.0: ALMANAC -18 %, SPLIT -42 %,
   SKY -53 %, ANIM -54 %, ALLSKY -40 %, all -44 %; search work 21.2 M -> 3.2 M. docs/OPTIMIZATIONS.md section 8.
 - Manual (tools/generators/manual_nav.py): v2.2.0, C47 / R47 only, ALMA47, NAVINIT FAST / FULL, no register save,

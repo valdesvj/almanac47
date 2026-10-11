@@ -20,17 +20,19 @@ R00-R42 for their work. JD: the C47's Julian Date (DATE, then ⅅ→J) + UT / 24
                     -> X GHA of the Moon, Y Dec, Z HP ('), T SD (')
   XEQ "N28"  PLN2  right after N15; X = planet 1-4 (Venus, Mars, Jupiter, Saturn)
                     -> X GHA, Y Dec, Z SHA, T HP (')
-  XEQ "N32"  HCZ   Y = Dec, X = GHA
+  XEQ "N29"  PLN3  right after N15; X = planet 1-4
+                    -> X GHA, Y Dec (a quick position, the full series only when the planet can be above the horizon)
+  XEQ "N32"  HCZ   Y = Dec, X = GHA (decimal degrees)
                     -> X Hc, Y Zn for the DR of the last run
-  XEQ "N38"  RISE  Z = JD at 0 h UT, Y = lat, X = lon
+  XEQ "N38"  RISE  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
                     -> X sunrise (UT hours; 99 = none that day)
-  XEQ "N39"  SET   Z = JD at 0 h UT, Y = lat, X = lon
+  XEQ "N39"  SET   Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
                     -> X sunset (UT hours; 99 = none)
-  XEQ "N44"  TRAN  Z = JD at 0 h UT, Y = lat, X = lon
+  XEQ "N44"  TRAN  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
                     -> X meridian passage of the Sun (UT hours)
-  XEQ "N40"  NTWA  Z = JD at 0 h UT, Y = lat, X = lon
+  XEQ "N40"  NTWA  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
                     -> X nautical twilight, morning (UT hours; 99 = none)
-  XEQ "N41"  NTWP  Z = JD at 0 h UT, Y = lat, X = lon
+  XEQ "N41"  NTWP  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
                     -> X nautical twilight, evening (UT hours; 99 = none)
   XEQ "N48"  SNMU  X = star number 1-58
                     -> the star's name in ALPHA
@@ -76,7 +78,6 @@ N75      CNTP    nautical twilight pm from the cache
 N77      CEQQ    celestial equator of the charts: its dots for this place (U3 SKY / SPLIT, U2 ANIM / ALLSKY), computed again only for a new place
 N65      CMOO    Moon from the cache
 N64      CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
-N78      CEQR    celestial equator of the charts: the next dot (no view calls it any more)
 N25      MOO2    Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
 N38      RISE    sunrise time UT (SUNRISE program)
 N39      SET     sunset time UT

@@ -4,8 +4,7 @@ Used by tools/build_struct_src.py (NAVFULL_COMMENTED.txt, MOON47_COMMENTED.txt) 
 lines of the .p47u files). The global labels are described in build_struct_src.LABELS.
 
 ROUTINES[(program, label)]   a routine (a numbered label some XEQ nn calls)
-ENTRIES[program]             [(labels, text)]: the XEQ IND tables (a label reached only by XEQ IND), and the few
-                             labels nothing reaches
+ENTRIES[program]             [(labels, text)]: the XEQ IND tables (a label reached only by XEQ IND)
 MOON[label]                  the same for MOON47 (one program)
 """
 
@@ -170,39 +169,26 @@ ROUTINES = {
 for _l in ('01', '02', '03', '04', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16'):
     ROUTINES.setdefault(('PSYB', _l), 'columns shared by the 12-row symbols')
 
-_GONE = 'not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)'
-_RUN = 'a label no step jumps to: the steps above run into it'
 _PLANETS = 'Venus, Mars, Jupiter, Saturn'
 _CHARS = 'the symbols by character code: @ Sun, ( Moon, * star, < = > ? ' + _PLANETS
 ENTRIES = {
-    'NAV': [(('09',), _GONE)],
-    'PSYS': [(('40', '42', '60', '61', '62', '63', '64'), 'XEQ IND table: ' + _CHARS),
-             (('94', '95', '98'), _GONE)],
+    'PSYS': [(('40', '42', '60', '61', '62', '63', '64'), 'XEQ IND table: ' + _CHARS)],
     'PSYB': [(('40', '42', '60', '61', '62', '63', '64'), 'XEQ IND table: ' + _CHARS),
-             (('38',), _GONE),
              (('48', '49', '50', '51', '52', '53', '54', '55'), 'XEQ IND table: the eight Moon phases, characters 0-7')],
     'ALLSKY': [(('61', '62', '63', '71', '72', '73', '74'), 'XEQ IND table: the symbol character of a body (61-63 '
-                'Sun, Moon, star; 71-74 the planets)'),
-               (('24', '25'), _GONE)],
-    'PLN2': [(('31',), _RUN),
-             (('11', '12', '13', '14'), 'XEQ IND table: the VSOP87 series of ' + _PLANETS),
+                'Sun, Moon, star; 71-74 the planets)')],
+    'PLN2': [(('11', '12', '13', '14'), 'XEQ IND table: the VSOP87 series of ' + _PLANETS),
              (('60', '61', '62', '63', '64'), 'XEQ IND table: the mean elements of the Earth, ' + _PLANETS)],
     'HORZ': [(('71', '72', '73', '74'), 'XEQ IND table: the symbol characters of the planets'),
              (('81', '82', '83', '84', '85'), 'XEQ IND table: the names of the Moon and the planets'),
-             (('91', '92', '93', '94'), 'XEQ IND table: a number by body code'),
-             (('54', '59', '67'), _GONE),
-             (('01',), 'not reached: it follows a loop only RTN leaves (CEQR, the old equator, is no longer used)'),
-             (('15',), _RUN)],
-    'HALMH': [(('03',), _RUN),
-              (('71', '72', '73', '74'), 'XEQ IND table: the symbol characters of the planets'),
+             (('91', '92', '93', '94'), 'XEQ IND table: a number by body code')],
+    'HALMH': [(('71', '72', '73', '74'), 'XEQ IND table: the symbol characters of the planets'),
               (('82', '83', '84', '85'), 'XEQ IND table: the names of the planets'),
-              (('91', '92', '93', '94'), 'XEQ IND table: a number by body code'),
-              (('27',), _GONE)],
+              (('91', '92', '93', '94'), 'XEQ IND table: a number by body code')],
     'ALMF': [(('71', '72', '73', '74'), 'XEQ IND table: the symbol characters of the planets'),
              (('82', '83', '84', '85'), 'XEQ IND table: the names of the planets'),
              (('91', '92', '93', '94'), 'XEQ IND table: a number by body code'),
-             (('48', '49', '50', '51', '52', '53', '54', '55'), 'XEQ IND table: the Moon phase symbol characters 0-7'),
-             (('27',), _GONE)],
+             (('48', '49', '50', '51', '52', '53', '54', '55'), 'XEQ IND table: the Moon phase symbol characters 0-7')],
     'SNMU': [(tuple('%02d' % n for n in range(1, 59)), 'XEQ IND table: the names of the 58 stars by number')],
     'TGET': [(('20', '21', '22', '23', '24', '25', '26'), 'XEQ IND table: the table matrices TSU TVE TMA TJU TSA TMO '
               'TAR (Sun, planets, Moon, Aries)')],
@@ -293,3 +279,34 @@ BLOCKS = {
         ('DELITM "Q2"', 1, 1, '0: the end - the work variables deleted, your stack size back, CLREGS, CLSTK'),
     ],
 }
+
+# each entry of an XEQ IND table: what it is
+_SYM = {'40': '( the Moon', '42': '* a star', '60': '< Venus', '62': '> Mars', '61': '= Jupiter', '63': '? Saturn',
+        '64': '@ the Sun'}
+_PHASE = ['new Moon', 'waxing crescent', 'first quarter', 'waxing gibbous', 'full Moon', 'waning gibbous',
+          'last quarter', 'waning crescent']
+_PLCHR = {'71': 'Venus', '72': 'Mars', '73': 'Jupiter', '74': 'Saturn'}
+_ORDER = {'91': 'the 1st planet tried: Venus', '92': 'the 2nd: Jupiter', '93': 'the 3rd: Mars', '94': 'the 4th: Saturn'}
+ITEMS = {}
+for _p in ('PSYS', 'PSYB'):
+    ITEMS.update({(_p, k): v for k, v in _SYM.items()})
+for _p in ('PSYB', 'ALMF'):
+    ITEMS.update({(_p, '%02d' % (48 + i)): '%d %s' % (i, n) for i, n in enumerate(_PHASE)})
+for _p in ('HORZ', 'HALMH', 'ALMF', 'ALLSKY'):
+    ITEMS.update({(_p, k): v for k, v in _PLCHR.items()})
+for _p in ('HORZ', 'HALMH', 'ALMF'):
+    ITEMS.update({(_p, k): v for k, v in _ORDER.items()})
+ITEMS.update({('HORZ', '81'): 'Moon', ('HORZ', '82'): 'Venus', ('HORZ', '83'): 'Mars', ('HORZ', '84'): 'Jupiter',
+              ('HORZ', '85'): 'Saturn', ('HALMH', '82'): 'Venus', ('HALMH', '83'): 'Mars', ('HALMH', '84'): 'Jupiter',
+              ('HALMH', '85'): 'Saturn', ('ALMF', '82'): 'Venus', ('ALMF', '83'): 'Mars', ('ALMF', '84'): 'Jupiter',
+              ('ALMF', '85'): 'Saturn', ('ALLSKY', '61'): '@ the Sun', ('ALLSKY', '62'): '( the Moon',
+              ('ALLSKY', '63'): '* a star',
+              ('PLN2', '11'): 'Venus', ('PLN2', '12'): 'Mars', ('PLN2', '13'): 'Jupiter', ('PLN2', '14'): 'Saturn',
+              ('PLN2', '60'): 'the Earth', ('PLN2', '61'): 'Venus', ('PLN2', '62'): 'Mars', ('PLN2', '63'): 'Jupiter',
+              ('PLN2', '64'): 'Saturn',
+              ('TGET', '20'): 'TSU the Sun', ('TGET', '21'): 'TVE Venus', ('TGET', '22'): 'TMA Mars',
+              ('TGET', '23'): 'TJU Jupiter', ('TGET', '24'): 'TSA Saturn', ('TGET', '25'): 'TMO the Moon',
+              ('TGET', '26'): 'TAR Aries'})
+ITEMS.update({('SNMU', '%02d' % n): 'star %d' % n for n in range(1, 59)})
+MOON_ITEMS = {'%02d' % (48 + i): '%d %s' % (i, n) for i, n in enumerate(_PHASE)}
+MOON_ITEMS.update({'%02d' % (90 + i): 'phase %d' % i for i in range(8)})

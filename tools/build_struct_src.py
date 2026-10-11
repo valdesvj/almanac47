@@ -101,7 +101,6 @@ LABELS = {
     'N74': ('CSET', 'sunset from the cache'),
     'N75': ('CNTP', 'nautical twilight pm from the cache'),
     'N77': ('CEQQ', 'celestial equator of the charts: its dots for this place (U3 SKY / SPLIT, U2 ANIM / ALLSKY), computed again only for a new place'),
-    'N78': ('CEQR', 'celestial equator of the charts: the next dot (no view calls it any more)'),
     'N79': ('PTTY', 'TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text'),
     'N80': ('PTNT', 'TEXT: whole number in the tinyFont'),
     'N81': ('PSYB', 'SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol'),
@@ -219,6 +218,8 @@ def commented(L):
                 if e and e[1] not in tables:
                     tables.add(e[1])
                     out.append(pad + 'REM "%s"' % e[0].replace('"', "'"))
+                if e and (name, n.group(1)) in SC.ITEMS:
+                    out.append(pad + 'REM "%s"' % SC.ITEMS[(name, n.group(1))])
                 elif not e and ind:
                     out.append(pad + 'REM "entry %s of the XEQ IND table (%s)"' % (n.group(1), owner[i]))
             if s.startswith('REPEAT'):
@@ -276,6 +277,8 @@ def commented_moon(L):
             if table[0][0] not in seen:
                 seen.add(table[0][0])
                 out.append(pad + 'REM "%s"' % table[0][1])
+            if m.group(1) in SC.MOON_ITEMS and table[0][0][0] != '60':
+                out.append(pad + 'REM "%s"' % SC.MOON_ITEMS[m.group(1)])
         elif m:
             what = SC.MOON.get(m.group(1), MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))).replace('"', "'")
             n = callers.get(m.group(1), 0)

@@ -933,15 +933,6 @@ STO 01
 GRMOD 01
 WSIZE 64
 RTN
-LBL 09                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-STO 03
-GRMOD 03
-105
-110
-111111111111111111111111111111#2
-STO 03
-R↓
-RTN
 LBL 10                  ; NAV 10: DATE prompt in the D.MY date format (called by NAV x1)
 "DATE DD.MMYYYY"
 STO 02
@@ -2337,7 +2328,7 @@ WSIZE 64
 RCL 10
 RCL 01
 RTN
-LBL 60                  ; XEQ IND table: the symbols by character code: @ Sun, ( Moon, * star, < = > ? Venus, Mars, Jupiter, Saturn
+LBL 60                  ; XEQ IND table: the symbols by character code: @ Sun, ( Moon, * star, < = > ? Venus, Mars, Jupiter, Saturn - < Venus
 RCL 10
 RCL 01
 110000#2
@@ -2348,7 +2339,7 @@ XEQ 01
 R↓
 XEQ 02
 RTN
-LBL 61
+LBL 61                  ; = Jupiter
 RCL 10
 RCL 01
 1001100#2
@@ -2365,7 +2356,7 @@ XEQ 03
 R↓
 XEQ 02
 RTN
-LBL 63
+LBL 63                  ; ? Saturn
 RCL 10
 RCL 01
 1000000#2
@@ -2391,7 +2382,7 @@ AGRAPH D
 R↓
 AGRAPH D
 RTN
-LBL 62
+LBL 62                  ; > Mars
 RCL 10
 RCL 01
 1110#2
@@ -2421,7 +2412,7 @@ AGRAPH D
 R↓
 AGRAPH D
 RTN
-LBL 42
+LBL 42                  ; * a star
 RCL 10
 RCL 01
 10000#2
@@ -2449,7 +2440,7 @@ RCL 44
 +
 STO 01
 RTN
-LBL 40
+LBL 40                  ; ( the Moon
 RCL 10
 RCL 01
 11100#2
@@ -2469,7 +2460,7 @@ RCL 44
 +
 STO 01
 RTN
-LBL 64
+LBL 64                  ; @ the Sun
 RCL 10
 RCL 01
 11100#2
@@ -2497,26 +2488,6 @@ RCL 44
 +
 STO 01
 RTN
-LBL 98                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-R↓
-AGRAPH D
-1000001#2
-R↓
-AGRAPH D
-RTN
-LBL 95
-RCL 10
-RCL 01
-11100#2
-R↓
-AGRAPH D
-RTN
-LBL 94
-R↓
-AGRAPH D
-11011#2
-R↓
-AGRAPH D
 END
 
 
@@ -2838,33 +2809,25 @@ LBL 08                  ; ALLSKY 08: south latitude: the chart turned (south up)
 RCL 62
 STO 19
 RTN
-LBL 24                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-"S"
-STO 05
-RTN
-LBL 25
-"W"
-STO 05
-RTN
-LBL 61                  ; XEQ IND table: the symbol character of a body (61-63 Sun, Moon, star; 71-74 the planets)
+LBL 61                  ; XEQ IND table: the symbol character of a body (61-63 Sun, Moon, star; 71-74 the planets) - @ the Sun
 "@"
 RTN
-LBL 62
+LBL 62                  ; ( the Moon
 "("
 RTN
-LBL 63
+LBL 63                  ; * a star
 "*"
 RTN
-LBL 71
+LBL 71                  ; Venus
 "<"
 RTN
-LBL 72
+LBL 72                  ; Mars
 ">"
 RTN
-LBL 73
+LBL 73                  ; Jupiter
 "="
 RTN
-LBL 74
+LBL 74                  ; Saturn
 "?"
 END
 
@@ -2937,7 +2900,7 @@ RCL 15
 STO 09
 XEQ 02
 RTN
-LBL 11                  ; XEQ IND table: the VSOP87 series of Venus, Mars, Jupiter, Saturn
+LBL 11                  ; XEQ IND table: the VSOP87 series of Venus, Mars, Jupiter, Saturn - Venus
 RCL "VNL"
 XEQ "N18"
 STO 01
@@ -2948,7 +2911,7 @@ RCL "VNR"
 XEQ "N18"
 STO 08
 RTN
-LBL 12
+LBL 12                  ; Mars
 RCL "MAL"
 XEQ "N18"
 STO 01
@@ -2959,7 +2922,7 @@ RCL "MAR"
 XEQ "N18"
 STO 08
 RTN
-LBL 13
+LBL 13                  ; Jupiter
 RCL "JUL"
 XEQ "N18"
 STO 01
@@ -3011,7 +2974,6 @@ RCL 03
 RCL 50
 ÷
 STO 05
-LBL 31                  ; a label no step jumps to: the steps above run into it
 RCL 05
 RCL 30
 X≠Y?
@@ -3283,7 +3245,7 @@ RCL- 08
 RCL 43
 →REC
 RTN
-LBL 14
+LBL 14                  ; Saturn
 RCL "SAL"
 XEQ "N18"
 STO 01
@@ -3294,7 +3256,7 @@ RCL "SAR"
 XEQ "N18"
 STO 08
 RTN
-LBL 60                  ; XEQ IND table: the mean elements of the Earth, Venus, Mars, Jupiter, Saturn
+LBL 60                  ; XEQ IND table: the mean elements of the Earth, Venus, Mars, Jupiter, Saturn - the Earth
 5.62E-6
 RCL× 03
 1.00000261
@@ -3323,7 +3285,7 @@ STO 26
 RCL 46
 STO 05
 RTN
-LBL 61
+LBL 61                  ; Venus
 3.9E-6
 RCL× 03
 0.72333566
@@ -3355,7 +3317,7 @@ RCL× 03
 +
 STO 05
 RTN
-LBL 62
+LBL 62                  ; Mars
 1.847E-5
 RCL× 03
 1.52371034
@@ -3387,7 +3349,7 @@ RCL× 03
 +
 STO 05
 RTN
-LBL 63
+LBL 63                  ; Jupiter
 -0.00011607
 RCL× 03
 5.202887
@@ -3419,7 +3381,7 @@ RCL× 03
 +
 STO 05
 RTN
-LBL 64
+LBL 64                  ; Saturn
 -0.0012506
 RCL× 03
 9.53667594
@@ -4683,10 +4645,6 @@ RCL "V0"
 XEQ "N32"
 RTN
 LBL 11                  ; CSUN 11: the equator of the SKY / SPLIT charts (40 dots, 'U3'): computed again only for a new place (called by CEQQ x1)
-9
-STO "G4"
-RCL 43
-STO "U9"
 RCL 14
 RCL "KQA3"
 X=Y?
@@ -4714,10 +4672,6 @@ XEQ 14
 STO "U3"
 RTN
 LBL 12                  ; CSUN 12: the equator of the ANIM / ALLSKY charts (60 dots, 'U2'): computed again only for a new place (called by CEQQ x1)
-6
-STO "G4"
-RCL 43
-STO "U9"
 RCL 14
 RCL "KQA2"
 X=Y?
@@ -4877,29 +4831,6 @@ DELITM "W3"
 DELITM "V2"
 DELITM "M1"
 DELITM "W2"
-RTN
-LBL "N78"               ; CEQR - celestial equator of the charts: the next dot (no view calls it any more)
-RCL "G4"
-6
-X≠Y?
-IF 24
-  INDEX "U3"
-ELSE 24
-  INDEX "U2"
-ENDIF 24
-RCL "U9"
-RCL 43
-STOIJ
-+
-STO "U9"
-RCLSEQ
-STO 09
-RCLSEQ
-STO "V4"
-RCLEL
-STO 05
-RCL 05
-RCL 09
 RTN
 LBL 15                  ; CSUN 15: counts a star computed in full (called by CSQK x1)
 RCL "W9"
@@ -5453,7 +5384,7 @@ WSIZE 64
 RCL 07
 RCL 06
 RTN
-LBL 64                  ; XEQ IND table: the symbols by character code: @ Sun, ( Moon, * star, < = > ? Venus, Mars, Jupiter, Saturn
+LBL 64                  ; XEQ IND table: the symbols by character code: @ Sun, ( Moon, * star, < = > ? Venus, Mars, Jupiter, Saturn - @ the Sun
 RCL 07
 RCL 06
 XEQ 07
@@ -5474,7 +5405,7 @@ XEQ 04
 XEQ 07
 XEQ 05
 RTN
-LBL 42
+LBL 42                  ; * a star
 RCL 07
 RCL 06
 10000000#2
@@ -5511,14 +5442,14 @@ RCL 44
 +
 STO 06
 RTN
-LBL 54                  ; XEQ IND table: the eight Moon phases, characters 0-7
+LBL 54                  ; XEQ IND table: the eight Moon phases, characters 0-7 - 6 last quarter
 XEQ 01
 111111111111#2
 XEQ 08
 XEQ 12
 XEQ 06
 RTN
-LBL 60
+LBL 60                  ; < Venus
 RCL 07
 RCL 06
 1100000000#2
@@ -5535,7 +5466,7 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-LBL 40
+LBL 40                  ; ( the Moon
 RCL 07
 RCL 06
 XEQ 07
@@ -5577,7 +5508,7 @@ LBL 04                  ; PSYB 04: columns shared by the 12-row symbols (called 
 R↓
 AGRAPH D
 RTN
-LBL 05                  ; PSYB 05: the next column in R06 (called by PSYB x9)
+LBL 05                  ; PSYB 05: the next column in R06 (called by PSYB x8)
 RCL 44
 +
 STO 06
@@ -5593,7 +5524,7 @@ LBL 07                  ; PSYB 07: columns shared by the 12-row symbols (called 
 R↓
 AGRAPH D
 RTN
-LBL 08                  ; PSYB 08: columns shared by the 12-row symbols (called by PSYB x14)
+LBL 08                  ; PSYB 08: columns shared by the 12-row symbols (called by PSYB x11)
 R↓
 AGRAPH D
 AGRAPH D
@@ -5627,7 +5558,7 @@ LBL 13                  ; PSYB 13: columns shared by the 12-row symbols (called 
 R↓
 AGRAPH D
 RTN
-LBL 62
+LBL 62                  ; > Mars
 RCL 07
 RCL 06
 111100#2
@@ -5658,7 +5589,7 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-LBL 61
+LBL 61                  ; = Jupiter
 RCL 07
 RCL 06
 10000011000#2
@@ -5688,7 +5619,7 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-LBL 63
+LBL 63                  ; ? Saturn
 RCL 07
 RCL 06
 10000000000#2
@@ -5719,27 +5650,12 @@ R↓
 AGRAPH D
 XEQ 05
 RTN
-LBL 38                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-RCL 07
-RCL 06
-11000000000000#2
-XEQ 08
-111100111111#2
-XEQ 08
-AGRAPH D
-AGRAPH D
-AGRAPH D
-AGRAPH D
-11000000000000#2
-XEQ 08
-XEQ 05
-RTN
-LBL 48
+LBL 48                  ; 0 new Moon
 XEQ 15
 XEQ 03
 XEQ 06
 RTN
-LBL 49
+LBL 49                  ; 1 waxing crescent
 XEQ 15
 XEQ 03
 AGRAPH D
@@ -5748,14 +5664,14 @@ AGRAPH D
 R↓
 XEQ 14
 RTN
-LBL 50
+LBL 50                  ; 2 first quarter
 XEQ 15
 XEQ 03
 111111111111#2
 XEQ 08
 XEQ 14
 RTN
-LBL 51
+LBL 51                  ; 3 waxing gibbous
 XEQ 15
 110111111011#2
 R↓
@@ -5766,7 +5682,7 @@ AGRAPH D
 AGRAPH D
 XEQ 14
 RTN
-LBL 52
+LBL 52                  ; 4 full Moon
 XEQ 01
 111111111111#2
 XEQ 08
@@ -5775,7 +5691,7 @@ AGRAPH D
 AGRAPH D
 XEQ 14
 RTN
-LBL 53
+LBL 53                  ; 5 waning gibbous
 XEQ 01
 111111111111#2
 XEQ 08
@@ -5785,7 +5701,7 @@ AGRAPH D
 110111111011#2
 XEQ 02
 RTN
-LBL 55
+LBL 55                  ; 7 waning crescent
 XEQ 01
 111100001111#2
 R↓
@@ -6295,10 +6211,6 @@ REPEAT 01               ; loop left only by RTN (0 X≠0? UNTIL is never true)
   0
   X≠0?
 UNTIL 01
-LBL 01                  ; not reached: it follows a loop only RTN leaves (CEQR, the old equator, is no longer used)
-XEQ "N78"
-XEQ 04
-RTN
 LBL 02                  ; HORZ 02: a star: its symbol and its number (tinyFont) on the chart, and into the list 'H1' (called by HORZ x1)
 XEQ 20
 "*"
@@ -6323,7 +6235,7 @@ XEQ 09
 RTN
 LBL 03                  ; HORZ 03: Hc and Zn from the cache (CHCZ), then the place on the chart (04) (called by HORZ x4)
 XEQ "N69"
-LBL 04                  ; HORZ 04: the place on the chart: column R23 from Zn, row R24 from sin Hc (called by HORZ x2)
+LBL 04                  ; HORZ 04: the place on the chart: column R23 from Zn, row R24 from sin Hc (called by HORZ x1)
 RCL 05
 RCL+ 20
 RCL 45
@@ -6495,7 +6407,6 @@ CHS
 STO 17
 XEQ IND 17
 STO 17
-LBL 15                  ; a label no step jumps to: the steps above run into it
 αLENG 17
 RCL 84
 ×
@@ -6522,14 +6433,6 @@ RCL 23
 RCL- 12
 STO 06
 RTN
-LBL 59                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-"S"
-STO 00
-RTN
-LBL 67
-"W"
-STO 00
-RTN
 LBL 17                  ; HORZ 17: the mark T at the top right: the tables in use (called by HORZ x1)
 "T"
 STO 19
@@ -6538,66 +6441,47 @@ LBL 18                  ; HORZ 18: the mark X at the top right: a date outside t
 "X"
 STO 19
 RTN
-LBL 54
-ABS
-RCL 57
-×
-RCL 56
-+
-IP
-STO 00
-RCL 57
-÷
-IP
-XEQ "N80"
-" "
-XEQ "N79"
-RCL 00
-RCL 57
-MOD
-XEQ "N80"
-RTN
-LBL 71                  ; XEQ IND table: the symbol characters of the planets
+LBL 71                  ; XEQ IND table: the symbol characters of the planets - Venus
 "<"
 RTN
-LBL 72
+LBL 72                  ; Mars
 ">"
 RTN
-LBL 73
+LBL 73                  ; Jupiter
 "="
 RTN
-LBL 74
+LBL 74                  ; Saturn
 "?"
 RTN
-LBL 81                  ; XEQ IND table: the names of the Moon and the planets
+LBL 81                  ; XEQ IND table: the names of the Moon and the planets - Moon
 "MOON"
 RTN
-LBL 82
+LBL 82                  ; Venus
 "VENUS"
 RTN
-LBL 83
+LBL 83                  ; Mars
 "MARS"
 RTN
-LBL 84
+LBL 84                  ; Jupiter
 "JUPITER"
 RTN
-LBL 85
+LBL 85                  ; Saturn
 "SATURN"
 RTN
 LBL 19                  ; HORZ 19: the star number on the left near the right edge (called by HORZ x1)
 22
 STO- 06
 RTN
-LBL 91                  ; XEQ IND table: a number by body code
+LBL 91                  ; XEQ IND table: a number by body code - the 1st planet tried: Venus
 RCL 43
 RTN
-LBL 92
+LBL 92                  ; the 2nd: Jupiter
 RCL 51
 RTN
-LBL 93
+LBL 93                  ; the 3rd: Mars
 RCL 44
 RTN
-LBL 94
+LBL 94                  ; the 4th: Saturn
 RCL 66
 RTN
 LBL 20                  ; HORZ 20: row and column of the symbol for PSYS (called by HORZ x4)
@@ -7184,7 +7068,6 @@ XEQ "N63"
 RTN
 LBL 05                  ; HALMH 05: Hc and Zn from the cache (CHCZ), then the place on the chart (called by HALMH x4)
 XEQ "N69"
-LBL 03                  ; a label no step jumps to: the steps above run into it
 RCL 05
 RCL+ 17
 RCL 45
@@ -7241,10 +7124,6 @@ LBL 10                  ; HALMH 10: the mark X at the top right: a date outside 
 "X"
 STO 02
 RTN
-LBL 27                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-"W"
-STO 00
-RTN
 LBL 11                  ; HALMH 11: the symbol kept inside the right edge (called by HALMH x1)
 22
 STO- 23
@@ -7273,40 +7152,40 @@ STO 01
 GRMOD 01
 WSIZE 64
 RTN
-LBL 71                  ; XEQ IND table: the symbol characters of the planets
+LBL 71                  ; XEQ IND table: the symbol characters of the planets - Venus
 "<"
 RTN
-LBL 72
+LBL 72                  ; Mars
 ">"
 RTN
-LBL 73
+LBL 73                  ; Jupiter
 "="
 RTN
-LBL 74
+LBL 74                  ; Saturn
 "?"
 RTN
-LBL 82                  ; XEQ IND table: the names of the planets
+LBL 82                  ; XEQ IND table: the names of the planets - Venus
 "VENUS"
 RTN
-LBL 83
+LBL 83                  ; Mars
 "MARS"
 RTN
-LBL 84
+LBL 84                  ; Jupiter
 "JUPITER"
 RTN
-LBL 85
+LBL 85                  ; Saturn
 "SATURN"
 RTN
-LBL 91                  ; XEQ IND table: a number by body code
+LBL 91                  ; XEQ IND table: a number by body code - the 1st planet tried: Venus
 RCL 43
 RTN
-LBL 92
+LBL 92                  ; the 2nd: Jupiter
 RCL 51
 RTN
-LBL 93
+LBL 93                  ; the 3rd: Mars
 RCL 44
 RTN
-LBL 94
+LBL 94                  ; the 4th: Saturn
 RCL 66
 RTN
 LBL 13                  ; HALMH 13: row and column of the symbol for PSYS (called by HALMH x4)
@@ -7831,10 +7710,6 @@ LBL 12                  ; ALMF 12: the Moon text NEW (called by ALMF x1)
 "NEW"
 STO 03
 RTN
-LBL 27                  ; not reached: no XEQ calls it and no XEQ IND index comes to it (left by an older version)
-"W"
-STO 00
-RTN
 LBL 13                  ; ALMF 13: Hc white on black (a box in XOR) (called by ALMF x1)
 WSIZE 16
 RCL 51
@@ -7859,64 +7734,64 @@ STO 01
 GRMOD 01
 WSIZE 64
 RTN
-LBL 71                  ; XEQ IND table: the symbol characters of the planets
+LBL 71                  ; XEQ IND table: the symbol characters of the planets - Venus
 "<"
 RTN
-LBL 72
+LBL 72                  ; Mars
 ">"
 RTN
-LBL 73
+LBL 73                  ; Jupiter
 "="
 RTN
-LBL 74
+LBL 74                  ; Saturn
 "?"
 RTN
-LBL 82                  ; XEQ IND table: the names of the planets
+LBL 82                  ; XEQ IND table: the names of the planets - Venus
 "VENUS"
 RTN
-LBL 83
+LBL 83                  ; Mars
 "MARS"
 RTN
-LBL 84
+LBL 84                  ; Jupiter
 "JUPITER"
 RTN
-LBL 85
+LBL 85                  ; Saturn
 "SATURN"
 RTN
-LBL 91                  ; XEQ IND table: a number by body code
+LBL 91                  ; XEQ IND table: a number by body code - the 1st planet tried: Venus
 RCL 43
 RTN
-LBL 92
+LBL 92                  ; the 2nd: Jupiter
 RCL 51
 RTN
-LBL 93
+LBL 93                  ; the 3rd: Mars
 RCL 44
 RTN
-LBL 94
+LBL 94                  ; the 4th: Saturn
 RCL 66
 RTN
-LBL 48                  ; XEQ IND table: the Moon phase symbol characters 0-7
+LBL 48                  ; XEQ IND table: the Moon phase symbol characters 0-7 - 0 new Moon
 "0"
 RTN
-LBL 49
+LBL 49                  ; 1 waxing crescent
 "1"
 RTN
-LBL 50
+LBL 50                  ; 2 first quarter
 "2"
 RTN
-LBL 51
+LBL 51                  ; 3 waxing gibbous
 "3"
 RTN
-LBL 52
+LBL 52                  ; 4 full Moon
 "4"
 RTN
-LBL 53
+LBL 53                  ; 5 waning gibbous
 "5"
 RTN
-LBL 54
+LBL 54                  ; 6 last quarter
 "6"
 RTN
-LBL 55
+LBL 55                  ; 7 waning crescent
 "7"
 RTN
 LBL 14                  ; ALMF 14: Hc and Zn from the cache (CHCZ) (called by ALMF x4)
@@ -8066,178 +7941,178 @@ LBL "N48"               ; program SNMU - star name from its number
 STO 01
 XEQ IND 01
 RTN
-LBL 01                  ; XEQ IND table: the names of the 58 stars by number
+LBL 01                  ; XEQ IND table: the names of the 58 stars by number - star 1
 "ALPHERATZ"
 RTN
-LBL 02
+LBL 02                  ; star 2
 "ANKAA"
 RTN
-LBL 03
+LBL 03                  ; star 3
 "SCHEDAR"
 RTN
-LBL 04
+LBL 04                  ; star 4
 "DIPHDA"
 RTN
-LBL 05
+LBL 05                  ; star 5
 "ACHERNAR"
 RTN
-LBL 06
+LBL 06                  ; star 6
 "HAMAL"
 RTN
-LBL 07
+LBL 07                  ; star 7
 "ACAMAR"
 RTN
-LBL 08
+LBL 08                  ; star 8
 "MENKAR"
 RTN
-LBL 09
+LBL 09                  ; star 9
 "MIRFAK"
 RTN
-LBL 10
+LBL 10                  ; star 10
 "ALDEBARAN"
 RTN
-LBL 11
+LBL 11                  ; star 11
 "RIGEL"
 RTN
-LBL 12
+LBL 12                  ; star 12
 "CAPELLA"
 RTN
-LBL 13
+LBL 13                  ; star 13
 "BELLATRIX"
 RTN
-LBL 14
+LBL 14                  ; star 14
 "ELNATH"
 RTN
-LBL 15
+LBL 15                  ; star 15
 "ALNILAM"
 RTN
-LBL 16
+LBL 16                  ; star 16
 "BETELGEUSE"
 RTN
-LBL 17
+LBL 17                  ; star 17
 "CANOPUS"
 RTN
-LBL 18
+LBL 18                  ; star 18
 "SIRIUS"
 RTN
-LBL 19
+LBL 19                  ; star 19
 "ADHARA"
 RTN
-LBL 20
+LBL 20                  ; star 20
 "PROCYON"
 RTN
-LBL 21
+LBL 21                  ; star 21
 "POLLUX"
 RTN
-LBL 22
+LBL 22                  ; star 22
 "AVIOR"
 RTN
-LBL 23
+LBL 23                  ; star 23
 "SUHAIL"
 RTN
-LBL 24
+LBL 24                  ; star 24
 "MIAPLACIDU"
 RTN
-LBL 25
+LBL 25                  ; star 25
 "ALPHARD"
 RTN
-LBL 26
+LBL 26                  ; star 26
 "REGULUS"
 RTN
-LBL 27
+LBL 27                  ; star 27
 "DUBHE"
 RTN
-LBL 28
+LBL 28                  ; star 28
 "DENEBOLA"
 RTN
-LBL 29
+LBL 29                  ; star 29
 "GIENAH"
 RTN
-LBL 30
+LBL 30                  ; star 30
 "ACRUX"
 RTN
-LBL 31
+LBL 31                  ; star 31
 "GACRUX"
 RTN
-LBL 32
+LBL 32                  ; star 32
 "ALIOTH"
 RTN
-LBL 33
+LBL 33                  ; star 33
 "SPICA"
 RTN
-LBL 34
+LBL 34                  ; star 34
 "ALKAID"
 RTN
-LBL 35
+LBL 35                  ; star 35
 "HADAR"
 RTN
-LBL 36
+LBL 36                  ; star 36
 "MENKENT"
 RTN
-LBL 37
+LBL 37                  ; star 37
 "ARCTURUS"
 RTN
-LBL 38
+LBL 38                  ; star 38
 "RIGIL KENT"
 RTN
-LBL 39
+LBL 39                  ; star 39
 "ZUBENELGEN"
 RTN
-LBL 40
+LBL 40                  ; star 40
 "KOCHAB"
 RTN
-LBL 41
+LBL 41                  ; star 41
 "ALPHECCA"
 RTN
-LBL 42
+LBL 42                  ; star 42
 "ANTARES"
 RTN
-LBL 43
+LBL 43                  ; star 43
 "ATRIA"
 RTN
-LBL 44
+LBL 44                  ; star 44
 "SABIK"
 RTN
-LBL 45
+LBL 45                  ; star 45
 "SHAULA"
 RTN
-LBL 46
+LBL 46                  ; star 46
 "RASALHAGUE"
 RTN
-LBL 47
+LBL 47                  ; star 47
 "ELTANIN"
 RTN
-LBL 48
+LBL 48                  ; star 48
 "KAUS AUST"
 RTN
-LBL 49
+LBL 49                  ; star 49
 "VEGA"
 RTN
-LBL 50
+LBL 50                  ; star 50
 "NUNKI"
 RTN
-LBL 51
+LBL 51                  ; star 51
 "ALTAIR"
 RTN
-LBL 52
+LBL 52                  ; star 52
 "PEACOCK"
 RTN
-LBL 53
+LBL 53                  ; star 53
 "DENEB"
 RTN
-LBL 54
+LBL 54                  ; star 54
 "ENIF"
 RTN
-LBL 55
+LBL 55                  ; star 55
 "AL NAIR"
 RTN
-LBL 56
+LBL 56                  ; star 56
 "FOMALHAUT"
 RTN
-LBL 57
+LBL 57                  ; star 57
 "MARKAB"
 RTN
-LBL 58
+LBL 58                  ; star 58
 "POLARIS"
 END
 
@@ -8887,37 +8762,37 @@ DO 01
 WHILE 01
 ENDDO 01
 RTN
-LBL 20                  ; XEQ IND table: the table matrices TSU TVE TMA TJU TSA TMO TAR (Sun, planets, Moon, Aries)
+LBL 20                  ; XEQ IND table: the table matrices TSU TVE TMA TJU TSA TMO TAR (Sun, planets, Moon, Aries) - TSU the Sun
 INDEX "TSU"
 RCL 43
 STO 27
 RTN
-LBL 21
+LBL 21                  ; TVE Venus
 INDEX "TVE"
 RCL 43
 STO 27
 RTN
-LBL 22
+LBL 22                  ; TMA Mars
 INDEX "TMA"
 RCL 43
 STO 27
 RTN
-LBL 23
+LBL 23                  ; TJU Jupiter
 INDEX "TJU"
 RCL 43
 STO 27
 RTN
-LBL 24
+LBL 24                  ; TSA Saturn
 INDEX "TSA"
 RCL 43
 STO 27
 RTN
-LBL 25
+LBL 25                  ; TMO the Moon
 INDEX "TMO"
 RCL 44
 STO 27
 RTN
-LBL 26
+LBL 26                  ; TAR Aries
 INDEX "TAR"
 RCL 46
 STO 27

@@ -747,7 +747,7 @@ X<>Y
 +
 X<>Y
 RTN
-LBL 50                  ; XEQ IND table: the eight phase symbols (characters 0-7)
+LBL 50                  ; XEQ IND table: the eight phase symbols (characters 0-7) - 2 first quarter
 XEQ 07
 XEQ 45
 XEQ 12
@@ -1310,29 +1310,29 @@ LBL 42                  ; 42 columns shared by the phase symbols (called 4 times
 R↓
 AGRAPH D
 RTN
-LBL 48
+LBL 48                  ; 0 new Moon
 XEQ 07
 XEQ 27
 RTN
-LBL 55
+LBL 55                  ; 7 waning crescent
 XEQ 10
 111100001111#2
 XEQ 46
 XEQ 27
 RTN
-LBL 52
+LBL 52                  ; 4 full Moon
 XEQ 08
 AGRAPH D
 AGRAPH D
 XEQ 12
 RTN
-LBL 54
+LBL 54                  ; 6 last quarter
 XEQ 08
 100000000001#2
 R↓
 XEQ 27
 RTN
-LBL 51
+LBL 51                  ; 3 waxing gibbous
 XEQ 09
 110111111011#2
 R↓
@@ -1342,14 +1342,14 @@ AGRAPH D
 AGRAPH D
 XEQ 12
 RTN
-LBL 53
+LBL 53                  ; 5 waning gibbous
 XEQ 08
 AGRAPH D
 AGRAPH D
 110111111011#2
 XEQ 11
 RTN
-LBL 49
+LBL 49                  ; 1 waxing crescent
 XEQ 07
 AGRAPH D
 AGRAPH D
@@ -1430,28 +1430,28 @@ RTN
 LBL 67
 "WANING CRESCENT"
 RTN
-LBL 90                  ; XEQ IND table: the characters of the phase symbols
+LBL 90                  ; XEQ IND table: the characters of the phase symbols - phase 0
 "0"
 RTN
-LBL 91
+LBL 91                  ; phase 1
 "1"
 RTN
-LBL 92
+LBL 92                  ; phase 2
 "2"
 RTN
-LBL 93
+LBL 93                  ; phase 3
 "3"
 RTN
-LBL 94
+LBL 94                  ; phase 4
 "4"
 RTN
-LBL 95
+LBL 95                  ; phase 5
 "5"
 RTN
-LBL 96
+LBL 96                  ; phase 6
 "6"
 RTN
-LBL 97
+LBL 97                  ; phase 7
 "7"
 RTN
 END
