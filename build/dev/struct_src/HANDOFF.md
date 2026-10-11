@@ -38,7 +38,7 @@ python3 tests/test_struct_src.py     # all the checks
   north and south), the forum files' headers and steps. ALL PASSED at the last commit.
 - tools/build_struct.py: pixel_lines and star_order also take the source's shapes (test_struct.py still passes).
 
-## Pending (victor)
+## Pending (Victor)
 1. rejig every forum file (no rejig in the cloud session): cd build/forum; rejig ALMA47.p47u (also NAVINIT,
    MOON47, C64FX). Check: the "..." quotes (the release examples use '...'), the '#' comment lines, the
    STRUCT numbers ("IF 01"), and the sizes in bytes (python3 tools/build_struct_src.py prints them with rejig).
