@@ -10,14 +10,17 @@ From the STRUCT source (programs_struct/, tools/build_struct_src.py) and the for
   build/c47/ALMA47_LABELS.txt   the global labels of ALMA47, the ones you can call yourself, the numbers in R43-R98
   build/c47/*.p47               the .txt converted by rejig: steps only, the smallest file (not in git)
   build/forum/*.p47u            the rejig sources with the '@' header and the comments after ';'
+  build/c47/NAVLITTLE.txt       the old DM42 (64 KiB) with the C47 firmware: from programs_struct/little/ (STRUCT)
+  build/c47/NAVINIT_LITTLE.txt  its matrices (build/dm42/NAVINIT_LITTLE.txt, INIT named NAVINIT)
   build/Almanac47_C47_R47_v2.2.0.zip   the release zip (not in git), with the manual of build/manuals/
+  build/Almanac47_DM42_C47firmware_v2.2.0.zip   NAVLITTLE, its NAVINIT, MOON47 v2.1.0, build/c47/dm42/README_DM42.txt
 
 The almanac tables (TBL) are not in this release. Free42 / DM42 stay on v2.1.0 (build/, build/free42/): Free42 has no
 STRUCT. Build the manual first (python3 tools/generators/build_manual.py -> build/manuals/C47_Nav_User_Manual.pdf).
 
   python3 tools/build_release_c47.py
 """
-import os, re, shutil, subprocess, sys, zipfile
+import os, re, shutil, subprocess, sys, tempfile, zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -29,8 +32,10 @@ VERSION = '2.2.0'
 NAME = 'Struct on Attack'
 OUT = os.path.join(ROOT, 'build', 'c47')
 ZIP = os.path.join(ROOT, 'build', 'Almanac47_C47_R47_v%s.zip' % VERSION)
+ZIP_DM42 = os.path.join(ROOT, 'build', 'Almanac47_DM42_C47firmware_v%s.zip' % VERSION)
 FOLDER = 'Almanac47_C47'                       # the folder inside the zip (as in v2.1.0)
 MANUAL = os.path.join(ROOT, 'build', 'manuals', 'C47_Nav_User_Manual.pdf')
+MAIN = 'ALMA47'
 
 # the routines of ALMA47 you can call yourself (after ALMA47 has run and was left with EXIT or R/S, not with 0:
 # they read the numbers ALMA47 stores in R43-R98 at its start, the DR of the run and the matrices of NAVINIT)
@@ -120,13 +125,47 @@ def p47(name):
     subprocess.run(['rejig', '--validate=r47', '-o', dst, src], check=True)
     L = open(dst, encoding='ascii').read().split('\n')
     forum = os.path.join(F.OUT, {'NAVINIT_FAST': 'NAVINIT'}.get(name, name) + '.p47u')
-    tmp = dst[:-4] + '_from_p47u.p47'
-    subprocess.run(['rejig', '-o', tmp, forum], check=True)
-    same = open(tmp, encoding='ascii').read() == '\n'.join(L)
-    os.remove(tmp)
-    assert same, '%s: the .p47u gives another .p47' % name
+    if os.path.exists(forum) and 'LITTLE' not in name:
+        tmp = dst[:-4] + '_from_p47u.p47'
+        subprocess.run(['rejig', '-o', tmp, forum], check=True)
+        same = open(tmp, encoding='ascii').read() == '\n'.join(L)
+        os.remove(tmp)
+        assert same, '%s: the .p47u gives another .p47' % name
     assert not any(l.strip().startswith(('REM', '#', ';')) for l in lines(src)), name
     return int(L[L.index('PROGRAM') + 1])
+
+
+# ---- NAVLITTLE: the old DM42 (64 KiB) with the C47 firmware, in STRUCT
+DM42_MAX = 10                     # the DM42 build of the firmware: partner numbers 1-10 a series, 10 open at once
+
+
+def little():
+    """NAVLITTLE in STRUCT from its source programs_struct/little/NAVLITTLE.txt (made once from v2.1.0's
+    build/dm42/NAVLITTLE.txt by tools/build_little_struct.py): numbered, every program VALID and within the DM42 limits,
+    no GTO. INIT of build/dm42/NAVINIT_LITTLE.txt named NAVINIT. -> (ALMA47 lines, NAVINIT lines)"""
+    import c47struct as C
+    I = lines(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'))
+    S = C.number(C.plain(lines(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE.txt'))))
+    assert S[0] == 'LBL "%s"' % MAIN and S.count('"NAVINIT"') == 1
+    faults = []
+    for P in C.split(S):
+        Q = C.plain(P)
+        faults += ['%s: %s' % (P[0], f) for f in C.check(Q)]
+        faults += ['%s: %s' % (P[0], l) for l in Q if l.startswith('GTO')]
+        for o in C.OPENERS:
+            if sum(l == o for l in Q) > DM42_MAX:
+                faults.append('%s: %d %s (the DM42 takes %d)' % (P[0], sum(l == o for l in Q), o, DM42_MAX))
+        d = top = 0
+        for l in Q:
+            d += C.op(l) in C.OPENERS
+            d -= C.op(l) in ('ENDIF', 'ENDDO', 'UNTIL')
+            top = max(top, d)
+        if top > DM42_MAX:
+            faults.append('%s: %d structures open at once' % (P[0], top))
+    if faults:
+        raise SystemExit('build_release_c47 NAVLITTLE:\n  ' + '\n  '.join(faults))
+    assert I[0] == 'LBL "INIT"' and not any('"INIT"' in l for l in I[1:])
+    return S, ['LBL "NAVINIT"'] + I[1:]
 
 
 def main():
@@ -140,8 +179,11 @@ def main():
         write('NAVINIT_%s.txt' % kind, ['LBL "NAVINIT"'] + I[1:])
     write('MOON47.txt', B.build_moon())
     write('ALMA47_LABELS.txt', labels_file(L))
+    S, I = little()
+    write('NAVLITTLE.txt', S)
+    write('NAVINIT_LITTLE.txt', I)
     have_rejig = shutil.which('rejig')
-    for name in ('ALMA47', 'NAVINIT_FAST', 'NAVINIT_FULL', 'MOON47'):
+    for name in ('ALMA47', 'NAVINIT_FAST', 'NAVINIT_FULL', 'MOON47', 'NAVLITTLE', 'NAVINIT_LITTLE'):
         size = p47(name) if have_rejig else None
         print('  build/c47/%s.txt: %d steps; .p47 %s bytes' % (name, len(lines(os.path.join(OUT, name + '.txt'))),
                                                                size or '? (no rejig)'))
@@ -159,6 +201,17 @@ def main():
         for src, arc in files:
             z.write(src, '%s/%s' % (FOLDER, arc))
     print('  %s: %d files' % (os.path.relpath(ZIP, ROOT), len(files)))
+    dm = [(os.path.join(OUT, n), n) for n in ('NAVLITTLE.p47', 'NAVLITTLE.txt', 'NAVINIT_LITTLE.p47', 'NAVINIT_LITTLE.txt')]
+    moon = os.path.join(tempfile.mkdtemp(), 'MOON47')          # v2.1.0's (no STRUCT: the DM42 limits)
+    shutil.copy(os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt'), moon + '.txt')
+    subprocess.run(['rejig', '--validate=r47', '-o', moon + '.p47', moon + '.txt'], check=True)
+    dm += [(moon + '.p47', 'MOON47.p47'), (moon + '.txt', 'MOON47.txt')]
+    dm += [(os.path.join(OUT, 'dm42', 'README_DM42.txt'), 'README_DM42.txt'), (MANUAL, 'C47_Nav_User_Manual.pdf')]
+    dm += [(os.path.join(ROOT, n), n) for n in ('LICENSE', 'NOTICE', 'AI_ASSISTANCE.md')]
+    with zipfile.ZipFile(ZIP_DM42, 'w', zipfile.ZIP_DEFLATED) as z:
+        for src, arc in dm:
+            z.write(src, 'Almanac47_DM42_C47/%s' % arc)
+    print('  %s: %d files' % (os.path.relpath(ZIP_DM42, ROOT), len(dm)))
 
 
 if __name__ == '__main__':

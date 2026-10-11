@@ -250,3 +250,16 @@ programs with the '@' header of the C47 PROGRAMS folder and comments after ';', 
 `tests/test_struct_src.py` (every page, FULL / FAST, three places, the menu's keys and 16 random dates and places
 pixel for pixel the reference build `build/dev/struct/18_hourglass`; MOON47 pixel for pixel the Python page), and on
 the calculator by the author.
+
+**In the C47 firmware** (`tests/test_fw_c47.py`: the PC simulator built from the firmware sources, c43 ef39ddb of
+6 Oct 2026, headless): ALMA47 every page, the arrows and 0 with no error, X = 0, the registers cleared; NAVLITTLE and
+MOON47 with no error. **Against JPL DE421 + ERFA** (the reference and limits of `tests/test_ephem.py`), ALMA47 itself in
+the firmware, the cache ALMC after the ALMANAC page, 20 random instants and places each: FULL 2000–2050 and FAST
+2026–2030 all within the limits; largest error Sun 0.015′, Moon GHA 0.10′ (FULL; FAST 0.03′), planets 0.044′, stars
+0.003′, Hc / Zn 0.08′, Moon HP 0.006′ — the accuracy of v2.1.0.
+
+**NAVLITTLE** (the old DM42 with the C47 firmware, 64 KiB): v2.1.0's build in STRUCT (`tools/build_little_struct.py`,
+source `programs_struct/little/`): `c47struct.structure`, four jumps by hand, the layout for its own pages. Within the
+DM42 build's limits (10 a series per program, 10 open at once; the largest program has 6 IF). The same page pixel for
+pixel; search work 1.73 M -> 0.74 M (-57 %), steps run +2 % (ENDIF / ENDDO are steps); 7 302 bytes (7 173).
+MOON47 v2.2.0 has 17 IF in its one program: the DM42 zip keeps v2.1.0's MOON47.

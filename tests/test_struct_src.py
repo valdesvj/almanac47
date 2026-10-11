@@ -199,11 +199,41 @@ def moon(n):
            % (d, m, y, h, tz))
 
 
+def little(n):
+    """NAVLITTLE in STRUCT (tools/build_release_c47.little, build/c47/NAVLITTLE.txt) against v2.1.0's
+    build/dm42/NAVLITTLE.txt: the ALMANAC screen, an hour later, two earlier, + end, pixel for pixel; your registers
+    kept, the stack clear; within the DM42 limits (checked by the build)."""
+    import build_release_c47 as R
+    import test_v2 as V
+    print('== NAVLITTLE (DM42 with the C47 firmware) in STRUCT against v2.1.0')
+    S, I = R.little()
+    ok(lines(os.path.join(R.OUT, 'NAVLITTLE.txt')) == S and lines(os.path.join(R.OUT, 'NAVINIT_LITTLE.txt')) == I,
+       'build/c47/NAVLITTLE.txt, NAVINIT_LITTLE.txt are the build')
+    ok(not [l for l in S if l.startswith('GTO')], 'no GTO')
+    back = ['LBL "NAV"' if l == 'LBL "ALMA47"' else '"INIT"' if l == '"NAVINIT"' else l for l in S]
+    ib = ['LBL "INIT"'] + I[1:]
+    old = lines(os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt'))
+    oi = lines(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'))
+    rnd = random.Random(42)
+    cases = [V.INPUTS, (('DATE', '2031.0315'), ('UTC', '3.30'), ('LAT', '-33.54'), ('LON', '18.25'))]
+    while len(cases) < n:
+        cases.append((('DATE', '%d.%02d%02d' % (rnd.randint(2000, 2049), rnd.randint(1, 12), rnd.randint(1, 28))),
+                      ('UTC', '%d.%02d' % (rnd.randint(0, 23), rnd.randint(0, 59))), ('LAT', '%.2f' % rnd.uniform(-65, 65)),
+                      ('LON', '%.2f' % rnd.uniform(-179, 179))))
+    for inp in cases:
+        keys = [V.K['up'], V.K['down'], V.K['down'], V.K['+']]
+        a, kept, clear = V.little_session(back, ib, keys, inp)
+        b, _, _ = V.little_session(old, oi, keys, inp, marks=False)
+        ok(a == b and kept and clear, '%s %s %s %s: %d screens pixel for pixel v2.1.0, registers kept, stack clear'
+           % (tuple(v for _, v in inp) + (len(a),)))
+
+
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
     forum(L)
     moon(n)
+    little(n)
     pages(L)
     places(L, n)
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))

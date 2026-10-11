@@ -54,8 +54,9 @@ S += [P('Almanac 47', title),
           ['ALMA47_LABELS.txt', 'the labels of ALMA47 and the routines you can call yourself'],
           ['p47u/', 'the same programs as rejig sources (.p47u) with comments, for the PROGRAMS folder of the C47']],
           [32 * mm, 148 * mm]),
-      P('Each comes as .p47 (load it as it is) and as .txt (the listing). The almanac tables (TBL) of earlier versions '
-        'and NAVLITTLE (the old 64 KiB DM42) are not part of v2.2.0: they stay in the repository and in v2.1.0.', small),
+      P('Each comes as .p47 (load it as it is) and as .txt (the listing). The old DM42 with the C47 firmware (64 KiB) has '
+        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2.0 '
+        '(they stay in the repository).', small),
       P('2. First start', h2)] + B([
       'The C47 needs a firmware with <b>ATEXT</b>, <b>GRFNT</b> and the <b>STRUCT</b> commands: 00.109.05.00a0.ALPHA '
       '(5 Oct 2026) or later. The screens write their text with ATEXT in GRFNT 21 (the tinyFont, GRFNT 10, on the '
@@ -152,6 +153,9 @@ S += [P('6. Speed and memory', h2)] + B([
       'ALMA47 is 27.2 KB (8 734 steps; v2.1.0\'s NAVFULL 24.2 KB): the unrolled loops and the code written in place '
       'make it bigger, for speed. MOON47 is 4.5 KB. NAVINIT while it is loaded: FAST 28.5 KB, FULL 57.8 KB; the '
       'matrices FAST about 55 KB, FULL about 95 KB.',
+      '<b>Accuracy, checked in the C47 firmware itself</b> (its PC simulator) against JPL DE421 with ERFA, 20 random '
+      'instants and places each for FULL (2000–2050) and FAST (2026–2030): Sun within 0.02′, Moon 0.10′, planets 0.05′, '
+      'stars 0.003′, Hc and Zn 0.08′ — the same as v2.1.0.',
       'History: v2.0.0 was faster and smaller than v1.1 (Horner\'s method, n-vectors, the nutation as matrix products, '
       'counted loops); v2.1.0 (Supercharger) the cos and sin of each series as one complex eˣ, Hc and Zn from the '
       'body\'s direction vector. Details of every step: OPTIMIZATIONS.md.',
@@ -218,3 +222,20 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'was and a clear stack; its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).',
       'Free42 (build/free42/MOON47.raw), the old DM42, the NumWorks and the HP Prime have their own MOON47 with the same '
       'page (v2.1.0): see their manuals.'])
+
+# ---- NAVLITTLE: the old DM42 with the C47 firmware
+S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
+      P('The C47 firmware on the old DM42 has 64 KiB for programs, registers and matrices (the DM42n and the R47 have '
+        '256 KiB and run ALMA47). NAVLITTLE keeps the Sun and the 58 stars: no menu, the ALMANAC page straight after the '
+        'inputs (the Moon and planet rows taken by the next stars), ▲ / ▼ one hour later / earlier, 9 SNAP, + ends. '
+        'It is in its own zip, Almanac47_DM42_C47firmware_v2.2.0.zip, with README_DM42.txt.')] + B([
+      '<b>Load NAVINIT_LITTLE alone first</b> (NAVINIT and its matrices together need the most memory): XEQ "NAVINIT" '
+      '(MATRICES READY: SUN STARS 2000-2050), GTO "NAVINIT", DELP; then load NAVLITTLE and XEQ "ALMA47". The names '
+      'are those of the full version.',
+      '<b>v2.2.0:</b> written with the STRUCT commands, no GTO, within the limits of the DM42 build of the firmware '
+      '(at most 10 IF, 10 DO and 10 REPEAT in a program, 10 open at once); its routines ordered for the searches: '
+      'about 57 % less time looking for labels and returns than v2.1.0 (simulator), the same page pixel for pixel. '
+      'It still saves your registers R00–R35 while it runs and gives them back at the end.',
+      '<b>Memory:</b> NAVLITTLE 7.3 KB, NAVINIT_LITTLE 8.7 KB (delete it after use); with its matrices about 31 KB.',
+      '<b>MOON47 on the old DM42:</b> the v2.2.0 MOON47 has more than 10 IF in its one program, which the DM42 build does '
+      'not take; the DM42 zip has the v2.1.0 MOON47 (no STRUCT, the same page).'])

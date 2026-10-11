@@ -937,3 +937,14 @@ without copied code, all at once.
 - Manual (tools/generators/manual_nav.py): v2.2.0, C47 / R47 only, ALMA47, NAVINIT FAST / FULL, no register save,
   the routines you can call, every global label, R43-R98; pictures docs/c47/ (c47_struct_shots.py; docs/ keeps the
   v2.1.0 ones for the Free42 manual).
+- NAVLITTLE in STRUCT (Victor: add it to v2.2.0): tools/build_little_struct.py, once, v2.1.0's build/dm42/NAVLITTLE.txt
+  -> programs_struct/little/NAVLITTLE.txt: c47struct.structure, by hand N03 (IF around the table part, ENDIF after LBL
+  "N04"), N23 / N24 (XEQ IND + RTN), N36 (WPLS's REPEAT / DO key wait), then build_struct.layout with a profile of its
+  own pages; NAV -> ALMA47, INIT -> NAVINIT. build_release_c47.little checks the DM42 limits (structured.h:
+  STRUCT_MAX_NUMBER 10, nesting 10 on the DM42 build). Pixel for pixel v2.1.0 at 16 cases (test_struct_src little()).
+  Its own zip build/Almanac47_DM42_C47firmware_v2.2.0.zip with v2.1.0's MOON47 (v2.2.0's has 17 IF).
+- tests/test_fw_c47.py: the firmware simulator ~/.cache/c47fw/c47 (c43 ef39ddb; the patched one of test_fw.py is gone).
+  SKY's wait PAUSE 20 / KEY? / IF needs its own replacement in the test copy (else headless SKY never ends).
+  NAVINIT_FULL and ALMA47 do not fit together: NAVINIT runs alone, its program is spliced out of the saved state
+  (as ~/almanac47-fwtest/fwstate.py). The DSL's [reg X] gives <unsupported> for a matrix in X: that is how the
+  out-of-memory showed. Ephemeris in the firmware, 20 + 20 instants: all within the limits (OPTIMIZATIONS.md section 8).

@@ -6,7 +6,9 @@ version and the base for a phone app (**Almanac 47**).
 - **v2.2.0 "Struct on Attack" (C47 / R47 only):** `build/c47/` - ALMA47, NAVINIT_FAST / _FULL, MOON47,
   written with the C47 STRUCT commands (no GTO), much faster than v2.1.0; `build/c47/QUICKSTART.txt`,
   `build/c47/ALMA47_LABELS.txt`, the commented rejig sources `build/forum/*.p47u`, the source `programs_struct/`.
-  Build: `python3 tools/build_release_c47.py`. Free42 / DM42 / Plus42 stay on v2.1.0 (below).
+  The old DM42 with the C47 firmware: NAVLITTLE in STRUCT (`programs_struct/little/`, `build/c47/NAVLITTLE.txt`).
+  Build: `python3 tools/build_release_c47.py`; in the firmware and against DE421: `tests/test_fw_c47.py`.
+  Free42 / DM42 stock firmware / Plus42 stay on v2.1.0 (below).
 - **Install and run (v2.1.0):** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
   graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,
