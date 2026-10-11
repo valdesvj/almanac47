@@ -1,4 +1,4 @@
-# Almanac 47 v2.0.0 — the optimizations
+# Almanac 47 v2.0.0 – v2.2.0 — the optimizations
 
 What changed under the hood between v1.1 and v2.0.0. Every change keeps the results the same: each page is
 compared pixel for pixel with the version before (tests listed at the end).
@@ -193,3 +193,82 @@ Checked: the C47 firmware pixel for pixel against v2.0.0 (NAVFULL 54 screens, NA
 the October 2026 table): all within the limits, largest Moon GHA 0.09′, planets 0.065′, stars 0.0024′, Hc / Zn
 0.08′; every test suite above, Free42 against the C47 screens and SKY /
 ANIM against v2.0.0, `tools/c47check.py` on master 224e5e95d.
+
+## 8. v2.2.0 "Struct on Attack": the C47's STRUCT commands, C47 / R47 only (`programs_struct/`)
+
+v2.2.0 is for the C47 and the R47 only: the control flow is written with the firmware's structured programming
+commands (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL; `src/c47/programming/structured.c`), which Free42 and the
+DM42 firmware do not have. Free42 / DM42 / Plus42 stay on v2.1.0. The calculation and the results are those of
+v2.1.0; the pages are v2.1.0's with the top bar in one line (date, UT, DR) and the hourglass with the SINKING box.
+
+- **The source:** `programs_struct/`, one file per program, indented two spaces per structure, code only (the
+  comments are in `build/dev/struct_src/NAVFULL_COMMENTED.txt` and in the .p47u files). `tools/build_struct_src.py`
+  checks every program as the firmware's VALID does (closers of the right kind, nothing open at END or across RTN +
+  LBL, a test right before IF / WHILE / UNTIL, none before ELSE ENDIF DO ENDDO REPEAT: the firmware never skips
+  those) and writes the partner numbers (IF 01 ...).
+- **No GTO of any kind:** decisions and loops are structures; a code end shared by several branches is a small
+  routine they call; the key loop of the menu is one DO ... ENDDO with the end key before its WHILE; keys 1-6 by
+  arithmetic on the key code (row and column); a view and its arrows one DO ... ENDDO. 8 734 steps, 26 programs,
+  353 labels, 125 structures (IF 84, DO 33, REPEAT 8).
+- **No dead code:** 13 labels nothing reached (left by older versions: unused symbol characters, old S / W
+  letters, an old copy of the box border, an old axis label) and N78 CEQR (the equator one dot at a time, replaced by
+  the whole columns) are gone, with the 3 labels no step jumped to: 125 steps, 398 bytes.
+- **The order of the code** (`tools/build_struct.py` layout): the C47 finds a label, a structure step and the place
+  a RTN goes back to by walking the program memory (a RTN walks from the start of its program). The routines are
+  ordered by how often the profiled pages reach them, the busiest first, and the programs in the order of use.
+- **Drawing:** every horizontal line with PIXEL line mode (Y < 0: the whole row) and the columns outside it cleared
+  with AGRAPH in GRMOD 2 (the SKY / SPLIT horizon: 376 AGRAPH -> 24); the SINKING box and the menu highlight in
+  GRMOD 1, their AGRAPH loops unrolled 8 / 10 columns a round; the DR text of the header kept for the run; the
+  text routine (ATEXT) written in place at its 56 busiest calls; 13 small routines called by name written in place.
+- **Calculation:** Hc and Zn with four trigonometric functions (sin / cos of the latitude kept); ANIM's equator from
+  the same cache as the other charts; the equator of the four charts a whole column at a time (M.GETM, element by
+  element, M.PUTM); the star order by brightness as the matrix SBR (made once, kept); whole numbers and years into
+  text with one alpha-IP (the digit table is gone); the menu without its loop over the 58 stars.
+- **Kept between runs:** the sky cache ALMC and SBR: the same date, time and place show the menu and the views at
+  once. The numbered registers are not saved any more: 0 clears them (CLREGS) and the stack.
+
+Counted in the C47 simulator (`python/c47sim.py`), each page with an hour later and earlier, then back to the menu
+and 0 (the profile of `tools/build_struct.py`; FULL matrices, 4 Oct 2026 09:30 UT, 25 20 N 55 12 E):
+
+| | ALMANAC | SPLIT | SKY | ANIM | ALLSKY | INFO | menu arrows | all |
+|---|---|---|---|---|---|---|---|---|
+| steps run, v2.1.0 | 53 293 | 80 032 | 81 455 | 142 787 | 102 294 | 21 951 | 42 159 | 523 971 |
+| steps run, v2.2.0 | 43 470 | 46 650 | 38 239 | 65 562 | 61 461 | 15 756 | 23 164 | 294 302 |
+| change | -18 % | -42 % | -53 % | -54 % | -40 % | -28 % | -45 % | -44 % |
+
+The search work on those pages (labels and structure steps scanned, steps walked by returns and calls by name, the
+model of `tools/build_struct.py`): 21.2 M -> 3.2 M (-85 %). Program size: NAVFULL v2.1.0 24 160 bytes, ALMA47
+27 167 bytes (+12 %: the unrolled loops and the code written in place).
+
+MOON47: one program with MOON47 its only global label (its printers and symbols numbered labels in it), STRUCT, no
+GTO; the disc loop by hand, numbers into text by alpha-IP: 1 436 steps, 4 491 bytes (4 844 before), search work
+-28 % (steps run +2 %: ENDIF / ENDDO are steps).
+
+The release files: `tools/build_release_c47.py` (`build/c47/`: ALMA47, NAVINIT_FAST, NAVINIT_FULL, MOON47, the
+labels; the .p47 from the plain listings, steps only) and `tools/build_forum.py` (`build/forum/*.p47u`: the same
+programs with the '@' header of the C47 PROGRAMS folder and comments after ';', which rejig drops). Checked:
+`tests/test_struct_src.py` (every page, FULL / FAST, three places, the menu's keys and 16 random dates and places
+pixel for pixel the reference build `build/dev/struct/18_hourglass`; MOON47 pixel for pixel the Python page), and on
+the calculator by the author.
+
+**In the C47 firmware** (`tests/test_fw_c47.py`: the PC simulator built from the firmware sources, c43 ef39ddb of
+6 Oct 2026, headless): ALMA47 every page, the arrows and 0 with no error, X = 0, the registers cleared; NAVLITTLE and
+MOON47 with no error. **Against JPL DE421 + ERFA** (the reference and limits of `tests/test_ephem.py`), ALMA47 itself in
+the firmware, the cache ALMC after the ALMANAC page, 20 random instants and places each: FULL 2000–2050 and FAST
+2026–2030 all within the limits; largest error Sun 0.015′, Moon GHA 0.10′ (FULL; FAST 0.03′), planets 0.044′, stars
+0.003′, Hc / Zn 0.08′, Moon HP 0.006′ — the accuracy of v2.1.0.
+
+**The old DM42 (C47 firmware, 64 KiB), its own zip** (`build/c47/dm42/`). Its firmware packages 1–3 have STRUCT with
+at most 10 IF / DO / REPEAT a program and 10 open; package 4 (the one in the 05.00a0.ALPHA release assets) has ATEXT
+and GRFNT but no STRUCT. **NAVLITTLE**, v2.1.0's build in STRUCT (`tools/build_little_struct.py`,
+source `programs_struct/little/`): `c47struct.structure`, four jumps by hand, the layout for its own pages. Within the
+DM42 build's limits (10 a series per program, 10 open at once; the largest program has 6 IF). The same page pixel for
+pixel; search work 1.73 M -> 0.74 M (-57 %), steps run +2 % (ENDIF / ENDDO are steps); 7 302 bytes (7 173).
+MOON47 v2.2.0 has 17 IF in its one program: a DM42 build (`build_release_c47.moon_dm42`): 4 IF
+without ELSE or RTN become T XEQ nn (the body a routine), LBL 37 / 38 and LBL 14 pick their text with T XEQ nn; 10 IF,
+5 DO, 6 REPEAT, 1 446 steps, 4 487 bytes, the page pixel for pixel the STRUCT MOON47 at 16 dates.
+
+**NAVLITTLE and MOON47 against DE421 + ERFA, in the C47 firmware** (`tests/test_fw_c47.py`, ONLY=LITTLE,MOON), 20 random
+instants 2000–2050 each: NAVLITTLE's Sun within 0.008′, GHA Aries 0.002′, the 58 stars 0.003′; MOON47 (main / DM42
+build) % lit 0.013 / 0.022 %, age 2.6 / 2.5 min, HP 0.016 / 0.027′, SD 0.004 / 0.007′, the next four phases
+2.9 / 3.2 min (MOON47's limits: 0.5 %, 5 min, 0.05′, 0.02′, 5 min).

@@ -395,7 +395,7 @@ def mstars(L):
     os.makedirs(d, exist_ok=True)
     for init in ('NAVINIT_FULL', 'NAVINIT_FAST'):
         n = navinit_mstars(os.path.join(ROOT, 'build', init + '.txt'), os.path.join(d, init + '.txt'))
-        print('  8_mstars: %s with SXA SXD, %d bytes' % (init, n))
+        print('  8_mstars: %s with SXA SXD, %s bytes' % (init, n or '? (no rejig)'))
     print('  8_mstars: stars by matrix in CALC (N95), CSQK reads the exact Hc')
     return L + P
 
@@ -748,10 +748,886 @@ def hourglass(L):
     return L
 
 
+# NAV's main part with STRUCT (step 19): the menu's key loop as one DO ... ENDDO (the end key tested before its WHILE),
+# the keys decoded by arithmetic, a view and its hour arrows as one more DO ... ENDDO. The routines stay as they are.
+NAV_MAIN = """XEQ 14
+XEQ 05
+XEQ 09
+DO
+  DO
+    PAUSE 50
+    KEY? 08
+  WHILE
+  ENDDO
+  RCL 08
+  RCL 87
+  X≠Y?
+WHILE
+  RCL 08
+  54
+  X=Y?
+  IF
+    SNAP
+  ELSE
+    RCL 08
+    56
+    -
+    ABS
+    5
+    X=Y?
+    IF
+      56
+      RCL- 08
+      5
+      ÷
+      STO+ "W4"
+      XEQ 14
+      XEQ 05
+      XEQ 09
+    ELSE
+      RCL 08
+      RCL 50
+      MOD
+      STO 12
+      3
+      -
+      ABS
+      1
+      X≥Y?
+      IF
+        RCL 08
+        RCL 50
+        ÷
+        IP
+        STO 02
+        6.5
+        -
+        ABS
+        0.5
+        X=Y?
+        IF
+          7
+          RCL- 02
+          RCL 51
+          ×
+          RCL+ 12
+          RCL 43
+          -
+          STO 02
+          STO "V3"
+          6
+          X=Y?
+          IF
+            174
+            STO 12
+            202
+            STO 02
+            XEQ 42
+            PAUSE 0
+            XEQ 14
+          ELSE
+            RCL 02
+            28
+            ×
+            202
+            X<>Y
+            -
+            XEQ 13
+          ENDIF
+          DO
+            RCL 46
+            STO 08
+            RCL 43
+            RCL "V3"
+            X=Y?
+            IF
+              XEQ 16
+              XEQ "N01"
+            ELSE
+              RCL 44
+              RCL "V3"
+              X=Y?
+              IF
+                XEQ 16
+                XEQ "N06"
+              ELSE
+                RCL 51
+                RCL "V3"
+                X=Y?
+                IF
+                  XEQ 16
+                  XEQ "N04"
+                ELSE
+                  RCL 66
+                  RCL "V3"
+                  X=Y?
+                  IF
+                    XEQ 16
+                    XEQ "N61"
+                  ELSE
+                    RCL 88
+                    RCL "V3"
+                    X=Y?
+                    IF
+                      XEQ 16
+                      XEQ "N62"
+                    ELSE
+%s
+                    ENDIF
+                  ENDIF
+                ENDIF
+              ENDIF
+            ENDIF
+            RCL 08
+            56
+            -
+            ABS
+            5
+            X=Y?
+            IF
+              56
+              RCL- 08
+              5
+              ÷
+              STO+ "W4"
+            ENDIF
+            XEQ 14
+            RCL 08
+            56
+            -
+            ABS
+            5
+            X=Y?
+          WHILE
+          ENDDO
+          XEQ 09
+        ENDIF
+      ENDIF
+    ENDIF
+  ENDIF
+ENDDO
+CLLCD
+DELITM "Q2"
+DELITM "U2"
+DELITM "U3"
+DELITM "C1"
+DELITM "C2"
+XEQ 29
+CLREGS
+CLSTK
+RTN"""
+
+
+def _block_of(P, lab):
+    """The lines from LBL lab to the first RTN or GTO after it (a routine or a jump target's block)."""
+    a = P.index(lab)
+    b = a + 1
+    while not (P[b] == 'RTN' or P[b].startswith('GTO ')):
+        b += 1
+    return a, b
+
+
+def nav_main(L):
+    """NAV's main part in STRUCT (NAV_MAIN): the same screens as step 18 (tests/test_struct.py), the stack and the
+    scratch registers along the way may differ (CLREGS and CLSTK at the end). The keys: 0 ends, 9 SNAP, ↑ ↓ the hour
+    ((56 - key) / 5 = +1 / -1) and the sky again, a digit key (row r = key / 10, column c = key mod 10) is a view
+    when |c - 3| <= 1 and |r - 6.5| = 0.5: view (7 - r) * 3 + c - 1 = 1-6 (a 7-9 key, row 5: none); its box at
+    column 202 - 28 * view (6: the whole bar). In a view the arrows draw it again one hour on, any other key goes back
+    to the menu. Then labels 01, 02 ... again (step 13)."""
+    s = L.index('LBL "NAV"')
+    e = L.index('END', s)
+    P = L[s:e + 1]
+    i = P.index('XEQ 14')
+    assert P[i - 1] == 'CLLCD' and P[i + 1:i + 6] == ['XEQ 05', 'LBL 02', 'XEQ 09', 'LBL 03', 'PAUSE 50'], P[i - 1:i + 6]
+    a05 = P.index('LBL 05')
+    assert P[a05 - 2:a05] == ['LBL 04', 'GTO 03']
+    a17 = P.index('LBL 17')
+    routines = P[a05:a17]                                            # LBL 05 ... LBL 16 (the calculation, the menu)
+    a29, b29 = _block_of(P, 'LBL 29')
+    a38 = P.index('LBL 38')
+    a33, b33 = _block_of(P, 'LBL 33')
+    info = P[a33 + 1:b33]                                            # the INFO page, up to its GTO 21
+    assert info[-2:] == ['XEQ 08', 'XEQ "N63"'] and P[b33] == 'GTO 21'
+    gone = {l[4:] for l in P[i:a38] if re.fullmatch(r'LBL \d\d', l)} - {l[4:] for l in routines + P[a29:b29 + 1] if l.startswith('LBL ')}
+    assert gone == {'%02d' % n for n in [2, 3, 4] + list(range(17, 29)) + list(range(30, 38))}, sorted(gone)
+    main = (NAV_MAIN % '\n'.join('                      ' + l for l in info)).split('\n')
+    new = P[:i] + [l.strip() for l in main] + routines + P[a29:b29 + 1] + P[a38:]
+    left = {l[4:] for l in new if re.fullmatch(r'(XEQ|GTO) \d\d', l)} - {l[4:] for l in new if l.startswith('LBL ')}
+    assert not left, left
+    print('  19_struct: NAV main %d -> %d steps (menu, keys, views)' % (len(P), len(new)))
+    return renumber(L[:s] + new + L[e + 1:])
+
+
+WPLS_OLD = ['LBL "N63"', 'LBL 01', 'PAUSE 50', 'KEY? 08', 'GTO 01', 'RCL 08', '85', 'X=Y?', 'RTN', 'RCL 08', 'RCL 67',
+            'X=Y?', 'RTN', 'RCL 08', '61', 'X=Y?', 'RTN', 'RCL 08', '54', 'X=Y?', 'SNAP', 'GTO 01', 'END']
+WPLS_NEW = ['LBL "N63"', 'REPEAT', 'DO', 'PAUSE 50', 'KEY? 08', 'WHILE', 'ENDDO', 'RCL 08', '85', 'X=Y?', 'RTN',
+            'RCL 08', 'RCL 67', 'X=Y?', 'RTN', 'RCL 08', '61', 'X=Y?', 'RTN', 'RCL 08', '54', 'X=Y?', 'SNAP', '0', 'X≠0?',
+            'UNTIL', 'END']
+
+
+def wpls(L):
+    """WPLS (N63, a view's key wait: + ↑ ↓ leave, 9 SNAP, any other key waits again) by hand: the key wait one
+    DO ... ENDDO inside a REPEAT that only RTN leaves (its two GTO 01 went back to the same label)."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N63"')
+    assert P[i:i + len(WPLS_OLD)] == WPLS_OLD, P[i:i + len(WPLS_OLD)]
+    return c47struct.number(P[:i] + WPLS_NEW + P[i + len(WPLS_OLD):])
+
+
+def struct(L):
+    """The C47 STRUCT commands in place of the GTO decisions and loops: NAV's main part by hand (nav_main), then every
+    program by the rules of tools/c47struct.py (VALID's check and numbers); labels 01, 02 ... again. C47 only:
+    Free42 has no STRUCT. GTO "name" and GTO nn followed by a RTN (tail calls) stay."""
+    import c47struct
+    before = c47struct.gotos(L)
+    L = nav_main(L)
+    L, stats = c47struct.structure(L)
+    L = wpls(L)
+    after = c47struct.gotos(L)
+    print('  19_struct: GTO nn for decisions and loops %d -> %d (tail calls %d -> %d); %s'
+          % (before[0], after[0], before[1], after[1], ', '.join('%s %d' % kv for kv in sorted(stats.items()))))
+    return renumber(L)
+
+
+# the pages profiled for step 20: each page with the hour arrows, and the menu's arrows (keys as tests/test_v2.K)
+PROFILE = [[k, 51, 61, 85, 82] for k in (72, 73, 74, 62, 63, 64)] + [[51, 61, 82]]
+STRUCT_TARGETS = ('ELSE', 'ENDIF', 'DO', 'ENDDO', 'REPEAT', 'UNTIL')       # recorded after the labels (structured.c)
+
+
+def profile(L):
+    """What the firmware searches, per line of L, on the PROFILE pages (Python simulator): {kind: Counter(line)}.
+      label   GTO / XEQ nn reaching that label: a scan of the labels before it, from the first program
+      named   XEQ / GTO "name" reaching it: the global labels before it, then twice a walk from its program's start
+      rtn     a return to the step after that XEQ: a walk from its program's start
+      struct  a STRUCT jump to that structure step: a scan of the structure steps before it (from the first program)
+      back    ENDDO / UNTIL going back from that line: two scans of the structure steps before it"""
+    import test_v2 as V
+    import c47sim
+    from decimal import Decimal as D
+    out = {k: collections.Counter() for k in ('label', 'named', 'rtn', 'struct', 'back')}
+    for keys in PROFILE:
+        c = V.T.load(L, 'FULL')
+        for k, v in V.INPUTS:
+            c.reg[k] = D(v)
+        a = c.lines.index(L[0])
+        assert len(c.lines) - a == len(L)
+        calls = []
+
+        def count(op, x, c=c):
+            i = c.at
+            if op in ('GTO', 'XEQ') and not c.lines[i][4:].startswith('IND'):
+                arg = c.lines[i][4:]
+                out['named' if arg.startswith('"') else 'label'][c.labels[arg.strip('"')] - a] += 1
+            if op == 'XEQ':
+                calls.append(i)
+            if op in ('RTN', 'END') and calls:
+                out['rtn'][calls.pop() - a] += 1
+        c.count = count
+        jump = c.struct
+
+        def struct(op, arg, pc, c=c, jump=jump):
+            r = jump(op, arg, pc)
+            if r != pc:
+                if op in ('ENDDO', 'UNTIL'):
+                    out['back'][pc - 1 - a] += 1
+                else:
+                    out['struct'][r - 1 - a] += 1
+            return r
+        c.struct = struct
+        c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+    return out
+
+
+def _depth0_blocks(P):
+    """A program's blocks that can move: each starts with a label right after a step that always leaves (at structure
+    depth 0) and runs to the next such label. [(start, end)] over P[1:-1]; the first (entry) and a last one that runs
+    into END stay where they are."""
+    import c47struct as C
+    starts, d = [], 0
+    for i, l in enumerate(P):
+        o = C.op(l)
+        if o in C.OPENERS:
+            d += 1
+        elif o in ('ENDIF', 'ENDDO', 'UNTIL'):
+            d -= 1
+        if d == 0 and i > 1 and l.startswith('LBL ') and C._gone(P, i - 1):
+            starts.append(i)
+    bounds = [0] + starts + [len(P) - 1]
+    return [(bounds[j], bounds[j + 1]) for j in range(len(bounds) - 1)]
+
+
+def layout(L):
+    """The searches of step 19 made shorter, without changing a step: the programs ordered, and inside each program
+    its blocks (_depth0_blocks; NAV's first stays first, a last one that runs into END stays last), by the PROFILE
+    counts. A block or program costs every search that passes over
+    it: its labels for each GTO / XEQ nn that lands later, its structure steps for each STRUCT jump later (ENDDO /
+    UNTIL twice), its global labels for each named call later, its steps for each return to and named call into a
+    later place in the same program (a named call twice). Adjacent blocks (programs) swap while that lowers the total; then the cost of the whole is printed."""
+    import c47struct as C
+    import c47struct
+    TGT = lambda l: C.op(l) in STRUCT_TARGETS
+
+    def weights(P, off, prof):
+        """Per line of P: (step events, label events, structure events) that pay for what lies before them."""
+        w = []
+        for i in range(len(P)):
+            g = off + i
+            w.append((prof['rtn'][g] + 2 * prof['named'][g], prof['label'][g], prof['struct'][g] + 2 * prof['back'][g],
+                      prof['named'][g]))
+        return w
+
+    def size(seg):
+        return (len(seg), sum(1 for l in seg if l.startswith('LBL ')), sum(1 for l in seg if TGT(l)),
+                sum(1 for l in seg if l.startswith('LBL "')))
+
+    def wsum(ws):
+        return tuple(sum(x[k] for x in ws) for k in range(4))
+
+    def better_first(a, b):
+        """True when unit a before unit b costs less than b before a (each unit: (size, weight))."""
+        (sa, wa), (sb, wb) = a, b
+        return sum(wb[k] * sa[k] for k in range(4)) < sum(wa[k] * sb[k] for k in range(4))
+
+    def inner(units):
+        """The cost of one program's block order: each block's weights times the sizes of the blocks before it."""
+        c, before = 0, [0, 0, 0, 0]
+        for _, sz, ws in units:
+            c += sum(ws[k] * before[k] for k in range(4))
+            before = [before[k] + sz[k] for k in range(4)]
+        return c
+
+    def order(units, fixed_first, fixed_last):
+        u = list(units)
+        lo, hi = (1 if fixed_first else 0), len(u) - (1 if fixed_last else 0)
+        changed = True
+        while changed:
+            changed = False
+            for j in range(lo, hi - 1):
+                if better_first((u[j + 1][1], u[j + 1][2]), (u[j][1], u[j][2])) and \
+                        not better_first((u[j][1], u[j][2]), (u[j + 1][1], u[j + 1][2])):
+                    u[j], u[j + 1] = u[j + 1], u[j]
+                    changed = True
+        return u
+
+    def cost(Lx):
+        prof = profile(Lx)
+        total, pos = 0, collections.Counter()
+        lab = ent = glob = 0
+        progstart = 0
+        for i, l in enumerate(Lx):
+            if i and Lx[i - 1] == 'END':
+                progstart = i
+            total += prof['label'][i] * lab + (prof['struct'][i] + 2 * prof['back'][i]) * ent
+            total += prof['rtn'][i] * (i - progstart) + prof['named'][i] * (glob + 2 * (i - progstart))
+            lab += l.startswith('LBL ')
+            glob += l.startswith('LBL "')
+            ent += TGT(l)
+        return total, prof
+
+    before, prof = cost(L)
+    progs, off = [], 0
+    for P in split(L):
+        w = weights(P, off, prof)
+        blocks = _depth0_blocks(P)
+        units = [(P[a:b], size(P[a:b]), wsum(w[a:b])) for a, b in blocks]
+        last_runs_on = not C._gone(P, len(P) - 2)
+        if P[0] == 'LBL "NAV"':                                          # NAV starts with LBL "NAV": what you run
+            units = order(units, True, last_runs_on)
+        else:                                                            # a program starts with a global label: the
+            best = None                                                  # best one first, the rest ordered after it
+            for g in [j for j, x in enumerate(units) if x[0][0].startswith('LBL "')]:
+                if last_runs_on and g == len(units) - 1 and len(units) > 1:
+                    continue
+                cand = order([units[g]] + units[:g] + units[g + 1:], True, last_runs_on)
+                c = inner(cand)
+                if best is None or c < best[0]:
+                    best = (c, cand)
+            units = best[1]
+        Q = [l for seg, _, _ in units for l in seg] + ['END']
+        assert sorted(Q) == sorted(P) and not C.check(Q), name(P)
+        progs.append((Q, size(Q), wsum(w)))
+        off += len(P)
+    # programs: what an earlier program costs a later one: its labels, its global labels (named calls), its
+    # structure steps; NAV stays first (its LBL "NAV" is what the user runs)
+    units = [(Q, (0, sz[1], sz[2], sz[3]), (0, ws[1], ws[2], ws[3])) for Q, sz, ws in progs]
+    units = order(units, True, False)
+    out = [l for Q, _, _ in units for l in Q]
+    after, _ = cost(out)
+    print('  20_layout: search work (labels, structure steps, walks) on the profiled pages %d -> %d (%+.1f %%)'
+          % (before, after, 100.0 * (after - before) / before))
+    return c47struct.number(renumber(out))                 # the structures numbered again in their new order (VALID)
+
+
+# step 21: the horizontal line routine (N57 = PHLS: Z row, Y first column, X length)
+N57_OLD = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07', 'RCL 05', '400', 'X>Y?', 'IF', 'WSIZE 8', '1#2',
+           'STO 09', 'RCL 07', 'RCL 01', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'WSIZE 64', 'RCL 07', 'RCL 01',
+           'RTN', 'ENDIF', 'RCL 07', 'CHS', 'RCL 46', 'PIXEL', 'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']
+N57_SRC = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07', 'RCL 05', '400', 'X>Y?', 'IF', 'WSIZE 8', '1#2',
+           'STO 09', 'RCL 07', 'RCL 01', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'ELSE', 'RCL 07', 'CHS', 'RCL 46',
+           'PIXEL', 'ENDIF', 'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']      # the same, as programs_struct/ writes it
+N57_NEW = ['LBL "N57"', 'STO 05', 'R↓', 'STO 01', 'R↓', 'STO 07',
+           'RCL 07', 'CHS', 'RCL 46', 'PIXEL',                          # the whole row: PIXEL with Y < 0 (fnPixel)
+           'RCL 05', '400', 'X>Y?', 'IF',                               # shorter: the columns outside it cleared
+           'WSIZE 8', '2', 'GRMOD', '1#2', 'STO 09',                    # AGRAPH in GRMOD 2 switches its pixel off
+           '400', 'RCL- 05', 'RCL- 01', 'STO 05', 'X≠0?', 'IF',         # right of the line: 400 - x - n columns
+           'RCL 07', '400', 'RCL- 05', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'ENDIF',
+           'RCL 01', 'STO 05', 'X≠0?', 'IF',                            # left of it: x columns from column 0
+           'RCL 07', 'RCL 46', 'DO', 'AGRAPH 09', 'DSE 05', 'WHILE', 'ENDDO', 'ENDIF',
+           'RCL 46', 'GRMOD', 'ENDIF',
+           'WSIZE 64', 'RCL 07', 'RCL 01', 'RTN']
+
+
+def pixel_lines(L):
+    """Lines shorter than the screen in PIXEL line mode too: N57 draws the whole row with one PIXEL (Y < 0) and
+    switches off the columns outside the line (AGRAPH in GRMOD 2, one column a step), in place of one AGRAPH a column
+    of the line: the horizon of SKY and SPLIT (376 columns from column 20) 376 -> 24 AGRAPH. The full rows (top bar,
+    ALMANAC's table rule, the menu, the horizon of ANIM and ALLSKY) were PIXEL lines already."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N57"')
+    old = N57_OLD if P[i:i + len(N57_OLD)] == N57_OLD else N57_SRC
+    assert P[i:i + len(old)] == old, P[i:i + len(old)]
+    out = P[:i] + N57_NEW + P[i + len(old):]
+    print('  21_pixel: N57 (lines) in PIXEL line mode; %d -> %d steps' % (len(N57_OLD), len(N57_NEW)))
+    return c47struct.number(out)
+
+
+def calls(L):
+    """Fewer calls and labels, numbers to text without the digit table:
+    1. a text that starts with a digit: CLα r + αIP r in place of 48 + STO r + XEQ IND r (LBL 48 "0" RTN ... LBL 57
+       "9" RTN, a label search among the program's labels and a return): the digit tables go with their last caller;
+    2. calls to plain routines replaced by their steps (c47struct.inline: a routine with one caller, of 2 steps, or of
+       6 steps called 10 times or more on the profiled pages), and the routines no call names any more;
+    3. labels 01, 02 ... and the structure numbers in order again."""
+    import c47struct
+    P = c47struct.plain(L)
+    out, digits = [], 0
+    for prog in split(P):
+        i = 0
+        while i < len(prog):
+            m = re.fullmatch(r'STO (\d\d)', prog[i + 2]) if i + 5 < len(prog) else None
+            if prog[i:i + 2] == ['48', '+'] and m and prog[i + 3:i + 5] == ['XEQ IND ' + m.group(1), 'STO ' + m.group(1)]:
+                prog[i:i + 5] = ['CLα ' + m.group(1), 'αIP ' + m.group(1)]     # (in a routine or written in place)
+                digits += 1
+            i += 1
+        if digits and not [l for l in prog if re.match(r'(XEQ|GTO) IND', l)]:
+            used = {l[4:] for l in prog if re.fullmatch(r'(XEQ|GTO) \d\d', l)}
+            j = 1
+            while j < len(prog):                            # a table nothing can reach any more (no XEQ IND left)
+                if re.fullmatch(r'LBL \d\d', prog[j]) and prog[j][4:] not in used and c47struct._gone(prog, j - 1) \
+                        and j + 2 < len(prog) and prog[j + 2] == 'RTN':
+                    del prog[j:j + 3]
+                else:
+                    j += 1
+        out += prog
+    hot = profile(c47struct.number(out))['rtn']
+    out, n, gone = c47struct.inline(out, hot)
+    print('  22_calls: %d digit texts by CLα + αIP; %d calls replaced by the routine\'s steps, %d routines gone'
+          % (digits, n, gone))
+    return renumber(out)
+
+
+ONES30 = '1' * 30 + '#2'
+EDGE30 = '11' + '0' * 26 + '11#2'
+
+
+def box(L):
+    """The SINKING box with one AGRAPH a column in GRMOD 1 (fnAGraph writes the pattern exactly, 0 bits white) at
+    WSIZE 30 (its 30 rows): 2 full columns, 176 columns of the edge pattern (2 rows at the top and the bottom, white
+    between), 2 full columns. It was a clear (180 columns in GRMOD 2) and then the frame drawn (180 columns in GRMOD 0):
+    180 AGRAPH less each time the box is drawn (each view, each hour arrow). Same screen."""
+    import c47struct
+    P = c47struct.plain(L)
+    k = P.index('"SINKING....ABOUT"')
+    a = k
+    while not (P[a].startswith('LBL ') and c47struct._gone(P, a - 1)):
+        a -= 1
+    old = P[a + 1:k + 4]
+    x = old[2][4:]
+    want = ['WSIZE 32', 'RCL 44', 'XEQ ' + x, 'RCL 62', 'STO 04', 'R↓', 'DO', 'AGRAPH 03', 'DSE 04', 'WHILE', 'ENDDO',
+            'RCL 46', 'XEQ ' + x, 'AGRAPH 03', 'AGRAPH 03', EDGE30, 'STO 03', 'R↓', 'RCL 63', 'STO 07', 'R↓', 'DO',
+            'AGRAPH 03', 'DSE 07', 'WHILE', 'ENDDO', ONES30, 'STO 03', 'R↓', 'AGRAPH 03', 'AGRAPH 03', 'WSIZE 64', '114',
+            '140', '"SINKING....ABOUT"', 'XEQ "N50"', 'PAUSE 0', 'RTN']
+    assert old == want, old
+    i = P.index('LBL ' + x)
+    assert P[i:i + 9] == ['LBL ' + x, 'STO 03', 'GRMOD 03', '105', '110', ONES30, 'STO 03', 'R↓', 'RTN'], P[i:i + 9]
+    new = ['WSIZE 30', 'RCL 43', 'GRMOD', '105', '110', ONES30, 'STO 03', 'R↓', 'AGRAPH 03', 'AGRAPH 03', EDGE30,
+           'STO 03', 'R↓', 'RCL 63', 'STO 07', 'R↓', 'DO', 'AGRAPH 03', 'DSE 07', 'WHILE', 'ENDDO', ONES30, 'STO 03', 'R↓',
+           'AGRAPH 03', 'AGRAPH 03', 'RCL 46', 'GRMOD', 'STO 04', 'WSIZE 64', '114', '140', '"SINKING....ABOUT"',
+           'XEQ "N50"', 'PAUSE 0', 'RTN']
+    P = P[:a + 1] + new + P[k + 4:]
+    if sum(1 for l in P if l == 'XEQ ' + x) == 0:
+        i = P.index('LBL ' + x)
+        P = P[:i] + P[i + 9:]
+    print('  23_box: the SINKING box in GRMOD 1, %d -> %d AGRAPH a box' % (360, 180))
+    return c47struct.number(renumber(P))
+
+
+HCZ_OLD = ['LBL "N32"', 'RCL+ 13', 'X<>Y', 'RCL 43', '→REC', 'X<>Y', 'STO 05', 'R↓', '→REC', 'RCL 05', 'X<>Y', '→POL',
+           'X<>Y', 'RCL- 14', 'X<>Y', '→REC', 'STO "V4"', 'ASIN', 'STO 09', 'R↓', '→POL', 'X<>Y', 'CHS', 'RCL 45', 'MOD',
+           'STO 05', 'RCL 09', 'RTN']
+HCZ_NEW = ['LBL "N32"', 'RCL+ 13', 'X<>Y', 'RCL 43', '→REC', 'X<>Y', 'STO 05', 'R↓', '→REC',   # x = cos d cos t, e
+           'STO "V4"', 'RCL× "W1"', 'RCL 05', 'RCL× "V6"', 'X<>Y', '-',                  # y cos B - x sin B
+           'RCL "V4"', 'RCL× "V6"', 'RCL 05', 'RCL× "W1"', '+',                           # sin Hc = x cos B + y sin B
+           'STO "V4"', 'ASIN', 'STO 09', 'R↓', '→POL', 'X<>Y', 'CHS', 'RCL 45', 'MOD', 'STO 05', 'RCL 09', 'RTN']
+
+
+def hcz(L):
+    """HCZ (N32: Hc and Zn of a body from its GHA and Dec) with 4 trigonometric functions in place of 6: the turn by
+    the latitude (→POL, minus the latitude, →REC) is now the rotation with cos B and sin B that HCZI (N36) keeps in V6
+    and W1 for every view (NAV calls it before the menu's sky): sin Hc = x cos B + y sin B, and y cos B - x sin B for
+    the azimuth. Same results to the last digits; ANIM computes it for the Sun and the Moon at every frame."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N32"')
+    assert P[i:i + len(HCZ_OLD)] == HCZ_OLD, P[i:i + len(HCZ_OLD)]
+    P = P[:i] + HCZ_NEW + P[i + len(HCZ_OLD):]
+    print('  25_hcz: HCZ with 4 trigonometric functions (was 6)')
+    return c47struct.number(P)
+
+
+def anim_equator(L):
+    """ANIM's celestial equator from the charts' cache (CEQQ N77 / CEQR N78, every 6 degrees, as SKY: the same 60 dots,
+    kept for the place and computed with the matrix commands when missing) in place of its own HCZQ / HCZR (N34 /
+    N35: 2 trigonometric functions a dot, 120 each time ANIM is drawn). HCZQ and HCZR go (ANIM was their only user)."""
+    import c47struct
+    P = c47struct.plain(L)
+    old = ['RCL 46', '6', 'XEQ "N34"', '0.05901', 'STO 02', 'DO', 'XEQ "N35"']
+    i = [k for k in range(len(P)) if P[k:k + 7] == old]
+    assert len(i) == 1 and sum(1 for l in P if l in ('XEQ "N34"', 'XEQ "N35"')) == 2
+    P[i[0] + 2], P[i[0] + 6] = 'XEQ "N77"', 'XEQ "N78"'
+    for g, end in (('N35', 'RTN'), ('N34', 'END')):
+        a = P.index('LBL "%s"' % g)
+        b = a + 1
+        while P[b] not in ('RTN', 'END'):
+            b += 1
+        assert P[b] == end and P[a - 1] == 'RTN'
+        P = P[:a] + P[b + (1 if end == 'RTN' else 0):]
+    print('  26_anim: ANIM\'s equator from the CEQQ cache; HCZQ and HCZR gone')
+    return c47struct.number(renumber(P))
+
+
+def header(L):
+    """HDR (N83, the top bar of every view and of each ANIM frame) builds its 'DR   N 25 20.0   E 55 12.0' text once a
+    run: NAV stores a number in HT as it starts; HDR keeps the text in HT (STRI? true: use it, else build it as before
+    and keep it), NAV deletes HT as it ends. The position is NAV's for the whole run (the same for every caller). About
+    95 steps less each top bar after the first (24 a turn of ANIM)."""
+    import c47struct
+    P = c47struct.plain(L)
+    i = P.index('LBL "N83"')
+    e = P.index('END', i)
+    a = P.index('"DR   N"', i)
+    assert P[e - 4:e] == ['RCL R.00', 'RCL 60', 'RCL R.04', 'XEQ "N50"'], P[e - 4:e]
+    build = P[a:e - 4]
+    P = P[:a] + ['RCL "HT"', 'STRI?', 'IF', 'ELSE'] + build + ['RCL R.04', 'STO "HT"', 'ENDIF',
+                                                              'RCL R.00', 'RCL 60', 'RCL "HT"', 'XEQ "N50"'] + P[e:]
+    s = P.index('LBL "NAV"')
+    j = P.index('STO "ALMQ"', s)
+    assert P[j + 1] == 'DELITM "ALMQ"'
+    P = P[:j + 1] + ['STO "HT"'] + P[j + 1:]                    # a number in HT: HDR builds the text again
+    k = P.index('DELITM "C2"', s)
+    P = P[:k + 1] + ['DELITM "HT"'] + P[k + 1:]
+    print('  27_header: HDR keeps its DR text in HT for the run')
+    return c47struct.number(P)
+
+
+def text_inline(L):
+    """PTXS (N50: X text, Y column, Z row of the base line) written in place where the three are one step each (a
+    number, a RCL, a text): the text, the row less 4 (the glyph box's bottom: R66 = 4), the column, ATEXT Z, then the
+    row given back as PTXS gives it (X<>Y RCL 66 + X<>Y). No call: no named label to find, no return to walk back to,
+    and no ⇄ zyxt. Not after a test (it would skip only the first step)."""
+    import c47struct
+    P = c47struct.plain(L)
+    push = lambda l: bool(re.fullmatch(r'-?\d+(\.\d+)?|RCL \d\d|RCL "[^"]+"|"[^"]*"|RCL R\.\d\d', l))
+    out, n, i = [], 0, 0
+    while i < len(P):
+        if P[i + 3:i + 4] == ['XEQ "N50"'] and all(push(x) for x in P[i:i + 3]) and not (out and c47struct.is_test(out[-1])):
+            row, col, txt = P[i:i + 3]
+            r = [str(int(row) - 4)] if re.fullmatch(r'-?\d+', row) and int(row) >= 4 else [row, 'RCL- 66']
+            out += [txt] + r + [col, 'ATEXT Z', 'X<>Y', 'RCL 66', '+', 'X<>Y']
+            n += 1
+            i += 4
+            continue
+        out.append(P[i])
+        i += 1
+    print('  28_text: %d calls of PTXS written in place' % n)
+    return c47struct.number(out)
+
+
+def unroll(L):
+    """The two AGRAPH loops that run at every view: the SINKING box's 176 frame columns (8 AGRAPH a round, 22 rounds) and
+    the menu's highlight bar (170 columns, 10 a round, 17 rounds): one DSE, WHILE and ENDDO for 8 / 10 columns in
+    place of each column. The counters end at 0 as before."""
+    import c47struct
+    P = c47struct.plain(L)
+    s = P.index('LBL "NAV"')
+    e = P.index('END', s)
+    done = 0
+    for count, reg, pat, times in (('RCL 63', '07', '03', 8), ('170', '02', '01', 10)):
+        old = [count, 'STO ' + reg, 'R↓', 'DO', 'AGRAPH ' + pat, 'DSE ' + reg, 'WHILE', 'ENDDO']
+        i = [k for k in range(s, e) if P[k:k + 8] == old]
+        assert len(i) == 1, (count, i)
+        n = 176 if count == 'RCL 63' else 170
+        assert n % times == 0
+        P = P[:i[0]] + [str(n // times), 'STO ' + reg, 'R↓', 'DO'] + ['AGRAPH ' + pat] * times + \
+            ['DSE ' + reg, 'WHILE', 'ENDDO'] + P[i[0] + 8:]
+        e = P.index('END', s)
+        done += 1
+    print('  29_unroll: %d AGRAPH loops of NAV 8 / 10 columns a round' % done)
+    return c47struct.number(P)
+
+
+def named_inline(L, short=10):
+    """Calls by name (XEQ "x", the slowest call: the global labels compared, then a walk from the program's start, and a
+    return) replaced by the routine's steps when its code is plain (no label, jump, structure, local register, XEQ nn
+    or IND: it can move to another program) and it has at most `short` steps or one caller. A routine no call names
+    any more goes: its whole program, or its block after a step that always leaves. GTO "x" (tail calls) stay."""
+    import c47struct as C
+    P = C.plain(L)
+    done, gone = [], []
+    names = [l[5:-1] for l in P if l.startswith('LBL "') and l != 'LBL "NAV"']
+    for n in names:
+        i = P.index('LBL "%s"' % n)
+        j = i + 1
+        ok = True
+        while P[j] not in ('RTN', 'END'):
+            x = P[j]
+            if x.startswith(('LBL', 'GTO', 'LocR', 'PopLR')) or C.op(x) in C.STRUCT or 'R.' in x or \
+                    re.fullmatch(r'XEQ (\d\d|IND .*)', x):
+                ok = False
+                break
+            j += 1
+        body = P[i + 1:j]
+        sites = [k for k, l in enumerate(P) if l == 'XEQ "%s"' % n]
+        if not ok or not body or not sites or C.is_test(body[-1]) or 'GTO "%s"' % n in P:
+            continue
+        if not (len(body) <= short or len(sites) == 1):
+            continue
+        if any(k > 0 and C.is_test(P[k - 1]) for k in sites) and len(body) > 1:
+            continue
+        for k in reversed(sites):
+            P = P[:k] + body + P[k + 1:]
+        done.append(n)
+        i = P.index('LBL "%s"' % n)
+        j = i + 1
+        while P[j] not in ('RTN', 'END'):
+            j += 1
+        if i > 0 and P[i - 1] == 'END' and P[j] == 'END':          # its own program
+            P = P[:i] + P[j + 1:]
+            gone.append(n)
+        elif i > 0 and C._gone(P, i - 1) and P[j] == 'RTN':        # a block nothing runs into
+            P = P[:i] + P[j + 1:]
+            gone.append(n)
+        else:
+            P = P[:i] + P[i + 1:]                                  # only the name goes
+            gone.append(n + '(name)')
+    print('  30_named: calls by name written in place: %s; gone: %s' % (', '.join(done), ', '.join(gone)))
+    return C.number(renumber(P))
+
+
+def formats(L):
+    """Numbers to text in one αIP where the digits were taken one by one: αIP appends the whole integer part (fnAlphaIP),
+    so an unpadded integer (PTNT, PINS, PF1S: the routine that wrote 1, 2 or 3 digits with two tests and one call or
+    two) is CLα + αIP, and the year of a date (2000-2099, always 4 digits; was its hundreds and its units, two digits
+    each by one more routine) is one αIP. The zero-padded fields (minutes, hours, day, month) stay as they are."""
+    import c47struct
+    P = c47struct.plain(L)
+    s = P.index('LBL "N50"')
+    while s > 0 and P[s - 1] != 'END':
+        s -= 1
+    e = P.index('END', s)
+    prog = P[s:e + 1]
+    a = [k for k in range(len(prog)) if prog[k:k + 4] == ['STO 16', 'RCL 50', 'RCL 16', 'X≥Y?'] and prog[k - 1].startswith('LBL ')]
+    assert len(a) == 1, a
+    a = a[0]
+    b, d = a, 0
+    while not (d == 0 and (prog[b] == 'RTN' or (prog[b].startswith('GTO ') and prog[b + 1].startswith('LBL ')))):
+        o = c47struct.op(prog[b])                          # the routine's end: at structure depth 0
+        d += 1 if o in c47struct.OPENERS else -1 if o in ('ENDIF', 'ENDDO', 'UNTIL') else 0
+        b += 1
+    old_len = b - a + 1
+    prog = prog[:a] + ['STO 16', 'CLα 11', 'αIP 11', 'RTN'] + prog[b + 1:]
+    y = [k for k in range(len(prog) - 9) if prog[k:k + 9] == ['RCL 16', 'RCL 64', '÷', 'IP', prog[k + 4], 'RCL 16', 'RCL 64', 'MOD',
+                                                          prog[k + 4]] and prog[k + 4].startswith('XEQ ')]
+    assert len(y) == 1, y
+    prog = prog[:y[0]] + ['RCL 16', 'αIP 11'] + prog[y[0] + 9:]
+    assert not [l for l in prog if re.match(r'(XEQ|GTO) IND', l)]
+    k = 1
+    while k < len(prog):                         # a routine no XEQ / GTO names any more (no IND in this program)
+        m = re.fullmatch(r'LBL (\d\d)', prog[k])
+        if m and c47struct._refs(prog, m.group(1)) == 0 and c47struct._gone(prog, k - 1):
+            j = k + 1
+            while not (prog[j] == 'END' or prog[j].startswith('LBL ')):
+                j += 1
+            del prog[k:j]
+        else:
+            k += 1
+    P = P[:s] + prog + P[e + 1:]
+    print('  32_format: integers in one αIP (the digit routine %d -> 4 steps), the year of a date in one αIP' % old_len)
+    return c47struct.number(renumber(c47struct.structure(P, quiet=True)))
+
+
+# the celestial equator of the charts: (program, CEQQ step, cache matrix, dots, offset register of the azimuth,
+# the row of a dot from sin Hc, whether dots under the horizon are left out)
+DOTS = (('N61', '6', 'U2', 60, '23', ['94', '×', '118', '+', 'IP'], False),
+        ('N62', '9', 'U3', 40, '19', ['94', '×', '118', '+', 'IP'], False),
+        ('N04', '6', 'U2', 60, '20', ['RCL 86', '×', '213', 'X<>Y', '-', 'IP', 'RCL 91', 'X<>Y', '-'], True),
+        ('N06', '9', 'U3', 40, '17', ['68', '×', '144', '+', 'IP'], True))
+
+
+def _dots(L, which):
+    """The equator loops of `which` (DOTS) on whole columns: CEQQ's cached [Hc, sin Hc, Zn] taken a column at a time
+    (M.GETM), the screen column IP((Zn + offset) MOD 360 * 375 / 360 + 20) and the row for all the dots at once (+,
+    MOD, ×, ÷, IP element by element), side by side in QP (M.PUTM); then each dot is RCLSEQ RCLSEQ POINT (with the
+    horizon: RCLSEQ Hc, X<Y? 1E-4, else J+ J+). The loop it replaces (from XEQ "N77" to its ENDDO) called CEQR and the
+    view's routine for each dot. The routines left without a caller go (c47struct.prune)."""
+    import c47struct as C
+    P = C.plain(L)
+    done = []
+    for prog, step, mat, n, off, row, horizon in DOTS:
+        if prog not in which:
+            continue
+        s = P.index('LBL "%s"' % prog)
+        while s > 0 and P[s - 1] != 'END':
+            s -= 1
+        e = P.index('END', s)
+        i = [k for k in range(s, e) if P[k:k + 3] == ['RCL 46', step, 'XEQ "N77"'] and P[k + 5] == 'DO']
+        assert len(i) == 1, prog
+        i = i[0]
+        cnt = P[i + 4][4:]
+        assert P[i + 4].startswith('STO ') and re.fullmatch(r'0\.%03d01' % (n - 1), P[i + 3]), P[i:i + 6]
+        d, j = 0, i + 5
+        while True:                                                   # the loop's ENDDO
+            o = C.op(P[j])
+            d += 1 if o in C.OPENERS else -1 if o in ('ENDIF', 'ENDDO', 'UNTIL') else 0
+            if d == 0:
+                break
+            j += 1
+        loop = P[i + 5:j + 1]
+        assert 'XEQ "N78"' in loop and loop[-3:] == ['ISG ' + cnt, 'WHILE', 'ENDDO'], loop
+        assert any(P[k:k + 2] == ['RCL 05', 'RCL+ ' + off] for k in range(s, e)), (prog, off)
+        col = lambda c: ['INDEX "%s"' % mat, '1', 'ENTER', str(c), 'STOIJ', str(n), 'ENTER', '1', 'M.GETM']
+        new = (['RCL 46', step, 'XEQ "N77"', str(n), 'ENTER', '3' if horizon else '2', 'NEWMAT', 'STO "QP"']
+               + col(3) + ['RCL ' + off, '+', 'RCL 45', 'MOD', '375', '×', 'RCL 45', '÷', 'RCL 55', '+', 'IP', 'STO "QX"']
+               + col(2) + row + ['STO "QY"'])
+        if horizon:
+            new += col(1) + ['STO "QH"', 'INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QH"', 'M.PUTM', '1', 'ENTER', '2',
+                             'STOIJ', 'RCL "QY"', 'M.PUTM', '1', 'ENTER', '3', 'STOIJ', 'RCL "QX"', 'M.PUTM']
+            dot = ['RCLSEQ', '1E-4', 'X<Y?', 'IF', 'RCLSEQ', 'RCLSEQ', 'POINT', 'ELSE', 'J+', 'J+', 'ENDIF']
+        else:
+            new += ['INDEX "QP"', '1', 'ENTER', 'STOIJ', 'RCL "QY"', 'M.PUTM', '1', 'ENTER', '2', 'STOIJ', 'RCL "QX"',
+                    'M.PUTM']
+            dot = ['RCLSEQ', 'RCLSEQ', 'POINT']
+        new += (['1', 'ENTER', 'STOIJ', str(n), 'STO ' + cnt, 'DO'] + dot + ['DSE ' + cnt, 'WHILE', 'ENDDO']
+                + ['DELITM "%s"' % v for v in (('QP', 'QX', 'QY', 'QH') if horizon else ('QP', 'QX', 'QY'))])
+        P = P[:i] + new + P[j + 1:]
+        done.append(prog)
+    P, gone = C.prune(L, P)
+    print('  dots: the equator of %s on whole columns; %d labels gone' % (' and '.join(done), gone))
+    return C.number(renumber(C.structure(P, quiet=True)))
+
+
+def dots(L):
+    """Step 33: the equator of ANIM and ALLSKY on whole columns (_dots)."""
+    return _dots(L, ('N61', 'N62'))
+
+
+def dots_visible(L):
+    """Step 34: the equator of SKY and SPLIT on whole columns, the dots under the horizon left out (_dots)."""
+    return _dots(L, ('N04', 'N06'))
+
+
+def menu_stars(L):
+    """The menu no longer runs CSQK for the 58 stars (it kept nothing of it: the call's answer was dropped; it only
+    filled the stars' rows of the cache ahead of the pages). Each page asks CSQK for the stars it shows, as it did
+    already (ALMANAC 6 of them, SKY those over the horizon, ALLSKY all 58 at once by matrix): the menu comes faster,
+    and a page computes only its own stars."""
+    import c47struct as C
+    P = C.plain(L)
+    s = P.index('LBL "NAV"')
+    e = P.index('END', s)
+    old = ['REPEAT', 'RCL 22', 'XEQ "N68"', 'RCL 43', 'STO+ 22', '58', 'RCL 22', 'X>Y?', 'UNTIL']
+    i = [k for k in range(s, e) if P[k:k + 9] == old]
+    assert len(i) == 1
+    P = P[:i[0]] + P[i[0] + 9:]
+    print('  36_menu: the menu without the loop of CSQK over the 58 stars')
+    return C.number(P)
+
+
+def star_order(L):
+    """SBRT (N47: the stars by brightness, rank -> star number) as a 58 x 1 matrix SBR in place of GTO IND into 58
+    labels (a search through as many labels as the rank, and a call by name and a return each time). NAV makes SBR
+    when it is not a matrix (0 STO+ "SBR" creates it as a number the first time; MATR?) and keeps it like ALMC and the
+    star vectors. The star lists of ALMANAC, SPLIT and SKY read it with INDEX / STOIJ / RCLEL. N47 and its 58 labels go."""
+    import c47struct as C
+    P = C.plain(L)
+    const = {}
+    s = P.index('LBL "NAV"')
+    for i in range(s + 1, s + 200):
+        m = re.fullmatch(r'STO (\d\d)', P[i])
+        if m and re.fullmatch(r'-?[\d.]+', P[i - 1]):
+            const[m.group(1)] = P[i - 1]
+    a = P.index('LBL "N47"')
+    assert P[a - 1] == 'END' and P[a + 1:a + 3] in (['STO 01', 'GTO IND 01'], ['STO 01', 'XEQ IND 01'])
+    e = P.index('END', a)
+    tab = {}
+    for k in range(a, e):
+        m = re.fullmatch(r'LBL (\d\d)', P[k])
+        if m:
+            v = P[k + 1]
+            tab[int(m.group(1))] = const[v[4:]] if v.startswith('RCL ') else v
+            assert P[k + 2] in ('RTN', 'END')
+    assert sorted(tab) == list(range(1, 59)) and sorted(int(v) for v in tab.values()) == list(range(1, 59))
+    P = P[:a] + P[e + 1:]
+    sites = [k for k, l in enumerate(P) if l == 'XEQ "N47"']
+    assert sites
+    for k in reversed(sites):
+        assert P[k - 1] == 'IP' and P[k + 1] == 'STO 22', P[k - 2:k + 2]
+        if re.fullmatch(r'RCL \d\d', P[k - 2]):
+            P = P[:k - 2] + ['INDEX "SBR"', P[k - 2], 'IP', '1', 'STOIJ', 'RCLEL'] + P[k + 1:]
+        else:                                           # the rank already in X (programs_struct/: OUT8 does the IP)
+            P = P[:k] + ['INDEX "SBR"', '1', 'STOIJ', 'RCLEL'] + P[k + 1:]
+    j = P.index('DELITM "ALMQ"', s)
+    make = (['0', 'STO+ "SBR"', 'RCL "SBR"', 'MATR?', 'IF', 'ELSE', '58', 'ENTER', '1', 'NEWMAT', 'STO "SBR"',
+             'INDEX "SBR"', '1', 'ENTER', 'STOIJ'] + [x for r in range(1, 59) for x in (tab[r], 'STOSEQ')] + ['ENDIF'])
+    P = P[:j + 1] + make + P[j + 1:]
+    print('  38_stars: the stars by brightness as the matrix SBR (N47 and its 58 labels gone)')
+    return C.number(P)
+
+
+def no_goto(L):
+    """No GTO at all: the tail calls by name (GTO "x", made in step 1 from XEQ "x" RTN) are XEQ "x" and RTN again (only
+    XEQ "x" before END, which returns like RTN), and SNMU's GTO IND into its table of star names XEQ IND + RTN. Every jump is then a call, a return or a STRUCT step. Each costs a
+    return more (the walk from the program's start to the step after the XEQ)."""
+    import c47struct as C
+    P = C.plain(L)
+    out, n = [], 0
+    for i, l in enumerate(P):
+        if l.startswith(('GTO "', 'GTO IND')):              # GTO IND: SNMU's star names (a table of labels)
+            assert not C.is_test(P[i - 1]), P[i - 1:i + 1]
+            out.append('XEQ ' + l[4:])
+            if P[i + 1] != 'END':
+                out.append('RTN')
+            n += 1
+        else:
+            out.append(l)
+    print('  40_nogoto: %d GTO "name" / GTO IND -> XEQ (RTN)' % n)
+    return C.number(out)
+
+
 STEPS = (('1_tailcall', tailcall), ('2_order', order), ('3_callpos', callpos), ('4_inline', inline),
          ('5_equator', equator), ('6_anim', anim), ('7_animq', animq), ('8_mstars', mstars), ('9_allsky', allsky),
          ('10_selfinit', selfinit), ('11_hybrid', hybrid), ('12_labels', labels), ('13_renumber', renumber),
-         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass))
+         ('14_clean', clean), ('15_noregs', noregs), ('16_group', group), ('17_topbar', topbar, '15_noregs'), ('18_hourglass', hourglass),
+         ('19_struct', struct), ('20_layout', layout), ('21_pixel', pixel_lines),
+         ('22_calls', calls), ('23_box', box), ('24_layout', layout),
+         ('25_hcz', hcz), ('26_anim', anim_equator), ('27_header', header),
+         ('28_text', text_inline), ('29_unroll', unroll), ('30_named', named_inline), ('31_layout', layout),
+         ('32_format', formats), ('33_dots', dots), ('34_dots', dots_visible),
+         ('35_layout', layout), ('36_menu', menu_stars), ('37_layout', layout),
+         ('38_stars', star_order), ('39_layout', layout), ('40_nogoto', no_goto), ('41_layout', layout))
 
 
 def _rtn_block(L, start, prog=None):
@@ -918,7 +1794,7 @@ def main():
         os.makedirs(d, exist_ok=True)
         f = os.path.join(d, fname)
         open(f, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
-        print('  %s: %d steps, %d bytes' % (f[len(ROOT) + 1:], len(L), N.p47(f)))
+        print('  %s: %d steps, %s bytes' % (f[len(ROOT) + 1:], len(L), N.p47(f) or '? (no rejig)'))
 
 
 if __name__ == '__main__':

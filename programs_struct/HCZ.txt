@@ -1,0 +1,33 @@
+LBL "N32"
+RCL+ 13
+X<>Y
+RCL 43
+→REC
+X<>Y
+STO 05
+R↓
+→REC
+STO "V4"
+RCL× "W1"
+RCL 05
+RCL× "V6"
+X<>Y
+-
+RCL "V4"
+RCL× "V6"
+RCL 05
+RCL× "W1"
++
+STO "V4"
+ASIN
+STO 09
+R↓
+→POL
+X<>Y
+CHS
+RCL 45
+MOD
+STO 05
+RCL 09
+RTN
+END

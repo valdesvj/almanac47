@@ -84,10 +84,137 @@ programs/ do not change. Build them all again with:  python3 tools/build_struct.
                            left of T / S / X, together with the SINKING box (NAV LBL 13, 4 steps): on the menu or the
                            old view while the box is there; it goes with the box (the new view or the menu clears the
                            screen). Firmware sim: the finished pages = 17_topbar.
+  19_struct/NAVFULL.txt    + the C47 STRUCT commands (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL; c43 structured.c,
+                           docs/appnotes/sources/AN0007_STRUCT) in place of the GTO decisions and loops. C47 / R47 only
+                           (Free42 has no STRUCT; the old-hardware DM42 build of the firmware allows 10 structures of a
+                           kind per program, so not NAVLITTLE either). NAV's main part by hand: the menu's key loop is
+                           one DO ... ENDDO with the end key tested before its WHILE, the keys decoded by arithmetic
+                           (arrows (56 - key) / 5 = +1 / -1; a view when |column - 3| <= 1 and |row - 6.5| = 0.5, view
+                           (7 - row) * 3 + column - 1, its box at column 202 - 28 * view), a view and its hour arrows one
+                           more DO ... ENDDO: no GTO left in NAV. The other programs by the rules of tools/c47struct.py
+                           (each result checked as VALID checks it, no structure entered from outside): if, if-else,
+                           loop (REPEAT ... T' UNTIL, or DO ... T WHILE ENDDO when T has no opposite: ISG DSE KEY?),
+                           while, break (a second WHILE in a DO: the firmware takes it, fnWhile goes past the nearest
+                           ENDDO of its number), all-of (T1 GTO x ... T2 GTO x ... RTN -> nested IF, x after the ENDIFs),
+                           dup (a shared tail of at most 5 steps copied in place of the GTO), thread, dead steps.
+                           GTO nn for decisions and loops 196 -> 38, tail calls (a GTO no test skips, to a routine that
+                           ends with RTN) 58 -> 23; numbered labels 553 -> 424; 263 structure steps (68 IF, 13 ELSE, 32
+                           DO, 38 WHILE, 6 REPEAT); 8318 -> 8337 steps (the tails copied). The partner numbers are written
+                           into the file ("IF 01", rejig with the STRUCT patch): the C47 checks only the last program of a
+                           file as it loads. Key wait: DO / PAUSE 50 / KEY? r / WHILE / ENDDO.
+                           Python sim (tests/test_struct.py): every page, the hour arrows and the menu's keys pixel for
+                           pixel 18_hourglass, the stack clear at the end. Left: PTXS 9, HORZ 7, CSUN 4, PHA2 4, HALMH 3,
+                           and 1-2 in ALMF, PLN2, TGET, WPLS, HANIM, ALLSKY, RISE: jumps into a block another way reaches
+                           too, loops with two ways back.
+  20_layout/NAVFULL.txt    + the same steps in another order, for the searches the firmware makes: each program's blocks
+                           (a block starts at a label after a step that always leaves, at structure depth 0) and the
+                           programs ordered by what the pages run (build_struct.profile: the Python sim on the six pages
+                           with the hour arrows and the menu's arrows). A block or program costs every search that passes
+                           over it: its labels for each GTO / XEQ nn landing later (fnGoto scans the labels from the first
+                           program), its structure steps for each STRUCT jump later (structFindPartner; ENDDO / UNTIL scan
+                           twice), its global labels for each named call later, its steps for each return to and named
+                           call into a later place of the same program (fnReturn and goToGlobalStep walk from the
+                           program's start; a named call twice). Adjacent blocks / programs swap while the total falls.
+                           NAV stays first and starts with LBL "NAV"; every program starts with one of its global labels
+                           (the cheapest); labels 01, 02 ... and the structure numbers again in the new order.
+                           Model of that search work on the profiled pages (labels + structure steps + walks):
+                             18_hourglass 8.12 M, 19_struct 7.82 M, 20_layout 5.64 M (-31 % against 18).
+                           Steps run 409919 -> 430059 (+4.9 %: mostly the WHILE after each loop test, which the firmware
+                           runs with its test as one action); jumps: GTO 26667 -> 3192, ENDDO 17997, UNTIL 1052 back.
+                           Pages pixel for pixel 18_hourglass (tests/test_struct.py).
+  21_pixel/NAVFULL.txt     + the horizontal line routine N57 (PHLS) in PIXEL line mode for every line: one PIXEL with
+                           Y < 0 draws the whole row (fnPixel), then the columns outside the line are switched off (AGRAPH
+                           in GRMOD 2, one column a step) in place of one AGRAPH for each column of the line. The horizon
+                           of SKY and SPLIT (376 columns from column 20): 376 -> 24 AGRAPH, about 1400 steps less a view
+                           (SKY 29709 -> 28325, SPLIT 31553 -> 30169, sim, first view). The full rows (top bar, ALMANAC's
+                           table rule, the menu, the horizon of ANIM and ALLSKY) were PIXEL lines already; the altitude
+                           axes are dotted (a PIXEL every 3 rows): no line mode for them. Pages pixel for pixel.
+  22_calls/NAVFULL.txt     + fewer calls and labels: a text that starts with a digit is CLα r + αIP r (was 48 + STO r +
+                           XEQ IND r into the table LBL 48 "0" RTN ... LBL 57 "9" RTN: a label search and a return each
+                           digit; the table goes); calls to plain routines replaced by their steps (c47struct.inline: a
+                           routine with one caller, of 2 steps, or of up to 6 steps called 10 times or more on the
+                           profiled pages; no call after a test unless the routine is one step): 52 calls, 28 routines
+                           gone. Numbered labels 424 -> 386 (553 in 18_hourglass).
+  23_box/NAVFULL.txt       + the SINKING box (drawn at each view and each hour arrow) with one AGRAPH a column in GRMOD 1
+                           at WSIZE 30 (fnAGraph writes the pattern, 0 bits white): it was a clear of 180 columns in
+                           GRMOD 2 and then the frame in GRMOD 0: 360 -> 180 AGRAPH a box. Checked pixel for pixel on a
+                           random screen (tests/test_struct.py), R03 R04 R07 and GRMOD left as before.
+  24_layout/NAVFULL.txt    + 20_layout's ordering again on the new steps.
+                           Python sim, the six pages with an hour arrow each, after a first run (the star vectors and the
+                           sky cache made): steps run 18_hourglass 199769, 21_pixel 208561, 24_layout 186261 (-6.8 %
+                           against 18); search work (labels + structure steps + walks, all pages and arrows) 8.12 M ->
+                           4.52 M (-44 %). Trig values unchanged (2876): the calculations already use the matrix
+                           commands where they pay (stars 8-11, the equator CEQQ, ANIM's Sun and Moon 7).
+  25_hcz/NAVFULL.txt       + HCZ (N32) with 4 trigonometric functions (was 6): the turn by the latitude with cos B / sin B
+                           that HCZI (N36) keeps in V6 / W1 for every view (NAV calls it before the menu's sky). ANIM
+                           computes it for the Sun and the Moon at every frame.
+  26_anim/NAVFULL.txt      + ANIM's celestial equator from the charts' cache (CEQQ / CEQR, the 60 dots of SKY, kept for
+                           the place) in place of HCZQ / HCZR (2 trigonometric functions a dot); HCZQ, HCZR gone.
+  27_header/NAVFULL.txt    + HDR builds its 'DR   N 25 20.0   E 55 12.0' text once a run and keeps it in HT (NAV stores a
+                           number there as it starts, STRI? tells HDR to build it, NAV deletes HT as it ends): about 95
+                           steps less each top bar (every view, every ANIM frame).
+  28_text/NAVFULL.txt      + PTXS (N50) written in place at its 56 calls whose row, column and text are one step each: the
+                           text, the row less 4, the column, ATEXT Z, the row given back (no named call, no return).
+  29_unroll/NAVFULL.txt    + the SINKING box's frame (176 columns) 8 AGRAPH a round, the menu's highlight bar (170) 10 a
+                           round: one DSE / WHILE / ENDDO for 8 or 10 columns.
+                           Sim, six pages + an hour arrow after a first run: steps 18_hourglass 199769, 24_layout 186265,
+                           29_unroll 162636 (-18.6 % against 18); trig values 2876 -> 2527; ANIM alone 31032 -> 24535 steps.
+                           Search work 8.12 M (18) -> 3.98 M. tests/test_struct.py: every step from 20 on built again,
+                           the box and the bar pixel for pixel on a random screen, and 8 random dates and places (pages
+                           1-5, FULL and FAST) pixel for pixel 18_hourglass.
+                           FIXED in 19_struct (so in every step after it): a 'break' rule moved a block between a loop's
+                           ENDDO and the code after it, so the loop's normal end ran that block too: on ALMANAC the
+                           planets' loop drew a line it should not (when no planet was above the horizon at its end).
+                           Found with random dates; the three fixed places of the tests had not shown it.
+  30_named/NAVFULL.txt     + calls by name written in place (c47struct-like plain code that can move to another program,
+                           at most 10 steps or one caller): N92 (azimuth to column, 660 calls a run of the pages), N36,
+                           N67, N66, N70, N26, N97, N93, N91, N86, N87, N88, N94 gone as names. 31_layout: the order again.
+  32_format/NAVFULL.txt    + an unpadded integer is CLα + αIP (αIP appends the whole integer part; the routine took 1-3
+                           digits one by one: 31 -> 4 steps), the year of a date one αIP.
+  33_dots, 34_dots         + the celestial equator of ANIM, ALLSKY, SKY and SPLIT on whole columns: CEQQ's cached
+                           [Hc, sin Hc, Zn] taken a column at a time (M.GETM), the screen column and row of every dot at
+                           once (+, MOD, ×, ÷, IP element by element; c47sim: IP on a matrix), side by side in QP, then
+                           RCLSEQ RCLSEQ POINT a dot (SKY, SPLIT: RCLSEQ Hc, X<Y? 1E-4, else J+ J+). Was a call by name
+                           to CEQR and one to the view's routine a dot. The routines left without a caller go
+                           (c47struct.prune). 35_layout: the order again.
+  36_menu/NAVFULL.txt      + the menu no longer runs CSQK over the 58 stars (its answer was dropped: it only filled the
+                           stars' rows of the cache ahead of the pages, which ask CSQK for their own stars). 37_layout.
+                           Sim, warm, one view each (no arrow), steps 18_hourglass -> 37_layout: ALMANAC 13800 -> 9036,
+                           SPLIT 17738 -> 10372, SKY 15626 -> 7742, ANIM 31032 -> 19407, ALLSKY 23650 -> 15557; six
+                           pages + an hour arrow each: 199769 -> 131253 (-34 %); trig values 2876 -> 2587 (the pages now
+                           compute their own stars: +20 on ALMANAC, SPLIT, SKY; the menu none). Search work 8.12 M ->
+                           2.91 M. 8865 steps in the file (8318 in 18: the routines written in place).
+  38_stars/NAVFULL.txt     + the star cache's lists (ALMANAC, SPLIT, SKY: the stars by brightness until enough are over
+                           the horizon): the order SBRT (N47, rank -> star by GTO IND into 58 labels, called by name)
+                           is now the 58 x 1 matrix SBR, read with INDEX / STOIJ / RCLEL. NAV makes SBR when it is not a
+                           matrix (0 STO+ "SBR", MATR?) and keeps it like ALMC and the star vectors. And in 19_struct the
+                           lists' 'skip this star' jumps (T GTO x ... T GTO x ... LBL x before the loop's ISG) are nested
+                           IF: c47struct's all-of rule takes GTOs that meet at the label the code runs into. 39_layout.
+                           Labels 437 -> 378 (the 58 of SBRT); search work 3.08 M -> 3.03 M; ALMANAC's star loop has no
+                           GTO left. Pages pixel for pixel (fixed places and 8 random ones).
+  STRUCT everywhere (19_struct and every step after it): the Sun cache (CSUN), the planets (PLN2 / PLN3), the Moon and
+                           its phase (PHA2), RISE / SET, the text printers, the views: no GTO nn left (196 for
+                           decisions and loops and 58 tail calls in 18_hourglass). New rules of c47struct.py:
+                           if-else (IF A GTO x ENDIF B LBL x, and IF A GTO x ENDIF B GTO x), if block both ways,
+                           if dup (T GTO x to a tail of up to 4 steps), dup up to 10 steps (a tail that runs into END
+                           ends with RTN in the copy), forever (LBL a ... GTO a that only RTN leaves: REPEAT ...
+                           0 X≠0? UNTIL), call (a GTO x left whose code, followed through every jump and structure,
+                           never comes back to that GTO and uses no local register: XEQ x RTN, or T IF XEQ x RTN
+                           ENDIF: a call, never a loop by recursion; deepest call level on the pages: 7). WPLS (a view's
+                           key wait) by hand (wpls). FIXED: one rewrite made several structures with one tag, so a
+                           later rewrite could make two of them cross unseen (now each new structure has its own).
+                           Steps 32-34 follow the code whatever shape the rules give it (the digit text anywhere, the
+                           routine's end at structure depth 0, the equator loop from XEQ "N77" to its ENDDO).
+  40_nogoto/NAVFULL.txt    + no GTO at all: the 21 tail calls by name (GTO "x", step 1) are XEQ "x" + RTN again (XEQ
+                           "x" before END) and SNMU's GTO IND into its star names XEQ IND + RTN. Each costs a return
+                           (search work 3.11 M in 39_layout -> 3.19 M; steps the same within 70). 41_layout: the order.
+                           39_layout: STRUCT for every decision and loop, the tail calls kept; 41_layout: no GTO.
 
 Load one on the calculator like the release (NAVFULL.p47, then NAVINIT). Bytes: steps 1-3 24160 (as the release),
 4_inline 24375, 5_equator and 6_anim 24290, 7_animq 24912, 8_mstars 26316, 9_allsky 26246, 10_selfinit 26702, 11_hybrid 26961,
-12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926.
+12_labels and 13_renumber 26866, 14_clean 26484, 15_noregs 25691, 16_group 25569, 17_topbar 25907, 18_hourglass 25926;
+19_struct to 41_layout: rejig with the STRUCT patch (rejig_C47_items_2920-2939, AN0007) was not at hand when they
+were made.
 
 What the firmware does (c43 master ef39ddb, read 2026-10-07)
   GTO nn / XEQ nn   fnGoto scans labelList from the first program in memory to the label: cost = labels of the
@@ -162,6 +289,8 @@ Step 11. Firmware sim CPU of the page (vectors kept), release / 7 / 10 / 11: ALM
 10 about 241, 11 about 33.
 
 Not done yet
-  - Free42 and the Python versions (c47sim needs POINT) of 5_equator, if it is kept.
+  - Free42 and the Python versions of 5_equator, if it is kept (c47sim runs POINT since 19_struct).
   - NAVLITTLE (DM42) and MOON47: the same passes, once a step has shown it pays.
+  - 19_struct / 20_layout: the 38 GTO left (by hand), the timing on the C47 (the model weighs a label, a structure step
+    and a walked step alike; the firmware may not), tests/test_fw.py in the firmware (it knows the STRUCT key wait).
   - Names: worth it only in loops with many named RCL/STO and little calculation.

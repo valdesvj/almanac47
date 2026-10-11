@@ -1,14 +1,20 @@
-# manual_nav.py - part 1 of the user manual: using NAV on the C47, the views, the program map.
+# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.2.0, the STRUCT build), the views,
+# the labels, MOON47.
 # Run through build_manual.py (exec): uses its S, P, B, styles, tables, DOCS and ROOT.
 import re as _re
+sys.path.insert(0, os.path.join(ROOT, 'tools'))
+import build_struct_src as _B
+import build_release_c47 as _R
+
+C47DOCS = os.path.join(DOCS, 'c47')                 # the screens of v2.2.0 (tools/generators/c47_struct_shots.py)
 
 
-def img(name, frac=0.49):
-    return RLImage(os.path.join(DOCS, name), width=W * frac, height=W * frac * 0.6)
+def img(name, frac=0.49, where=None):
+    return RLImage(os.path.join(where or C47DOCS, name), width=W * frac, height=W * frac * 0.6)
 
 
-def pair(a, b, ca='', cb=''):
-    t = Table([[img(a), img(b)], [P(ca, small), P(cb, small)]], colWidths=[W * 0.5, W * 0.5])
+def pair(a, b, ca='', cb='', where=None):
+    t = Table([[img(a, where=where), img(b, where=where)], [P(ca, small), P(cb, small)]], colWidths=[W * 0.5, W * 0.5])
     t.setStyle(TableStyle([('VALIGN', (0, 0), (-1, -1), 'TOP'), ('LEFTPADDING', (0, 0), (-1, -1), 1),
                            ('RIGHTPADDING', (0, 0), (-1, -1), 1)]))
     return t
@@ -19,45 +25,52 @@ def lines(path):
 
 
 S += [P('Almanac 47', title),
-      P('Celestial navigation on the SwissMicros C47 — user manual — version 2.1.0 (Supercharger)', sub), Spacer(1, 6),
+      P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (_R.VERSION, _R.NAME), sub),
+      Spacer(1, 6),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
-        'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation); optional '
-        'Chebyshev tables fitted to JPL make it faster for a chosen period.'),
-      P('<b>It supports, and does not replace, the Nautical Almanac.</b> Every screen says so.'),
+        'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation).'),
+      P('<b>Version 2.2.0 is for the C47 and the R47 only.</b> It is written with the C47\'s structured programming '
+        'commands — IF … ELSE … ENDIF, DO … WHILE … ENDDO, REPEAT … UNTIL — and has no GTO at all; Free42, Plus42, the '
+        'DM42 and HP-42S firmware do not have these commands. It carries all the speed work done since v2.1.0: the same '
+        'pages, drawn with far fewer steps (section 6). <b>Free42 / Plus42 / DM42 users: keep v2.1.0</b> and its manual '
+        '(Almanac47_Free42_Manual.pdf).'),
+      P('<b>It supports, and does not replace, the Nautical Almanac.</b> The menu and INFO say so.'),
       P('<b>Author:</b> Victor Valdes (valdes.vj@gmail.com). The programs, the PC version and this manual were written with the help of '
         'AI (Claude, by Anthropic). The results were checked against JPL Horizons and USNO data, and the screens '
         'were tested on the calculator and pixel for pixel against the PC version.', small),
       P('Copyright © 2026 Victor Valdes. Free software under the GNU General Public License v3.0 or later: you may '
         'use, share and change it under its terms. It comes with NO WARRANTY. See the files LICENSE and NOTICE.', small),
-      P('Part 1 — using NAV', h1),
+      P('Part 1 — using ALMA47', h1),
       P('1. What to load', h2),
       prose_tbl([
           ['File', 'What it is'],
-          ['NAVFULL', 'the program NAV with all the views and the almanac tables support (TBL); it keeps your '
-                      'registers'],
-          ['NAVINIT_FULL', 'INIT: builds the series matrices, valid 2000–2050 (about 6 000 numbers)'],
-          ['NAVINIT_FAST', 'INIT: fitted series, valid 2026–2030: smaller and faster'],
-          ['TBL_1, TBL_5', 'optional almanac tables (JPL) for 1 or 5 years from 1 Oct 2026; XEQ TBL once, then '
-                           'delete it. Big: meant for Free42 / Plus42 on a PC or phone; on the C47 only a short table fits'],
-          ['NAVLITTLE', 'build/dm42/: for the old DM42 with the C47 firmware (64 KiB): the ALMANAC screen, '
-                        'Sun and 58 stars only, with NAVINIT_LITTLE (2000–2050)']],
+          ['ALMA47', 'the programs that stay on the calculator: the menu and every view. On the calculator only ALMA47 '
+                     'has a name; its routines are N01, N02 … (section 7)'],
+          ['NAVINIT_FAST', 'the program NAVINIT: builds the matrices of a series fitted to 2026–2030 (smaller and faster)'],
+          ['NAVINIT_FULL', 'the program NAVINIT: builds the matrices of the full series, valid 2000–2050 (VSOP87 and Meeus, '
+                           'about twice the memory). Load NAVINIT_FAST <i>or</i> NAVINIT_FULL'],
+          ['MOON47', 'the Moon phase on its own, from the clock (section 8); needs nothing else'],
+          ['ALMA47_LABELS.txt', 'the labels of ALMA47 and the routines you can call yourself'],
+          ['p47u/', 'the same programs as rejig sources (.p47u) with comments, for the PROGRAMS folder of the C47']],
           [32 * mm, 148 * mm]),
+      P('Each comes as .p47 (load it as it is) and as .txt (the listing). The old DM42 with the C47 firmware (64 KiB) has '
+        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2.0 '
+        '(they stay in the repository).', small),
       P('2. First start', h2)] + B([
-      'The C47 needs a firmware with <b>ATEXT</b> and <b>GRFNT</b>: the screens write their text with ATEXT in '
-      'GRFNT 21 (the tinyFont, GRFNT 10, on the charts); only the body symbols are drawn with AGRAPH.',
-      'Convert each text file with <b>python3 tools/rejig47_atext.py FILE.txt</b> (runs rejig and writes the ATEXT / '
-      'GRFNT steps rejig 0.34 does not know; a rejig that knows them converts directly) and load the .p47 on the C47.',
-      'The file name is the version: on the calculator the programs are always NAV and INIT. Other builds '
-      '(NAVFULL_NOTBL, NAVALL, NAVCOMP) are in build/dev/.',
-      'Load one NAV file and one NAVINIT file. <b>XEQ "INIT"</b> once: it builds the matrices and shows MATRICES READY. '
-      'Then delete INIT (GTO "INIT", DELP): the matrices stay.',
-      'Optional: load TBL, XEQ "TBL" once, delete it. The screens then show T (tables) instead of S (series).',
-      'NAV asks DATE in the calculator\'s date format (CLK menu: YYYY-MM-DD, DD.MM.YYYY or MM/DD/YYYY) and reads it '
+      'The C47 needs a firmware with <b>ATEXT</b>, <b>GRFNT</b> and the <b>STRUCT</b> commands: 00.109.05.00a0.ALPHA '
+      '(5 Oct 2026) or later. The screens write their text with ATEXT in GRFNT 21 (the tinyFont, GRFNT 10, on the '
+      'charts); only the body symbols are drawn with AGRAPH. On the older firmware 00.109.04.00b0 use the v1.1.0 release.',
+      'Load ALMA47.p47 and one NAVINIT file (USB disk, then READP in the I/O menu). The .p47u files convert with '
+      '<b>rejig -o ALMA47.p47 ALMA47.p47u</b> (a rejig that knows the C47 STRUCT items writes their numbers, IF 01 …); '
+      'their comments come after a ";" and rejig drops them, so they cost no memory.',
+      '<b>XEQ "NAVINIT"</b> once: it builds the matrices and shows MATRICES READY: FAST 2026-2030 (or FULL 2000-2050). '
+      'Then delete it (GTO "NAVINIT", DELP): the matrices stay. Do not use CLPALL: it deletes ALMA47 too.',
+      'ALMA47 asks DATE in the calculator\'s date format (CLK menu: YYYY-MM-DD, DD.MM.YYYY or MM/DD/YYYY) and reads it '
       'with the C47\'s own date functions; the prompt shows which.',
-      'v2.x has no NAVTXT (text only) and no CHART or TEXT views; what changed inside is in docs/OPTIMIZATIONS.md.'])
-S += [P('3. Starting NAV', h2),
-      P('XEQ "NAV" asks four numbers, once, with INPUT (R/S keeps the value shown). At each prompt the stack is '
+      'What changed inside is in OPTIMIZATIONS.md (in the zip, docs/ in the repository).'])
+S += [P('3. Starting ALMA47', h2),
+      P('XEQ "ALMA47" asks four numbers, once, with INPUT (R/S keeps the value shown). At each prompt the stack is '
         'clear and Y shows only the format of that input: DATE YYYY.MMDD (DATE DD.MMYYYY or DATE MM.DDYYYY when the '
         'CLK date format is D.MY or M.DY), UT HH.MMSS, LAT DD.MMm  S -, LON DDD.MMm  W -.'),
       prose_tbl([['Input', 'Meaning', 'Example'],
@@ -66,27 +79,30 @@ S += [P('3. Starting NAV', h2),
                  ['LAT', 'latitude DD.MMm, south negative', '25.20 = 25° 20′ N'],
                  ['LON', 'longitude DDD.MMm, west negative', '55.12 = 55° 12′ E']],
                 [22 * mm, 110 * mm, 48 * mm]),
-      P('After LON the sky is computed (the Sun, the Moon, the planets, the stars that can be above the horizon, '
-        'the sun times) and kept in the matrix ALMC. Then the menu appears, and every view only draws. '
-        'While the sky is computed, and while each view is computed, a box in the middle of the screen says '
-        'SINKING....ABOUT; the view appears when it is complete.'),
+      P('After LON the sky is computed (the Sun, the Moon, the planets, the stars, the sun times) and kept in the matrix '
+        'ALMC; then the menu appears, and the views only draw. While the sky or a view is computed, the hourglass shows '
+        'in the top right corner and a box in the middle of the screen says SINKING....ABOUT; the view appears when it '
+        'is complete. ALMC stays between runs: with the same date, time and place the menu and the views come at once.'),
       img('NAV_busy_box.png', 0.6),
       P('4. The menu', h2),
       img('NAV_menu.png', 0.66),
-      P('Title ALMANAC 47, the period the matrices are valid for, the date, UT and DR in use. Under the items, the '
+      P('Title ALMANAC 47 and the period of the matrices; under it the date, UT and DR in use. Under the items, the '
         'keys: + MENU, ↑↓ ±1 HOUR and 9 SNAP.', small),
       prose_tbl([['Key', 'On the menu', 'On a view'],
                  ['1 – 6', 'the item is highlighted and its view is drawn (6: INFO)', '—'],
                  ['9', 'SNAP (a screenshot)', 'SNAP (a screenshot)'],
                  ['+', '—', 'back to the menu'],
                  ['▲ / ▼', 'one hour later / earlier (the title shows the new time)', 'the same view one hour later / earlier'],
-                 ['0', 'end of NAV: gives your registers back, clears the screen and the stack', '—'],
+                 ['0', 'end of ALMA47: clears the numbered registers (CLREGS), the screen and the stack', '—'],
                  ['other keys', 'ignored', 'ignored (R/S or EXIT stop the program)']],
                 [26 * mm, 77 * mm, 77 * mm]),
-      P('The hours added with the arrows stay for the other views. New date or position: XEQ "NAV" again.', small),
-      P('<b>Your registers are kept.</b> NAV uses R00–R98 while it runs (its values and its most used numbers). It copies them into its own local registers '
-        'when it starts and copies them back when you leave with 0, so the values you had in your registers are there '
-        'again. If you stop NAV with R/S or EXIT, they keep NAV\'s values.')]
+      P('The hours added with the arrows stay for the other views. New date or position: XEQ "ALMA47" again.', small),
+      P('<b>ALMA47 uses the numbered registers and the 8-level stack.</b> It uses R00–R98 while it runs (its values and '
+        'its most used numbers) and the 8-level stack (the text routines need it). Leaving with 0 clears R00–R99 '
+        '(CLREGS) and the stack, puts your stack size back and the standard font (GRFNT 20). <b>Save your registers '
+        'first.</b> Named variables and matrices are not touched (DATE, UTC, LAT, LON and the matrices of NAVINIT stay). '
+        'If you stop ALMA47 with R/S or EXIT, the registers keep its values: that is how the routines of section 7 can be '
+        'called from the keyboard. Up to v2.1.0 NAV saved your registers and gave them back; since v2.2.0 it does not.')]
 
 S += [PageBreak(), P('5. The views', h2),
       P('All views: 23 Sep 2026 23:30 UT, 10° N 075° 30′ W (the menu: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E). '
@@ -112,52 +128,80 @@ S += [PageBreak(), P('5. The views', h2),
            '(DOES NOT REPLACE THE NAUTICAL ALMANAC) is on the menu and on INFO only.'),
       P('<b>9 SNAP</b>, on the menu and on every view: a screenshot of the screen (SNAP), then the same screen again.'),
       P('<b>Below the horizon:</b> a body with a negative Hc (in practice the Sun) has its Hc shown white on black, '
-        'as the Sun in the ALMANAC example above.')]
+        'as the Sun in the ALMANAC example above. <b>X</b> at the top right instead of S: the date is outside the period '
+        'of the matrices (FAST: 2026–2030).')]
 
+_n = _R.numbers(_B.build())
 S += [P('6. Speed and memory', h2)] + B([
       'The sky is computed once for a time and place (matrix ALMC, 73 × 4: GHA, Dec, Hc, Zn of the Sun, the Moon, '
-      'planets 1–4 and stars 1–58). Going from view to view only draws. An arrow (a new hour) computes again.',
-      'The celestial equator of the charts depends only on the position: its dots are computed 30 at a time as complex '
-      'vectors and kept (EQ2, EQ3) for the next view. NAV deletes the matrix ALMQ that INIT makes: it is no longer used.',
-      'The fonts read each column pattern from stack register D: NAV uses the 8-level stack while it runs and puts your '
-      'stack size back when you leave with 0.',
-      'v2.0.0 was faster and smaller than v1.1 with the same results: Horner\'s method for every polynomial, n-vectors '
-      '(→POL / →REC) instead of trigonometric formula pairs, the nutation as matrix products, counted loops on ISG, '
-      'the registers renumbered and kept.',
-      'v2.1.0 (Supercharger) keeps the same calculation and the same results, faster again: the cos and sin of each '
-      'series as one complex eˣ (the C47 computes SIN and COS with 75 digits, eˣ with 39), Hc and Zn straight from the '
-      'body\'s direction vector, the tables by one M.GETM and DOT, the equator dots as complex vectors; and smaller: no '
-      'unused code, the most used numbers in registers, repeated steps as subroutines. NAVFULL is 24.2 KB (31.5 KB in '
-      'v2.0.0, 36.6 KB in v1.1); starting NAV takes about 17 % less work and each hour about 25 % less. '
-      'Details: docs/OPTIMIZATIONS.md.',
+      'planets 1–4 and stars 1–58; the sun times). Going from view to view only draws. An arrow (a new hour) computes '
+      'again. ALMC and the star order SBR stay between runs.',
+      '<b>v2.2.0 (Struct on Attack)</b> has the same calculation and the same results as v2.1.0, and the same pages '
+      'with the new top bar (date, UT and DR in one line) and the hourglass. It is written with the C47 STRUCT commands '
+      'and is much faster. Counted in the C47 simulator, each page with its two arrows: ALMANAC 18 %, SPLIT 42 %, '
+      'SKY 53 %, ANIM 54 %, ALLSKY 40 % and the menu\'s arrows 45 % fewer steps than v2.1.0; and about 85 % less of '
+      'the time the C47 spends looking for labels, structure steps and the place a return goes back to. Where it comes '
+      'from:',
+      '— <b>no GTO:</b> every decision and loop is a structure (IF, DO, REPEAT), the key loop of the menu one DO … ENDDO, '
+      'the keys 1–6 by arithmetic on the key code;',
+      '— <b>the order of the code:</b> the routines used most at the start of each program, the programs in the order '
+      'of their use (each RTN on the C47 walks the steps from the start of its program);',
+      '— <b>drawing:</b> the horizontal lines with PIXEL line mode, the box and the highlight in GRMOD 1 with unrolled '
+      'AGRAPH, the header text kept for the run, the text routines written in place where they are called most;',
+      '— <b>calculation:</b> Hc and Zn with four trigonometric functions, the equator of the charts a whole column at a '
+      'time (M.GETM / M.PUTM), the star order as a matrix (SBR), whole numbers into text with one αIP.',
+      'ALMA47 is 27.2 KB (8 734 steps; v2.1.0\'s NAVFULL 24.2 KB): the unrolled loops and the code written in place '
+      'make it bigger, for speed. MOON47 is 4.5 KB. NAVINIT while it is loaded: FAST 28.5 KB, FULL 57.8 KB; the '
+      'matrices FAST about 55 KB, FULL about 95 KB.',
+      '<b>Accuracy, checked in the C47 firmware itself</b> (its PC simulator) against JPL DE421 with ERFA, 20 random '
+      'instants and places each for FULL (2000–2050) and FAST (2026–2030): Sun within 0.02′, Moon 0.10′, planets 0.05′, '
+      'stars 0.003′, Hc and Zn 0.08′ — the same as v2.1.0.',
+      'History: v2.0.0 was faster and smaller than v1.1 (Horner\'s method, n-vectors, the nutation as matrix products, '
+      'counted loops); v2.1.0 (Supercharger) the cos and sin of each series as one complex eˣ, Hc and Zn from the '
+      'body\'s direction vector. Details of every step: OPTIMIZATIONS.md.',
       'The C47 sends a new screen to the display only at a PAUSE, a key press or the end of the program: the '
       'SINKING box shows while a view is computed, then the complete view.',
-      'With the tables (TBL) the Sun, the Moon and the planets come from the tables inside their period and the '
-      'computation is about twice as fast.',
-      '<i>Something lives in NAV at the step after LBL 48. It is 0. Try 20 and press + or an arrow …</i>'])
+      '<i>INFO says the ants are waiting for a flag. Something lives in ALMA47 under its LBL 06 … try flag 47, then '
+      'press + or an arrow.</i>'])
 
-# ---- program map: the navigation routines and their labels on the calculator (no fonts)
-rows = [['Label', 'Name', 'What it does']]
-for l in lines('build/NAVFULL_LABELS.txt'):
-    m = _re.match(r'(NAV|N\d\d)\s+(\S+)\s+(.*)$', l)
-    if m and not m.group(3).startswith(('FONT', 'TEXT', 'SYMBOL', 'horizontal line')):
-        rows.append([m.group(1), m.group(2), m.group(3)])
-S += [PageBreak(), P('7. Program map', h2),
-      P('In the NAV files every program label except NAV is renamed N01, N02 … (so the names do not clash with your own '
-        'programs). This is the map of the navigation routines in NAVFULL; the text routines (PTXS with ATEXT and its number '
-        'entries, PTTY / PTNT for the tinyFont, PHLS) and the symbol routines (PSYB, PSYS) are left out. The numbers are fixed (tools/labels/NAVFULL.map): a new routine gets the next free '
-        'number, so the labels stay the same from one version to the next. NAVFULL_NOTBL has the same labels without '
-        'N49 (TGET). NAVLITTLE has its own numbering: see its _LABELS.txt file. The registers of NAVFULL are '
-        'renumbered by the build: the register lists of part 2 are those of the separate programs.'),
-      prose_tbl(rows, [16 * mm, 18 * mm, 146 * mm])]
+# ---- the labels of ALMA47: the routines you can call, every global label, the numbers in R43-R98
+_L = _B.build()
+_glob = [l[5:-1] for l in _L if l.startswith('LBL "')]
+S += [PageBreak(), P('7. Inside ALMA47: the labels', h2),
+      P('ALMA47 is 26 programs. Only the first has a name, ALMA47; each of the others starts with a numbered global label, '
+        'N01, N02 … (so the names do not clash with yours), and its routines are local labels 01, 02 … The numbers are '
+        'those of earlier versions: a number missing below belongs to a routine that is gone. The comments of ALMA47.p47u '
+        'say what every routine does; the source is programs_struct/ in the repository (one file per program, indented).'),
+      P('Routines you can call yourself', h3),
+      P('Run ALMA47 with your date, time and DR, then leave it with <b>EXIT</b> (or R/S), not with 0 — 0 clears the '
+        'registers. These routines read the numbers ALMA47 stores in R43–R98 when it starts (the table at the end of '
+        'this section), the DR of the run (R13 longitude, R14 latitude) and the matrices of NAVINIT; they use R00–R42 '
+        'for their work. JD is the C47\'s Julian Date (the date, then ⅅ→J) + UT / 24, a plain number.'),
+      prose_tbl([['Label', 'Name', 'Input', 'Output']] + [[a, b, c, d] for a, b, c, d in _R.CALLABLE],
+                [14 * mm, 14 * mm, 70 * mm, 82 * mm]),
+      P('Example: ALMA47 for 23 Sep 2026, 25° 20′ N 055° 12′ E, left with EXIT. <b>2461307 XEQ "N15"</b> gives '
+        'X 1.9070 (GHA of the Sun, 1° 54.4′), Y −0.1932 (Dec S 0° 11.6′), Z 182.3525 (GHA of Aries); then '
+        '<b>XEQ "N25"</b> the Moon. <b>2461306.5 ENTER 25.333 ENTER 55.2 XEQ "N38"</b> gives 2.13: sunrise at 02:08 UT.', small),
+      P('Every global label of ALMA47', h3)]
+_rows = [['Label', 'Name', 'What it does']]
+for g in _glob:
+    n, what = _B.LABELS[g]
+    _rows.append(['ALMA47' if g == 'NAV' else g, n, what])
+S += [prose_tbl(_rows, [16 * mm, 18 * mm, 146 * mm])]
+_cells = [['R%s' % k, v] for k, v in sorted(_n.items())]
+_k = (len(_cells) + 3) // 4
+_rows = [['Reg.', 'Number'] * 4] + [sum((_cells[c * _k + r] if c * _k + r < len(_cells) else ['', ''] for c in range(4)), [])
+                                        for r in range(_k)]
+S += [P('The numbers in R43–R98 (stored by ALMA47 when it starts: each use is a 2-byte RCL)', h3),
+      prose_tbl(_rows, [14 * mm, 31 * mm] * 4)]
 
 # ---- MOON47: the Moon phase on its own
 S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
-      P('MOON47 is a separate program: the Moon\'s phase page of the PC version on the calculator, without NAV, INIT or '
-        'the tables. Load build/MOON47 (convert it with rejig) and <b>XEQ "MOON47"</b>. It asks nothing: the phase does '
-        'not depend on where you are, so it takes the date and time from the C47\'s clock.'),
+      P('MOON47 is a separate program: the Moon\'s phase page of the PC version on the calculator, without ALMA47 or '
+        'NAVINIT. Load MOON47.p47 and <b>XEQ "MOON47"</b>. It asks nothing: the phase does not depend on where you are, '
+        'so it takes the date and time from the C47\'s clock.'),
       pair('MOON47.png', 'MOON47_south.png', '3 Oct 2026 12:00 UT, as seen from the north',
-           'the same after +/-: as seen from the south')] + B([
+           'the same after +/-: as seen from the south', where=DOCS)] + B([
       '<b>The page:</b> the Moon as a disc (the lit part filled), the phase name, % lit, age in days, HP and SD, the '
       'next new Moon, first quarter, full Moon and last quarter (date and time UT), and the eight phase symbols with '
       'today\'s one inverted.',
@@ -169,12 +213,41 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       '0.45 % an hour).'
       ' The top line shows the clock: the time UT and TZ=0, or with TZ the local time LT and your '
       'offset (TZ=+4, TZ=-5, TZ=+5:30).',
-      '<b>Accuracy</b> against the full series of NAV, 2000–2050: phase times and age within 4 minutes (most within 1), '
+      '<b>Accuracy</b> against the full series of ALMA47, 2000–2050: phase times and age within 4 minutes (most within 1), '
       'HP 0.03′, SD 0.01′, % lit 0.03 %. It uses the 20 largest terms of the Moon (Meeus, ch. 47), the phases by the '
       'secant method; tests/test_moon47.py checks it.',
-      '<b>Memory:</b> about 4.8 KB (v2.1.0: the 20 terms as matrices, their cos and sin by one complex eˣ, '
-      'about 24 % less work; the program and its own copies of the text and symbol routines, M7TX and M7SY, so '
-      'it does not need NAVFULL and does not clash with it). It takes registers R00–R61 and leaves your stack size as '
-      'it was. Needs a firmware with ATEXT and GRFNT, like NAV.',
-      'The same program runs on the old DM42 with the C47 firmware (build/dm42/MOON47). Free42 (build/free42/MOON47.raw), '
-      'the NumWorks and the HP Prime have their own MOON47 with the same page: see their manuals.'])
+      '<b>v2.2.0:</b> one program with MOON47 its only global label (the text and symbol routines are numbered labels '
+      'inside it), written with the STRUCT commands, no GTO: 4.5 KB (4.8 KB before) and about 28 % less time spent '
+      'looking for labels and returns. It uses the registers R03–R53 (save yours first), leaves your stack size as it '
+      'was and a clear stack; its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).',
+      'Free42 (build/free42/MOON47.raw), the old DM42, the NumWorks and the HP Prime have their own MOON47 with the same '
+      'page (v2.1.0): see their manuals.'])
+
+# ---- NAVLITTLE: the old DM42 with the C47 firmware
+S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
+      P('The C47 firmware on the old DM42 has 64 KiB for programs, registers and matrices (the DM42n and the R47 have '
+        '256 KiB and run ALMA47). A version made only for the old DM42 keeps the Sun and the 58 stars: <b>NAVLITTLE</b> '
+        '(the program ALMA47) with its own reduced <b>NAVINIT_LITTLE</b> (only the Sun series, valid 2000–2050, the '
+        'nutation and the stars: 8.7 KB instead of 28.5 or 57.8 KB) and a <b>MOON47</b> of its own. No menu: the '
+        'ALMANAC page straight after the inputs (the Moon and planet rows taken by the next stars), ▲ / ▼ one hour later / '
+        'earlier, 9 SNAP, + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.2.0.zip, with README_DM42.txt.'),
+      prose_tbl([['Firmware', 'ATEXT', 'GRFNT', 'STRUCT'],
+                 ['00.109.05.00a0.ALPHA or later: C47, R47, DM42n', 'in', 'in', 'in (255 a series per program)'],
+                 ['old DM42, packages 1, 2, 3', 'in', 'in', 'in, at most 10 IF, 10 DO and 10 REPEAT a program'],
+                 ['old DM42, package 4 (the one in the 05.00a0.ALPHA release assets)', 'in', 'in', '<b>out</b>'],
+                 ['00.109.04.00b0 and older', 'out', 'out', 'out']],
+                [86 * mm, 18 * mm, 18 * mm, 58 * mm])] + B([
+      '<b>Firmware:</b> a DM42 package with STRUCT (1, 2 or 3; see PACKAGES.txt of the firmware). With package 4 '
+      'IF / DO / REPEAT only say that they are not available: keep the NAVLITTLE of v2.0.0 there.',
+      '<b>Structured programming on the little memory.</b> The DM42 firmware keeps its tables for the STRUCT commands '
+      'small: at most <b>10 IF, 10 DO and 10 REPEAT in each program</b> and 10 structures open at once (the R47, the '
+      'DM42n and the C47 take 255 and 63). NAVLITTLE is written within it (its largest program: 6 IF, 2 DO, 1 REPEAT). '
+      'The main MOON47 has 17 IF, so the DM42 MOON47 is a build of its own: 10 IF, 5 DO, 6 REPEAT, 7 of the IF written as '
+      'a test and an XEQ of a small routine — the same steps run, the same page pixel for pixel.',
+      '<b>Load NAVINIT_LITTLE alone first</b> (NAVINIT and its matrices together need the most memory): XEQ "NAVINIT" '
+      '(MATRICES READY: SUN STARS 2000-2050), GTO "NAVINIT", DELP; then load NAVLITTLE and XEQ "ALMA47".',
+      '<b>v2.2.0:</b> STRUCT, no GTO, its routines ordered for the searches: about 57 % less time looking for labels '
+      'and returns than v2.1.0 (simulator), the same page pixel for pixel. It saves your registers R00–R35 while it runs '
+      'and gives them back at the end. Memory: NAVLITTLE 7.3 KB, NAVINIT_LITTLE 8.7 KB (delete it after use), MOON47 '
+      '4.5 KB; NAVLITTLE with its matrices about 31 KB.',
+      'Checked in the simulators; not yet on an old DM42: please report the free memory and any problem.'])

@@ -1,0 +1,74 @@
+Almanac 47 v2.2.0 "Struct on Attack" - QUICK START (C47 / R47 only)
+=====================================================================
+
+This version is for the SwissMicros C47 and R47 ONLY. It is written with the C47's structured
+programming commands (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL: no GTO at all), which Free42,
+Plus42 and the DM42 / HP-42S firmware do not have. Free42 / DM42 / Plus42 users: keep v2.1.0.
+
+FIRMWARE: a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands: 00.109.05.00a0.ALPHA
+(5 Oct 2026) or later. On the older public firmware 00.109.04.00b0 use the v1.1.0 release
+(Almanac47_C47_R47_fw0400b0_v1.1.0.zip).
+
+THE FILES (.p47 ready to load; the .txt are the same programs as listings)
+  ALMA47.p47        the programs that stay on the calculator: the menu and every view
+  NAVINIT_FAST.p47  builds the matrices, valid 2026-2030 (a fitted series: smaller and faster)
+  NAVINIT_FULL.p47  builds the matrices, valid 2000-2050 (VSOP87 and Meeus: about twice the memory)
+                    Both are the program NAVINIT: load ONE of them.
+  MOON47.p47        the Moon phase on its own (needs nothing else)
+  ALMA47_LABELS.txt the labels of ALMA47, and the routines you can call yourself
+  p47u/             the same programs as rejig sources, with comments (for the C47 PROGRAMS folder)
+  C47_Nav_User_Manual.pdf   the manual: every view, the labels, MOON47
+The old DM42 with the C47 firmware (64 KiB): Almanac47_DM42_C47firmware_v2.2.0.zip - NAVLITTLE (Sun and
+stars) with its reduced NAVINIT_LITTLE and a MOON47 of its own; needs a DM42 firmware package with STRUCT
+(1, 2 or 3: at most 10 IF / DO / REPEAT a program); see its README_DM42.txt. The DM42n runs ALMA47. The almanac tables (TBL) of earlier versions are not part of v2.2.0.
+
+1. LOAD   ALMA47.p47 and NAVINIT_FAST.p47 (or NAVINIT_FULL.p47): copy them to the calculator
+          (USB disk) and load them (I/O menu, READP).
+2. BUILD THE MATRICES (once)
+          XEQ "NAVINIT"   takes a while; it ends with MATRICES READY: FAST 2026-2030
+                          (or FULL 2000-2050). The matrices stay in memory.
+3. DELETE NAVINIT        GTO "NAVINIT", then DELP (the matrices stay; frees its memory).
+          Do not use CLPALL: it deletes ALMA47 too. Run NAVINIT again only for a new period.
+4. RUN    XEQ "ALMA47": it asks (once) DATE, UTC, LAT, LON with INPUT (R/S keeps the value shown):
+            DATE  in the calculator's CLK date format, e.g. 2026.0927 (YYYY.MMDD; D.MY: 27.092026,
+                  M.DY: 9.272026) - the message line shows which
+            UTC   HH.MMSS, e.g. 18.30
+            LAT   DD.MMm, south negative, e.g. 25.12 = 25 deg 12 min N
+            LON   DDD.MMm, west negative, e.g. 55.18 = 55 deg 18 min E
+          The hourglass in the top bar and the SINKING....ABOUT box show while the sky is computed,
+          then the menu:
+            1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  0 END
+            KEY A NUMBER   + MENU   up/down arrows +-1 HOUR   9 SNAP
+          Press the number (no R/S). On a view: + back to the menu, up / down arrow the same view
+          one hour later / earlier, 9 SNAP (a screenshot). On the menu the arrows change the hour too.
+            1 ALMANAC  GHA, Dec, Hc, Zn of the Sun, the Moon, a planet, the brightest stars; twilight,
+                       rise/set, meridian passage, the Moon (lit, phase, age, HP, SD)
+            2 SPLIT    horizon chart on top, the bodies below (8 rows)
+            3 SKY      horizon chart, the name of each body in turn next to it (2 s each)
+            4 ANIM     the Sun and the Moon moving over 12 hours (24 frames, 1 s each)
+            5 ALLSKY   the whole sky: over the horizon above, under the horizon below
+            6 INFO     the repository, the licence, no warranty, cross-check with the almanac
+          0 on the menu ends ALMA47. New date or position: XEQ "ALMA47" again; the same date, time
+          and place show the views at once (the sky is kept in the matrix ALMC between runs).
+
+REGISTERS AND STACK: ALMA47 uses the numbered registers (R00-R98) and the 8-level stack while it runs.
+  0 clears the numbered registers (CLREGS) and the stack and puts your stack size back: save your
+  registers first. Named variables and matrices are not touched (DATE, UTC, LAT, LON, the matrices).
+  If you stop it with EXIT or R/S, the registers keep ALMA47's values: the routines of
+  ALMA47_LABELS.txt (Sun, Moon, planets, Hc / Zn, sunrise ...) can then be called from the keyboard.
+
+  An X in the top right corner: the date is outside the matrices' period (FAST: 2026-2030).
+  A body below the horizon (in practice the Sun) has its Hc shown white on black.
+
+MEMORY (program bytes, measured with rejig): ALMA47 27.2 KB, MOON47 4.5 KB; NAVINIT while loaded:
+  FAST 28.5 KB, FULL 57.8 KB. The matrices: FAST about 55 KB, FULL about 95 KB; the cache ALMC about 6 KB.
+
+WHAT IS NEW IN v2.2.0: the same screens and results as the v2.1.0 views (with the new top bar and the
+  hourglass), much faster: every view and every hour about 20-55 % fewer steps run than v2.1.0 (ALMANAC
+  -18 %, SPLIT -42 %, SKY -53 %, ANIM -54 %, ALLSKY -40 %), and about 85 % less of the work the C47
+  spends looking for labels and returns. Details: OPTIMIZATIONS.md.
+
+MOON47: XEQ "MOON47". It asks nothing (the clock; if the clock is not on UT: 4 STO "TZ" for UT+4).
+  +/- turns the picture to the view from the south, any other key ends.
+
+DOES NOT REPLACE THE NAUTICAL ALMANAC.

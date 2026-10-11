@@ -800,3 +800,161 @@ programs/ changes there) and the release pipelines run on them (outputs and labe
 - tools/tests_calc/TSTRUCT.txt (gen_tstruct.py, TSTRUCT_README.txt): near against far GTO / XEQ, local against
   global XEQ, RCL / STO numbered, named and local, timed with TICKS. Runs in c47sim (flow only). To run on the
   C47 and the DM42n with NAVFULL / NAVLITTLE loaded; the results decide whether a reordered dev build is worth it.
+
+## Oct 10, 2026 - STRUCT: the C47's IF / DO / REPEAT in NAVFULL (branch c47-struct)
+
+- From the Elements 47 hand-off (elements47 PR #6): the control flow in the C47 STRUCT commands, C47 only. Here
+  as a step of build/dev/struct (19_struct, from 18_hourglass), not in programs/: Free42 has no STRUCT and its
+  build is not touched. The old-hardware DM42 build of the firmware allows 10 structures of a kind per program
+  (STRUCT_MAX_NUMBER 10, nesting 10), so NAVLITTLE stays as it is.
+- The firmware (c43 master eb8fd0a, src/c47/programming/structured.c): IF / WHILE / UNTIL read the answer of the test
+  right before them (fused: the test does not skip); ELSE ENDIF DO ENDDO REPEAT UNTIL are never skipped by a test
+  (structNoLegacySkip), so no test right before ELSE ENDIF DO ENDDO REPEAT (UNTIL takes one, like WHILE: the
+  hand-off's list had UNTIL in it). A STRUCT jump searches the structure steps recorded after the labels
+  (structFindPartner: those of the earlier programs, then its own); ENDDO and UNTIL search twice. Partner numbers
+  1-255 per program, IF / DO / REPEAT in three series in the order of the openers; VALID refuses a structure across
+  RTN + LBL.
+- tools/c47struct.py: check() as VALID (+ the no-skip rule), number(), plain(), indent(), and structure(): GTO
+  decisions and loops -> STRUCT by rules (fall-through of a block only one GTO names, GTO to LBL RTN -> RTN, the
+  loop LBL ... T GTO -> REPEAT ... T' UNTIL or DO ... T WHILE ENDDO when T has no opposite (ISG DSE KEY? MATR?),
+  the while loop with its exit block moved after it, if-else, if, T GTO block -> T IF block ENDIF); each result
+  must pass check() and no structure may be entered by a GTO / XEQ from outside it. The new structure steps carry
+  a tag while it works, so that two structures that would cross (and pair the other way under VALID) are refused.
+- build_struct.nav_main: NAV's main part by hand (the key loop as one DO ... ENDDO, the end key before its WHILE,
+  the keys by arithmetic, a view and its arrows one DO ... ENDDO). 0 GTO in NAV, 81 left elsewhere (N64 25, N50 11
+  ...), 51 tail calls (GTO nn + a dead RTN) kept on purpose.
+- python/c47sim.py: IF ELSE ENDIF DO WHILE ENDDO REPEAT UNTIL with their numbers (a missing number stops, as on
+  the calculator), every test through Calc.test() (the fused answer, no skip of a structure step), KEY? as a test;
+  POINT (3 x 3, fnPoint), [M]⊤, CLREGS; CLLCDxy clears from column |X| to the right and from row |Y| up (fnClLcd;
+  it cleared whole rows). Steps 8-18 now run in c47sim too (they needed [M]⊤ and POINT).
+- tests/test_struct.py: the checker, the simulator's structures, the rules on small programs against their GTO
+  versions, and 19_struct against 18_hourglass: every page, FULL / FAST, three places, the hour arrows and the
+  menu's keys, pixel for pixel; stack clear. tests/test_fw.py replaces the STRUCT key wait in its test copy too.
+- Not run here: rejig with the STRUCT patch (bytes, .p47), the firmware simulator and the calculator (time ENDDO
+  against GTO: 13228 ENDDO for 19258 GTO on the test pages).
+- Optimized more (same day): new rules (break: a second WHILE in a DO, which fnWhile handles; all-of: the cache
+  checks T1 GTO x ... T2 GTO x ... RTN as nested IF; dup: shared tails of up to 5 steps copied; thread; dead steps,
+  with the labels only they named) -> GTO for decisions and loops 196 -> 38, tail calls 58 -> 23. And step
+  20_layout (build_struct.layout, profile): blocks and programs ordered by the Python sim's counts of what the
+  firmware searches (labels for GTO / XEQ nn, structure steps for STRUCT jumps, global labels for named calls, steps
+  walked by RTN and named calls). Model of that work on the profiled pages: 18_hourglass 8.12 M, 19_struct 7.82 M,
+  20_layout 5.64 M. Steps run +4.9 % (the WHILE after loop tests). Every program still starts with a global label.
+- Step 21_pixel: N57 draws every horizontal line with PIXEL line mode (Y < 0: the whole row) and clears the columns
+  outside it with AGRAPH in GRMOD 2: the SKY / SPLIT horizon 376 -> 24 AGRAPH (about 1400 steps a view). The full
+  rows were PIXEL lines already; the altitude axes are dotted, so they stay one PIXEL a dot.
+- Steps 22_calls (digit texts by CLα + αIP, the digit table gone; 52 calls inlined by c47struct.inline, 28 routines
+  gone; labels 424 -> 386), 23_box (the SINKING box in GRMOD 1: 360 -> 180 AGRAPH a box), 24_layout (the ordering
+  again). Sim, six pages + an arrow each after a first run: steps 18_hourglass 199769 -> 24_layout 186261 (-6.8 %);
+  search work 8.12 M -> 4.52 M. Trig values unchanged (2876): most of the steps left are drawing and text.
+- Victor checked 24_layout on the calculator: works, looks faster. Then steps 25-29: HCZ with 4 trig (V6 / W1 of
+  HCZI), ANIM's equator from the CEQQ cache (HCZQ / HCZR gone), HDR's DR text kept in HT for the run, PTXS written
+  in place at 56 calls, the box and highlight AGRAPH loops 8 / 10 columns a round. Sim, warm: steps 199769 (18) ->
+  162636, trig 2876 -> 2527, search work 8.12 M -> 3.98 M. FIXED: step 19's 'break' rule could move a block into a
+  loop's exit path (ALMANAC's planet loop drew an extra line at some dates); random dates are now in the tests.
+- Steps 30-37: calls by name written in place (13 routines), integers and years in one αIP, the equator of the four
+  charts on whole columns (M.GETM, element by element, M.PUTM, then RCLSEQ RCLSEQ POINT; c47sim: IP on a matrix),
+  the menu without its CSQK loop over the 58 stars, the order twice more. Warm, one view each: ALMANAC 13800 -> 9036
+  steps, SPLIT 17738 -> 10372, SKY 15626 -> 7742, ANIM 31032 -> 19407, ALLSKY 23650 -> 15557. 8865 steps in the file.
+- Steps 38-39 (star cache): SBRT as the matrix SBR (NAV makes it once, kept), N47 and its 58 labels gone; the
+  'skip this star' GTOs of the star lists as nested IF (all-of rule: GTOs that meet at the label the code runs into).
+- STRUCT everywhere: new c47struct rules (if-else variants, if block both ways, if dup, dup up to 10, forever, call
+  with a reachability check so a call never loops back into itself) and WPLS by hand: 0 GTO nn from 19_struct on.
+  FIXED: _tag gave one tag to all the structures of one rewrite (a later crossing could pass check()). 40_nogoto: the
+  tail calls by name and SNMU's GTO IND as calls too (no GTO at all; +2.6 % search work). Steps 32-34 made shape-free.
+
+
+## Oct 10, 2026 - The STRUCT source: programs_struct/ (branch c47-struct-src)
+Victor: Elements 47 uses STRUCT better (the source written in it); here every routine in STRUCT in the source, indented,
+without copied code, all at once.
+- programs_struct/: the 34 programs of the C47 NAVFULL, one file each (named after the program: NAV, CSUN, ALMF ...),
+  written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, two spaces per level, without partner numbers, REM lines for
+  every global label (name and what it does). No GTO of any kind: a code end shared by several branches is a routine
+  they call (XEQ nn then RTN), never copied in place (no 'dup' rule); the tail calls by name and SNMU's GTO IND are
+  calls. Same behaviour as build/dev/struct/18_hourglass (its optimizations 1-18 are in it).
+- Made from 18_hourglass by tools/c47struct.py without its copying rules (dup, if dup), then by hand: PHA2's new-moon
+  search one REPEAT ... UNTIL (the converter had left a GTO back into it), NAV's main part and WPLS as in 19_struct.
+  The order of the programs and of the routines in each file is build_struct.py layout()'s (the searches), labels
+  01, 02 ... in order, so the source and the calculator's listing match step for step.
+- tools/build_struct_src.py: REM and indentation out, every program checked as VALID checks it, no GTO, numbers
+  written -> build/dev/struct_src/NAVFULL.txt. tests/test_struct_src.py: the build of the source, no GTO, no numbers,
+  the indentation; every page (3 places, FULL / FAST, arrows), the menu's keys and 16 random dates and places pixel
+  for pixel 18_hourglass, the stack clear.
+- 8346 steps (18_hourglass 8318, 19_struct 8520), 495 labels, 124 structures (IF 82, DO 33, REPEAT 9), 0 GTO.
+  Sim with an hour arrow: steps run +3-10 % on 18_hourglass (ENDIF / ENDDO and the RTN after a shared end count as
+  steps), search work 8.17 M -> 6.33 M (20_layout 5.80 M). The speed steps 21-41 are not in it yet.
+- Then (Victor): the source code only, the comments in a separate file. programs_struct/ has no REM lines; the build
+  writes build/dev/struct_src/NAVFULL_COMMENTED.txt, the numbered, indented listing with REM lines (each program, the
+  global labels' names and jobs from LABELS in tools/build_struct_src.py, the callers of each local routine, the XEQ
+  IND tables, the loops only RTN leaves). Without its REM lines it is NAVFULL.txt step for step (tested).
+- Then (Victor): the good optimizations up to 41 in the source, still STRUCT. build/dev/struct steps 21-41 applied
+  to the source build (pixel_lines and star_order also take the source's shapes: N57 as IF ... ELSE PIXEL ENDIF, SBRT
+  by XEQ IND, its caller OUT8 doing the IP), the layout once at the end, then programs_struct/ written again from the
+  result (26 programs). 8859 steps (41_layout 9027), 370 labels, 126 structures, 0 GTO. Sim, one view + an arrow:
+  ALMANAC 20318 steps (41: 19864), SPLIT 22608 (22278), SKY 16998 (16974), ANIM 36472 (35864), ALLSKY 32394 (32552);
+  search work 3.22 M (41: 3.12 M, 18_hourglass 8.17 M). Pages pixel for pixel 18_hourglass (16 random cases).
+- tools/build_forum.py: build/forum/NAV.p47u and NAVINIT.p47u for the PROGRAMS folder of the C47 release (res/PROGRAMS
+  /BUILD.md: '@ Index:' ... header, the file named after its main label: INIT is NAVINIT there). Only NAVINIT_FAST
+  (2026-2030); the header says NAVINIT_FULL and TBL exist but need more memory.
+- MOON47 (Victor: the same optimization, pure STRUCT, compact, only one main label, to a .p47u):
+  programs_struct/MOON47.txt from build/dev/moon/1_labels (the three programs MOON47, M7TX, M7SY checked on the
+  firmware): each converted without copies, merged into ONE program (the printers' and symbols' entries numbered
+  labels, M7TX's digit table moved out of M7SY's 48-55), then by hand: the disc loop without the jump into its end;
+  the printers with alpha-IP (whole numbers, one decimal, hh:mm, the date) and one routine for two digits, so the
+  digit table 48-57 and six digit routines are gone; the routines ordered for the searches (the returns walk from
+  the program's start: LBL "MOON47" in the middle, the busy routines first). 1436 steps (1540 in three programs),
+  73 labels, 28 structures, 0 GTO, no call by name. Sim, 7 dates: steps run 416016 -> 426120 (+2.4 %: ENDIF / ENDDO
+  are steps), search work 3.62 M -> 2.59 M (-28 %; 2_compact, the old one-program try with letter labels, 7.34 M).
+  Pixel for pixel 1_labels and python/moon47.py at 16 dates, time zones, north and south.
+  build/forum/MOON47.p47u. Inlining the two small routines c47struct.inline finds: +5 steps for -3 % search: not done.
+- The forum file NAV.p47u is now ALMA47.p47u (Victor): its main label LBL "NAV" written as LBL "ALMA47" (nothing calls
+  it by name), the headers say XEQ 'ALMA47'. The source and build/dev/struct_src keep NAV.
+- build/forum/C64FX.p47u (Victor's buzzer demo, written by hand, not built): the two GTO loops as DO ... DSE WHILE
+  ENDDO (the steps are those c47struct.structure gives), the REM text of C64FX_rem as the '@' header and '#' lines.
+- C64FX.p47u back to the original code (Victor): the two loops LBL 02 / LBL 06 with DSE + GTO again, no STRUCT;
+  the steps are exactly C64FX.txt's (195), the header and '#' comments kept.
+- Mbrot.p47u (a forum program, not in the repo), asked whether STRUCT makes it faster: no (11 steps a round in
+  place of 10, ENDDO searches twice). Faster: the cardioid / bulb test (58 % of the inner rounds, same image) and
+  the per-pixel named recalls hoisted. Pending list and hand-off: build/dev/struct_src/HANDOFF.txt (and HANDOFF.md).
+
+## Oct 11, 2026 - v2.2.0 "Struct on Attack": the C47-only release from the STRUCT build (branch release-v2.2.0-struct)
+- Victor tested ALMA47 / NAVINIT / MOON47 on the calculator: works, faster. The release is C47 / R47 only (STRUCT);
+  Free42 / DM42 stay on v2.1.0 (build/, build/free42/ untouched). TBL is not part of it; NAVINIT_FULL is.
+- tools/build_release_c47.py -> build/c47/: ALMA47.txt (NAV named ALMA47), NAVINIT_FAST / _FULL.txt (INIT named
+  NAVINIT), MOON47.txt, ALMA47_LABELS.txt (the global labels, the routines you can call after leaving with EXIT, the
+  numbers in R43-R98), QUICKSTART.txt; the .p47 from the plain listings (steps only), checked equal to what rejig makes
+  from the .p47u; build/Almanac47_C47_R47_v2.2.0.zip (not in git) with the manual of build/manuals/.
+- Found: rejig turns a '#' line (or a line starting with ';') of a .p47u into a REM step (the old ALMA47.p47u's 180
+  '#' lines were REMs on the calculator: memory, and steps every RTN walks). Only an end-of-line ';' comment is dropped.
+  build_forum.py now writes every comment after ';' on a step (the '@' header is dropped too): ALMA47.p47u gives the
+  same .p47 as the plain listing (27 565 bytes). C64FX.p47u (53 '#' lines) still has REMs.
+- tools/struct_comments.py: what each numbered routine does (149 in NAVFULL, MOON47's), the XEQ IND tables, the
+  labels nothing reaches (NAV 09, PSYS 94 95 98, PSYB 38, ALLSKY 24 25, HORZ 01 54 59 67, HALMH / ALMF 27; HORZ 01 is
+  the only caller of N78 CEQR, so CEQR is dead too). Then removed (Victor), with the labels no step jumped to (HORZ
+  15, HALMH 03, PLN2 31) and CSUN's stores of "G4" / "U9" that only CEQR read: 125 steps, ALMA47 8 734 steps, 27 167
+  bytes; every test as before (pixel for pixel 18_hourglass, stack clear); the callable routines give the same values.
+- Simulator steps, each page with its arrows (build_struct.PROFILE), v2.1.0 -> v2.2.0: ALMANAC -18 %, SPLIT -42 %,
+  SKY -53 %, ANIM -54 %, ALLSKY -40 %, all -44 %; search work 21.2 M -> 3.2 M. docs/OPTIMIZATIONS.md section 8.
+- Manual (tools/generators/manual_nav.py): v2.2.0, C47 / R47 only, ALMA47, NAVINIT FAST / FULL, no register save,
+  the routines you can call, every global label, R43-R98; pictures docs/c47/ (c47_struct_shots.py; docs/ keeps the
+  v2.1.0 ones for the Free42 manual).
+- NAVLITTLE in STRUCT (Victor: add it to v2.2.0): tools/build_little_struct.py, once, v2.1.0's build/dm42/NAVLITTLE.txt
+  -> programs_struct/little/NAVLITTLE.txt: c47struct.structure, by hand N03 (IF around the table part, ENDIF after LBL
+  "N04"), N23 / N24 (XEQ IND + RTN), N36 (WPLS's REPEAT / DO key wait), then build_struct.layout with a profile of its
+  own pages; NAV -> ALMA47, INIT -> NAVINIT. build_release_c47.little checks the DM42 limits (structured.h:
+  STRUCT_MAX_NUMBER 10, nesting 10 on the DM42 build). Pixel for pixel v2.1.0 at 16 cases (test_struct_src little()).
+  Its own zip build/Almanac47_DM42_C47firmware_v2.2.0.zip. MOON47 for the DM42 (Victor): build_release_c47.moon_dm42
+  from the STRUCT source, 7 IF written as test + XEQ of a routine (10 IF); pixel for pixel (test_struct_src moon_dm42).
+  c47sim's DROP leaves stack lift as it is, so a routine must not end on ENTER when the caller DROPs then RCLs.
+- tests/test_fw_c47.py: the firmware simulator ~/.cache/c47fw/c47 (c43 ef39ddb; the patched one of test_fw.py is gone).
+  SKY's wait PAUSE 20 / KEY? / IF needs its own replacement in the test copy (else headless SKY never ends).
+  NAVINIT_FULL and ALMA47 do not fit together: NAVINIT runs alone, its program is spliced out of the saved state
+  (as ~/almanac47-fwtest/fwstate.py). The DSL's [reg X] gives <unsupported> for a matrix in X: that is how the
+  out-of-memory showed. Ephemeris in the firmware, 20 + 20 instants: all within the limits (OPTIMIZATIONS.md section 8).
+- DROPPED from the release (Victor): the old-DM42 zip. The firmware: the published old-DM42 firmware is pkg4 only
+  (GitLab release assets; Makefile DMCP_PACKAGE = 4, CI make dist_dmcp), and pkg4 has #undef OPTION_STRUCTURED_PGM;
+  ATEXT / GRFNT are in the block common to packages 1-4 (C47.pgm of the published zip holds the GRFNT font names).
+  Local c43 master b160a7b60 (8 Oct) had all three off for the old DM42; origin/master 9fb8f6316 (10 Oct, git fetch
+  only) is as the release. The STRUCT DM42 builds moved to build/dev/struct_src/dm42/ (README.txt, not released).
+- Then back in (Victor: c43 pulled, STRUCT is there): the DM42 zip again from build/c47/dm42/ (NAVLITTLE, its reduced
+  NAVINIT_LITTLE, MOON47 of moon_dm42, README_DM42.txt). The docs say STRUCT is in DM42 packages 1-3 (c43 9fb8f6316
+  defines.h) and not in package 4, the one in the 05.00a0.ALPHA release assets.

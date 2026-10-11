@@ -7,8 +7,8 @@ as it was before (set to marks).
   NAVFULL    NAVINIT_FAST, the four inputs (R/S at each prompt), then each page key (1-6), + menu, 0 end
   NAVLITTLE  NAVINIT_LITTLE, the inputs, up, down, + end
   MOON47     without TZ (TZ = 0 must be created) and with TZ = -5 (kept)
-The key waits (PAUSE n / KEY? r / GTO) are replaced in a test copy by SNAP and the next key from the variable
-TKEY, the same in every file.
+The key waits (PAUSE n / KEY? r / GTO, or DO / PAUSE n / KEY? r / WHILE / ENDDO with STRUCT) are replaced in a
+test copy by SNAP and the next key from the variable TKEY, the same in every file.
 
   C47SIM=/path/to/c47 python3 tests/test_fw.py      (default ~/c47sim-patched/src47/build.sim/src/c47-gtk/c47;
                                                      the program reads res/ next to it: the source folder)
@@ -31,6 +31,13 @@ def testcopy(src, dst):
             out += ['SNAP', 'RCL "TKEY"', '100', 'MOD', 'STO ' + L[i + 1][5:], 'RCL "TKEY"', '100', '÷', 'IP', 'STO "TKEY"',
                     'DROP', 'DROP']
             i += 3
+            continue
+        # the STRUCT key wait (build/dev/struct/19_struct): DO nn / PAUSE n / KEY? r / WHILE nn / ENDDO nn
+        if (re.fullmatch(r'DO \d+', L[i]) and i + 4 < len(L) and re.fullmatch(r'PAUSE \d+', L[i + 1])
+                and L[i + 2].startswith('KEY? ') and re.fullmatch(r'WHILE \d+', L[i + 3]) and re.fullmatch(r'ENDDO \d+', L[i + 4])):
+            out += ['SNAP', 'RCL "TKEY"', '100', 'MOD', 'STO ' + L[i + 2][5:], 'RCL "TKEY"', '100', '÷', 'IP', 'STO "TKEY"',
+                    'DROP', 'DROP']
+            i += 5
             continue
         out.append(L[i]); i += 1
     open(dst, 'w', encoding='utf-8').write('\n'.join(out) + '\n')

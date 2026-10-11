@@ -3,7 +3,14 @@
 Celestial navigation for the SwissMicros C47 / R47 calculator (RPN), with a PC
 version and the base for a phone app (**Almanac 47**).
 
-- **Install and run:** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
+- **v2.2.0 "Struct on Attack" (C47 / R47 only):** `build/c47/` - ALMA47, NAVINIT_FAST / _FULL, MOON47,
+  written with the C47 STRUCT commands (no GTO), much faster than v2.1.0; `build/c47/QUICKSTART.txt`,
+  `build/c47/ALMA47_LABELS.txt`, the commented rejig sources `build/forum/*.p47u`, the source `programs_struct/`.
+  The old DM42 (64 KiB): `build/c47/dm42/` - NAVLITTLE with its reduced NAVINIT_LITTLE and a MOON47 of its own, in
+  STRUCT within the DM42 firmware's 10 IF / DO / REPEAT a program (firmware packages 1-3; package 4 has no STRUCT).
+  Build: `python3 tools/build_release_c47.py`; in the firmware and against DE421: `tests/test_fw_c47.py`.
+  Free42 / DM42 stock firmware / Plus42 stay on v2.1.0 (below).
+- **Install and run (v2.1.0):** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
   graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,
   ↑↓ ±1 hour, 9 SNAP). Your numbered registers are saved when NAV starts and given back when it ends.
@@ -38,8 +45,9 @@ version and the base for a phone app (**Almanac 47**).
   `python/hpprime/`. How the C47 and Free42 update the screen: `README.txt`, SCREEN UPDATE.
 - **Manuals of the other calculators:** `docs/Almanac47_Free42_Manual.pdf`,
   `docs/Almanac47_NumWorks_Manual.pdf`, `docs/Almanac47_HPPrime_Manual.pdf`.
-- **Manual:** `docs/C47_Nav_User_Manual.pdf` (part 1: NAV and the views, the map of the
-  N01, N02 ... labels; part 2: each program with worked results).
+- **Manual:** `docs/C47_Nav_User_Manual.pdf` (v2.1.0; the v2.2.0 manual is in the v2.2.0 release zip, built by
+  `tools/generators/build_manual.py`: part 1 ALMA47 and the views, the labels you can call; part 2 each program
+  with worked results).
 - **C47 command reference:** `docs/reference/C47_Full_index.txt` (C47 team, GFDL).
 - **Test:** `python3 tests/test_parity.py` and `tests/test_parity21.py` (native Python =
   calculator, pixel for pixel); `tests/test_f42_little.py` (Free42 = C47, needs `tools/f42`).
