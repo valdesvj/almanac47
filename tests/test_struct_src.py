@@ -228,12 +228,52 @@ def little(n):
            % (tuple(v for _, v in inp) + (len(a),)))
 
 
+def moon_dm42(n):
+    """MOON47 for the old DM42 (build_release_c47.moon_dm42, build/c47/dm42/MOON47.txt): at most 10 IF / DO / REPEAT,
+    no GTO; the page pixel for pixel the STRUCT MOON47 at n dates, time zones, north and south; X = Y = 0."""
+    import tempfile
+    import c47sim
+    import moon47 as M47
+    import build_release_c47 as R
+    print('== MOON47 for the old DM42 (10 IF at most)')
+    D_ = R.moon_dm42()
+    ok(lines(os.path.join(R.OUT, 'dm42', 'MOON47.txt')) == D_, 'build/c47/dm42/MOON47.txt is the build')
+    P = S.plain(D_)
+    ok(all(sum(l == o for l in P) <= 10 for o in S.OPENERS) and not [l for l in P if l.startswith('GTO')],
+       'IF %d DO %d REPEAT %d (10 at most), no GTO' % tuple(sum(l == o for l in P) for o in ('IF', 'DO', 'REPEAT')))
+    M = B.build_moon()
+
+    def frames(L, j, tz):
+        t = tempfile.mkdtemp(); files = []
+        for i, pr in enumerate(S.split(L)):
+            f = os.path.join(t, 'p%d.txt' % i); open(f, 'w', encoding='utf-8').write('\n'.join(pr) + '\n'); files.append(f)
+        c = c47sim.load(files)
+        c.clock = j + (tz or 0) / 24.0
+        if tz is not None:
+            c.reg['TZ'] = D(str(tz))
+        c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = [43, 82]
+        c.run('MOON47', maxsteps=10 ** 8)
+        return [{(x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400} for f in c.frames], c
+    rnd = random.Random(4242)
+    cases = [(M47.julian(2026, 10, 3, 12.0), None), (M47.julian(2027, 1, 22, 3.5), -5.0), (M47.julian(2028, 6, 5, 20.2), 5.5)]
+    while len(cases) < n:
+        cases.append((M47.julian(rnd.randint(2000, 2050), rnd.randint(1, 12), rnd.randint(1, 28), rnd.uniform(0, 24)),
+                      rnd.choice([None, -3.5, 2.0, 9.0])))
+    for j, tz in cases:
+        a, _ = frames(M, j, tz)
+        b, c = frames(D_, j, tz)
+        d, m, y, h = M47.from_julian(j)
+        ok(len(b) == 2 and a == b and c.s[0] == 0 and c.s[1] == 0,
+           '%02d-%02d-%04d %05.2f h TZ %-5s north and south pixel for pixel the STRUCT MOON47, X = Y = 0' % (d, m, y, h, tz))
+
+
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
     forum(L)
     moon(n)
     little(n)
+    moon_dm42(n)
     pages(L)
     places(L, n)
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))

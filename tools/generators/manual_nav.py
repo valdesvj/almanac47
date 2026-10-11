@@ -237,5 +237,11 @@ S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
       'about 57 % less time looking for labels and returns than v2.1.0 (simulator), the same page pixel for pixel. '
       'It still saves your registers R00–R35 while it runs and gives them back at the end.',
       '<b>Memory:</b> NAVLITTLE 7.3 KB, NAVINIT_LITTLE 8.7 KB (delete it after use); with its matrices about 31 KB.',
-      '<b>MOON47 on the old DM42:</b> the v2.2.0 MOON47 has more than 10 IF in its one program, which the DM42 build does '
-      'not take; the DM42 zip has the v2.1.0 MOON47 (no STRUCT, the same page).'])
+      '<b>Structured programming on the little memory.</b> The C47 firmware built for the old DM42 keeps its tables for '
+      'the STRUCT commands small: at most <b>10 IF, 10 DO and 10 REPEAT in each program</b> (partner numbers 1–10) and '
+      '10 structures open at once; the R47, the DM42n and the C47 take 255 of each and 63 open. The DM42 firmware does '
+      'not take a program over its limit. NAVLITTLE is written within it (its largest program: 6 IF, 2 DO, 1 REPEAT). '
+      'The main MOON47 has 17 IF in its one program, so the DM42 zip has <b>its own MOON47</b>: 10 IF, 5 DO, 6 REPEAT, '
+      '7 of the IF written as a test and an XEQ of a small routine — the same steps run, the same page pixel for pixel. '
+      'ALMA47 (up to 23 IF in a program, 11 open at once) is not for the old DM42 anyway: with its matrices it needs '
+      'far more than 64 KiB.'])

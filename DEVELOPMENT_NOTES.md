@@ -942,7 +942,9 @@ without copied code, all at once.
   "N04"), N23 / N24 (XEQ IND + RTN), N36 (WPLS's REPEAT / DO key wait), then build_struct.layout with a profile of its
   own pages; NAV -> ALMA47, INIT -> NAVINIT. build_release_c47.little checks the DM42 limits (structured.h:
   STRUCT_MAX_NUMBER 10, nesting 10 on the DM42 build). Pixel for pixel v2.1.0 at 16 cases (test_struct_src little()).
-  Its own zip build/Almanac47_DM42_C47firmware_v2.2.0.zip with v2.1.0's MOON47 (v2.2.0's has 17 IF).
+  Its own zip build/Almanac47_DM42_C47firmware_v2.2.0.zip. MOON47 for the DM42 (Victor): build_release_c47.moon_dm42
+  from the STRUCT source, 7 IF written as test + XEQ of a routine (10 IF); pixel for pixel (test_struct_src moon_dm42).
+  c47sim's DROP leaves stack lift as it is, so a routine must not end on ENTER when the caller DROPs then RCLs.
 - tests/test_fw_c47.py: the firmware simulator ~/.cache/c47fw/c47 (c43 ef39ddb; the patched one of test_fw.py is gone).
   SKY's wait PAUSE 20 / KEY? / IF needs its own replacement in the test copy (else headless SKY never ends).
   NAVINIT_FULL and ALMA47 do not fit together: NAVINIT runs alone, its program is spliced out of the saved state

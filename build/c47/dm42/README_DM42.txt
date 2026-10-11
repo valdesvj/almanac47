@@ -6,13 +6,13 @@ R47 have 256 KiB: they run the full ALMA47 of the main zip). The full Almanac 47
 64 KiB: NAVLITTLE keeps the Sun and the 58 navigation stars.
 
   NAVINIT_LITTLE   the program NAVINIT: Sun series (FULL, valid 2000-2050), nutation, stars
+  MOON47           the Moon phase on its own, the DM42 build of the v2.2.0 MOON47 (STRUCT)
   NAVLITTLE        the program ALMA47: no menu, straight to the ALMANAC screen after the inputs;
                    UP / DOWN one hour later / earlier (the screen stays while it computes),
                    9 SNAP, + ends (screen and stack cleared)
 
 NEW IN v2.2.0: written with the C47 STRUCT commands (IF / DO / REPEAT, no GTO), within the limits
-of the DM42 build of the firmware (at most 10 IF, 10 DO and 10 REPEAT in each program, 10 open at
-once), and its routines ordered for the C47's searches: about 57 % less of the time spent looking
+of the DM42 build of the firmware (see STRUCTURED PROGRAMMING ON THE LITTLE MEMORY below), and its routines ordered for the C47's searches: about 57 % less of the time spent looking
 for labels and returns than v2.1.0 (C47 simulator), the same screens pixel for pixel. The names
 are those of the main zip: XEQ "NAVINIT", XEQ "ALMA47". Your registers R00-R35 are still saved
 while it runs and given back at the end.
@@ -35,8 +35,21 @@ of the full version (same series).
 MEMORY (program bytes, rejig): NAVINIT_LITTLE 8.7 KB (delete it after use), NAVLITTLE 7.3 KB
 (v2.1.0: 7.2 KB). NAVLITTLE and its matrices take about 31 KB.
 
-MOON47: the v2.2.0 MOON47 of the main zip has more than 10 IF in its one program, which the DM42
-build of the firmware does not take. MOON47.p47 here is the v2.1.0 one (no STRUCT; the same page).
+STRUCTURED PROGRAMMING ON THE LITTLE MEMORY
+  The C47 firmware built for the old DM42 keeps its tables for the STRUCT commands small: at most
+  10 IF, 10 DO and 10 REPEAT in each program (partner numbers 1-10) and at most 10 structures open
+  at once. The R47, the DM42n and the C47 take 255 of each and 63 open at once. The DM42 firmware does
+  not take a program over its limit. So, for the old DM42:
+    NAVLITTLE  written within the limit (its largest program has 6 IF, 2 DO, 1 REPEAT)
+    MOON47     a build of its own (MOON47 here): 10 IF, 5 DO, 6 REPEAT in its one program. The main
+               MOON47 has 17 IF; here 7 of them are a test and an XEQ of a small routine instead, so
+               the same steps run and the page is the same pixel for pixel.
+    ALMA47     (up to 23 IF in a program, 11 open at once) is not for the old DM42 anyway: with its
+               matrices it needs far more than 64 KiB.
+
+MOON47 (the Moon phase on its own, no NAVINIT): load MOON47.p47, XEQ "MOON47". It asks nothing (the
+clock; if the clock is not on UT: 4 STO "TZ" for UT+4). +/- north / south view, other keys end.
+About 4.5 KB; it uses R03-R53.
 
 For the DM42 / DM42n with the stock firmware (Free42): keep v2.1.0.
 

@@ -13,7 +13,8 @@ From the STRUCT source (programs_struct/, tools/build_struct_src.py) and the for
   build/c47/NAVLITTLE.txt       the old DM42 (64 KiB) with the C47 firmware: from programs_struct/little/ (STRUCT)
   build/c47/NAVINIT_LITTLE.txt  its matrices (build/dm42/NAVINIT_LITTLE.txt, INIT named NAVINIT)
   build/Almanac47_C47_R47_v2.2.0.zip   the release zip (not in git), with the manual of build/manuals/
-  build/Almanac47_DM42_C47firmware_v2.2.0.zip   NAVLITTLE, its NAVINIT, MOON47 v2.1.0, build/c47/dm42/README_DM42.txt
+  build/c47/dm42/MOON47.txt     MOON47 for the old DM42: 10 IF in its one program (the DM42 limit), the same page
+  build/Almanac47_DM42_C47firmware_v2.2.0.zip   NAVLITTLE, its NAVINIT, MOON47 for the DM42, build/c47/dm42/README_DM42.txt
 
 The almanac tables (TBL) are not in this release. Free42 / DM42 stay on v2.1.0 (build/, build/free42/): Free42 has no
 STRUCT. Build the manual first (python3 tools/generators/build_manual.py -> build/manuals/C47_Nav_User_Manual.pdf).
@@ -168,6 +169,66 @@ def little():
     return S, ['LBL "NAVINIT"'] + I[1:]
 
 
+def moon_dm42():
+    """MOON47 for the old DM42 (the DM42 build of the firmware: at most 10 IF / DO / REPEAT a program): the STRUCT
+    MOON47 of programs_struct/MOON47.txt with 7 of its 17 IF written without a structure, the same steps run:
+      - an IF without ELSE and without RTN in it (4 of them): T IF body ENDIF -> T XEQ nn, the body a routine LBL nn
+        ... RTN at the end of the program
+      - LBL 37 / 38 (UT or LT, AS SEEN FROM THE NORTH or SOUTH): the second text first, T XEQ nn puts the first in its
+        place (X<>Y DROP text X<>Y), then DROP
+      - LBL 14 (a leading 0): T XEQ nn (DROP DROP "0" XEQ 25, then two values the DROP DROP after it takes away)
+    -> the numbered listing, checked as VALID and against the DM42 limits."""
+    import c47struct as C
+    P = C.plain(lines(os.path.join(ROOT, 'programs_struct', 'MOON47.txt')))
+    free = iter(['%02d' % n for n in range(68, 90) if 'LBL %02d' % n not in P])
+    extra = []
+
+    def block(i):
+        d, j, els = 0, i, None
+        while True:
+            o = C.op(P[j])
+            d += o in C.OPENERS
+            d -= o in ('ENDIF', 'ENDDO', 'UNTIL')
+            if o == 'ELSE' and d == 1:
+                els = j
+            if d == 0:
+                return j, els
+            j += 1
+    i = 0
+    while i < len(P):
+        if P[i] == 'IF':
+            j, els = block(i)
+            body = P[i + 1:j]
+            if els is None and not any(b in ('RTN', 'END') or b.startswith('LBL ') for b in body):
+                n = next(free)
+                extra += ['LBL ' + n] + body + ['RTN']
+                P = P[:i] + ['XEQ ' + n] + P[j + 1:]
+        i += 1
+    for lab, reg, first, second in (('37', '03', 'UT', 'LT'),
+                                    ('38', '28', 'AS SEEN FROM THE NORTH', 'AS SEEN FROM THE SOUTH')):
+        old = ['LBL ' + lab, 'RCL ' + reg, 'X=0?', 'IF', 'DROP', '"%s"' % first, 'RTN', 'ENDIF', 'DROP', '"%s"' % second, 'RTN']
+        k = P.index('LBL ' + lab)
+        assert P[k:k + len(old)] == old, lab
+        n = next(free)
+        P[k:k + len(old)] = ['LBL ' + lab, '"%s"' % second, 'RCL ' + reg, 'X=0?', 'XEQ ' + n, 'DROP', 'RTN']
+        extra += ['LBL ' + n, 'X<>Y', 'DROP', '"%s"' % first, 'X<>Y', 'RTN']
+    old = ['LBL 14', 'STO 48', 'DROP', 'RCL 48', '10', 'X>Y?', 'IF', 'DROP', 'DROP', '"0"', 'XEQ 25', 'ELSE', 'DROP', 'DROP',
+           'ENDIF']
+    k = P.index('LBL 14')
+    assert P[k:k + len(old)] == old
+    n = next(free)
+    P[k:k + len(old)] = ['LBL 14', 'STO 48', 'DROP', 'RCL 48', '10', 'X>Y?', 'XEQ ' + n, 'DROP', 'DROP']
+    extra += ['LBL ' + n, 'DROP', 'DROP', '"0"', 'XEQ 25', 'RCL 48', 'RCL 48', 'RTN']
+    assert P[-1] == 'END'
+    M = C.number(P[:-1] + extra + ['END'])
+    Q = C.plain(M)
+    faults = C.check(Q) + [l for l in Q if l.startswith('GTO')]
+    faults += ['%d %s' % (sum(l == o for l in Q), o) for o in C.OPENERS if sum(l == o for l in Q) > DM42_MAX]
+    if faults:
+        raise SystemExit('build_release_c47 MOON47 for the DM42: %s' % faults)
+    return M
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     F.main()                                                    # build/forum/*.p47u
@@ -182,8 +243,9 @@ def main():
     S, I = little()
     write('NAVLITTLE.txt', S)
     write('NAVINIT_LITTLE.txt', I)
+    write(os.path.join('dm42', 'MOON47.txt'), moon_dm42())
     have_rejig = shutil.which('rejig')
-    for name in ('ALMA47', 'NAVINIT_FAST', 'NAVINIT_FULL', 'MOON47', 'NAVLITTLE', 'NAVINIT_LITTLE'):
+    for name in ('ALMA47', 'NAVINIT_FAST', 'NAVINIT_FULL', 'MOON47', 'NAVLITTLE', 'NAVINIT_LITTLE', 'dm42/MOON47'):
         size = p47(name) if have_rejig else None
         print('  build/c47/%s.txt: %d steps; .p47 %s bytes' % (name, len(lines(os.path.join(OUT, name + '.txt'))),
                                                                size or '? (no rejig)'))
@@ -202,10 +264,7 @@ def main():
             z.write(src, '%s/%s' % (FOLDER, arc))
     print('  %s: %d files' % (os.path.relpath(ZIP, ROOT), len(files)))
     dm = [(os.path.join(OUT, n), n) for n in ('NAVLITTLE.p47', 'NAVLITTLE.txt', 'NAVINIT_LITTLE.p47', 'NAVINIT_LITTLE.txt')]
-    moon = os.path.join(tempfile.mkdtemp(), 'MOON47')          # v2.1.0's (no STRUCT: the DM42 limits)
-    shutil.copy(os.path.join(ROOT, 'build', 'dm42', 'MOON47.txt'), moon + '.txt')
-    subprocess.run(['rejig', '--validate=r47', '-o', moon + '.p47', moon + '.txt'], check=True)
-    dm += [(moon + '.p47', 'MOON47.p47'), (moon + '.txt', 'MOON47.txt')]
+    dm += [(os.path.join(OUT, 'dm42', n), n) for n in ('MOON47.p47', 'MOON47.txt')]
     dm += [(os.path.join(OUT, 'dm42', 'README_DM42.txt'), 'README_DM42.txt'), (MANUAL, 'C47_Nav_User_Manual.pdf')]
     dm += [(os.path.join(ROOT, n), n) for n in ('LICENSE', 'NOTICE', 'AI_ASSISTANCE.md')]
     with zipfile.ZipFile(ZIP_DM42, 'w', zipfile.ZIP_DEFLATED) as z:
