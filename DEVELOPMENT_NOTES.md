@@ -914,4 +914,4 @@ without copied code, all at once.
   the steps are exactly C64FX.txt's (195), the header and '#' comments kept.
 - Mbrot.p47u (a forum program, not in the repo), asked whether STRUCT makes it faster: no (11 steps a round in
   place of 10, ENDDO searches twice). Faster: the cardioid / bulb test (58 % of the inner rounds, same image) and
-  the per-pixel named recalls hoisted. Pending list and hand-off: build/dev/struct_src/HANDOFF.md.
+  the per-pixel named recalls hoisted. Pending list and hand-off: build/dev/struct_src/HANDOFF.txt.
