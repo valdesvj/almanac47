@@ -14,7 +14,10 @@ simulator built from the firmware sources, headless with its script (--script).
 The key waits (DO / PAUSE n / KEY? r / WHILE / ENDDO) are replaced in a test copy by SNAP and the next key from TKEY.
 
   ~/.venvs/almanac47-ephem/bin/python tests/test_fw_c47.py [n instants per mode, default 20] [seed]
-  C47SIM=/path/to/c47 (default ~/.cache/c47fw/c47, res/ next to it); ONLY=runs,FULL,FAST to choose
+  C47SIM=/path/to/c47 (default ~/.cache/c47fw/c47, res/ next to it); ONLY=runs,FULL,FAST,LITTLE,MOON to choose
+  3. NAVLITTLE (build/c47/dm42/) stopped at its screen, its Sun and star routines at random instants 2000-2050;
+     MOON47 and the DM42 MOON47 with the clock moved by TZ: % lit, age, HP, SD and the next four phases, against
+     DE421 + ERFA (MOON47's own limits: phases and age 5 min, HP 0.05', SD 0.02', lit 0.5 %)
 """
 import math, os, random, re, shutil, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +48,7 @@ SIM = os.environ.get('C47SIM', os.path.expanduser('~/.cache/c47fw/c47'))
 RES = os.path.join(os.path.dirname(SIM), 'res')
 C47 = os.path.join(ROOT, 'build', 'c47')
 DM42 = os.path.join(C47, 'dm42')                 # the old DM42 (the simulator has STRUCT, 255 a program)
-ONLY = os.environ.get('ONLY', 'runs,FULL,FAST').split(',')
+ONLY = os.environ.get('ONLY', 'runs,FULL,FAST,LITTLE,MOON').split(',')
 
 
 def p47(src, d, name=None, copy=False):
@@ -227,6 +230,135 @@ def ephem(mode, init, j1, j2, n, rnd):
     return st.show(T.limit_of)
 
 
+def stop_copy(src, dst):
+    """testcopy, and the first key wait stops the program when TKEY is 0 (no key left): the registers stay as the
+    program has them, so its routines can be called from the script."""
+    testcopy(src, dst)
+    L = open(dst, encoding='utf-8').read().split('\n')
+    i = L.index('RCL "TKEY"')
+    L[i:i] = ['RCL "TKEY"', 'X=0?', 'STOP', 'DROP']
+    open(dst, 'w', encoding='utf-8').write('\n'.join(L))
+
+
+def little_ephem(n, rnd):
+    """NAVLITTLE (build/c47/dm42/) in the firmware against DE421 + ERFA: NAVINIT_LITTLE, ALMA47 to its screen, stopped
+    there; then for n random instants 2000-2050 its Sun routine (N02: X = JD -> GHA, Dec, GHA Aries) and its star
+    routine (N09, after N02, R12 = star -> GHA, Dec) for the 58 stars."""
+    import erfa  # noqa: F401
+    import test_ephem as T
+    import c47astro as A
+    G = T.G
+    st = T.Stat()
+    d = tmp()
+    nav = os.path.join(d, 'NAVLITTLE.txt')
+    stop_copy(os.path.join(DM42, 'NAVLITTLE.txt'), nav)
+    subprocess.run(['rejig', '-o', nav[:-4] + '.p47', nav], check=True, capture_output=True)
+    js = [rnd.uniform(A.jd(2000, 1, 1), A.jd(2050, 12, 31)) for _ in range(n)]
+    extra = ['LBL "STR"', 'XEQ "N09"', 'RTN']
+    for k, j in enumerate(js):
+        extra += ['LBL "P%02d"' % k, repr(j), 'XEQ "N02"', 'RTN']
+    files = [p47(os.path.join(DM42, 'NAVINIT_LITTLE.txt'), d, copy=True), nav[:-4] + '.p47', helper(d, INPUTS, [], extra)]
+    tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET', 'xeq ALMA47'] + ['press R/S'] * 4
+    for k in range(n):
+        tcl += ['xeq P%02d' % k, 'puts "S%d=[reg X] [reg Y] [reg Z]"' % k]
+        for s_ in range(1, 59):
+            tcl += ['xeq P%02d' % k, 'reg 12 %d' % s_, 'xeq STR', 'puts "T%d_%d=[reg X] [reg Y]"' % (k, s_)]
+    out, err = sim(d, tcl)
+    shutil.rmtree(d, ignore_errors=True)
+    v = {}
+    for l in out:
+        m = re.match(r'([ST][\d_]+)=(.*)$', l)                # a real tagged as an angle reads '... degree'
+        if m:
+            try:
+                v[m.group(1)] = [float(x) for x in m.group(2).split() if x not in ('degree', 'radian', 'grad')]
+            except ValueError:
+                pass
+    if err or len(v) != n * 59:
+        print('  NAVLITTLE: %s, %d of %d values' % (err[:2] or 'no error', len(v), n * 59))
+        st.add('RUNS (failed)', 99)
+    for k, j in enumerate(js):
+        if 'S%d' % k not in v:
+            continue
+        g, dc, r = G.apparent('sun', j)
+        gs, ds, ga = v['S%d' % k]
+        st.add('SUN GHA', T.wrap(gs - g)); st.add('SUN Dec', (ds - dc) * 60)
+        st.add('ARIES GHA', T.wrap(ga - G.gha_aries(j)))
+        for s_ in range(1, 59):
+            if 'T%d_%d' % (k, s_) in v:
+                g2, d2 = T.ref_star(s_, j)
+                gh, de = v['T%d_%d' % (k, s_)]
+                st.add('STARS GHA x cos Dec', T.wrap(gh - g2) * A.dcos(d2))
+                st.add('STARS Dec', (de - d2) * 60)
+    print('== NAVLITTLE (old DM42) in the C47 firmware against DE421 + ERFA: %d instants 2000-2050, Sun, Aries, 58 stars' % n)
+    return st.show(T.limit_of)
+
+
+def moon_ephem(src, n, rnd):
+    """MOON47 (src) in the firmware against DE421 + ERFA: the clock moved to n random instants 2000-2050 with TZ (the
+    clock minus TZ hours is the UT it uses), +/- and 0; then R06 (the JD UT used), R18 % lit, R24 age, R19 HP, R20 SD,
+    R54-R57 the next four phases (JD UT) and R58-R61 their kind (0 new, 1 first quarter, 2 full, 3 last quarter)."""
+    import datetime
+    import erfa
+    import test_ephem as T
+    import c47astro as A
+    G = T.G
+    st = T.Stat()
+
+    def lon(jj, name):
+        g, dc, r = G.apparent(name, jj)
+        ra = G.gha_aries(jj) - g
+        e = math.degrees(erfa.obl06(2400000.5, jj + G.dt(jj) / 86400.0 - 2400000.5))
+        return math.degrees(math.atan2(A.dsin(ra) * A.dcos(e) + A.dtan(dc) * A.dsin(e), A.dcos(ra)))
+
+    def phase_time(t, k):
+        """DE421: when the Moon's elongation in longitude is 90 k degrees, by the secant method from t."""
+        def f(x):
+            return ((lon(x, 'moon') - lon(x, 'sun') - 90 * k) + 180.0) % 360.0 - 180.0
+        a, b = t - 0.2, t + 0.2
+        fa, fb = f(a), f(b)
+        for _ in range(30):
+            c = b - fb * (b - a) / (fb - fa)
+            a, fa, b, fb = b, fb, c, f(c)
+            if abs(b - a) < 1e-7:
+                break
+        return b
+    for i in range(n):
+        target = rnd.uniform(A.jd(2000, 1, 1), A.jd(2050, 12, 31))
+        now = datetime.datetime.now(datetime.timezone.utc)
+        jnow = A.jd(now.year, now.month, now.day) + (now.hour + now.minute / 60.0 + now.second / 3600.0) / 24.0
+        tz = round((jnow - target) * 24.0, 6)
+        d = tmp()
+        files = [p47(src, d), helper(d, ['%r' % tz, 'STO "TZ"'], [43, 82])]
+        tcl = ['readp %s' % f for f in files] + ['xeq TSET', 'xeq MOON47']
+        tcl += ['puts "R%02d=[reg %02d]"' % (r, r) for r in (6, 18, 19, 20, 24, 54, 55, 56, 57, 58, 59, 60, 61)]
+        out, err = sim(d, tcl)
+        shutil.rmtree(d, ignore_errors=True)
+        v = {}
+        for l in out:
+            m = re.match(r'R(\d\d)=(\S+)', l)
+            if m:
+                try:
+                    v[int(m.group(1))] = float(m.group(2))
+                except ValueError:
+                    pass
+        if err or len(v) != 13:
+            print('  %s: %s, %d values' % (os.path.relpath(src, ROOT), err[:2] or 'no error', len(v)))
+            st.add('RUNS (failed)', 99)
+            continue
+        j = v[6]
+        lit, age = T.ref_phase(j)
+        r = G.apparent('moon', j)[2]
+        st.add('MOON % lit', v[18] - lit)
+        st.add('MOON age (min)', (v[24] - age) * 1440)
+        st.add('MOON HP', v[19] - math.degrees(math.asin(G.REQ / r)) * 60)
+        st.add('MOON SD', v[20] - math.degrees(math.asin(0.272481 * G.REQ / r)) * 60)
+        for q in range(4):
+            st.add('next phases (min)', (v[54 + q] - phase_time(v[54 + q], int(v[58 + q]))) * 1440)
+    print('== %s in the C47 firmware against DE421 + ERFA: %d instants 2000-2050' % (os.path.relpath(src, ROOT), n))
+    return st.show(lambda k: {'MOON % lit': 0.5, 'MOON age (min)': 5.0, 'MOON HP': 0.05, 'MOON SD': 0.02,
+                              'next phases (min)': 5.0}.get(k, T.limit_of(k)))
+
+
 def main():
     if not os.path.exists(SIM):
         print('no C47 simulator (%s): set C47SIM' % SIM)
@@ -243,6 +375,11 @@ def main():
             j1, j2 = A.FAST_JD
             A.use_series(None)                 # the reference is ERFA; c47astro gives only jd, hcz, dsin / dcos here
             bad += ephem('FAST %s' % period, 'NAVINIT_FAST', j1 + 1, j2 - 1, n, rnd)
+    if 'LITTLE' in ONLY:
+        bad += little_ephem(n, rnd)
+    if 'MOON' in ONLY:
+        for src in (os.path.join(C47, 'MOON47.txt'), os.path.join(DM42, 'MOON47.txt')):
+            bad += moon_ephem(src, n, rnd)
     print('%d failed / over the limit' % bad)
     return bad
 

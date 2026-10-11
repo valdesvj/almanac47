@@ -267,3 +267,8 @@ pixel; search work 1.73 M -> 0.74 M (-57 %), steps run +2 % (ENDIF / ENDDO are s
 MOON47 v2.2.0 has 17 IF in its one program: a DM42 build (`build_release_c47.moon_dm42`): 4 IF
 without ELSE or RTN become T XEQ nn (the body a routine), LBL 37 / 38 and LBL 14 pick their text with T XEQ nn; 10 IF,
 5 DO, 6 REPEAT, 1 446 steps, 4 487 bytes, the page pixel for pixel the STRUCT MOON47 at 16 dates.
+
+**NAVLITTLE and MOON47 against DE421 + ERFA, in the C47 firmware** (`tests/test_fw_c47.py`, ONLY=LITTLE,MOON), 20 random
+instants 2000–2050 each: NAVLITTLE's Sun within 0.008′, GHA Aries 0.002′, the 58 stars 0.003′; MOON47 (main / DM42
+build) % lit 0.013 / 0.022 %, age 2.6 / 2.5 min, HP 0.016 / 0.027′, SD 0.004 / 0.007′, the next four phases
+2.9 / 3.2 min (MOON47's limits: 0.5 %, 5 min, 0.05′, 0.02′, 5 min).
