@@ -21,7 +21,7 @@ def hms(t):
     s = int(round(t * 3600)); return '%02d:%02d:%02d' % (s // 3600 % 24, s % 3600 // 60, s % 60)
 def foot(c, d):
     c.saveState(); c.setFont('DV', 7); c.setFillColor(colors.HexColor('#7a8a9a'))
-    c.drawString(15 * mm, 8 * mm, 'Almanac 47 — C47 celestial navigation — user manual — Victor Valdes')
+    c.drawString(15 * mm, 8 * mm, 'Almanac 47 v2.2.0 — C47 / R47 celestial navigation — user manual — Victor Valdes')
     c.drawRightString(A4[0] - 15 * mm, 8 * mm, 'p. %d' % d.page); c.restoreState()
 doc = BaseDocTemplate(OUT, pagesize=A4, leftMargin=15 * mm, rightMargin=15 * mm, topMargin=14 * mm, bottomMargin=15 * mm,
                       title='C47 celestial navigation — user manual', author='Victor Valdes')
@@ -42,10 +42,11 @@ S += [PageBreak(), P('Part 2 — the programs one by one', h1),
       P('These programs give the data needed for sight reduction (GHA, SHA, declination, Hc, Zn) and for planning '
         '(sunrise, sunset, twilight, Moon phase, sky picture). They support, and do not replace, the Nautical Almanac. '
         'All results are apparent geocentric positions, as in the almanac. The time argument is UT (UT1): for a sight timed in UTC, add DUT1 (under 0.9 s).'),
-      P('The programs of this part are the single programs of the programs/ folder. Their screens draw the text with '
-        'AGRAPH fonts (PTXS, PTXT, PTXB) and run on any C47 firmware. The NAV files of part 1 use other versions of the '
-        'views (the screens of Oct 2026) that write the text with ATEXT and GRFNT; the calculations are the same. The '
-        'ALMF and HALMV pictures below are those NAV screens.'),
+      P('The programs of this part are the single programs of the programs/ folder of the repository: the reference for '
+        'the methods, not part of the v2.2.0 files. They are written with GTO (they also run on Free42) and draw the text '
+        'with AGRAPH fonts (PTXS, PTXT, PTXB). ALMA47 of part 1 has the same calculations in a faster form (STRUCT, the '
+        'v2 optimizations) and the screens of Oct 2026, with ATEXT and GRFNT; its registers and labels are its own '
+        '(part 1, section 7).'),
       P('Overview', h2),
       prose_tbl([
           ['Program', 'What it gives', 'Input', 'Output', 'Needs'],
@@ -70,7 +71,7 @@ S += [PageBreak(), P('Part 2 — the programs one by one', h1),
       '<b>Julian Date (JD):</b> use the C47 date function (Date→J) and add UT/24. It must be a plain number: for example 23 Sep 2026 12:00 UT = <b>2461307</b>, and 0h UT that day = 2461306.5.',
       '<b>Signs:</b> latitude N +, S −; longitude E +, W −; declination negative = South.',
       '<b>Angles</b> come out in decimal degrees. Use →HMS or the d.mmm display to read degrees and minutes.',
-      '<b>Setup order:</b> the NAV files do it all: load NAVFULL and NAVINIT_FULL (or NAVINIT_FAST), XEQ INIT once, delete INIT. The single programs of part 2 can still be loaded one by one (programs/ folder) for other uses.'])
+      '<b>Setup order:</b> the v2.2.0 files do it all: load ALMA47 and NAVINIT_FULL (or NAVINIT_FAST), XEQ "NAVINIT" once, delete NAVINIT. The single programs of part 2 can still be loaded one by one (programs/ folder) for other uses.'])
 
 # ---- SUNA
 r = R['SUNA']
@@ -310,7 +311,7 @@ S += [P('Register map', h2),
                  ['HALMV, ALMF, HALM', '10–29, 37, 40–48 (work registers, results of SUNRISE/PHAS kept in 13–19)']], [40 * mm, 140 * mm]),
       P('C47 notes', h2)] + B([
     'The C47 does not treat →DEG and flag 77 like the HP-42S; the programs avoid both (verified on the C47 with SUNA).',
-    'Memory: NAVFULL about 8 000 steps (24.2 KB); the FULL matrices about 6 000 numbers (FAST about 3 400), plus the cache matrix ALMC (73 × 4) and, while the charts are drawn, the equator dots EQ2 / EQ3 (NAV deletes the ALMQ that INIT makes).',
+    'Memory: ALMA47 8 859 steps (27.6 KB); the FULL matrices about 6 000 numbers (FAST about 3 400), plus the cache matrix ALMC (73 × 4) and the star order SBR (ALMA47 deletes the ALMQ that NAVINIT makes).',
     'Keep the printed Nautical Almanac as the primary reference; use the calculator as support and cross-check.'])
 doc.build(S)
 print('ok')

@@ -1,6 +1,6 @@
 @ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: 2.2
+@ Version: 2.2.0
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py): the page pixel for pixel the Python reference (python/moon47.py),
 @ Tested:  16 dates 2000-2050, time zones, north and south (and the three-program version checked on the firmware)
@@ -19,7 +19,7 @@
 @ One program, MOON47 the only global label (the text printers and the phase symbols are numbered routines in it);
 @ written with IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL, no GTO.
 @
-LBL 01
+LBL 01                  ; 01 one row of the disc between two columns (AGRAPH runs, 02) (called 4 times)
 STO 45
 X<>Y
 STO 44
@@ -45,7 +45,7 @@ ENDIF 01
 XEQ 04
 RCL 45
 +
-LBL 02
+LBL 02                  ; 02 a run of columns of one row (AGRAPH, at most 60 a step) (called 2 times)
 STO 47
 R↓
 STO 46
@@ -78,7 +78,7 @@ REPEAT 01
   X<Y?
 UNTIL 01
 RTN
-LBL 03
+LBL 03                  ; 03 the disc: row by row, the edge of the Moon and the terminator from the age; turned for the south (called 1 time)
 RCL 24
 29.530589
 ÷
@@ -185,19 +185,19 @@ REPEAT 02
   X>Y?
 UNTIL 02
 RTN
-LBL 04
+LBL 04                  ; 04 a column measured from the disc's centre (120) (called 2 times)
 120
 RCL 45
 -
 120
 RTN
-LBL 05
+LBL 05                  ; 05 the text in R49 at row R31, column R30 (M7TX) (called 4 times)
 RCL 31
 RCL 30
 RCL 49
 XEQ 26
 RTN
-LBL 06
+LBL 06                  ; 06 M7IN - TEXT: whole number (|X| rounded) (called 4 times)
 XEQ 28
 CLα 49
 RCL 34
@@ -207,24 +207,24 @@ ABS
 αIP 49
 XEQ 05
 RTN
-LBL 07
+LBL 07                  ; 07 columns shared by the phase symbols (called 3 times)
 XEQ 09
 110000000011#2
 XEQ 46
 RTN
-LBL 08
+LBL 08                  ; 08 columns shared by the phase symbols (called 3 times)
 XEQ 10
 XEQ 45
 AGRAPH D
 RTN
-LBL 09
+LBL 09                  ; 09 columns shared by the phase symbols (called 2 times)
 RCL 31
 RCL 30
 XEQ 42
 1100001100#2
 XEQ 43
 RTN
-LBL 10
+LBL 10                  ; 10 columns shared by the phase symbols (called 2 times)
 RCL 31
 RCL 30
 XEQ 42
@@ -232,7 +232,7 @@ XEQ 42
 R↓
 XEQ 44
 RTN
-LBL 11
+LBL 11                  ; 11 columns shared by the phase symbols; the next column (called 2 times)
 XEQ 43
 1100001100#2
 R↓
@@ -242,7 +242,7 @@ XEQ 42
 +
 STO 30
 RTN
-LBL 12
+LBL 12                  ; 12 columns shared by the phase symbols; the next column (called 4 times)
 XEQ 44
 1111111100#2
 R↓
@@ -252,12 +252,12 @@ XEQ 42
 +
 STO 30
 RTN
-LBL 13
+LBL 13                  ; 13 a value in minutes of arc: one decimal and ' (called 2 times)
 XEQ 19
 "'"
 XEQ 25
 RTN
-LBL 14
+LBL 14                  ; 14 a whole number, with a leading 0 below 10 (called 3 times)
 STO 48
 DROP
 RCL 48
@@ -275,7 +275,7 @@ ENDIF 08
 RCL 48
 XEQ 06
 RTN
-LBL 15
+LBL 15                  ; 15 M7HM - TEXT: hh:mm from hours (--:-- when X > 98: no event) (called 1 time)
 XEQ 28
 RCL 34
 98
@@ -307,7 +307,7 @@ ELSE 09
 ENDIF 09
 XEQ 05
 RTN
-LBL 16
+LBL 16                  ; 16 the eight phase symbols in a row, today's one inverted (called 1 time)
 0
 STO 05
 REPEAT 03
@@ -335,7 +335,7 @@ REPEAT 03
   X≥Y?
 UNTIL 03
 RTN
-LBL 17
+LBL 17                  ; 17 the time of day of a Julian Date as hh:mm (called 2 times)
 0.5
 +
 1
@@ -344,7 +344,7 @@ MOD
 ×
 XEQ 15
 RTN
-LBL 18
+LBL 18                  ; 18 the page: the clock line, the disc, the phase name, % lit, age, HP, SD, the next phases, the symbols (called 1 time)
 RCL 06
 RCL 03
 24
@@ -420,7 +420,7 @@ XEQ 16
 XEQ 38
 XEQ 25
 RTN
-LBL 19
+LBL 19                  ; 19 M7F1 - TEXT: number with one decimal (|X|) (called 2 times)
 XEQ 28
 RCL 34
 ABS
@@ -442,7 +442,7 @@ MOD
 αIP 49
 XEQ 05
 RTN
-LBL 20
+LBL 20                  ; 20 the next four phases: symbol, date and time UT (called 1 time)
 0
 STO 05
 REPEAT 04
@@ -546,7 +546,7 @@ REPEAT 04
   X≥Y?
 UNTIL 04
 RTN
-LBL 21
+LBL 21                  ; 21 M7DT - TEXT: date dd-mm-yyyy from a Julian Date (called 1 time)
 XEQ 28
 RCL 34
 J→ⅅℸ
@@ -567,12 +567,12 @@ YEAR
 αIP 49
 XEQ 05
 RTN
-LBL 22
+LBL 22                  ; 22 the time when the Moon's elongation is X degrees, from the guess Y (called 3 times)
 STO 26
 R↓
 STO 50
 XEQ 33
-LBL 23
+LBL 23                  ; 23 the secant method on the elongation (3 rounds) (called 1 time)
 RCL 26
 X<>Y
 -
@@ -623,7 +623,7 @@ WHILE 01
 ENDDO 01
 RCL 27
 RTN
-LBL 24
+LBL 24                  ; 24 once: the 20 terms of the Moon (Meeus ch. 47) as matrices (called 1 time)
 0
 𝜋
 180
@@ -735,8 +735,8 @@ XEQ 32
 0
 XEQ 32
 RTN
-LBL 25
-LBL 26
+LBL 25                  ; 25 M7TX - TEXT: Z row of the base line, Y column, X text -> Y row, X next column (ATEXT Z) (called 17 times)
+LBL 26                  ; 26 ATEXT with the row moved by the font's base line (called 1 time)
 ⇄ zyxt
 4
 -
@@ -747,25 +747,25 @@ X<>Y
 +
 X<>Y
 RTN
-LBL 50
+LBL 50                  ; XEQ IND table: the eight phase symbols (characters 0-7)
 XEQ 07
 XEQ 45
 XEQ 12
 RTN
-LBL 27
+LBL 27                  ; 27 columns shared by the phase symbols (called 3 times)
 AGRAPH D
 AGRAPH D
 110000000011#2
 XEQ 11
 RTN
-LBL 28
+LBL 28                  ; 28 Z row, Y column, X value -> R31, R30, R34 (called 4 times)
 STO 34
 R↓
 STO 30
 R↓
 STO 31
 RTN
-LBL 29
+LBL 29                  ; 29 the time zone TZ as +h or +h:mm (called 1 time)
 RCL 03
 X=0?
 IF 10
@@ -808,7 +808,7 @@ IF 12
 ENDIF 12
 DROP
 RTN
-LBL 30
+LBL 30                  ; 30 the next new Moon, first quarter, full Moon and last quarter after now (called 1 time)
 RCL 15
 90
 ÷
@@ -855,7 +855,7 @@ REPEAT 05
   X≥Y?
 UNTIL 05
 RTN
-LBL "MOON47"
+LBL "MOON47"            ; MOON47 - the Moon phase from the clock: disc, % lit, age, HP, SD, the next four phases (UT); +/- north / south, any other key ends
 SSIZE#
 STO 29
 SSIZE8
@@ -914,7 +914,7 @@ REPEAT 06
   0
   X≠0?
 UNTIL 06
-LBL 31
+LBL 31                  ; 31 now: elongation, % lit, distance, HP, SD, the last new Moon and the age, the phase number (called 1 time)
 RCL 06
 XEQ 33
 STO 15
@@ -1000,7 +1000,7 @@ MOD
 STO 25
 XEQ 30
 RTN
-LBL 32
+LBL 32                  ; 32 one term of the Moon's series into the matrices (its multipliers, the sin and cos coefficients) (called 20 times)
 STO 43
 R↓
 STO 42
@@ -1062,7 +1062,7 @@ STOEL
 1
 STO+ 21
 RTN
-LBL 33
+LBL 33                  ; 33 the Moon's arguments D M M' F for a Julian Date -> its elongation from the series (called 3 times)
 2451544.999201389
 -
 36525
@@ -1187,12 +1187,12 @@ RCL 48
 360
 MOD
 RTN
-LBL 34
+LBL 34                  ; 34 the terminator turned (the other half lit) (called 2 times)
 1
 CHS
 STO× 27
 RTN
-LBL 35
+LBL 35                  ; 35 today's phase symbol inverted (XOR) (called 1 time)
 3
 STO 46
 GRMOD 46
@@ -1218,7 +1218,7 @@ DROP
 STO 46
 GRMOD 46
 RTN
-LBL 36
+LBL 36                  ; 36 X (0-99) appended to R49 as two digits (called 4 times)
 STO 33
 10
 X>Y?
@@ -1229,7 +1229,7 @@ ENDIF 14
 RCL 33
 αIP 49
 RTN
-LBL 37
+LBL 37                  ; 37 UT or LT for the clock line (called 1 time)
 RCL 03
 X=0?
 IF 15
@@ -1240,7 +1240,7 @@ ENDIF 15
 DROP
 "LT"
 RTN
-LBL 38
+LBL 38                  ; 38 AS SEEN FROM THE NORTH / SOUTH (called 1 time)
 RCL 28
 X=0?
 IF 16
@@ -1251,12 +1251,12 @@ ENDIF 16
 DROP
 "AS SEEN FROM THE SOUTH"
 RTN
-LBL 39
+LBL 39                  ; 39 the work matrices M7A M7W M7V set to the same value (called 2 times)
 STO "M7A"
 STO "M7W"
 STO "M7V"
 RTN
-LBL 40
+LBL 40                  ; 40 M7HL - horizontal line, X = length in pixels (called 1 time)
 STO 34
 R↓
 STO 30
@@ -1286,7 +1286,7 @@ WSIZE 64
 RCL 31
 RCL 30
 RTN
-LBL 41
+LBL 41                  ; 41 M7SY - SYMBOLS: the Moon phase glyphs of the string X (XEQ IND of each character code, 48-55) (called 1 time)
 STO 33
 R↓
 STO 30
@@ -1305,7 +1305,7 @@ WSIZE 64
 RCL 31
 RCL 30
 RTN
-LBL 42
+LBL 42                  ; 42 columns shared by the phase symbols (called 4 times)
 111111000#2
 R↓
 AGRAPH D
@@ -1357,26 +1357,26 @@ AGRAPH D
 R↓
 XEQ 12
 RTN
-LBL 43
+LBL 43                  ; 43 columns shared by the phase symbols (called 2 times)
 R↓
 AGRAPH D
 11000000110#2
 R↓
 AGRAPH D
 RTN
-LBL 44
+LBL 44                  ; 44 columns shared by the phase symbols (called 2 times)
 AGRAPH D
 11111111110#2
 R↓
 AGRAPH D
 RTN
-LBL 45
+LBL 45                  ; 45 columns shared by the phase symbols (called 3 times)
 111111111111#2
 R↓
 AGRAPH D
 AGRAPH D
 RTN
-LBL 46
+LBL 46                  ; 46 columns shared by the phase symbols (called 2 times)
 R↓
 AGRAPH D
 100000000001#2
@@ -1384,7 +1384,7 @@ R↓
 AGRAPH D
 AGRAPH D
 RTN
-LBL 47
+LBL 47                  ; 47 the new Moon before, when the one found is after now (called 1 time)
 RCL 23
 29.530589
 -
@@ -1394,7 +1394,7 @@ RCL 23
 XEQ 22
 STO 23
 RTN
-LBL 56
+LBL 56                  ; 56 a phase found before now: the next one, a month later (called 1 time)
 RCL 44
 29.530589
 +
@@ -1406,7 +1406,7 @@ RCL 37
 XEQ 22
 STO 44
 RTN
-LBL 60
+LBL 60                  ; XEQ IND table: the eight phase names
 "NEW MOON"
 RTN
 LBL 61
@@ -1430,7 +1430,7 @@ RTN
 LBL 67
 "WANING CRESCENT"
 RTN
-LBL 90
+LBL 90                  ; XEQ IND table: the characters of the phase symbols
 "0"
 RTN
 LBL 91

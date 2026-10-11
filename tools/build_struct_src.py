@@ -42,6 +42,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE]
 import c47struct as C                                                         # noqa: E402
+import struct_comments as SC                                                  # noqa: E402
 
 SRC = os.path.join(ROOT, 'programs_struct')
 OUT = os.path.join(ROOT, 'build', 'dev', 'struct_src')
@@ -63,7 +64,7 @@ LABELS = {
     'N26': ('MOOQ', 'Moon, quick low-precision formula (BODY list, ANIM)'),
     'N28': ('PLN2', 'planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA'),
     'N29': ('PLN3', 'planet for the screens: quick position first, full series only if it can be above the horizon'),
-    'N32': ('HCZ', "sight reduction: Y = Dec, X = GHA -> Hc (R96), Zn (R97), sin Hc ('SHC')"),
+    'N32': ('HCZ', "sight reduction for the DR (R13 lon, R14 lat): Y = Dec, X = GHA -> X Hc, Y Zn (also R09, R05), sin Hc in 'V4'"),
     'N34': ('HCZQ', 'celestial equator: start of the dot-by-dot rotation'),
     'N35': ('HCZR', 'celestial equator: next point by rotation (no trig)'),
     'N36': ('HCZI', 'keeps sin/cos of the latitude for HCZ'),
@@ -75,7 +76,7 @@ LABELS = {
     'N46': ('PHA2', 'Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)'),
     'N47': ('SBRT', 'star number by brightness rank (1st brightest ... 58th)'),
     'N48': ('SNMU', 'star name from its number'),
-    'N49': ('TGET', 'almanac tables (TBL): Chebyshev lookup (not in NAVFULL_NOTBL)'),
+    'N49': ('TGET', 'almanac tables (TBL): Chebyshev lookup; used only when tables are loaded (TBL is not part of v2.2.0)'),
     'N50': ('PTXS', "TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text"),
     'N51': ('PINS', 'TEXT: whole number (one ATEXT)'),
     'N52': ('PF1S', 'TEXT: number with one decimal'),
@@ -99,8 +100,8 @@ LABELS = {
     'N73': ('CTRN', 'meridian passage from the cache'),
     'N74': ('CSET', 'sunset from the cache'),
     'N75': ('CNTP', 'nautical twilight pm from the cache'),
-    'N77': ('CEQQ', 'celestial equator of the charts: start (replay from matrix ALMQ, or compute and record)'),
-    'N78': ('CEQR', 'celestial equator of the charts: next dot (from ALMQ, or HCZR and record)'),
+    'N77': ('CEQQ', 'celestial equator of the charts: its dots for this place (U3 SKY / SPLIT, U2 ANIM / ALLSKY), computed again only for a new place'),
+    'N78': ('CEQR', 'celestial equator of the charts: the next dot (no view calls it any more)'),
     'N79': ('PTTY', 'TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text'),
     'N80': ('PTNT', 'TEXT: whole number in the tinyFont'),
     'N81': ('PSYB', 'SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol'),
@@ -191,10 +192,17 @@ def commented(L):
             if m:
                 callers.setdefault(m.group(1), []).append(owner[i])
         ind = any(l.startswith('XEQ IND') for l in Q)
+        tables = set()
         out += ['', 'REM "' + '=' * 70 + '"', 'REM "program %s"' % name]
-        for i, l in enumerate(C.indent(P)):
+        I = C.indent(P)
+        notes = {}
+        for step, nth, back, text in SC.BLOCKS.get(name, ()):
+            at = [i for i, l in enumerate(I) if l.strip() == step][nth - 1] - back
+            notes.setdefault(at, []).append(text)
+        for i, l in enumerate(I):
             pad = l[:len(l) - len(l.lstrip())]
             s = l.strip()
+            out += [pad + 'REM "%s"' % t.replace('"', "'") for t in notes.get(i, ())]
             m = re.fullmatch(r'LBL "(\w+)"', s)
             n = re.fullmatch(r'LBL (\d\d)', s)
             if m:
@@ -203,10 +211,16 @@ def commented(L):
                 continue
             if n and n.group(1) in callers:
                 who = sorted(set(callers[n.group(1)]), key=callers[n.group(1)].index)
-                out.append(pad + 'REM "routine %s (%s): called by %s"' % (n.group(1), owner[i],
-                                                                        ', '.join('%s x%d' % (w, callers[n.group(1)].count(w)) for w in who)))
-            elif n and ind:
-                out.append(pad + 'REM "entry %s of the XEQ IND table (%s)"' % (n.group(1), owner[i]))
+                what = SC.ROUTINES.get((name, n.group(1)), 'routine %s' % n.group(1)).replace('"', "'")
+                out.append(pad + 'REM "%s %s: %s (called by %s)"' % (name, n.group(1), what,
+                                                                   ', '.join('%s x%d' % (w, callers[n.group(1)].count(w)) for w in who)))
+            elif n:
+                e = SC.entry(name, n.group(1))
+                if e and e[1] not in tables:
+                    tables.add(e[1])
+                    out.append(pad + 'REM "%s"' % e[0].replace('"', "'"))
+                elif not e and ind:
+                    out.append(pad + 'REM "entry %s of the XEQ IND table (%s)"' % (n.group(1), owner[i]))
             if s.startswith('REPEAT'):
                 d, j = 0, i
                 while True:
@@ -249,9 +263,7 @@ def commented_moon(L):
         m = re.fullmatch(r'XEQ (\d\d)', l)
         if m:
             callers[m.group(1)] = callers.get(m.group(1), 0) + 1
-    tables = {'%02d' % n: 'phase name' for n in range(60, 68)}
-    tables.update({'%02d' % n: 'symbol code' for n in range(90, 98)})
-    tables.update({'%02d' % n: 'M7SY glyph' for n in range(48, 56)})
+    seen = set()
     for l in C.indent(L):
         pad = l[:len(l) - len(l.lstrip())]
         m = re.fullmatch(r'LBL (\d\d)', l.strip())
@@ -259,11 +271,15 @@ def commented_moon(L):
             out += [l, pad + 'REM "MOON47 - the Moon phase from the clock: disc, % lit, age, HP, SD, the next four phases (UT);'
                     ' +/- north / south, any other key ends"']
             continue
-        if m and m.group(1) in tables:
-            out.append(pad + 'REM "entry %s of the XEQ IND table (%s)"' % (m.group(1), tables[m.group(1)]))
+        table = [t for t in SC.MOON_TABLES if m and m.group(1) in t[0]]
+        if table:
+            if table[0][0] not in seen:
+                seen.add(table[0][0])
+                out.append(pad + 'REM "%s"' % table[0][1])
         elif m:
-            what = MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))
-            out.append(pad + 'REM "%s: called %d times"' % (what, callers.get(m.group(1), 0)))
+            what = SC.MOON.get(m.group(1), MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))).replace('"', "'")
+            n = callers.get(m.group(1), 0)
+            out.append(pad + 'REM "%s %s (called %d time%s)"' % (m.group(1), what, n, '' if n == 1 else 's'))
         out.append(l)
     return out
 

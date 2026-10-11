@@ -915,3 +915,23 @@ without copied code, all at once.
 - Mbrot.p47u (a forum program, not in the repo), asked whether STRUCT makes it faster: no (11 steps a round in
   place of 10, ENDDO searches twice). Faster: the cardioid / bulb test (58 % of the inner rounds, same image) and
   the per-pixel named recalls hoisted. Pending list and hand-off: build/dev/struct_src/HANDOFF.txt (and HANDOFF.md).
+
+## Oct 11, 2026 - v2.2.0 "Struct on Attack": the C47-only release from the STRUCT build (branch release-v2.2.0-struct)
+- Victor tested ALMA47 / NAVINIT / MOON47 on the calculator: works, faster. The release is C47 / R47 only (STRUCT);
+  Free42 / DM42 stay on v2.1.0 (build/, build/free42/ untouched). TBL is not part of it; NAVINIT_FULL is.
+- tools/build_release_c47.py -> build/c47/: ALMA47.txt (NAV named ALMA47), NAVINIT_FAST / _FULL.txt (INIT named
+  NAVINIT), MOON47.txt, ALMA47_LABELS.txt (the global labels, the routines you can call after leaving with EXIT, the
+  numbers in R43-R98), QUICKSTART.txt; the .p47 from the plain listings (steps only), checked equal to what rejig makes
+  from the .p47u; build/Almanac47_C47_R47_v2.2.0.zip (not in git) with the manual of build/manuals/.
+- Found: rejig turns a '#' line (or a line starting with ';') of a .p47u into a REM step (the old ALMA47.p47u's 180
+  '#' lines were REMs on the calculator: memory, and steps every RTN walks). Only an end-of-line ';' comment is dropped.
+  build_forum.py now writes every comment after ';' on a step (the '@' header is dropped too): ALMA47.p47u gives the
+  same .p47 as the plain listing (27 565 bytes). C64FX.p47u (53 '#' lines) still has REMs.
+- tools/struct_comments.py: what each numbered routine does (149 in NAVFULL, MOON47's), the XEQ IND tables, the
+  labels nothing reaches (NAV 09, PSYS 94 95 98, PSYB 38, ALLSKY 24 25, HORZ 01 54 59 67, HALMH / ALMF 27; HORZ 01 is
+  the only caller of N78 CEQR, so CEQR is dead too). Left in the code (the tested build); a clean-up for later.
+- Simulator steps, each page with its arrows (build_struct.PROFILE), v2.1.0 -> v2.2.0: ALMANAC -18 %, SPLIT -42 %,
+  SKY -53 %, ANIM -54 %, ALLSKY -40 %, all -44 %; search work 21.2 M -> 3.2 M. docs/OPTIMIZATIONS.md section 8.
+- Manual (tools/generators/manual_nav.py): v2.2.0, C47 / R47 only, ALMA47, NAVINIT FAST / FULL, no register save,
+  the routines you can call, every global label, R43-R98; pictures docs/c47/ (c47_struct_shots.py; docs/ keeps the
+  v2.1.0 ones for the Free42 manual).

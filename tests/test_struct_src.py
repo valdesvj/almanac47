@@ -6,7 +6,8 @@
      NAVFULL_COMMENTED.txt the same steps with REM lines
   2. every page (FULL, FAST, three dates and places, hour arrows) and the menu's keys pixel for pixel
      build/dev/struct/18_hourglass, the stack clear at the end; how many structures the pages entered
-  3. build/forum/ALMA47.p47u (NAV named ALMA47), NAVINIT.p47u (tools/build_forum.py): the header, the main label, the same steps
+  3. build/forum/ALMA47.p47u (NAV named ALMA47), NAVINIT.p47u, NAVINIT_FULL.p47u, MOON47.p47u (tools/build_forum.py): the
+     header, the main label, the same steps, comments only after ';'; build/c47/ (tools/build_release_c47.py)
   4. MOON47 (programs_struct/MOON47.txt, one program): the build, the page pixel for pixel build/dev/moon/1_labels
      and python/moon47.py at 16 dates and time zones, north and south
   5. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
@@ -120,21 +121,31 @@ def places(B_, n):
 
 def forum(L):
     """build/forum/*.p47u (tools/build_forum.py): the release's PROGRAMS format; the steps those of NAVFULL.txt and
-    NAVINIT_FAST.txt (its label INIT named NAVINIT)."""
+    NAVINIT_FAST / _FULL.txt (their label INIT named NAVINIT); the comments only after ';' (a '#' line or a line that
+    starts with ';' would be a REM step on the calculator). build/c47/ (tools/build_release_c47.py): the plain
+    listings, steps only."""
     import build_forum as F
-    print('== build/forum/ (the PROGRAMS folder of the C47 release)')
-    for fname, want in (('%s.p47u' % F.MAIN, ['LBL "%s"' % F.MAIN] + L[1:]), ('NAVINIT.p47u', ['LBL "NAVINIT"'] + lines(os.path.join(ROOT, 'build', 'NAVINIT_FAST.txt'))[1:]),
-                        ('MOON47.p47u', B.build_moon())):
+    import build_release_c47 as R
+    print('== build/forum/ (the PROGRAMS folder of the C47 release) and build/c47/ (v2.2.0)')
+    init = lambda k: ['LBL "NAVINIT"'] + lines(os.path.join(ROOT, 'build', 'NAVINIT_%s.txt' % k))[1:]
+    for fname, want in (('%s.p47u' % F.MAIN, ['LBL "%s"' % F.MAIN] + L[1:]), ('NAVINIT.p47u', init('FAST')),
+                        ('NAVINIT_FULL.p47u', init('FULL')), ('MOON47.p47u', B.build_moon())):
         p = os.path.join(F.OUT, fname)
         txt = open(p, encoding='utf-8').read().split('\n')
         head = [l for l in txt if l.startswith('@')]
-        steps = [l.strip() for l in txt if l.strip() and not l.startswith('@') and not l.strip().startswith('#')]
+        body = [l for l in txt if l.strip() and not l.startswith('@')]
+        steps = [l.split(';')[0].strip() for l in body]
         ok(any(re.match(r'@ Index:\s+\S', l) for l in head) and txt[0].startswith('@ Index:'), '%s: @ Index: first' % fname)
+        ok(not any(l.strip().startswith(('#', ';', 'REM')) for l in body), '%s: no comment line (no REM steps)' % fname)
         glob = [l for l in steps if l.startswith('LBL "')]
-        ok(glob[0] == 'LBL "%s"' % fname[:-5] and (fname != 'MOON47.p47u' or glob == ['LBL "MOON47"']),
-           '%s: the main label is the file name%s' % (fname, ' (and the only global one)' if fname == 'MOON47.p47u' else ''))
+        main = 'NAVINIT' if fname == 'NAVINIT_FULL.p47u' else fname[:-5]
+        ok(glob[0] == 'LBL "%s"' % main and (fname != 'MOON47.p47u' or glob == ['LBL "MOON47"']),
+           '%s: the main label is %s%s' % (fname, main, ' (and the only global one)' if fname == 'MOON47.p47u' else ''))
         ok(steps == want, '%s: the steps of the build (%d)' % (fname, len(steps)))
         ok(not any(l.startswith('GTO') for l in steps), '%s: no GTO' % fname)
+    for name, want in (('ALMA47', ['LBL "ALMA47"'] + L[1:]), ('NAVINIT_FAST', init('FAST')), ('NAVINIT_FULL', init('FULL')),
+                       ('MOON47', B.build_moon())):
+        ok(lines(os.path.join(R.OUT, name + '.txt')) == want, 'build/c47/%s.txt: the steps of the build, nothing else' % name)
 
 
 def moon(n):

@@ -1,20 +1,25 @@
 @ Index:   Matrices for ALMA47, valid 2026-2030
 @ Author:  Victor Valdes
-@ Version: 2.2
+@ Version: 2.2.0
 @ Source:  https://github.com/valdesvj/almanac47
-@ Tested:  C47 simulator (python/c47sim.py): ends with MATRICES READY: FAST 2026-2030; ALMA47's views then as v2
+@ Tested:  on the C47 by the author (Oct 2026); C47 simulator: ends with MATRICES READY: FAST 2026-2030
 @ Input:   none
-@ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the caches ALMC, ALMQ)
+@ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the cache ALMC)
 @ Output:  and the message MATRICES READY: FAST 2026-2030
 @
 @ Run once with ALMA47 loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
 @ Run it again only for a new period.
 @
-@ Memory: this is the FAST set, a series fitted to 2026-2030 (smaller and faster). The full package also has
-@ NAVINIT_FULL (VSOP87 and Meeus series, 2000-2050, about twice the memory) and the almanac tables TBL (1 or 5
-@ years); they are not supplied here because of the memory they need. All of them are in the source repository.
+@ Memory: this is the FAST set, a series fitted to 2026-2030 (smaller and faster). NAVINIT_FULL.p47u builds the
+@ FULL set (2000-2050, about twice the memory) under the same program name: load one of the two.
 @
-LBL "NAVINIT"
+@ The matrices (each a series, its rows the terms):
+@   VL VB VR     the Earth for the Sun (L B R; FULL: VSOP87, FAST: fitted to 2026-2030)
+@   EEL EEB EER  the Earth for the planets; VNL.. Venus, MAL.. Mars, JUL.. Jupiter, SAL.. Saturn (L B R)
+@   ML MB        the Moon: longitude and distance, latitude (Meeus ch. 47); MCL MCB extra terms fitted to JPL DE421
+@   NU           nutation;  ST the star catalogue (58 stars: RA, Dec, proper motion)
+@
+LBL "NAVINIT"           ; NAVINIT - builds the matrices of ALMA47 (FAST), then the cache ALMC and the message
 XEQ 01
 XEQ 02
 XEQ 03
@@ -40,7 +45,7 @@ STO "VAL"
 CLSTK
 "MATRICES READY: FAST 2026-2030"
 RTN
-LBL 01
+LBL 01                  ; routine 01: builds NU
 10
 ENTER
 9
@@ -256,7 +261,7 @@ J+
 STOEL
 J+
 RTN
-LBL 02
+LBL 02                  ; routine 02: builds ST
 58
 ENTER
 4
@@ -960,7 +965,7 @@ J+
 STOEL
 J+
 RTN
-LBL 03
+LBL 03                  ; routine 03: builds ML MB MCL MCB
 60
 ENTER
 10
@@ -4010,7 +4015,7 @@ STOEL
 J+
 J+
 RTN
-LBL 04
+LBL 04                  ; routine 04: builds VL VB VR EEL EEB EER VNL VNB VNR MAL MAB MAR JUL JUB JUR SAL SAB SAR
 23
 ENTER
 5
