@@ -912,3 +912,6 @@ without copied code, all at once.
   ENDDO (the steps are those c47struct.structure gives), the REM text of C64FX_rem as the '@' header and '#' lines.
 - C64FX.p47u back to the original code (Victor): the two loops LBL 02 / LBL 06 with DSE + GTO again, no STRUCT;
   the steps are exactly C64FX.txt's (195), the header and '#' comments kept.
+- Mbrot.p47u (a forum program, not in the repo), asked whether STRUCT makes it faster: no (11 steps a round in
+  place of 10, ENDDO searches twice). Faster: the cardioid / bulb test (58 % of the inner rounds, same image) and
+  the per-pixel named recalls hoisted. Pending list and hand-off: build/dev/struct_src/HANDOFF.md.
