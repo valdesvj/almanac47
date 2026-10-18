@@ -12,6 +12,9 @@
      and python/moon47.py at 16 dates and time zones, north and south
   5. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
 
+  6. programs_struct/next/ (the next version, tools/build_next.py): its build, every page pixel for pixel as v2.2.0,
+     your stack, LASTx and R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT against python/native
+
   python3 tests/test_struct_src.py [n]      (n random cases, default 16)
 """
 import os, random, re, sys
@@ -65,9 +68,9 @@ def source():
     return L
 
 
-def pages(B_):
+def pages(B_, title='build/dev/struct_src', picks=False):
     import test_v2 as V
-    print('== build/dev/struct_src against 18_hourglass')
+    print('== %s against 18_hourglass' % title)
     A = V.lines(REF)
     ran = set()
     cases = [('FULL', ('2026.1004', '9.30', '25.20', '55.12')), ('FAST', ('2027.0315', '3.30', '-33.54', '18.25')),
@@ -91,6 +94,8 @@ def pages(B_):
     for keys, what in (([K['up'], K['down'], K['down'], K[1], K['+'], K[0]], 'menu: arrows, ALMANAC'),
                        ([54, 52, 53, 85, K[3], K['+'], K[0]], 'menu: 9 SNAP, 7, 8, +, SKY'),
                        ([K[6], K['up'], K['+'], K[0]], 'INFO, arrow'),
+                       ([K[2], K['down'], K[0], K[9], K['up'], K['+'], K[4], K['+'], K[0]], 'SPLIT, 0 and 9 on the view, ANIM')
+                       if picks else                     # next: a key 1-8 on SPLIT picks a body (keys())
                        ([K[2], K['down'], K[4], K[4], K['up'], K['+'], K[0]], 'SPLIT, a digit back to the menu, ANIM'),
                        ([11, 21, 31, 41, 71, 81, K[1], K['+'], K[0]], 'menu: keys that are no view')):
         a = V.session(A, keys, 'FULL', False, marks=False)
@@ -100,9 +105,9 @@ def pages(B_):
     print('  structures entered on these pages: %d of %d' % (len([i for i in st if i in ran]), len(st)))
 
 
-def places(B_, n):
+def places(B_, n, title='build/dev/struct_src'):
     import test_v2 as V
-    print('== build/dev/struct_src against 18_hourglass at %d random dates and places' % n)
+    print('== %s against 18_hourglass at %d random dates and places' % (title, n))
     A = V.lines(REF)
     rnd = random.Random(7)
     for t in range(n):
@@ -267,6 +272,90 @@ def moon_dm42(n):
            '%02d-%02d-%04d %05.2f h TZ %-5s north and south pixel for pixel the STRUCT MOON47, X = Y = 0' % (d, m, y, h, tz))
 
 
+def next_version(n):
+    """programs_struct/next/ (tools/build_next.py, apart from the v2.2.0 release): its build, NAV's registers only in
+    R07-R98; every page pixel for pixel 18_hourglass as v2.2.0; the stack, the registers and the keys 1-8 (keys())."""
+    import build_next as NX
+    print('== programs_struct/next/ (the next version, build/dev/next/)')
+    L = B.build_next()
+    ok(NX.listing() == lines(os.path.join(NX.OUT, 'ALMA47.txt')) == ['LBL "ALMA47"'] + L[1:],
+       'build/dev/next/ALMA47.txt is the build of programs_struct/next/ (NAV named ALMA47)')
+    P = [l.split(';')[0].strip() for l in open(os.path.join(NX.OUT, 'ALMA47.p47u'), encoding='utf-8').read().split('\n')
+         if l.strip() and not l.startswith('@')]
+    ok(P == ['LBL "ALMA47"'] + L[1:], 'build/dev/next/ALMA47.p47u: the same steps, the comments after ;')
+    st = B.stats(L)
+    print('  %d steps (v2.2.0 %d), %d labels, IF %d, DO %d, REPEAT %d, GTO %d'
+          % (st['steps'], len(B.build()), st['labels'], st['IF'], st['DO'], st['REPEAT'], st['GTO']))
+    keys(L)
+    pages(L, 'programs_struct/next', picks=True)
+    places(L, n, 'programs_struct/next')
+
+
+def keys(L_):
+    """Your stack and registers, and the keys 1-8 (programs_struct/next): NAV keeps the stack you had (X Y Z T and
+    LASTx; the simulator has 4 levels, the 8 of the C47 are the same code), clears only its block R07-R98 (R-CLR 7.92;
+    R00-R06 and R99 stay yours) and leaves none of its variables K*; on ALMANAC and SPLIT a key 1-8 ends NAV with Z the
+    text 'NAME Zn ddd.d Hc dd mm.m', Y Zn, X Hc of that row, the same bodies and values as python/native
+    (c47screen21 bodies, the PC almanac), your stack above them."""
+    import test_v2 as V
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen as PS
+    import c47screen21 as N
+    from c47view import jd
+    print('== your stack, your registers, the keys 1-8 on ALMANAC and SPLIT')
+    K = V.K
+    mine = {'%d' % r: D(1000 + r) for r in list(range(0, 7)) + [99]}
+
+    def run(keys, inp, init='FULL'):
+        c = V.T.load(L_, init)
+        for k, v in inp:
+            c.reg[k] = D(v)
+        for k, v in mine.items():
+            c.reg[k] = v
+        for r in range(7, 99):
+            c.reg['%d' % r] = D(-r)                     # in NAV's block: cleared at the end
+        c.flags.add(81); c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []
+        c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+        regs = all(c.reg.get(k) == v for k, v in mine.items()) and not any('%d' % r in c.reg for r in range(7, 99))
+        left = [k for k in list(c.reg) + list(c.mats) if k in ('KB', 'KC', 'KD', 'KI', 'KJ', 'KN', 'KT', 'KZ', 'KH')]
+        return c, regs and not left
+
+    def dm(v):
+        v = float(v); d = int(abs(v)); return (1 if v >= 0 else -1) * (d + (abs(v) - d) * 100 / 60)
+
+    def text(name, zn, hc):
+        n = int(float(zn) * 10 + 0.5) % 3600
+        t = int(abs(float(hc)) * 600 + 0.5)
+        return '%s Zn %03d.%d Hc %s%d %02d.%d' % (name, n // 10, n % 10, '-' if hc < 0 else '', t // 600, t % 600 // 10, t % 10)
+    inp = (('DATE', '2026.1004'), ('UTC', '9.30'), ('LAT', '25.20'), ('LON', '55.12'))
+    for keys_, what in (([K[0]], 'menu, 0'), ([K[1], K['up'], K['+'], K[3], K['+'], K[0]], 'ALMANAC, an arrow, SKY, 0'),
+                        ([K[5], K['+'], K[6], K['+'], K[0]], 'ALLSKY, INFO, 0')):
+        c, regs = run(keys_, inp)
+        ok(c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99) and regs,
+           '%s: your X Y Z T and LASTx back, R00-R06 and R99 kept, R07-R98 cleared, no K* variable left' % what)
+    for case in (('2026.1004', '9.30', '25.20', '55.12'), ('2027.0315', '3.30', '-33.54', '18.25'),
+                 ('2026.1020', '22.10', '60.10', '-5.00')):
+        inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), case))
+        y, md = case[0].split('.')
+        h, mi = case[1].split('.')
+        al = PS.Almanac(jd(int(y), int(md[:2]), int(md[2:]), int(h) + int(mi) / 60), dm(case[2]), dm(case[3]))
+        rows = N.bodies(al)
+        for view, vname in ((1, 'ALMANAC'), (2, 'SPLIT')):
+            good = []
+            for d in range(1, 9):
+                c, regs = run([K[view], K[d]], inp)
+                if d > len(rows):
+                    good.append(c.s == [D(11), D(12), D(13), D(14)] and regs)      # no such row: the view stays,
+                    continue                                                       # the keys run out: NAV ends
+                i, g, de, hc, zn = rows[d - 1]
+                name = PS.body_name(i)
+                good.append(regs and c.lastx == D(99) and c.s[3] == D(11) and c.s[2] == text(name, c.s[1], c.s[0])
+                            and abs(float(c.s[0]) - hc) * 60 < 0.05 and abs(float(c.s[1]) - zn) < 0.01)
+            ok(all(good), '%s %s %s: keys 1-8 -> Z %s ..., Y Zn, X Hc as python/native (%d rows), your X in T'
+               % (case[0], case[2], vname, PS.body_name(rows[0][0]), len(rows)))
+
+
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
@@ -276,6 +365,7 @@ def main():
     moon_dm42(n)
     pages(L)
     places(L, n)
+    next_version(n)
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 

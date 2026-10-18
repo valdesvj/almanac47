@@ -1,0 +1,358 @@
+LBL "N80"
+STO 31
+R↓
+STO 16
+R↓
+STO 28
+RCL 31
+ABS
+RCL 56
++
+IP
+XEQ 02
+RCL 28
+RCL 16
+RCL 25
+⇄ zyxt
+X<>Y
+RCL 50
+GRFNT
+DROP
+ATEXT Z
+21
+GRFNT
+DROP
+RTN
+LBL 01
+STO 27
+RCL 50
+÷
+IP
+αIP 25
+RCL 27
+XEQ 08
+RTN
+LBL "N54"
+STO 27
+R↓
+STO 16
+R↓
+STO 28
+RCL 27
+ABS
+600
+×
+RCL 56
++
+IP
+STO 29
+600
+÷
+IP
+STO 24
+600
+×
+STO- 29
+99
+RCL 24
+X≤Y?
+IF
+  " "
+  STO 25
+  9
+  RCL 24
+  X≤Y?
+  IF
+    " "
+    x→α 25
+  ENDIF
+  XEQ 06
+  x→α 25
+ELSE
+  XEQ 06
+  STO 25
+ENDIF
+RCL 24
+αIP 25
+" "
+x→α 25
+RCL 29
+RCL 50
+÷
+IP
+XEQ 01
+"."
+x→α 25
+RCL 29
+RCL 50
+MOD
+αIP 25
+XEQ 05
+RTN
+LBL "N55"
+STO 24
+R↓
+STO 16
+R↓
+STO 28
+RCL 24
+J→ⅅℸ
+R↓
+STO 25
+DAY
+STO 24
+RCL 25
+MONTH
+STO 27
+RCL 25
+YEAR
+STO 29
+RCL 24
+RCL 50
+÷
+IP
+CLα 25
+αIP 25
+RCL 24
+RCL 50
+MOD
+αIP 25
+"-"
+x→α 25
+RCL 27
+XEQ 01
+"-"
+x→α 25
+RCL 29
+αIP 25
+XEQ 05
+RTN
+LBL "N53"
+STO 25
+R↓
+STO 16
+R↓
+STO 28
+RCL 25
+98
+X≥Y?
+IF
+  RCL 25
+  RCL 57
+  ×
+  RCL 56
+  +
+  IP
+  STO 24
+  RCL 57
+  ÷
+  IP
+  RCL 70
+  MOD
+  STO 29
+  RCL 50
+  ÷
+  IP
+  CLα 25
+  αIP 25
+  RCL 29
+  RCL 50
+  MOD
+  αIP 25
+  ":"
+  x→α 25
+  RCL 24
+  RCL 57
+  MOD
+  XEQ 01
+ELSE
+  "--:--"
+  STO 25
+ENDIF
+XEQ 05
+RTN
+LBL "N51"
+STO 24
+R↓
+STO 16
+R↓
+STO 28
+RCL 24
+ABS
+RCL 56
++
+IP
+XEQ 02
+XEQ 05
+RTN
+LBL 02
+STO 27
+CLα 25
+αIP 25
+RTN
+LBL "N79"
+⇄ zyxt
+X<>Y
+LBL 03
+RCL 50
+GRFNT
+DROP
+ATEXT Z
+21
+GRFNT
+DROP
+RTN
+LBL "N50"
+LBL 04
+⇄ zyxt
+RCL 66
+-
+X<>Y
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+RTN
+LBL "N56"
+STO 25
+R↓
+STO 16
+R↓
+STO 28
+RCL 25
+RCL 50
+×
+RCL 56
++
+IP
+STO 29
+RCL 54
+X≤Y?
+XEQ 07
+RCL 29
+1000
+÷
+IP
+CLα 25
+αIP 25
+RCL 29
+RCL 50
+÷
+IP
+RCL 64
+MOD
+XEQ 01
+"."
+x→α 25
+RCL 29
+XEQ 08
+XEQ 05
+RTN
+LBL "N52"
+STO 24
+R↓
+STO 16
+R↓
+STO 28
+RCL 24
+ABS
+RCL 50
+×
+RCL 56
++
+IP
+STO 24
+RCL 50
+÷
+IP
+XEQ 02
+"."
+x→α 25
+RCL 24
+XEQ 08
+LBL 05
+RCL 28
+RCL 16
+RCL 25
+⇄ zyxt
+RCL 66
+-
+X<>Y
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+RTN
+LBL "N57"
+STO 22
+R↓
+STO 16
+R↓
+STO 25
+RCL 25
+CHS
+RCL 46
+PIXEL
+RCL 22
+400
+X>Y?
+IF
+  WSIZE 8
+  2
+  GRMOD
+  1#2
+  STO 15
+  400
+  RCL- 22
+  RCL- 16
+  STO 22
+  X≠0?
+  IF
+    RCL 25
+    400
+    RCL- 22
+    DO
+      AGRAPH 15
+      DSE 22
+    WHILE
+    ENDDO
+  ENDIF
+  RCL 16
+  STO 22
+  X≠0?
+  IF
+    RCL 25
+    RCL 46
+    DO
+      AGRAPH 15
+      DSE 22
+    WHILE
+    ENDDO
+  ENDIF
+  RCL 46
+  GRMOD
+ENDIF
+WSIZE 64
+RCL 25
+RCL 16
+RTN
+LBL 06
+RCL 27
+X≥0?
+IF
+  " "
+  RTN
+ENDIF
+"-"
+RTN
+LBL 07
+RCL 46
+STO 29
+RTN
+LBL 08
+RCL 50
+MOD
+αIP 25
+END

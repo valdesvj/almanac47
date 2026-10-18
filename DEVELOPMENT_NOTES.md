@@ -958,3 +958,41 @@ without copied code, all at once.
 - Then back in (Victor: c43 pulled, STRUCT is there): the DM42 zip again from build/c47/dm42/ (NAVLITTLE, its reduced
   NAVINIT_LITTLE, MOON47 of moon_dm42, README_DM42.txt). The docs say STRUCT is in DM42 packages 1-3 (c43 9fb8f6316
   defines.h) and not in package 4, the one in the 05.00a0.ALPHA release assets.
+
+## Oct 18, 2026 - Your stack and registers kept, keys 1-8 push a body (branch stack-keys, from v2.2.0)
+APART FROM THE RELEASE (Victor: an additional version, v2.2.0 not modified): the new source is programs_struct/next/
+(the 26 programs + PICK), built by tools/build_next.py into build/dev/next/ (ALMA47.txt, ALMA47.p47u); programs_struct/,
+build/c47/, build/forum/, the manual and the release tools stay v2.2.0. build_struct_src.build(src, order, regs),
+build_next(); regblock --write works on programs_struct/next/; test_struct_src next_version() (the keys, the stack, the
+registers, every page pixel for pixel); test_fw_c47 is v2.2.0's again. What follows describes the next version.
+Task from the Elements 47 session (ALMANAC47_STACK_KEYS_TASK.md). Victor's answers: registers renumbered into one
+block (then: the block R07-R98, measured), Z one text with Y Zn and X Hc in decimal degrees, each view's own rows, a
+body below the horizon pushed too.
+- Registers: ALMA47 needs 92 registers at once (56 are the numbers stored at its start in R43-R98). tools/regblock.py
+  (regalloc's webs, conflicts and DSatur, with the STRUCT jumps added to its control flow; GRMOD nn is no register)
+  renumbers NAV into R07-R98: the numbers R43-R98 and the DR of the run (R13 longitude, R14 latitude: the routines
+  you can call read them) keep theirs, the other values share R07-R42. The end clears only that block: R-CLR 7.92 in
+  place of CLREGS (registers.c fnRegClr: X = sss.nn). R00-R06 and R99 stay yours. build_struct_src checks that NAV
+  uses only REGS = R07-R98 and that its R-CLR says so. regblock --write only when a register below the block is in
+  use: an already numbered listing gives other webs (other numbers for nothing).
+- Stack: LocR 09 at NAV's own level, the 8 levels (STO / R↓) into R.00-R.07 and LASTx (RCL L) into R.08 before
+  anything else; at the end RCL R.08 STO L, then RCL R.07 ... R.00. CLSTK at the end gone. The end itself is NAV 13
+  (screen, work variables, font, your stack size, R-CLR), shared by 0 and a key 1-8.
+- Keys 1-8 on ALMANAC and SPLIT: each table row records its ALMC row, Hc and Zn (N03, called by ALMF / HALMH 01 after
+  the Zn: XEQ 13 / 12, the Hc box, uses R05) in the matrix KB (N02 makes it empty before each draw). WPLS: on views 1
+  and 2 (V3 < 3) a key 1-8 of a drawn row goes back to NAV (N05: row = IP(key / 10), column = key MOD 10, |column - 3|
+  <= 1, |row - 6| <= 1, number 3 (7 - row) + column - 1 <= rows drawn). NAV: KD set -> N07 (the name: SUN MOON and the
+  planets by ALMC row 1-6, a star by SNMU; KT = 'NAME Zn ddd.d Hc dd mm.m' as the screen rounds them), the end (13),
+  your stack, then Z KT, Y Zn, X Hc. New program PICK (N02 N03 N05 N07), 9006 steps (+272); the variables K* are
+  deleted at the end. Steps run: ALMANAC and SPLIT about +2 % (the recording), SKY +0.3 %.
+- c47sim: R-CLR, RCL L / STO L (LASTx). The simulator has a 4-level stack: the 8 levels are tested by the firmware
+  test only (tests/test_fw_c47.py: the end clears only R07-R98; X..D and LASTx back after 0 and after a key; the body
+  on top after a key 1-8).
+- tests/test_struct_src.py keys(): your X Y Z T and LASTx back, R00-R06 / R99 kept, R07-R98 cleared, no K* left (menu,
+  ALMANAC + arrow + SKY, ALLSKY + INFO); keys 1-8 on ALMANAC and SPLIT at three places: the text, Zn and Hc of the
+  rows of python/native (c47screen21.bodies, the PC almanac), within 0.05' and 0.01 deg (found equal). The old case
+  "SPLIT, a digit back to the menu" is now SPLIT with 0 and 9 on the view (a digit picks a body). Pixel for pixel
+  18_hourglass as before (3 places, menu keys, 16 random cases).
+- Docs of the release unchanged (v2.2.0); the next version has build/dev/next/README.txt and its .p47u header ('@
+  Tested:' says simulator only). Its comments: only the global labels (the routine comments of struct_comments name
+  the v2.2.0 register numbers).
