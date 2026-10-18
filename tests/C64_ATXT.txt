@@ -1,0 +1,249 @@
+LBL "C64"
+REM "C64 - tribute to the 8-bit home computers, text with ATEXT tiny font (8-row height)"
+REM "Pre-setup text strings in registers for ATEXT rendering"
+"**** C47/R47 BASIC V2 ****"
+STO 40
+"64K RAM SYSTEM  38911 BASIC BYTES FREE"
+STO 41
+"READY."
+STO 42
+"R"
+STO 43
+"U"
+STO 44
+"N"
+STO 45
+"BREAK IN 47"
+STO 46
+REM "The dark border, as before: AGRAPH columns and PIXEL lines (negative = whole line)"
+CLLCD
+WSIZE 32
+0
+STO 34
+GRMOD 34
+1111111111111111#2
+STO 32
+400
+STO 35
+0
+0
+LBL 04
+AGRAPH 32
+DSE 35
+GTO 04
+16.224016
+STO 35
+LBL 07
+RCL 35
+IP
+0
+AGRAPH 32
+ISG 35
+GTO 07
+1.039
+STO 35
+LBL 01
+RCL 35
+IP
+CHS
+0
+X<>Y
+PIXEL
+RCL 35
+IP
+360
++
+CHS
+0
+X<>Y
+PIXEL
+ISG 35
+GTO 01
+-360
+0
+X<>Y
+PIXEL
+16.019
+STO 35
+LBL 02
+RCL 35
+IP
+CHS
+0
+PIXEL
+ISG 35
+GTO 02
+220.239
+STO 35
+LBL 08
+RCL 35
+IP
+CHS
+0
+PIXEL
+ISG 35
+GTO 08
+REM "Boot text: match original C64 layout with better centering"
+REM "Title at row 204, col 140 (more centered)"
+CLSTK
+204
+140
+10
+GRFNT
+DROP
+ATEXT 40
+20
+GRFNT
+DROP
+REM "RAM info at row 188, col 100 (more centered)"
+188
+100
+10
+GRFNT
+DROP
+ATEXT 41
+20
+GRFNT
+DROP
+REM "READY at row 172, col 70 (more centered)"
+172
+70
+10
+GRFNT
+DROP
+ATEXT 42
+20
+GRFNT
+DROP
+PAUSE 10
+REM "Cursor blinks 3 times at row 164, col 70 (centered)"
+164
+70
+XEQ 94
+XEQ 94
+XEQ 94
+REM "Type RUN - each letter with cursor blink"
+164
+70
+10
+GRFNT
+DROP
+ATEXT 43
+20
+GRFNT
+DROP
+XEQ 92
+REM "After R, position is on stack; display U then cursor"
+10
+GRFNT
+DROP
+ATEXT 44
+20
+GRFNT
+DROP
+XEQ 92
+REM "After U, display N then cursor"
+10
+GRFNT
+DROP
+ATEXT 45
+20
+GRFNT
+DROP
+XEQ 92
+PAUSE 8
+REM "BREAK message at row 148, col 70 (centered)"
+148
+70
+10
+GRFNT
+DROP
+ATEXT 46
+20
+GRFNT
+DROP
+REM "Final READY at row 140, col 70 (centered)"
+140
+70
+10
+GRFNT
+DROP
+ATEXT 42
+20
+GRFNT
+DROP
+REM "Reset to normal screen view with WSIZE 64 to show border"
+WSIZE 64
+REM "Cursor blinks until key pressed at row 132, col 70 (centered)"
+132
+70
+STO 37
+R↓
+STO 38
+LBL 03
+RCL 38
+RCL 37
+XEQ 93
+PAUSE 3
+KEY? 39
+GTO 03
+REM "Erase cursor before clearing screen"
+RCL 38
+RCL 37
+XEQ 93
+CLLCD
+CLSTK
+RTN
+REM "LBL 92: cursor blinks for 0.3 s after typed letter; Y row and X column stay on stack"
+LBL 92
+STO 37
+R↓
+STO 38
+RCL 38
+RCL 37
+XEQ 93
+PAUSE 3
+RCL 38
+RCL 37
+XEQ 93
+RCL 38
+RCL 37
+RTN
+REM "LBL 93: toggle cursor with AGRAPH and GRMOD 3 (XOR) - keeps XOR mode"
+LBL 93
+STO 36
+R↓
+STO 35
+3
+STO 34
+GRMOD 34
+11111111#2
+STO 32
+RCL 35
+RCL 36
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+AGRAPH 32
+RTN
+REM "LBL 94: one blink of cursor at Y row, X column (0.5 s on, 0.5 s off); leaves Y and X"
+LBL 94
+STO 37
+R↓
+STO 38
+RCL 38
+RCL 37
+XEQ 93
+PAUSE 5
+RCL 38
+RCL 37
+XEQ 93
+PAUSE 5
+RCL 38
+RCL 37
+RTN
+END

@@ -1,0 +1,15 @@
+LBL "MARIOT"
+REM "Super Mario Bros. opening with TONE (plays in the PC simulator), in A, an octave down"
+TONE 3
+TONE 3
+PAUSE 1
+TONE 3
+PAUSE 1
+TONE 1
+TONE 3
+PAUSE 1
+TONE 5
+PAUSE 4
+TONE 0
+RTN
+END

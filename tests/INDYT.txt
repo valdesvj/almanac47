@@ -1,0 +1,52 @@
+LBL "INDYT"
+REM "Raiders March with TONE (plays in the PC simulator too): 10 fixed notes of 250 ms"
+REM "in A major; a long note = the tone and a short silence (PAUSE n tenths)"
+TONE 3
+TONE 4
+TONE 5
+TONE 8
+PAUSE 3
+TONE 2
+TONE 3
+TONE 4
+PAUSE 7
+TONE 5
+TONE 6
+TONE 7
+TONE 4
+PAUSE 3
+TONE 6
+TONE 7
+TONE 8
+PAUSE 1
+TONE 2
+PAUSE 1
+TONE 9
+PAUSE 1
+TONE 3
+TONE 4
+TONE 5
+TONE 8
+PAUSE 3
+TONE 2
+TONE 9
+TONE 4
+PAUSE 3
+TONE 5
+TONE 5
+TONE 9
+PAUSE 1
+TONE 2
+TONE 5
+TONE 9
+PAUSE 1
+TONE 2
+TONE 5
+TONE 4
+PAUSE 1
+TONE 9
+TONE 2
+TONE 8
+PAUSE 3
+RTN
+END
