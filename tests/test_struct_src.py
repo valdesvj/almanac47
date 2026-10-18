@@ -91,7 +91,7 @@ def pages(B_):
     for keys, what in (([K['up'], K['down'], K['down'], K[1], K['+'], K[0]], 'menu: arrows, ALMANAC'),
                        ([54, 52, 53, 85, K[3], K['+'], K[0]], 'menu: 9 SNAP, 7, 8, +, SKY'),
                        ([K[6], K['up'], K['+'], K[0]], 'INFO, arrow'),
-                       ([K[2], K['down'], K[4], K[4], K['up'], K['+'], K[0]], 'SPLIT, a digit back to the menu, ANIM'),
+                       ([K[2], K['down'], K[0], K[9], K['up'], K['+'], K[4], K['+'], K[0]], 'SPLIT, 0 and 9 (SNAP) on the view, ANIM'),
                        ([11, 21, 31, 41, 71, 81, K[1], K['+'], K[0]], 'menu: keys that are no view')):
         a = V.session(A, keys, 'FULL', False, marks=False)
         b = V.session(B_, keys, 'FULL', False, marks=False)
@@ -267,9 +267,75 @@ def moon_dm42(n):
            '%02d-%02d-%04d %05.2f h TZ %-5s north and south pixel for pixel the STRUCT MOON47, X = Y = 0' % (d, m, y, h, tz))
 
 
+def keys(L_):
+    """Your stack and registers, and the keys 1-8 (v2.3.0): NAV keeps the stack you had (X Y Z T and LASTx; the
+    simulator has 4 levels, the 8 of the C47 are the same code), clears only its block R07-R98 (R-CLR 7.92; R00-R06
+    and R99 stay yours) and leaves none of its variables K*; on ALMANAC and SPLIT a key 1-8 ends NAV with Z = the text
+    'NAME Zn ddd.d Hc dd mm.m', Y = Zn, X = Hc of that row, the same bodies and values as python/native (c47screen21
+    bodies, the PC almanac), your stack above them."""
+    import test_v2 as V
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen as PS
+    import c47screen21 as N
+    from c47view import jd
+    print('== your stack, your registers, the keys 1-8 on ALMANAC and SPLIT')
+    K = V.K
+    mine = {'%d' % r: D(1000 + r) for r in list(range(0, 7)) + [99]}
+
+    def run(keys, inp, init='FULL'):
+        c = V.T.load(L_, init)
+        for k, v in inp:
+            c.reg[k] = D(v)
+        for k, v in mine.items():
+            c.reg[k] = v
+        for r in range(7, 99):
+            c.reg['%d' % r] = D(-r)                     # in NAV's block: cleared at the end
+        c.flags.add(81); c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []
+        c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+        regs = all(c.reg.get(k) == v for k, v in mine.items()) and not any('%d' % r in c.reg for r in range(7, 99))
+        left = [k for k in list(c.reg) + list(c.mats) if k in ('KB', 'KC', 'KD', 'KI', 'KJ', 'KN', 'KT', 'KZ', 'KH')]
+        return c, regs and not left
+
+    def dm(v):
+        v = float(v); d = int(abs(v)); return (1 if v >= 0 else -1) * (d + (abs(v) - d) * 100 / 60)
+
+    def text(name, zn, hc):
+        n = int(float(zn) * 10 + 0.5) % 3600
+        t = int(abs(float(hc)) * 600 + 0.5)
+        return '%s Zn %03d.%d Hc %s%d %02d.%d' % (name, n // 10, n % 10, '-' if hc < 0 else '', t // 600, t % 600 // 10, t % 10)
+    inp = (('DATE', '2026.1004'), ('UTC', '9.30'), ('LAT', '25.20'), ('LON', '55.12'))
+    for keys_, what in (([K[0]], 'menu, 0'), ([K[1], K['up'], K['+'], K[3], K['+'], K[0]], 'ALMANAC, an arrow, SKY, 0'),
+                        ([K[5], K['+'], K[6], K['+'], K[0]], 'ALLSKY, INFO, 0')):
+        c, regs = run(keys_, inp)
+        ok(c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99) and regs,
+           '%s: your X Y Z T and LASTx back, R00-R06 and R99 kept, R07-R98 cleared, no K* variable left' % what)
+    for case in (('2026.1004', '9.30', '25.20', '55.12'), ('2027.0315', '3.30', '-33.54', '18.25'),
+                 ('2026.1020', '22.10', '60.10', '-5.00')):
+        inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), case))
+        y, md = case[0].split('.')
+        h, mi = case[1].split('.')
+        al = PS.Almanac(jd(int(y), int(md[:2]), int(md[2:]), int(h) + int(mi) / 60), dm(case[2]), dm(case[3]))
+        rows = N.bodies(al)
+        for view, vname in ((1, 'ALMANAC'), (2, 'SPLIT')):
+            good = []
+            for d in range(1, 9):
+                c, regs = run([K[view], K[d]], inp)
+                if d > len(rows):
+                    good.append(c.s == [D(11), D(12), D(13), D(14)] and regs)      # no such row: the view stays,
+                    continue                                                       # the keys run out: NAV ends
+                i, g, de, hc, zn = rows[d - 1]
+                name = PS.body_name(i)
+                good.append(regs and c.lastx == D(99) and c.s[3] == D(11) and c.s[2] == text(name, c.s[1], c.s[0])
+                            and abs(float(c.s[0]) - hc) * 60 < 0.05 and abs(float(c.s[1]) - zn) < 0.01)
+            ok(all(good), '%s %s %s: keys 1-8 -> Z %s ..., Y Zn, X Hc as python/native (%d rows), your X in T'
+               % (case[0], case[2], vname, PS.body_name(rows[0][0]), len(rows)))
+
+
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
+    keys(L)
     forum(L)
     moon(n)
     little(n)

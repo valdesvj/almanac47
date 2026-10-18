@@ -5,7 +5,26 @@ REM "without the REM lines it is NAVFULL.txt step for step. Labels: build/NAVFUL
 REM "======================================================================"
 REM "program NAV"
 LBL "NAV"
-REM "NAV - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program"
+REM "NAV - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept (R-CLR 7.92); the only named program"
+REM "your stack (X ... D) and LASTx into the local registers R.00-R.08 of NAV's own level: given back at the end"
+LocR 09
+STO R.00
+R↓
+STO R.01
+R↓
+STO R.02
+R↓
+STO R.03
+R↓
+STO R.04
+R↓
+STO R.05
+R↓
+STO R.06
+R↓
+STO R.07
+RCL L
+STO R.08
 REM "the numbers used most, once into R43-R98: each use is then a 2-byte RCL"
 1
 STO 43
@@ -123,6 +142,7 @@ REM "your stack size kept in 'F0'; the 8-level stack while it runs (the fonts re
 SSIZE#
 STO "F0"
 SSIZE8
+XEQ "N02"
 REM "work variables of the run; i and i pi/180 as complex numbers ('C1' 'C2') for the series"
 RCL 85
 STO "U0"
@@ -304,13 +324,13 @@ RCL 46
 STO "W4"
 REM "the four inputs: DATE in the calculator's date format, UTC, LAT, LON"
 "DATE YYYY.MMDD"
-STO 02
+STO 07
 FS? 'DMY'
 XEQ 10
 FS? 'MDY'
 XEQ 11
 CLSTK
-RCL 02
+RCL 07
 INPUT "DATE"
 CLSTK
 "UT HH.MMSS"
@@ -335,22 +355,22 @@ DO 01
   DO 02
     REM "waits for a key: PAUSE 50 shows the screen, KEY? reads the key"
     PAUSE 50
-    KEY? 08
+    KEY? 17
   WHILE 02
   ENDDO 02
-  RCL 08
+  RCL 17
   RCL 87
   X≠Y?
 WHILE 01
   REM "9 (key code 54): SNAP"
-  RCL 08
+  RCL 17
   54
   X=Y?
   IF 03
     SNAP
   ELSE 03
     REM "the arrows (key codes 51 / 61): one hour later / earlier, the sky again, the menu"
-    RCL 08
+    RCL 17
     56
     -
     ABS
@@ -358,7 +378,7 @@ WHILE 01
     X=Y?
     IF 04
       56
-      RCL- 08
+      RCL- 17
       5
       ÷
       STO+ "W4"
@@ -367,21 +387,21 @@ WHILE 01
       XEQ 04
     ELSE 04
       REM "keys 1-6 by arithmetic: the row and the column of the key code (72 73 74 / 62 63 64)"
-      RCL 08
+      RCL 17
       RCL 50
       MOD
-      STO 12
+      STO 11
       3
       -
       ABS
       1
       X≥Y?
       IF 05
-        RCL 08
+        RCL 17
         RCL 50
         ÷
         IP
-        STO 02
+        STO 13
         6.5
         -
         ABS
@@ -389,34 +409,34 @@ WHILE 01
         X=Y?
         IF 06
           7
-          RCL- 02
+          RCL- 13
           RCL 51
           ×
-          RCL+ 12
+          RCL+ 11
           RCL 43
           -
-          STO 02
+          STO 11
           STO "V3"
           6
           X=Y?
           IF 07
             174
-            STO 12
+            STO 11
             202
-            STO 02
+            STO 13
             XEQ 08
             PAUSE 0
             XEQ 06
           ELSE 07
-            RCL 02
+            RCL 11
             28
             ×
             202
             X<>Y
             -
-            STO 12
+            STO 11
             12
-            STO 02
+            STO 13
             XEQ 08
             PAUSE 0
             XEQ 06
@@ -424,11 +444,12 @@ WHILE 01
           REM "the view, drawn again after each arrow while it is shown (+ goes back to the menu)"
           DO 03
             RCL 46
-            STO 08
+            STO 17
             RCL 43
             RCL "V3"
             X=Y?
             IF 08
+              XEQ "N02"
               XEQ 02
               XEQ "N01"
             ELSE 08
@@ -436,6 +457,7 @@ WHILE 01
               RCL "V3"
               X=Y?
               IF 09
+                XEQ "N02"
                 XEQ 02
                 XEQ "N06"
               ELSE 09
@@ -537,21 +559,45 @@ WHILE 01
                 ENDIF 10
               ENDIF 09
             ENDIF 08
-            RCL 08
+            REM "a key 1-8 on ALMANAC or SPLIT (WPLS gives it back): the body of that row (N07), the end (13), your stack, then Z its text, Y its Zn, X its Hc"
+            RCL "KD"
+            X≠0?
+            IF 13
+              XEQ "N07"
+              XEQ 13
+              RCL R.08
+              STO L
+              RCL R.07
+              RCL R.06
+              RCL R.05
+              RCL R.04
+              RCL R.03
+              RCL R.02
+              RCL R.01
+              RCL R.00
+              RCL "KT"
+              RCL "KZ"
+              RCL "KH"
+              DELITM "KT"
+              DELITM "KZ"
+              DELITM "KH"
+              RTN
+            ENDIF 13
+            RCL 17
             56
             -
             ABS
             5
             X=Y?
-            IF 13
+            IF 14
               56
-              RCL- 08
+              RCL- 17
               5
               ÷
               STO+ "W4"
-            ENDIF 13
+            ENDIF 14
             XEQ 06
-            RCL 08
+            RCL 17
             56
             -
             ABS
@@ -565,23 +611,18 @@ WHILE 01
     ENDIF 04
   ENDIF 03
 ENDDO 01
-REM "0: the end - the work variables deleted, your stack size back, CLREGS, CLSTK"
-CLLCD
-DELITM "Q2"
-DELITM "U2"
-DELITM "U3"
-DELITM "C1"
-DELITM "C2"
-DELITM "HT"
-RCL 55
-GRFNT
-DROP
-RCL "F0"
-RCL 66
-X=Y?
-SSIZE4
-CLREGS
-CLSTK
+REM "0: the end (13), then your stack and LASTx back"
+XEQ 13
+RCL R.08
+STO L
+RCL R.07
+RCL R.06
+RCL R.05
+RCL R.04
+RCL R.03
+RCL R.02
+RCL R.01
+RCL R.00
 RTN
 REM "NAV 01: bottom of the menu and INFO: a line and DOES NOT REPLACE THE NAUTICAL ALMANAC (called by NAV x2)"
 LBL 01
@@ -607,19 +648,19 @@ x→ⅅ
 ⅅ→J
 RCL 56
 -
-STO 02
+STO 19
 RCL "UTC"
 10000
 ×
 RCL 56
 +
 IP
-STO 03
+STO 13
 RCL 64
 MOD
 RCL 54
 ÷
-RCL 03
+RCL 13
 RCL 64
 ÷
 IP
@@ -628,28 +669,28 @@ MOD
 RCL 57
 ÷
 +
-RCL 03
+RCL 13
 10000
 ÷
 IP
 +
-STO 03
+STO 13
 RCL 70
 ÷
-STO+ 02
+STO+ 19
 RCL "W4"
 RCL 70
 ÷
-STO+ 02
+STO+ 19
 RCL "LAT"
 XEQ 07
-STO 03
+STO 13
 RCL "LON"
 XEQ 07
-STO 04
-RCL 02
-RCL 03
-RCL 04
+STO 18
+RCL 19
+RCL 13
+RCL 18
 RTN
 REM "NAV 03: the sky for the time in use: DR into R13 R14, sin / cos lat ('V6' 'W1'), Sun from the cache (CSUN: computes the whole sky only for a new time or place), the five sun times (CNTA) (called by NAV x2)"
 LBL 03
@@ -658,7 +699,7 @@ STO 13
 R↓
 STO 14
 R↓
-STO 17
+STO 09
 RCL 14
 RCL 43
 →REC
@@ -666,9 +707,9 @@ STO "V6"
 X<>Y
 STO "W1"
 X<>Y
-RCL 17
+RCL 09
 XEQ "N64"
-RCL 17
+RCL 09
 RCL 56
 -
 IP
@@ -678,7 +719,7 @@ RCL 14
 RCL 13
 XEQ "N71"
 RCL 43
-STO 22
+STO 13
 RTN
 REM "NAV 04: draws the menu: ALMANAC 47, VALID (the matrices' period), the header, items 1-6 and 0 END, the key line (called by NAV x3)"
 LBL 04
@@ -702,9 +743,9 @@ RCL 66
 X<>Y
 RCL "VAL"
 XEQ "N50"
-RCL 04
-RCL 03
-RCL 02
+RCL 18
+RCL 13
+RCL 19
 206
 XEQ "N83"
 200
@@ -782,36 +823,36 @@ GRMOD
 105
 110
 111111111111111111111111111111#2
-STO 03
+STO 13
 R↓
-AGRAPH 03
-AGRAPH 03
+AGRAPH 13
+AGRAPH 13
 110000000000000000000000000011#2
-STO 03
+STO 19
 R↓
 22
-STO 07
+STO 13
 R↓
 DO 04
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  DSE 07
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  DSE 13
 WHILE 04
 ENDDO 04
 111111111111111111111111111111#2
-STO 03
+STO 13
 R↓
-AGRAPH 03
-AGRAPH 03
+AGRAPH 13
+AGRAPH 13
 RCL 46
 GRMOD
-STO 04
+STO 13
 WSIZE 64
 "SINKING....ABOUT"
 110
@@ -837,55 +878,55 @@ X<>Y
 RCL 46
 FS? 47
 RCL 55
-STO 02
+STO 18
 XEQ 05
-RCL 02
+RCL 18
 X=0?
 RTN
 DO 05
   WSIZE 16
   RCL 51
-  STO 03
+  STO 11
   GRMOD 03
   RAN#
   390
   ×
   IP
-  STO 06
+  STO 24
   RAN#
   RCL 62
   ×
   IP
   RCL 55
   +
-  STO 12
-  RCL 12
-  RCL 06
+  STO 11
+  RCL 11
+  RCL 24
   XEQ 12
   00111100111111#2
-  STO 03
+  STO 13
   R↓
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
   XEQ 12
   RCL 46
-  STO 03
+  STO 13
   GRMOD 03
   WSIZE 64
   PAUSE 1
-  DSE 02
+  DSE 18
 WHILE 05
 ENDDO 05
 RTN
 REM "NAV 07: D.MMm -> decimal degrees (called by NAV x2)"
 LBL 07
-STO 04
+STO 18
 IP
-RCL 04
+RCL 18
 FP
 RCL 64
 ×
@@ -897,51 +938,76 @@ REM "NAV 08: highlights the menu item just chosen (XOR, GRMOD 1) (called by NAV 
 LBL 08
 WSIZE 18
 RCL 51
-STO 01
+STO 16
 GRMOD 01
 1111111111111111#2
-STO 01
-RCL 12
-RCL 02
+STO 16
+RCL 11
+RCL 13
 17
-STO 02
+STO 13
 R↓
 DO 06
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  DSE 02
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  DSE 13
 WHILE 06
 ENDDO 06
 RCL 46
-STO 01
+STO 16
 GRMOD 01
 WSIZE 64
 RTN
 REM "NAV 10: DATE prompt in the D.MY date format (called by NAV x1)"
 LBL 10
 "DATE DD.MMYYYY"
-STO 02
+STO 07
 RTN
 REM "NAV 11: DATE prompt in the M.DY date format (called by NAV x1)"
 LBL 11
 "DATE MM.DDYYYY"
-STO 02
+STO 07
 RTN
 REM "NAV 12: two columns of what lives in 06 (called by NAV x2)"
 LBL 12
 11000000000000#2
-STO 03
+STO 13
 R↓
-AGRAPH 03
-AGRAPH 03
+AGRAPH 13
+AGRAPH 13
+REM "NAV 13: the end: the screen cleared, the work variables deleted, the font and your stack size back, NAV's registers R07-R98 cleared (R-CLR 7.92: R00-R06 and R99 stay yours) (called by NAV x2)"
+LBL 13
+CLLCD
+DELITM "Q2"
+DELITM "U2"
+DELITM "U3"
+DELITM "C1"
+DELITM "C2"
+DELITM "HT"
+DELITM "KB"
+DELITM "KC"
+DELITM "KD"
+DELITM "KI"
+DELITM "KJ"
+DELITM "KN"
+RCL 55
+GRFNT
+DROP
+RCL "F0"
+RCL 66
+X=Y?
+SSIZE4
+7.92
+R-CLR
+RTN
 END
 
 REM "======================================================================"
@@ -955,12 +1021,12 @@ RCL "SXK"
 X=0?
 XEQ 01
 RCL "SXD"
-RCL× 03
+RCL× 31
 RCL "SXA"
 +
 STO "YSA"
 XEQ 02
-RCL 02
+RCL 38
 XEQ 04
 [M]⊤
 RCL "YC4"
@@ -1018,12 +1084,12 @@ INDEX "ALMC"
 RCL 51
 STOIJ
 58
-STO 25
+STO 12
 -98
 DO 01
   STOEL
   I+
-  DSE 25
+  DSE 12
 WHILE 01
 ENDDO 01
 DELITM "YSA"
@@ -1105,11 +1171,11 @@ STO "SXK"
 RTN
 REM "CALC 02: the rotation matrix of precession and nutation for the date ('YMT') (called by CALC x1)"
 LBL 02
-RCL 00
+RCL 36
 CHS
 XEQ 05
 STO "YMT"
-RCL 04
+RCL 32
 RCL÷ 54
 CHS
 XEQ 04
@@ -1193,7 +1259,7 @@ RCL "U8"
 STO "YX"
 X<>Y
 STO "YY"
-RCL 15
+RCL 12
 1
 →REC
 STO "YZ"
@@ -1355,20 +1421,20 @@ REM "======================================================================"
 REM "program PTXS"
 LBL "N80"
 REM "PTNT - TEXT: whole number in the tinyFont"
-STO 07
+STO 31
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 31
 ABS
 RCL 56
 +
 IP
 XEQ 02
-RCL 10
-RCL 01
-RCL 11
+RCL 28
+RCL 16
+RCL 25
 ⇄ zyxt
 X<>Y
 RCL 50
@@ -1379,166 +1445,166 @@ ATEXT Z
 GRFNT
 DROP
 RTN
-REM "PTXS 01: appends X as two digits (00-99) to the text in R11 (called by PDMS x1, PDTS x1, PHMS x1, PZNS x1)"
+REM "PTXS 01: appends X as two digits (00-99) to the text in R25 (called by PDMS x1, PDTS x1, PHMS x1, PZNS x1)"
 LBL 01
-STO 07
+STO 27
 RCL 50
 ÷
 IP
-αIP 11
-RCL 07
+αIP 25
+RCL 27
 XEQ 08
 RTN
 LBL "N54"
 REM "PDMS - TEXT: degrees and minutes 'ddd mm.m' with sign"
-STO 07
+STO 27
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 27
 ABS
 600
 ×
 RCL 56
 +
 IP
-STO 16
+STO 29
 600
 ÷
 IP
-STO 06
+STO 24
 600
 ×
-STO- 16
+STO- 29
 99
-RCL 06
+RCL 24
 X≤Y?
 IF 01
   " "
-  STO 11
+  STO 25
   9
-  RCL 06
+  RCL 24
   X≤Y?
   IF 02
     " "
-    x→α 11
+    x→α 25
   ENDIF 02
   XEQ 06
-  x→α 11
+  x→α 25
 ELSE 01
   XEQ 06
-  STO 11
+  STO 25
 ENDIF 01
-RCL 06
-αIP 11
+RCL 24
+αIP 25
 " "
-x→α 11
-RCL 16
+x→α 25
+RCL 29
 RCL 50
 ÷
 IP
 XEQ 01
 "."
-x→α 11
-RCL 16
+x→α 25
+RCL 29
 RCL 50
 MOD
-αIP 11
+αIP 25
 XEQ 05
 RTN
 LBL "N55"
 REM "PDTS - TEXT: date 'dd-mm-yyyy' from a Julian Date"
-STO 07
+STO 24
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 24
 J→ⅅℸ
 R↓
-STO 11
+STO 25
 DAY
-STO 06
-RCL 11
+STO 24
+RCL 25
 MONTH
-STO 07
-RCL 11
+STO 27
+RCL 25
 YEAR
-STO 16
-RCL 06
+STO 29
+RCL 24
 RCL 50
 ÷
 IP
-CLα 11
-αIP 11
-RCL 06
+CLα 25
+αIP 25
+RCL 24
 RCL 50
 MOD
-αIP 11
+αIP 25
 "-"
-x→α 11
-RCL 07
+x→α 25
+RCL 27
 XEQ 01
 "-"
-x→α 11
-RCL 16
-αIP 11
+x→α 25
+RCL 29
+αIP 25
 XEQ 05
 RTN
 LBL "N53"
 REM "PHMS - TEXT: hh:mm from hours"
-STO 07
+STO 25
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 25
 98
 X≥Y?
 IF 03
-  RCL 07
+  RCL 25
   RCL 57
   ×
   RCL 56
   +
   IP
-  STO 06
+  STO 24
   RCL 57
   ÷
   IP
   RCL 70
   MOD
-  STO 16
+  STO 29
   RCL 50
   ÷
   IP
-  CLα 11
-  αIP 11
-  RCL 16
+  CLα 25
+  αIP 25
+  RCL 29
   RCL 50
   MOD
-  αIP 11
+  αIP 25
   ":"
-  x→α 11
-  RCL 06
+  x→α 25
+  RCL 24
   RCL 57
   MOD
   XEQ 01
 ELSE 03
   "--:--"
-  STO 11
+  STO 25
 ENDIF 03
 XEQ 05
 RTN
 LBL "N51"
 REM "PINS - TEXT: whole number (one ATEXT)"
-STO 07
+STO 24
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 24
 ABS
 RCL 56
 +
@@ -1546,11 +1612,11 @@ IP
 XEQ 02
 XEQ 05
 RTN
-REM "PTXS 02: starts the text in R11 with the whole number X (called by PTNT x1, PINS x1, PF1S x1)"
+REM "PTXS 02: starts the text in R25 with the whole number X (called by PTNT x1, PINS x1, PF1S x1)"
 LBL 02
-STO 16
-CLα 11
-αIP 11
+STO 27
+CLα 25
+αIP 25
 RTN
 LBL "N79"
 REM "PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text"
@@ -1580,28 +1646,28 @@ X<>Y
 RTN
 LBL "N56"
 REM "PZNS - TEXT: azimuth 'ddd.d'"
-STO 07
+STO 25
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 25
 RCL 50
 ×
 RCL 56
 +
 IP
-STO 16
+STO 29
 RCL 54
 X≤Y?
 XEQ 07
-RCL 16
+RCL 29
 1000
 ÷
 IP
-CLα 11
-αIP 11
-RCL 16
+CLα 25
+αIP 25
+RCL 29
 RCL 50
 ÷
 IP
@@ -1609,39 +1675,39 @@ RCL 64
 MOD
 XEQ 01
 "."
-x→α 11
-RCL 16
+x→α 25
+RCL 29
 XEQ 08
 XEQ 05
 RTN
 LBL "N52"
 REM "PF1S - TEXT: number with one decimal"
-STO 07
+STO 24
 R↓
-STO 01
+STO 16
 R↓
-STO 10
-RCL 07
+STO 28
+RCL 24
 ABS
 RCL 50
 ×
 RCL 56
 +
 IP
-STO 06
+STO 24
 RCL 50
 ÷
 IP
 XEQ 02
 "."
-x→α 11
-RCL 06
+x→α 25
+RCL 24
 XEQ 08
-REM "PTXS 05: writes the text in R11 at row R10, column R01 (ATEXT in GRFNT 21) -> Y row, X next column (called by PDMS x1, PDTS x1, PHMS x1, PINS x1, PZNS x1)"
+REM "PTXS 05: writes the text in R25 at row R28, column R16 (ATEXT in GRFNT 21) -> Y row, X next column (called by PDMS x1, PDTS x1, PHMS x1, PINS x1, PZNS x1)"
 LBL 05
-RCL 10
-RCL 01
-RCL 11
+RCL 28
+RCL 16
+RCL 25
 ⇄ zyxt
 RCL 66
 -
@@ -1654,16 +1720,16 @@ X<>Y
 RTN
 LBL "N57"
 REM "PHLS - horizontal line (X = length in pixels)"
-STO 05
+STO 22
 R↓
-STO 01
+STO 16
 R↓
-STO 07
-RCL 07
+STO 25
+RCL 25
 CHS
 RCL 46
 PIXEL
-RCL 05
+RCL 22
 400
 X>Y?
 IF 04
@@ -1671,31 +1737,31 @@ IF 04
   2
   GRMOD
   1#2
-  STO 09
+  STO 15
   400
-  RCL- 05
-  RCL- 01
-  STO 05
+  RCL- 22
+  RCL- 16
+  STO 22
   X≠0?
   IF 05
-    RCL 07
+    RCL 25
     400
-    RCL- 05
+    RCL- 22
     DO 01
-      AGRAPH 09
-      DSE 05
+      AGRAPH 15
+      DSE 22
     WHILE 01
     ENDDO 01
   ENDIF 05
-  RCL 01
-  STO 05
+  RCL 16
+  STO 22
   X≠0?
   IF 06
-    RCL 07
+    RCL 25
     RCL 46
     DO 02
-      AGRAPH 09
-      DSE 05
+      AGRAPH 15
+      DSE 22
     WHILE 02
     ENDDO 02
   ENDIF 06
@@ -1703,12 +1769,12 @@ IF 04
   GRMOD
 ENDIF 04
 WSIZE 64
-RCL 07
-RCL 01
+RCL 25
+RCL 16
 RTN
-REM "PTXS 06: the sign of R07: a space or '-' (called by PDMS x2)"
+REM "PTXS 06: the sign of R27: a space or '-' (called by PDMS x2)"
 LBL 06
-RCL 07
+RCL 27
 X≥0?
 IF 07
   " "
@@ -1719,31 +1785,31 @@ RTN
 REM "PTXS 07: an azimuth of 360.0 written as 000.0 (called by PZNS x1)"
 LBL 07
 RCL 46
-STO 16
+STO 29
 RTN
 REM "PTXS 08: appends the last digit of X (called by PTNT x1, PZNS x1, PF1S x1)"
 LBL 08
 RCL 50
 MOD
-αIP 11
+αIP 25
 END
 
 REM "======================================================================"
 REM "program HANIM"
 LBL "N61"
 REM "HANIM - view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)"
-STO 24
-R↓
-STO 17
-R↓
 STO 19
-RCL 70
-STO 18
-RCL 56
+R↓
+STO 09
+R↓
 STO 20
-RCL 17
+RCL 70
+STO 21
+RCL 56
+STO 08
+RCL 09
 STO 14
-RCL 24
+RCL 19
 STO 13
 RCL 14
 RCL 43
@@ -1753,8 +1819,8 @@ X<>Y
 STO "W1"
 X<>Y
 RCL 46
-STO 23
-RCL 17
+STO 22
+RCL 09
 X<0?
 XEQ 14
 CLLCD
@@ -1779,7 +1845,7 @@ STOIJ
 ENTER
 1
 M.GETM
-RCL 23
+RCL 22
 +
 RCL 45
 MOD
@@ -1822,19 +1888,19 @@ M.PUTM
 ENTER
 STOIJ
 60
-STO 02
+STO 24
 DO 01
   RCLSEQ
   RCLSEQ
   POINT
-  DSE 02
+  DSE 24
 WHILE 01
 ENDDO 01
 DELITM "QP"
 DELITM "QX"
 DELITM "QY"
 RCL 46
-STO 22
+STO 18
 3
 ENTER
 4
@@ -1849,54 +1915,54 @@ XEQ 02
 23
 XEQ 02
 REPEAT 01
-  RCL 22
-  RCL× 20
+  RCL 18
+  RCL× 08
   RCL 70
   ÷
-  RCL+ 19
-  STO 28
+  RCL+ 20
+  STO 30
   XEQ 06
   XEQ 01
   XEQ "N32"
-  STO 02
+  STO 32
   XEQ 03
-  RCL 09
-  STO 03
-  RCL 05
-  STO 29
+  RCL 15
+  STO 17
+  RCL 24
+  STO 14
   XEQ 15
   XEQ "N32"
   XEQ 03
-  RCL 09
-  STO 40
-  RCL 05
-  STO 04
+  RCL 15
+  STO 31
+  RCL 24
+  STO 23
   224
   RCL 46
   CLLCDxy
-  RCL 24
-  RCL 17
-  RCL 28
+  RCL 19
+  RCL 09
+  RCL 30
   RCL 73
   XEQ "N83"
   "NIGHT"
-  STO 05
+  STO 29
   179
-  STO 28
+  STO 30
   -12
-  RCL 02
+  RCL 32
   X>Y?
   XEQ 07
-  RCL 02
+  RCL 32
   X>0?
   XEQ 08
   "S"
-  STO 41
+  STO 32
   FS? 11
   XEQ 12
   FS? 12
   XEQ 13
-  RCL 41
+  RCL 32
   RCL 73
   RCL- 66
   RCL 94
@@ -1905,35 +1971,35 @@ REPEAT 01
   RCL 66
   +
   X<>Y
-  RCL 22
+  RCL 18
   X≠0?
   XEQ 04
-  RCL 05
-  STO 21
-  RCL 28
-  STO 25
+  RCL 29
+  STO 10
+  RCL 30
+  STO 12
   XEQ 04
-  RCL 03
+  RCL 17
   RCL 51
   -
-  RCL 29
+  RCL 14
   RCL 51
   -
   "@"
   XEQ "N82"
-  RCL 40
+  RCL 31
   RCL 51
   -
-  RCL 04
+  RCL 23
   RCL 51
   -
   "("
   XEQ "N82"
   PAUSE 0
   RCL 43
-  STO+ 22
+  STO+ 18
+  RCL 21
   RCL 18
-  RCL 22
   X≥Y?
 UNTIL 01
 DELITM "AQ"
@@ -1962,26 +2028,26 @@ INDEX "AQL"
 1
 ENTER
 STOIJ
-RCL 22
+RCL 18
 12
 -
-RCL 22
+RCL 18
 23
 -
 ×
 276
 ÷
 STOSEQ
-RCL 22
-RCL 22
+RCL 18
+RCL 18
 23
 -
 ×
 -132
 ÷
 STOSEQ
-RCL 22
-RCL 22
+RCL 18
+RCL 18
 12
 -
 ×
@@ -2012,24 +2078,24 @@ RTN
 REM "HANIM 02: the Sun (SUNF) and the Moon (a short series) at the hour X of the animation (called by HANIM x3)"
 LBL 02
 STO "AQK"
-RCL× 20
+RCL× 08
 RCL÷ 70
-RCL+ 19
-STO 28
+RCL+ 20
+STO 30
 XEQ 06
-RCL 28
+RCL 30
 XEQ "N17"
 XEQ 10
 STO "AQ1"
 X<>Y
 STO "AQ2"
 DEG
-RCL 08
+RCL 17
 481267.881
 ×
 218.32
 +
-RCL 08
+RCL 17
 477198.87
 ×
 135.0
@@ -2038,7 +2104,7 @@ SIN
 6.29
 ×
 +
-RCL 08
+RCL 17
 -413335.36
 ×
 259.3
@@ -2047,7 +2113,7 @@ SIN
 -1.27
 ×
 +
-RCL 08
+RCL 17
 890534.22
 ×
 235.7
@@ -2056,7 +2122,7 @@ SIN
 0.66
 ×
 +
-RCL 08
+RCL 17
 954397.74
 ×
 269.9
@@ -2065,7 +2131,7 @@ SIN
 0.21
 ×
 +
-RCL 08
+RCL 17
 35999.05
 ×
 357.5
@@ -2074,7 +2140,7 @@ SIN
 -0.19
 ×
 +
-RCL 08
+RCL 17
 966404.03
 ×
 186.5
@@ -2083,9 +2149,9 @@ SIN
 -0.11
 ×
 +
-STO 01
+STO 24
 RCL 46
-RCL 08
+RCL 17
 483202.02
 ×
 93.3
@@ -2094,7 +2160,7 @@ SIN
 5.13
 ×
 +
-RCL 08
+RCL 17
 960400.89
 ×
 228.2
@@ -2103,7 +2169,7 @@ SIN
 0.28
 ×
 +
-RCL 08
+RCL 17
 6003.15
 ×
 318.3
@@ -2112,7 +2178,7 @@ SIN
 -0.28
 ×
 +
-RCL 08
+RCL 17
 -407332.21
 ×
 217.6
@@ -2123,10 +2189,10 @@ SIN
 +
 RCL 43
 →REC
-RCL 01
+RCL 24
 X<>Y
 →REC
-STO 01
+STO 24
 R↓
 →POL
 X<>Y
@@ -2134,19 +2200,19 @@ X<>Y
 +
 X<>Y
 →REC
-RCL 01
+RCL 24
 →POL
 X<>Y
-RCL 04
+RCL 16
 X<>Y
 -
 RCL 45
 MOD
-STO 01
+STO 24
 R↓
 →POL
 X<>Y
-RCL 01
+RCL 24
 XEQ 10
 STO "AQ3"
 X<>Y
@@ -2179,10 +2245,10 @@ STOSEQ
 1
 STO+ "AQI"
 RTN
-REM "HANIM 03: a body on the whole-sky chart: column from its Zn (R05), row from sin Hc ('V4') (called by HANIM x2)"
+REM "HANIM 03: a body on the whole-sky chart: column from its Zn (R23), row from sin Hc ('V4') (called by HANIM x2)"
 LBL 03
-RCL 05
-RCL+ 23
+RCL 23
+RCL+ 22
 RCL 45
 MOD
 375
@@ -2192,31 +2258,31 @@ RCL 45
 RCL 55
 +
 IP
-STO 05
+STO 24
 RCL "V4"
 94
 ×
 118
 +
 IP
-STO 09
+STO 15
 RTN
 REM "HANIM 04: writes or erases the frame's time (XOR, GRMOD 1) (called by HANIM x2)"
 LBL 04
 RCL 51
-STO 01
+STO 16
 GRMOD 01
-RCL 21
+RCL 10
 RCL 66
 RCL- 66
-RCL 25
+RCL 12
 ATEXT Z
 X<>Y
 RCL 66
 +
 X<>Y
 RCL 46
-STO 01
+STO 16
 GRMOD 01
 RTN
 REM "HANIM 05: the chart: horizon, altitude dots, the shared axes (OUT4), the compass row (south up for S latitudes) (called by HANIM x1)"
@@ -2225,17 +2291,17 @@ LBL 05
 RCL 46
 PIXEL
 24.21203
-STO 02
+STO 24
 DO 02
-  RCL 02
+  RCL 24
   IP
   18
   PIXEL
-  ISG 02
+  ISG 24
 WHILE 02
 ENDDO 02
 XEQ "N89"
-RCL 23
+RCL 22
 X=0?
 IF 01
   108
@@ -2245,39 +2311,39 @@ ENDIF 01
 108
 XEQ "N85"
 RTN
-REM "HANIM 06: the time arguments of the hour R28: days and centuries from J2000, sidereal time (called by HANIM x2)"
+REM "HANIM 06: the time arguments of the hour R30: days and centuries from J2000, sidereal time (called by HANIM x2)"
 LBL 06
-RCL 28
+RCL 30
 RCL 90
 -
-STO 01
+STO 16
 0.000800925925925926
 +
 36525
 ÷
-STO 08
-RCL 01
+STO 17
+RCL 16
 RCL 78
 ×
 RCL 89
 +
 RCL 45
 MOD
-STO 04
+STO 16
 RTN
 REM "HANIM 07: the sky label TWILIGHT (called by HANIM x1)"
 LBL 07
 "TWILIGHT"
-STO 05
+STO 29
 168
-STO 28
+STO 30
 RTN
 REM "HANIM 08: the sky label DAY (called by HANIM x1)"
 LBL 08
 "DAY"
-STO 05
+STO 29
 186
-STO 28
+STO 30
 RTN
 REM "HANIM 09: an angle into -180 ... +180 (called by HANIM x2)"
 LBL 09
@@ -2291,7 +2357,7 @@ RTN
 REM "HANIM 10: the sidereal angle of the frame's hour taken off (called by HANIM x2)"
 LBL 10
 RCL "AQK"
-RCL× 20
+RCL× 08
 RCL÷ 70
 RCL× 78
 -
@@ -2306,17 +2372,17 @@ RTN
 REM "HANIM 12: the mark T at the top right: the tables in use (called by HANIM x1)"
 LBL 12
 "T"
-STO 41
+STO 32
 RTN
 REM "HANIM 13: the mark X at the top right: a date outside the matrices (called by HANIM x1)"
 LBL 13
 "X"
-STO 41
+STO 32
 RTN
 REM "HANIM 14: south latitude: the chart turned (south up) (called by HANIM x1)"
 LBL 14
 RCL 62
-STO 23
+STO 22
 RTN
 REM "HANIM 15: the Moon of the second set of interpolated values (called by HANIM x1)"
 LBL 15
@@ -2337,8 +2403,8 @@ RCL "AQD"
 RCL "AQQ"
 REM "HANIM 16: GHA of the frame's hour, 0-360 (called by HANIM x1)"
 LBL 16
-RCL 22
-RCL× 20
+RCL 18
+RCL× 08
 RCL÷ 70
 RCL× 78
 +
@@ -2350,29 +2416,29 @@ REM "======================================================================"
 REM "program PSYS"
 LBL "N82"
 REM "PSYS - SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol"
-STO 07
+STO 28
 R↓
-STO 01
+STO 16
 R↓
-STO 10
+STO 32
 WSIZE 14
 DO 01
-  αLENG 07
+  αLENG 28
   X≠0?
 WHILE 01
-  α→𝑥 07
-  STO 11
-  XEQ IND 11
+  α→𝑥 28
+  STO 36
+  XEQ IND 36
 ENDDO 01
 WSIZE 64
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 RTN
 REM "XEQ IND table: the symbols by character code: @ Sun, ( Moon, * star, < = > ? Venus, Mars, Jupiter, Saturn"
 REM "< Venus"
 LBL 60
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 110000#2
 XEQ 01
 1001111#2
@@ -2383,8 +2449,8 @@ XEQ 02
 RTN
 REM "= Jupiter"
 LBL 61
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 1001100#2
 R↓
 AGRAPH D
@@ -2401,8 +2467,8 @@ XEQ 02
 RTN
 REM "? Saturn"
 LBL 63
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 1000000#2
 R↓
 XEQ 03
@@ -2429,8 +2495,8 @@ AGRAPH D
 RTN
 REM "> Mars"
 LBL 62
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 1110#2
 R↓
 AGRAPH D
@@ -2446,12 +2512,12 @@ R↓
 AGRAPH D
 1110000#2
 R↓
-REM "PSYS 02: the last column of a symbol; R01 = the next column (called by PSYS x3)"
+REM "PSYS 02: the last column of a symbol; R16 = the next column (called by PSYS x3)"
 LBL 02
 AGRAPH D
 RCL 44
 +
-STO 01
+STO 16
 RTN
 REM "PSYS 03: two columns shared by the 7-row symbols (called by PSYS x2)"
 LBL 03
@@ -2462,8 +2528,8 @@ AGRAPH D
 RTN
 REM "* a star"
 LBL 42
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 10000#2
 R↓
 AGRAPH D
@@ -2487,12 +2553,12 @@ R↓
 AGRAPH D
 RCL 44
 +
-STO 01
+STO 16
 RTN
 REM "( the Moon"
 LBL 40
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 11100#2
 R↓
 AGRAPH D
@@ -2508,12 +2574,12 @@ AGRAPH D
 AGRAPH D
 RCL 44
 +
-STO 01
+STO 16
 RTN
 REM "@ the Sun"
 LBL 64
-RCL 10
-RCL 01
+RCL 32
+RCL 16
 11100#2
 R↓
 AGRAPH D
@@ -2537,7 +2603,7 @@ R↓
 AGRAPH D
 RCL 44
 +
-STO 01
+STO 16
 RTN
 END
 
@@ -2545,14 +2611,14 @@ REM "======================================================================"
 REM "program ALLSKY"
 LBL "N62"
 REM "ALLSKY - view 5 ALLSKY: whole sky, over the horizon above, under the horizon below"
-STO 20
+STO 08
 R↓
-STO 17
+STO 09
 R↓
-STO 18
-RCL 17
+STO 10
+RCL 09
 STO 14
-RCL 20
+RCL 08
 STO 13
 RCL 14
 RCL 43
@@ -2563,25 +2629,25 @@ STO "W1"
 X<>Y
 CLLCD
 RCL 46
-STO 19
-RCL 17
+STO 20
+RCL 09
 X<0?
 XEQ 08
 -118
 RCL 46
 PIXEL
 24.21203
-STO 02
+STO 11
 DO 01
-  RCL 02
+  RCL 11
   IP
   18
   PIXEL
-  ISG 02
+  ISG 11
 WHILE 01
 ENDDO 01
 XEQ "N89"
-RCL 19
+RCL 20
 X=0?
 IF 01
   108
@@ -2590,26 +2656,26 @@ ELSE 01
   108
   XEQ "N85"
 ENDIF 01
-RCL 18
+RCL 10
 XEQ "N64"
-STO 03
+STO 17
 R↓
-STO 04
-RCL 20
-RCL 17
-RCL 18
+STO 19
+RCL 08
+RCL 09
+RCL 10
 RCL 73
 XEQ "N83"
 -221
 RCL 46
 PIXEL
 "S"
-STO 22
+STO 18
 FS? 11
 XEQ 06
 FS? 12
 XEQ 07
-RCL 22
+RCL 18
 RCL 73
 RCL- 66
 RCL 94
@@ -2635,7 +2701,7 @@ STOIJ
 ENTER
 1
 M.GETM
-RCL 19
+RCL 20
 +
 RCL 45
 MOD
@@ -2678,34 +2744,34 @@ M.PUTM
 ENTER
 STOIJ
 40
-STO 01
+STO 11
 DO 02
   RCLSEQ
   RCLSEQ
   POINT
-  DSE 01
+  DSE 11
 WHILE 02
 ENDDO 02
 DELITM "QP"
 DELITM "QX"
 DELITM "QY"
-RCL 18
+RCL 10
 RCL 90
 -
 365.25
 ÷
 RCL 54
 ÷
-STO 06
+STO 24
 1.058
-STO 21
+STO 10
 DO 03
-  RCL 21
+  RCL 10
   IP
-  STO 22
+  STO 11
   XEQ "N98"
   INDEX "ALMC"
-  RCL 22
+  RCL 11
   RCL 93
   +
   STO "KR"
@@ -2716,36 +2782,36 @@ DO 03
   RCLEL
   XEQ "N69"
   XEQ 02
-  RCL 09
+  RCL 15
   RCL 51
   -
-  RCL 08
+  RCL 18
   RCL 51
   -
   "*"
   XEQ "N82"
-  RCL 08
+  RCL 18
   RCL 88
   +
-  STO 12
+  STO 11
   RCL 94
-  RCL 12
+  RCL 11
   X>Y?
   XEQ 03
-  RCL 09
+  RCL 15
   RCL 51
   -
-  RCL 12
-  RCL 21
+  RCL 11
+  RCL 10
   IP
   XEQ "N80"
-  ISG 21
+  ISG 10
 WHILE 03
 ENDDO 03
 1.004
-STO 21
+STO 10
 DO 04
-  RCL 21
+  RCL 10
   IP
   INDEX "ALMC"
   RCL 44
@@ -2758,44 +2824,44 @@ DO 04
   RCLEL
   XEQ "N69"
   XEQ 02
-  RCL 21
+  RCL 10
   IP
   70
   +
-  STO 22
+  STO 21
   XEQ 01
-  ISG 21
+  ISG 10
 WHILE 04
 ENDDO 04
 XEQ "N65"
 XEQ "N69"
 XEQ 02
 62
-STO 22
+STO 21
 XEQ 01
-RCL 04
-RCL 03
+RCL 19
+RCL 17
 XEQ "N69"
-STO 15
+STO 13
 XEQ 02
 61
-STO 22
+STO 21
 XEQ 01
 "NIGHT"
-STO 05
+STO 21
 179
-STO 22
+STO 18
 -12
-RCL 15
+RCL 13
 X>Y?
 XEQ 04
-RCL 15
+RCL 13
 X>0?
 XEQ 05
-RCL 05
+RCL 21
 RCL 66
 RCL- 66
-RCL 22
+RCL 18
 ATEXT Z
 X<>Y
 RCL 66
@@ -2803,21 +2869,21 @@ RCL 66
 X<>Y
 XEQ "N63"
 RTN
-REM "ALLSKY 01: draws the symbol of the body R22 at its place on the chart (called by ALLSKY x3)"
+REM "ALLSKY 01: draws the symbol of the body R21 at its place on the chart (called by ALLSKY x3)"
 LBL 01
-RCL 09
+RCL 15
 RCL 51
 -
-RCL 08
+RCL 18
 RCL 51
 -
-XEQ IND 22
+XEQ IND 21
 XEQ "N82"
 RTN
-REM "ALLSKY 02: a body on the whole-sky chart: column from its Zn (R05), row from sin Hc ('V4') (called by ALLSKY x4)"
+REM "ALLSKY 02: a body on the whole-sky chart: column from its Zn (R23), row from sin Hc ('V4') (called by ALLSKY x4)"
 LBL 02
-RCL 05
-RCL+ 19
+RCL 23
+RCL+ 20
 RCL 45
 MOD
 375
@@ -2827,48 +2893,48 @@ RCL 45
 RCL 55
 +
 IP
-STO 08
+STO 18
 RCL "V4"
 94
 ×
 118
 +
 IP
-STO 09
+STO 15
 RTN
 REM "ALLSKY 03: one text row lower (called by ALLSKY x1)"
 LBL 03
 RCL 49
-STO- 12
+STO- 11
 RTN
 REM "ALLSKY 04: the sky label TWILIGHT (called by ALLSKY x1)"
 LBL 04
 "TWILIGHT"
-STO 05
+STO 21
 168
-STO 22
+STO 18
 RTN
 REM "ALLSKY 05: the sky label DAY (called by ALLSKY x1)"
 LBL 05
 "DAY"
-STO 05
+STO 21
 186
-STO 22
+STO 18
 RTN
 REM "ALLSKY 06: the mark T at the top right: the tables in use (called by ALLSKY x1)"
 LBL 06
 "T"
-STO 22
+STO 18
 RTN
 REM "ALLSKY 07: the mark X at the top right: a date outside the matrices (called by ALLSKY x1)"
 LBL 07
 "X"
-STO 22
+STO 18
 RTN
 REM "ALLSKY 08: south latitude: the chart turned (south up) (called by ALLSKY x1)"
 LBL 08
 RCL 62
-STO 19
+STO 20
 RTN
 REM "XEQ IND table: the symbol character of a body (61-63 Sun, Moon, star; 71-74 the planets)"
 REM "@ the Sun"
@@ -2909,28 +2975,28 @@ IF 01
   XEQ 01
   RTN
 ENDIF 01
-STO 15
+STO 42
 DEG
-RCL 03
+RCL 31
 RCL "H2"
 X≠Y?
 XEQ 04
-RCL 15
+RCL 42
 XEQ 03
-RCL 09
+RCL 15
 RCL- "P1"
-RCL 05
+RCL 23
 RCL- "P0"
 →POL
 X<>Y
 1.3969713
-RCL× 03
+RCL× 31
 +
 X<>Y
 →REC
-STO 05
+STO 23
 R↓
-RCL 01
+RCL 40
 RCL- "P2"
 X<>Y
 →POL
@@ -2938,37 +3004,37 @@ X<>Y
 23.4393
 +
 XEQ 05
-RCL 02
+RCL 38
 X<>Y
 -
 RCL 45
 MOD
-STO 01
+STO 40
 STO "Q1"
 R↓
 →POL
-STO 25
+STO 12
 X<>Y
 STO 26
 RCL 26
-RCL 01
+RCL 40
 XEQ "N32"
 RCL 85
-RCL 09
+RCL 15
 X≤Y?
 IF 02
   RCL 46
   RCL 46
   RCL 26
-  RCL 01
+  RCL 40
   RTN
 ENDIF 02
-RCL 25
+RCL 12
 XEQ 07
 RCL 43
-STO 06
-RCL 15
-STO 09
+STO 24
+RCL 42
+STO 15
 XEQ 02
 RTN
 REM "XEQ IND table: the VSOP87 series of Venus, Mars, Jupiter, Saturn"
@@ -2976,171 +3042,171 @@ REM "Venus"
 LBL 11
 RCL "VNL"
 XEQ "N18"
-STO 01
+STO 40
 RCL "VNB"
 XEQ "N18"
-STO 05
+STO 23
 RCL "VNR"
 XEQ "N18"
-STO 08
+STO 17
 RTN
 REM "Mars"
 LBL 12
 RCL "MAL"
 XEQ "N18"
-STO 01
+STO 40
 RCL "MAB"
 XEQ "N18"
-STO 05
+STO 23
 RCL "MAR"
 XEQ "N18"
-STO 08
+STO 17
 RTN
 REM "Jupiter"
 LBL 13
 RCL "JUL"
 XEQ "N18"
-STO 01
+STO 40
 RCL "JUB"
 XEQ "N18"
-STO 05
+STO 23
 RCL "JUR"
 XEQ "N18"
-STO 08
+STO 17
 RTN
 LBL "N28"
 REM "PLN2 - planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA"
 REM "PLN2 01: PLN2: the planet from the tables (TGET) when they are loaded, else from its series (02) (called by PLN3 x1)"
 LBL 01
-STO 09
+STO 15
 FS? 10
 IF 03
-  STO 01
-  RCL 31
-  RCL 09
+  STO 23
+  RCL 30
+  RCL 15
   XEQ "N49"
   X≥0?
   IF 04
-    STO 01
+    STO 40
     R↓
-    STO 09
-    RCL 01
-    RCL- 02
+    STO 15
+    RCL 40
+    RCL- 38
     RCL 45
     +
     RCL 45
     MOD
-    STO 15
+    STO 42
     RCL 46
-    STO 05
-    RCL 05
+    STO 23
+    RCL 23
+    RCL 42
     RCL 15
-    RCL 09
-    RCL 01
+    RCL 40
     RTN
   ENDIF 04
-  RCL 01
-  STO 09
+  RCL 23
+  STO 15
 ENDIF 03
 RCL 46
-STO 08
+STO 17
 RCL 44
-STO 06
+STO 24
 REM "PLN2 02: the planet by its VSOP87 series with light-time (the Earth from 'EEL' 'EEB' 'EER') (called by PLN3 x1)"
 LBL 02
-RCL 03
+RCL 31
 RCL 50
 ÷
-STO 05
-RCL 05
-RCL 30
+STO 23
+RCL 23
+RCL 29
 X≠Y?
 IF 05
   R↓
-  STO 30
+  STO 29
   RAD
   XEQ "N19"
   RCL "EEL"
   XEQ "N18"
-  STO 01
+  STO 11
   RCL "EEB"
   XEQ "N18"
   RCL "EER"
   XEQ "N18"
   →REC
-  RCL 01
+  RCL 11
   X<>Y
   →REC
-  STO 10
+  STO 27
   R↓
-  STO 11
+  STO 28
   R↓
-  STO 16
+  STO 25
 ENDIF 05
 RAD
 DO 01
-  RCL 30
-  RCL 08
+  RCL 29
+  RCL 17
   365250
   ÷
   -
-  STO 05
+  STO 23
   XEQ "N19"
-  RCL 09
+  RCL 15
   RCL 50
   +
-  STO 01
-  XEQ IND 01
-  RCL 05
-  RCL 08
+  STO 40
+  XEQ IND 40
+  RCL 23
+  RCL 17
   →REC
-  RCL 01
+  RCL 40
   X<>Y
   →REC
-  RCL- 10
-  STO 12
+  RCL- 27
+  STO 11
   R↓
-  RCL- 11
-  STO 15
+  RCL- 28
+  STO 42
   R↓
-  RCL- 16
-  STO 05
-  RCL 15
-  RCL 12
+  RCL- 25
+  STO 23
+  RCL 42
+  RCL 11
   →POL
-  RCL 05
+  RCL 23
   X<>Y
   →POL
-  STO 01
+  STO 40
   XEQ 07
-  DSE 06
+  DSE 24
 WHILE 01
 ENDDO 01
 DEG
-RCL 15
-RCL 12
+RCL 42
+RCL 11
 →POL
 X<>Y
 RCL 45
 MOD
-STO 08
+STO 17
 R↓
-RCL 05
+RCL 23
 X<>Y
 →POL
 X<>Y
-STO 05
-RCL 08
+STO 12
+RCL 17
 1.397
-RCL× 03
+RCL× 31
 -
 RCL 43
 →REC
-STO 06
+STO 11
 X<>Y
-STO- 06
+STO- 11
 +
-RCL 05
+RCL 12
 TAN
 ×
 0.03916
@@ -3149,119 +3215,119 @@ TAN
 -
 RCL 54
 ÷
-STO+ 08
-RCL 06
+STO+ 17
+RCL 11
 0.03916
 ×
 RCL 54
 ÷
-STO+ 05
-RCL 05
+STO+ 12
+RCL 12
 RCL 43
 →REC
-STO 12
+STO 11
 X<>Y
-STO 06
-RCL 11
-RCL 10
+STO 24
+RCL 28
+RCL 27
 →POL
 X<>Y
 RCL 62
 +
-STO 09
+STO 15
 XEQ 06
 X<>Y
 R↓
 -
-RCL÷ 12
+RCL÷ 11
 20.49552
 ×
-RCL+ 04
+RCL+ 32
 RCL 54
 ÷
-STO+ 08
+STO+ 17
 XEQ 06
 R↓
-STO 09
+STO 15
 R↓
 R↓
-RCL- 09
-RCL× 06
+RCL- 15
+RCL× 24
 0.0056932
 ×
-STO+ 05
-RCL 05
+STO+ 12
+RCL 12
 RCL 43
 →REC
-RCL 08
+RCL 17
 X<>Y
 →REC
-STO 05
+STO 23
 R↓
 →POL
 X<>Y
-RCL+ 00
+RCL+ 36
 XEQ 05
 RCL 45
 MOD
-STO 09
+STO 12
 R↓
 →POL
 X<>Y
-STO 05
-RCL 02
-RCL- 09
+STO 23
+RCL 38
+RCL- 12
 RCL 45
 MOD
-STO 15
+STO 42
 STO "Q1"
 RCL 45
-RCL- 09
+RCL- 12
 RCL 45
 MOD
-STO 25
+STO 12
 8.794
-RCL÷ 01
+RCL÷ 40
 RCL 57
 ÷
-STO 09
-RCL 25
-RCL 05
-RCL 15
+STO 15
+RCL 12
+RCL 23
+RCL 42
 RTN
 REM "PLN2 03: quick position: the mean elements of the planet (LBL 60-64) and Kepler's equation (called by PLN3 x1, PLN2 x1)"
 LBL 03
 RCL 57
 +
-STO 01
-XEQ IND 01
-RCL 27
+STO 40
+XEQ IND 40
+RCL 07
 RCL- 26
-STO 27
-RCL 09
+STO 07
+RCL 15
 rad→deg
-STO 29
-RCL 27
+STO 41
+RCL 07
 SIN
-RCL× 29
-RCL+ 27
+RCL× 41
+RCL+ 07
 SIN
-RCL× 29
-RCL+ 27
+RCL× 41
+RCL+ 07
 SIN
-RCL× 29
-RCL+ 27
+RCL× 41
+RCL+ 07
 SIN
-RCL× 29
-RCL+ 27
-RCL 01
+RCL× 41
+RCL+ 07
+RCL 40
 →REC
-RCL 01
-RCL× 09
+RCL 40
+RCL× 15
 -
 X<>Y
 RCL 43
-RCL 09
+RCL 15
 X↑2
 -
 SQRT
@@ -3270,37 +3336,37 @@ X<>Y
 →POL
 X<>Y
 RCL+ 26
-RCL- 05
+RCL- 23
 X<>Y
 →REC
 X<>Y
-RCL 25
+RCL 12
 X<>Y
 →REC
 X<>Y
-STO 01
+STO 40
 R↓
 X<>Y
 →POL
 X<>Y
-RCL+ 05
+RCL+ 23
 X<>Y
 →REC
-STO 05
+STO 23
 X<>Y
-STO 09
+STO 15
 RTN
 REM "PLN2 04: the Earth's quick position, kept for this time ('P0' 'P1' 'P2') (called by PLN3 x1)"
 LBL 04
 RCL 46
 XEQ 03
-RCL 05
+RCL 23
 STO "P0"
-RCL 09
+RCL 15
 STO "P1"
-RCL 01
+RCL 40
 STO "P2"
-RCL 03
+RCL 31
 STO "H2"
 RTN
 REM "PLN2 05: ecliptic -> equatorial; the vector kept in 'H7' 'H8' 'H9' for Hc and Zn (called by PLN3 x1, PLN2 x1)"
@@ -3311,7 +3377,7 @@ STO "H7"
 X<>Y
 STO "H8"
 X<>Y
-RCL 05
+RCL 23
 STO "H9"
 →POL
 X<>Y
@@ -3319,11 +3385,11 @@ RTN
 REM "PLN2 06: the e-terms of aberration: the eccentricity ('U8') and the perihelion ('W5') of the Earth's orbit (called by PLN2 x2)"
 LBL 06
 RCL "W5"
-RCL- 08
+RCL- 17
 RCL "U8"
 →REC
-RCL 09
-RCL- 08
+RCL 15
+RCL- 17
 RCL 43
 →REC
 RTN
@@ -3331,182 +3397,182 @@ REM "Saturn"
 LBL 14
 RCL "SAL"
 XEQ "N18"
-STO 01
+STO 40
 RCL "SAB"
 XEQ "N18"
-STO 05
+STO 23
 RCL "SAR"
 XEQ "N18"
-STO 08
+STO 17
 RTN
 REM "XEQ IND table: the mean elements of the Earth, Venus, Mars, Jupiter, Saturn"
 REM "the Earth"
 LBL 60
 5.62E-6
-RCL× 03
+RCL× 31
 1.00000261
 +
-STO 01
+STO 40
 -4.392E-5
-RCL× 03
+RCL× 31
 0.01671123
 +
-STO 09
+STO 15
 -0.01294668
-RCL× 03
+RCL× 31
 -1.531E-5
 +
-STO 25
+STO 12
 35999.3724498
-RCL× 03
+RCL× 31
 100.46457166
 +
-STO 27
+STO 07
 0.32327364
-RCL× 03
+RCL× 31
 102.93768193
 +
 STO 26
 RCL 46
-STO 05
+STO 23
 RTN
 REM "Venus"
 LBL 61
 3.9E-6
-RCL× 03
+RCL× 31
 0.72333566
 +
-STO 01
+STO 40
 -4.107E-5
-RCL× 03
+RCL× 31
 0.00677672
 +
-STO 09
+STO 15
 -0.0007889
-RCL× 03
+RCL× 31
 3.39467605
 +
-STO 25
+STO 12
 58517.8153873
-RCL× 03
+RCL× 31
 181.9790995
 +
-STO 27
+STO 07
 0.00268329
-RCL× 03
+RCL× 31
 131.60246718
 +
 STO 26
 -0.27769418
-RCL× 03
+RCL× 31
 76.67984255
 +
-STO 05
+STO 23
 RTN
 REM "Mars"
 LBL 62
 1.847E-5
-RCL× 03
+RCL× 31
 1.52371034
 +
-STO 01
+STO 40
 7.882E-5
-RCL× 03
+RCL× 31
 0.0933941
 +
-STO 09
+STO 15
 -0.00813131
-RCL× 03
+RCL× 31
 1.84969142
 +
-STO 25
+STO 12
 19140.302685
-RCL× 03
+RCL× 31
 -4.55343205
 +
-STO 27
+STO 07
 0.44441088
-RCL× 03
+RCL× 31
 -23.94362959
 +
 STO 26
 -0.29257343
-RCL× 03
+RCL× 31
 49.55953891
 +
-STO 05
+STO 23
 RTN
 REM "Jupiter"
 LBL 63
 -0.00011607
-RCL× 03
+RCL× 31
 5.202887
 +
-STO 01
+STO 40
 -0.00013253
-RCL× 03
+RCL× 31
 0.04838624
 +
-STO 09
+STO 15
 -0.00183714
-RCL× 03
+RCL× 31
 1.30439695
 +
-STO 25
+STO 12
 3034.74612775
-RCL× 03
+RCL× 31
 34.39644051
 +
-STO 27
+STO 07
 0.21252668
-RCL× 03
+RCL× 31
 14.72847983
 +
 STO 26
 0.20469106
-RCL× 03
+RCL× 31
 100.47390909
 +
-STO 05
+STO 23
 RTN
 REM "Saturn"
 LBL 64
 -0.0012506
-RCL× 03
+RCL× 31
 9.53667594
 +
-STO 01
+STO 40
 -0.00050991
-RCL× 03
+RCL× 31
 0.05386179
 +
-STO 09
+STO 15
 0.00193609
-RCL× 03
+RCL× 31
 2.48599187
 +
-STO 25
+STO 12
 1222.49362201
-RCL× 03
+RCL× 31
 49.95424423
 +
-STO 27
+STO 07
 -0.41897216
-RCL× 03
+RCL× 31
 92.59887831
 +
 STO 26
 -0.28867794
-RCL× 03
+RCL× 31
 113.66242448
 +
-STO 05
+STO 23
 RTN
 REM "PLN2 07: light-time: AU -> days (called by PLN3 x1, PLN2 x1)"
 LBL 07
 0.0057755183
 ×
-STO 08
+STO 17
 END
 
 REM "======================================================================"
@@ -3518,31 +3584,31 @@ X<>Y
 RCL 43
 →REC
 X<>Y
-STO 05
+STO 15
 R↓
 →REC
 STO "V4"
 RCL× "W1"
-RCL 05
+RCL 15
 RCL× "V6"
 X<>Y
 -
 RCL "V4"
 RCL× "V6"
-RCL 05
+RCL 15
 RCL× "W1"
 +
 STO "V4"
 ASIN
-STO 09
+STO 15
 R↓
 →POL
 X<>Y
 CHS
 RCL 45
 MOD
-STO 05
-RCL 09
+STO 23
+RCL 15
 RTN
 END
 
@@ -3579,10 +3645,10 @@ INDEX "H4"
 RCL 43
 STOEL
 J+
-RCL 05
+RCL 23
 STOEL
 J+
-RCL 05
+RCL 23
 X↑2
 STOEL
 INDEX "H3"
@@ -3592,42 +3658,42 @@ STOIJ
 RCL 43
 STOEL
 J+
-RCL 05
+RCL 23
 STOEL
 RTN
 LBL "N16"
 REM "SUNG - Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)"
 FS? 10
 IF 01
-  STO 07
+  STO 31
   RCL 46
   XEQ "N49"
   X≥0?
   RTN
-  RCL 07
+  RCL 31
   LBL "N17"
   REM "SUNF - Sun, low-precision formula (0.01 deg) for sunrise/twilight"
 ENDIF 01
 DEG
 RCL 90
 -
-STO 07
+STO 31
 0.9856003
 ×
 357.528
 +
-STO 06
+STO 24
 SIN
 1.915
 ×
-RCL 06
+RCL 24
 RCL 44
 ×
 SIN
 0.02
 ×
 +
-RCL 07
+RCL 31
 0.9856474
 ×
 +
@@ -3637,21 +3703,21 @@ RCL 43
 →REC
 X<>Y
 -0.0000004
-RCL× 07
+RCL× 31
 23.439
 +
 X<>Y
 →REC
 X<>Y
-STO 06
+STO 24
 R↓
 X<>Y
 →POL
 X<>Y
-RCL 06
+RCL 24
 ASIN
 X<>Y
-RCL 07
+RCL 31
 RCL 78
 ×
 RCL 89
@@ -3664,15 +3730,15 @@ RTN
 LBL "N15"
 REM "SUNA - Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries"
 DEG
-STO 31
+STO 30
 2451544.999199074074074074074074074
 -
 36525
 ÷
-STO 03
+STO 31
 RCL 50
 ÷
-STO 05
+STO 12
 RAD
 CF 12
 INDEX "VL"
@@ -3692,10 +3758,10 @@ INDEX "H4"
 RCL 43
 STOEL
 J+
-RCL 05
+RCL 12
 STOEL
 J+
-RCL 05
+RCL 12
 X↑2
 STOEL
 INDEX "H3"
@@ -3705,7 +3771,7 @@ STOIJ
 RCL 43
 STOEL
 J+
-RCL 05
+RCL 12
 STOEL
 RCL "VL"
 XEQ 01
@@ -3714,19 +3780,19 @@ RCL 62
 +
 RCL 45
 MOD
-STO 15
+STO 12
 RCL "VB"
 XEQ 01
 rad→deg
 CHS
-STO 02
+STO 15
 RCL "VR"
 XEQ 01
 STO 39
 DEG
-RCL 15
+RCL 12
 1.397
-RCL× 03
+RCL× 31
 -
 RCL 43
 →REC
@@ -3736,59 +3802,59 @@ X<>Y
 ×
 RCL 54
 ÷
-STO+ 02
+STO+ 15
 0.09033
 RCL 54
 ÷
-STO- 15
+STO- 12
 XEQ 03
-RCL 04
+RCL 32
 20.4898
 RCL÷ 39
 -
 RCL 54
 ÷
-STO+ 15
+STO+ 12
 -46.815
-RCL× 03
+RCL× 31
 84381.448
 +
-STO 00
+STO 25
 RCL 54
 ÷
 STO "U4"
-RCL 09
-RCL+ 00
+RCL 27
+RCL+ 25
 RCL 54
 ÷
-STO 00
-RCL 02
+STO 36
+RCL 15
 RCL 43
 →REC
-RCL 15
+RCL 12
 X<>Y
 →REC
-STO 02
+STO 15
 R↓
 →POL
 X<>Y
-RCL+ 00
+RCL+ 36
 X<>Y
 →REC
 STO "F1"
 X<>Y
 STO "F2"
 X<>Y
-RCL 02
+RCL 15
 STO "F3"
 →POL
 X<>Y
-STO 09
+STO 15
 R↓
 →POL
 X<>Y
 STO 34
-RCL 31
+RCL 30
 RCL 90
 -
 ENTER
@@ -3800,17 +3866,17 @@ RCL 78
 ×
 RCL 89
 +
-RCL 04
+RCL 32
 RCL 54
 ÷
-RCL 00
+RCL 36
 COS
 ×
 +
 RCL 45
 MOD
-STO 02
-RCL- 09
+STO 38
+RCL- 15
 RCL 45
 MOD
 STO 35
@@ -3818,7 +3884,7 @@ STO "U0"
 XEQ 04
 FS? 10
 XEQ 05
-RCL 02
+RCL 38
 RCL 34
 RCL 35
 RTN
@@ -3832,35 +3898,35 @@ STO "Q3"
 STO "Q4"
 INDEX "Q3"
 445267.11148
-RCL× 03
+RCL× 31
 297.85036
 +
-STO 38
+STO 42
 STOEL
 J+
 35999.05034
-RCL× 03
+RCL× 31
 357.52772
 +
-STO 05
+STO 23
 STOEL
 J+
 477198.867398
-RCL× 03
+RCL× 31
 134.96298
 +
-STO 36
+STO 41
 STOEL
 J+
 483202.017538
-RCL× 03
+RCL× 31
 93.27191
 +
 STO 37
 STOEL
 J+
 -1934.136261
-RCL× 03
+RCL× 31
 125.04452
 +
 STOEL
@@ -3871,7 +3937,7 @@ STOIJ
 RCL 43
 STOEL
 J+
-RCL 03
+RCL 31
 STOEL
 RCL "NU"
 RCL "Q3"
@@ -3881,7 +3947,7 @@ eˣ
 STO "Q3"
 Im
 XEQ 07
-STO 04
+STO 32
 INDEX "Q4"
 RCL 93
 RCL 43
@@ -3895,59 +3961,59 @@ J+
 RCL 43
 STOEL
 J+
-RCL 03
+RCL 31
 STOEL
 RCL "Q3"
 Re
 XEQ 07
-STO 09
+STO 27
 RTN
 REM "SUNA 04: precession angles ('U5' 'U6' 'U7') and the Earth's eccentricity and perihelion ('U8' 'W5') (called by SUNA x1)"
 LBL 04
 0.01801828
-RCL× 03
+RCL× 31
 0.2988499
 +
-RCL× 03
+RCL× 31
 2306.083227
 +
-RCL× 03
+RCL× 31
 2.650545
 +
 RCL 54
 ÷
 STO "U5"
 0.01826837
-RCL× 03
+RCL× 31
 1.0927348
 +
-RCL× 03
+RCL× 31
 2306.077181
 +
-RCL× 03
+RCL× 31
 -2.650545
 +
 RCL 54
 ÷
 STO "U6"
 -0.04182264
-RCL× 03
+RCL× 31
 -0.4294934
 +
-RCL× 03
+RCL× 31
 2004.191903
 +
-RCL× 03
+RCL× 31
 RCL 54
 ÷
 STO "U7"
 -0.000042037
-RCL× 03
+RCL× 31
 0.016708634
 +
 STO "U8"
 1.71946
-RCL× 03
+RCL× 31
 102.93735
 +
 STO "W5"
@@ -3956,7 +4022,7 @@ STO "H2"
 RTN
 REM "SUNA 05: the Sun and Aries from the tables (TGET) when they are loaded (called by SUNA x1)"
 LBL 05
-RCL 31
+RCL 30
 RCL 46
 XEQ "N49"
 X<0?
@@ -3964,21 +4030,21 @@ RTN
 STO 35
 R↓
 STO 34
-RCL 31
+RCL 30
 RCL 93
 XEQ "N49"
 X<0?
 RTN
-STO 02
+STO 38
 RTN
 REM "SUNA 06: flag 12 set when the date is outside the period of the matrices (called by SUNA x1)"
 LBL 06
-RCL 31
+RCL 30
 X<Y?
 SF 12
 J+
 RCLEL
-RCL 31
+RCL 30
 X>Y?
 SF 12
 RTN
@@ -4165,12 +4231,12 @@ IF 01
   X=Y?
   IF 02
     RCLSEQ
-    STO 09
+    STO 15
     SIN
     STO "V4"
     RCLEL
-    STO 05
-    RCL 09
+    STO 23
+    RCL 15
     RTN
   ENDIF 02
 ENDIF 01
@@ -4236,27 +4302,27 @@ X≤Y?
 IF 07
   RCL "V0"
   DEG
-  STO 07
+  STO 25
   INDEX "SXE"
-  RCL 07
+  RCL 25
   1
   STOIJ
   RCLEL
-  STO 01
+  STO 24
   J+
   RCLEL
-  STO 05
+  STO 15
   J+
   RCLEL
-  STO 06
+  STO 16
   INDEX "ALMC"
-  RCL 07
+  RCL 25
   RCL 93
   +
   1
   STOIJ
-  RCL 05
-  RCL 01
+  RCL 15
+  RCL 24
   →POL
   X<>Y
   CHS
@@ -4264,51 +4330,51 @@ IF 07
   MOD
   STOSEQ
   X<>Y
-  RCL 06
+  RCL 16
   X<>Y
   →POL
   X<>Y
   STOSEQ
   INDEX "SXH"
-  RCL 07
+  RCL 25
   1
   STOIJ
   RCLEL
-  STO 01
+  STO 16
   J+
   RCLEL
-  STO 05
+  STO 15
   J+
   RCLEL
-  STO 06
-  RCL 05
-  RCL 01
+  STO 24
+  RCL 15
+  RCL 16
   →POL
   X<>Y
   RCL 45
   MOD
-  STO 05
+  STO 23
   X<>Y
-  RCL 06
+  RCL 24
   X<>Y
   →POL
   X<>Y
-  STO 09
+  STO 15
   INDEX "ALMC"
-  RCL 07
+  RCL 25
   RCL 93
   +
   RCL 51
   STOIJ
-  RCL 09
+  RCL 15
   STOSEQ
-  RCL 05
+  RCL 23
   STOEL
   RCL 43
   RTN
 ENDIF 07
 INDEX "ALMC"
-RCL 22
+RCL 18
 RCL 93
 +
 RCL 51
@@ -4346,15 +4412,15 @@ RCL 39
 STOSEQ
 RCL 34
 STOSEQ
-RCL 02
+RCL 38
 STOSEQ
 RCL 35
 STOSEQ
-RCL 03
+RCL 31
 STOSEQ
-RCL 04
+RCL 32
 STOSEQ
-RCL 15
+RCL 12
 STOSEQ
 RCL "U7"
 STOSEQ
@@ -4372,7 +4438,7 @@ RCL 43
 STOIJ
 RCL "V7"
 STOEL
-RCL 02
+RCL 38
 RCL+ 13
 RCL 43
 →REC
@@ -4424,12 +4490,12 @@ STOSEQ
 RCL "W9"
 STOEL
 RCL 43
-STO 07
+STO 16
 REPEAT 01
   RCL 85
   STO "Q1"
   DROP
-  RCL 07
+  RCL 16
   XEQ "N29"
   STO "V0"
   X<>Y
@@ -4437,14 +4503,14 @@ REPEAT 01
   X<>Y
   XEQ 01
   INDEX "ALMC"
-  RCL 07
+  RCL 16
   RCL 44
   +
   XEQ 08
   RCL 43
-  STO+ 07
+  STO+ 16
   RCL 66
-  RCL 07
+  RCL 16
   X>Y?
 UNTIL 01
 INDEX "ALMC"
@@ -4655,19 +4721,19 @@ INDEX "ALMC"
 RCL 43
 STOIJ
 RCLSEQ
-STO 05
+STO 23
 RCLSEQ
-STO 01
+STO 16
 RCLSEQ
-STO 02
+STO 30
 RCLSEQ
-STO 07
+STO 25
 RCLSEQ
-STO 03
+STO 30
 RCLSEQ
-STO 04
+STO 30
 RCLSEQ
-STO 15
+STO 30
 RCLSEQ
 STO "U7"
 RCLSEQ
@@ -4734,7 +4800,7 @@ X<>Y
 CHS
 RCL 45
 MOD
-STO 05
+STO 23
 DROP
 RCL "G9"
 X<>Y
@@ -4744,7 +4810,7 @@ X<>Y
 ÷
 STO "V4"
 DROP
-STO 09
+STO 15
 RTN
 REM "CSUN 08: GHA Dec Hc Zn into the indexed row of ALMC (called by CSQK x3)"
 LBL 08
@@ -4754,9 +4820,9 @@ RCL "V0"
 STOSEQ
 RCL "V1"
 STOSEQ
-RCL 09
+RCL 15
 STOSEQ
-RCL 05
+RCL 23
 STOEL
 RTN
 REM "CSUN 09: date, latitude and longitude of the sun times back on the stack (called by CEQQ x5)"
@@ -4992,7 +5058,7 @@ REM "MOO2 - Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after S
 DEG
 FS? 10
 IF 01
-  RCL 31
+  RCL 30
   RCL 88
   XEQ "N49"
   X≥0?
@@ -5003,104 +5069,104 @@ IF 01
 ENDIF 01
 CF 11
 -1.533883486E-08
-RCL× 03
+RCL× 31
 1.855835024E-06
 +
-RCL× 03
+RCL× 31
 -0.0015786
 +
-RCL× 03
+RCL× 31
 481267.8812
 +
-RCL× 03
+RCL× 31
 218.3164477
 +
-STO 10
+STO 27
 -8.844469995E-09
-RCL× 03
+RCL× 31
 1.831944719E-06
 +
-RCL× 03
+RCL× 31
 -0.0018819
 +
-RCL× 03
+RCL× 31
 445267.1114
 +
-RCL× 03
+RCL× 31
 297.8501921
 +
-STO 09
+STO 25
 4.083299306E-08
-RCL× 03
+RCL× 31
 -0.0001536
 +
-RCL× 03
+RCL× 31
 35999.05029
 +
-RCL× 03
+RCL× 31
 357.5291092
 +
-STO 08
+STO 23
 -6.797172376E-08
-RCL× 03
+RCL× 31
 1.434740814E-05
 +
-RCL× 03
+RCL× 31
 0.0087414
 +
-RCL× 03
+RCL× 31
 477198.8675
 +
-RCL× 03
+RCL× 31
 134.9633964
 +
-STO 07
+STO 16
 1.158332465E-09
-RCL× 03
+RCL× 31
 -2.836074872E-07
 +
-RCL× 03
+RCL× 31
 -0.0036539
 +
-RCL× 03
+RCL× 31
 483202.0175
 +
-RCL× 03
+RCL× 31
 93.272095
 +
-STO 05
+STO 15
 -7.4E-06
-RCL× 03
+RCL× 31
 -0.002516
 +
-RCL× 03
+RCL× 31
 RCL 43
 +
-STO 01
-RCL 10
+STO 17
+RCL 27
 RCL 45
 MOD
-STO 10
-RCL 09
+STO 27
+RCL 25
 RCL 45
 MOD
-STO 11
-RCL 08
+STO 28
+RCL 23
 RCL 45
 MOD
-STO 16
-RCL 07
+STO 25
+RCL 16
 RCL 45
 MOD
-STO 30
-RCL 05
+STO 29
+RCL 15
 RCL 45
 MOD
-STO 08
+STO 23
 RCL 46
-STO 09
-STO 05
-STO 07
+STO 40
+STO 15
+STO 16
 XEQ 01
 RCL "ML"
 RCL "Q5"
@@ -5113,14 +5179,14 @@ RCL "ML"
 RCL "Q6"
 ×
 DOT
-STO+ 09
+STO+ 40
 R↓
 Re
 RCL "ML"
 RCL "Q7"
 ×
 DOT
-STO+ 05
+STO+ 15
 RCL "MB"
 RCL "H5"
 ×
@@ -5131,7 +5197,7 @@ RCL "MB"
 RCL "H6"
 ×
 DOT
-STO+ 07
+STO+ 16
 RCL "MCL"
 RCL "Q5"
 ×
@@ -5143,14 +5209,14 @@ RCL "MCL"
 RCL "Q6"
 ×
 DOT
-STO+ 09
+STO+ 40
 R↓
 Re
 RCL "MCL"
 RCL "Q7"
 ×
 DOT
-STO+ 09
+STO+ 40
 RCL "MCB"
 RCL "Q5"
 ×
@@ -5162,31 +5228,31 @@ RCL "MCB"
 RCL "Q6"
 ×
 DOT
-STO+ 07
+STO+ 16
 R↓
 Re
 RCL "MCB"
 RCL "Q7"
 ×
 DOT
-STO+ 07
-RCL 03
+STO+ 16
+RCL 31
 131.849
 ×
 119.75
 +
-STO 01
-RCL 01
+STO 17
+RCL 17
 SIN
 3958
 ×
-RCL 10
-RCL- 08
+RCL 27
+RCL- 23
 SIN
 1962
 ×
 +
-RCL 03
+RCL 31
 479264.29
 ×
 53.09
@@ -5195,18 +5261,18 @@ SIN
 318
 ×
 +
-RCL 03
+RCL 31
 367.1904613
 ×
 56.41732779
 +
 +
-STO+ 09
-RCL 10
+STO+ 40
+RCL 27
 SIN
 -2235
 ×
-RCL 03
+RCL 31
 481266.484
 ×
 313.45
@@ -5215,102 +5281,102 @@ SIN
 382
 ×
 +
-RCL 01
-RCL- 08
+RCL 17
+RCL- 23
 SIN
 175
 ×
 +
-RCL 01
-RCL+ 08
+RCL 17
+RCL+ 23
 SIN
 175
 ×
 +
-RCL 10
-RCL- 30
+RCL 27
+RCL- 29
 SIN
 127
 ×
 +
-RCL 10
-RCL+ 30
+RCL 27
+RCL+ 29
 SIN
 -115
 ×
 +
-RCL 03
+RCL 31
 40.04748125
 ×
 -9.463218981
 +
 +
-STO+ 07
-RCL 09
+STO+ 16
+RCL 40
 1E6
 ÷
-RCL+ 10
-RCL 04
+RCL+ 27
+RCL 32
 RCL 54
 ÷
 +
-STO 01
-RCL 07
+STO 23
+RCL 16
 1E6
 ÷
-STO 08
-RCL 05
+STO 17
+RCL 15
 1000
 ÷
 385000.56
 +
-STO 05
-RCL 08
+STO 15
+RCL 17
 RCL 43
 →REC
-RCL 01
+RCL 23
 X<>Y
 →REC
-STO 01
+STO 16
 R↓
 →POL
 X<>Y
-RCL+ 00
+RCL+ 36
 X<>Y
 →REC
 STO "F7"
 X<>Y
 STO "F8"
 X<>Y
-RCL 01
+RCL 16
 STO "F9"
 →POL
 X<>Y
-RCL 02
+RCL 38
 X<>Y
 -
 RCL 45
 MOD
-STO 09
+STO 23
 STO "U1"
 R↓
 →POL
 X<>Y
-STO 15
+STO 16
 6378.14
-RCL÷ 05
+RCL÷ 15
 ASIN
 RCL 57
 ×
-STO 01
+STO 40
 358473400
-RCL÷ 05
+RCL÷ 15
 RCL 57
 ÷
-STO 05
-RCL 01
-RCL 15
-RCL 09
+STO 15
+RCL 40
+RCL 16
+RCL 23
 RTN
 REM "MOO2 01: the argument vectors of the Moon's series ('Q5' 'Q6' 'Q7', 'H5' 'H6') (called by MOO2 x1)"
 LBL 01
@@ -5358,25 +5424,25 @@ STOIJ
 RCL 43
 STOEL
 J+
-RCL 01
+RCL 17
 STOEL
 J+
-RCL 01
+RCL 17
 X↑2
 STOEL
 RTN
 REM "MOO2 03: the four arguments D, M, M', F into the indexed matrix (called by MOO2 x2)"
 LBL 03
-RCL 11
+RCL 28
 STOEL
 J+
-RCL 16
+RCL 25
 STOEL
 J+
-RCL 30
+RCL 29
 STOEL
 J+
-RCL 08
+RCL 23
 STOEL
 END
 
@@ -5386,79 +5452,79 @@ LBL "N38"
 REM "RISE - sunrise time UT (SUNRISE program)"
 XEQ 03
 RCL 85
-STO 29
+STO 14
 XEQ 01
 RTN
 LBL "N39"
 REM "SET - sunset time UT"
 XEQ 03
 RCL 43
-STO 29
+STO 14
 XEQ 01
 RTN
 LBL "N44"
 REM "TRAN - meridian passage of the Sun, UT"
 XEQ 02
 RCL 46
-STO 29
+STO 14
 XEQ 01
 RTN
 LBL "N40"
 REM "NTWA - nautical twilight, morning, UT"
 XEQ 02
 -12
-STO 28
+STO 30
 RCL 85
-STO 29
+STO 14
 XEQ 01
 RTN
 LBL "N41"
 REM "NTWP - nautical twilight, evening, UT"
 XEQ 02
 -12
-STO 28
+STO 30
 RCL 43
-STO 29
+STO 14
 XEQ 01
 RTN
 REM "RISE 01: the time of the event, by iteration on the Sun's hour angle (SUNG); 99 when there is none (called by RISE x1, SET x1, TRAN x1, NTWA x1, NTWP x1)"
 LBL 01
-RCL 29
+RCL 14
 RCL 93
 ×
 12
 +
-STO 31
+STO 32
 RCL 50
-STO 05
+STO 38
 DO 01
-  RCL 31
+  RCL 32
   RCL 70
   ÷
-  RCL+ 25
+  RCL+ 12
   XEQ "N16"
-  STO 08
+  STO 17
   R↓
-  STO 09
+  STO 15
   RCL 46
-  RCL 29
+  RCL 14
   X≠0?
   IF 01
-    RCL 28
+    RCL 30
     SIN
-    RCL 14
+    RCL 36
     SIN
-    RCL 09
+    RCL 15
     SIN
     ×
     -
-    RCL 14
+    RCL 36
     COS
-    RCL 09
+    RCL 15
     COS
     ×
     ÷
-    STO 09
+    STO 15
     ABS
     RCL 43
     X<Y?
@@ -5466,12 +5532,12 @@ DO 01
       XEQ 04
       RTN
     ENDIF 02
-    RCL 09
+    RCL 15
     ACOS
-    RCL× 29
+    RCL× 14
   ENDIF 01
-  RCL- 08
-  RCL- 13
+  RCL- 17
+  RCL- 23
   540
   +
   RCL 45
@@ -5480,33 +5546,33 @@ DO 01
   -
   RCL 48
   ÷
-  STO+ 31
+  STO+ 32
   ABS
   0.0003
   X<Y?
 WHILE 01
-  DSE 05
+  DSE 38
 WHILE 01
 ENDDO 01
-RCL 31
+RCL 32
 RTN
-REM "RISE 02: Z JD, Y latitude, X longitude into R25 R14 R13 (called by TRAN x1, NTWA x1, NTWP x1)"
+REM "RISE 02: Z JD, Y latitude, X longitude into R12 R36 R23 (called by TRAN x1, NTWA x1, NTWP x1)"
 LBL 02
-STO 13
+STO 23
 R↓
-STO 14
+STO 36
 R↓
-STO 25
+STO 12
 RTN
 REM "RISE 03: the same, with the altitude of sunrise and sunset (-0 50') (called by RISE x1, SET x1)"
 LBL 03
-STO 13
+STO 23
 R↓
-STO 14
+STO 36
 R↓
-STO 25
+STO 12
 -0.8333333333333333
-STO 28
+STO 30
 RTN
 REM "RISE 04: 99: no event that day (midnight sun or polar night) (called by NTWP x1)"
 LBL 04
@@ -5517,29 +5583,29 @@ REM "======================================================================"
 REM "program PSYB"
 LBL "N81"
 REM "PSYB - SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol"
-STO 01
+STO 16
 R↓
-STO 06
+STO 24
 R↓
-STO 07
+STO 25
 WSIZE 16
 DO 01
-  αLENG 01
+  αLENG 16
   X≠0?
 WHILE 01
-  α→𝑥 01
-  STO 10
-  XEQ IND 10
+  α→𝑥 16
+  STO 27
+  XEQ IND 27
 ENDDO 01
 WSIZE 64
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 RTN
 REM "XEQ IND table: the symbols by character code: @ Sun, ( Moon, * star, < = > ? Venus, Mars, Jupiter, Saturn"
 REM "@ the Sun"
 LBL 64
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 XEQ 07
 XEQ 04
 11100001110#2
@@ -5560,8 +5626,8 @@ XEQ 05
 RTN
 REM "* a star"
 LBL 42
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 10000000#2
 R↓
 AGRAPH D
@@ -5594,7 +5660,7 @@ R↓
 AGRAPH D
 RCL 44
 +
-STO 06
+STO 24
 RTN
 REM "XEQ IND table: the eight Moon phases, characters 0-7"
 REM "6 last quarter"
@@ -5607,8 +5673,8 @@ XEQ 06
 RTN
 REM "< Venus"
 LBL 60
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 1100000000#2
 XEQ 10
 110011001100#2
@@ -5625,8 +5691,8 @@ XEQ 05
 RTN
 REM "( the Moon"
 LBL 40
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 XEQ 07
 XEQ 04
 XEQ 11
@@ -5641,8 +5707,8 @@ XEQ 05
 RTN
 REM "PSYB 01: columns shared by the 12-row symbols (called by PSYB x4)"
 LBL 01
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 XEQ 13
 XEQ 04
 XEQ 11
@@ -5670,11 +5736,11 @@ LBL 04
 R↓
 AGRAPH D
 RTN
-REM "PSYB 05: the next column in R06 (called by PSYB x8)"
+REM "PSYB 05: the next column in R24 (called by PSYB x8)"
 LBL 05
 RCL 44
 +
-STO 06
+STO 24
 RTN
 REM "PSYB 06: columns shared by the 12-row symbols (called by PSYB x3)"
 LBL 06
@@ -5731,8 +5797,8 @@ AGRAPH D
 RTN
 REM "> Mars"
 LBL 62
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 111100#2
 R↓
 AGRAPH D
@@ -5763,8 +5829,8 @@ XEQ 05
 RTN
 REM "= Jupiter"
 LBL 61
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 10000011000#2
 R↓
 AGRAPH D
@@ -5794,8 +5860,8 @@ XEQ 05
 RTN
 REM "? Saturn"
 LBL 63
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 10000000000#2
 R↓
 AGRAPH D
@@ -5901,8 +5967,8 @@ XEQ 05
 RTN
 REM "PSYB 15: columns shared by the 12-row symbols (called by PSYB x4)"
 LBL 15
-RCL 07
-RCL 06
+RCL 25
+RCL 24
 XEQ 13
 1100001100#2
 XEQ 09
@@ -5922,7 +5988,7 @@ STO 13
 R↓
 STO 14
 R↓
-STO 21
+STO 10
 RCL 14
 RCL 43
 →REC
@@ -5936,13 +6002,13 @@ RCL 55
 376
 XEQ "N57"
 30.21203
-STO 01
+STO 08
 DO 01
-  RCL 01
+  RCL 08
   IP
   18
   PIXEL
-  ISG 01
+  ISG 08
 WHILE 01
 ENDDO 01
 RCL 65
@@ -6126,7 +6192,7 @@ PIXEL
 185
 XEQ "N90"
 RCL 46
-STO 20
+STO 08
 RCL 14
 X≥0?
 IF 01
@@ -6134,11 +6200,11 @@ IF 01
   XEQ "N84"
 ELSE 01
   RCL 62
-  STO 20
+  STO 08
   19
   XEQ "N85"
 ENDIF 01
-RCL 21
+RCL 10
 XEQ "N64"
 RCL 84
 ENTER
@@ -6146,7 +6212,7 @@ RCL 51
 NEWMAT
 STO "H1"
 RCL 46
-STO 18
+STO 20
 RCL 46
 6
 XEQ "N77"
@@ -6164,7 +6230,7 @@ STOIJ
 ENTER
 1
 M.GETM
-RCL 20
+RCL 08
 +
 RCL 45
 MOD
@@ -6227,7 +6293,7 @@ M.PUTM
 ENTER
 STOIJ
 60
-STO 10
+STO 18
 DO 02
   RCLSEQ
   1E-4
@@ -6240,34 +6306,34 @@ DO 02
     J+
     J+
   ENDIF 02
-  DSE 10
+  DSE 18
 WHILE 02
 ENDDO 02
 DELITM "QP"
 DELITM "QX"
 DELITM "QY"
 DELITM "QH"
-RCL 01
-RCL 07
+RCL 16
+RCL 25
 XEQ 03
-RCL 09
+RCL 15
 X>0?
 XEQ 05
 "NIGHT"
-STO 19
+STO 22
 179
-STO 16
+STO 25
 -12
-RCL 09
+RCL 15
 X>Y?
 XEQ 11
-RCL 09
+RCL 15
 X>0?
 XEQ 12
-RCL 19
+RCL 22
 RCL 66
 RCL- 66
-RCL 16
+RCL 25
 ATEXT Z
 X<>Y
 RCL 66
@@ -6277,30 +6343,30 @@ RCL 46
 XEQ 09
 XEQ "N65"
 XEQ 03
-RCL 09
+RCL 15
 X>0?
 XEQ 06
 XEQ 07
 1.058
-STO 19
+STO 22
 DO 03
   RCL 84
-  RCL 18
+  RCL 20
   X<Y?
 WHILE 03
   INDEX "SBR"
-  RCL 19
+  RCL 22
   IP
   1
   STOIJ
   RCLEL
-  STO 22
+  STO 18
   XEQ "N68"
   RCL 92
   X≤Y?
   IF 03
     INDEX "ALMC"
-    RCL 22
+    RCL 18
     RCL 93
     +
     STO "KR"
@@ -6311,28 +6377,28 @@ WHILE 03
     RCLEL
     XEQ 03
     RCL 50
-    RCL 09
+    RCL 15
     X>Y?
     XEQ 02
   ENDIF 03
-  ISG 19
+  ISG 22
 WHILE 03
 ENDDO 03
 RCL 13
 RCL 14
-RCL 21
+RCL 10
 RCL 73
 XEQ "N83"
 -221
 RCL 46
 PIXEL
 "S"
-STO 19
+STO 22
 FS? 11
 XEQ 17
 FS? 12
 XEQ 18
-RCL 19
+RCL 22
 RCL 73
 RCL- 66
 RCL 94
@@ -6341,7 +6407,7 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 18
+RCL 20
 X=0?
 RTN
 RCL 43
@@ -6354,44 +6420,44 @@ REPEAT 01
   STOIJ
   RCLEL
   J+
-  STO 22
+  STO 18
   RCLEL
   J+
-  STO 05
+  STO 23
   RCLEL
-  STO 09
+  STO 15
   RCL 85
-  STO 06
-  RCL 09
+  STO 24
+  RCL 15
   X>0?
   XEQ 08
   PAUSE 20
-  KEY? 08
+  KEY? 17
   IF 04
   ELSE 04
-    RCL 08
+    RCL 17
     85
     X=Y?
     RTN
-    RCL 08
+    RCL 17
     RCL 67
     X=Y?
     RTN
-    RCL 08
+    RCL 17
     61
     X=Y?
     RTN
-    RCL 08
+    RCL 17
     54
     X=Y?
     SNAP
   ENDIF 04
-  RCL 06
+  RCL 24
   X≥0?
   XEQ 10
   RCL 43
   STO+ 13
-  RCL 18
+  RCL 20
   RCL 13
   X>Y?
   XEQ 14
@@ -6403,31 +6469,31 @@ LBL 02
 XEQ 20
 "*"
 XEQ "N82"
-RCL 23
+RCL 21
 RCL 88
 +
-STO 06
+STO 24
 380
-RCL 06
+RCL 24
 X>Y?
 XEQ 19
 RCL 91
-RCL- 24
+RCL- 19
 RCL 51
 -
-RCL 06
-RCL 22
+RCL 24
+RCL 18
 XEQ "N80"
-RCL 22
+RCL 18
 XEQ 09
 RTN
 REM "HORZ 03: Hc and Zn from the cache (CHCZ), then the place on the chart (04) (called by HORZ x4)"
 LBL 03
 XEQ "N69"
-REM "HORZ 04: the place on the chart: column R23 from Zn, row R24 from sin Hc (called by HORZ x1)"
+REM "HORZ 04: the place on the chart: column R21 from Zn, row R19 from sin Hc (called by HORZ x1)"
 LBL 04
-RCL 05
-RCL+ 20
+RCL 23
+RCL+ 08
 RCL 45
 MOD
 375
@@ -6437,14 +6503,14 @@ RCL 45
 RCL 55
 +
 IP
-STO 23
+STO 21
 213
 RCL "V4"
 RCL 86
 ×
 -
 IP
-STO 24
+STO 19
 RTN
 REM "HORZ 05: the Sun's symbol (called by HORZ x1)"
 LBL 05
@@ -6463,15 +6529,15 @@ RTN
 REM "HORZ 07: the first planet above the horizon (planets 1-4 in turn): its symbol, into the list (called by HORZ x1)"
 LBL 07
 1.004
-STO 19
+STO 22
 DO 04
-  RCL 19
+  RCL 22
   IP
   RCL 71
   +
-  STO 05
-  XEQ IND 05
-  STO 16
+  STO 23
+  XEQ IND 23
+  STO 25
   INDEX "ALMC"
   RCL 44
   +
@@ -6482,18 +6548,18 @@ DO 04
   J-
   RCLEL
   XEQ 03
-  RCL 09
+  RCL 15
   X>0?
   IF 05
-    RCL 16
+    RCL 25
     IP
     70
     +
-    STO 17
+    STO 09
     XEQ 20
-    XEQ IND 17
+    XEQ IND 09
     XEQ "N82"
-    RCL 16
+    RCL 25
     IP
     RCL 43
     +
@@ -6501,21 +6567,21 @@ DO 04
     XEQ 09
     RTN
   ENDIF 05
-  ISG 19
+  ISG 22
 WHILE 04
 ENDDO 04
 RTN
-REM "HORZ 08: the name of the body R22 next to its symbol (SUN, MOON, a planet or a star) (called by HORZ x1)"
+REM "HORZ 08: the name of the body R18 next to its symbol (SUN, MOON, a planet or a star) (called by HORZ x1)"
 LBL 08
-RCL 09
+RCL 15
 SIN
 STO "V4"
 XEQ 04
-RCL 23
+RCL 21
 RCL 84
 +
-STO 06
-RCL 22
+STO 24
+RCL 18
 X≠0?
 IF 06
   X<0?
@@ -6523,102 +6589,102 @@ IF 06
     XEQ 13
     RTN
   ENDIF 07
-  RCL 22
+  RCL 18
   XEQ "N48"
-  STO 17
+  STO 09
   14
-  STO+ 06
+  STO+ 24
 ELSE 06
   "SUN"
-  STO 17
+  STO 09
 ENDIF 06
-αLENG 17
+αLENG 09
 RCL 84
 ×
-STO 12
-RCL+ 06
+STO 11
+RCL+ 24
 380
 X<Y?
 XEQ 16
 RCL 91
-RCL- 24
+RCL- 19
 RCL 51
 -
-STO 12
+STO 11
 XEQ 10
 RTN
-REM "HORZ 09: adds a body (code X, Zn R05, Hc R09) to the list 'H1' the names go round (called by HORZ x4)"
+REM "HORZ 09: adds a body (code X, Zn R23, Hc R15) to the list 'H1' the names go round (called by HORZ x4)"
 LBL 09
-STO 22
+STO 18
 RCL 43
-STO+ 18
+STO+ 20
 INDEX "H1"
-RCL 18
+RCL 20
 RCL 43
 STOIJ
-RCL 22
+RCL 18
 STOEL
 J+
-RCL 05
+RCL 23
 STOEL
 J+
-RCL 09
+RCL 15
 STOEL
 RTN
 REM "HORZ 10: writes or erases the name (XOR, GRMOD 1) (called by HORZ x3)"
 LBL 10
 RCL 51
-STO 01
+STO 16
 GRMOD 01
-RCL 17
-RCL 12
+RCL 09
+RCL 11
 RCL- 66
-RCL 06
+RCL 24
 ATEXT Z
 X<>Y
 RCL 66
 +
 X<>Y
 RCL 46
-STO 01
+STO 16
 GRMOD 01
 RTN
 REM "HORZ 11: the sky label TWILIGHT (called by HORZ x1)"
 LBL 11
 "TWILIGHT"
-STO 19
+STO 22
 168
-STO 16
+STO 25
 RTN
 REM "HORZ 12: the sky label DAY (called by HORZ x1)"
 LBL 12
 "DAY"
-STO 19
+STO 22
 186
-STO 16
+STO 25
 RTN
 REM "HORZ 13: the name of the Moon or a planet (codes 81-85) (called by HORZ x1)"
 LBL 13
-RCL 22
+RCL 18
 CHS
 80
 +
-STO 17
-XEQ IND 17
-STO 17
-αLENG 17
+STO 09
+XEQ IND 09
+STO 09
+αLENG 09
 RCL 84
 ×
-STO 12
-RCL+ 06
+STO 11
+RCL+ 24
 380
 X<Y?
 XEQ 16
 RCL 91
-RCL- 24
+RCL- 19
 RCL 51
 -
-STO 12
+STO 11
 XEQ 10
 RTN
 REM "HORZ 14: back to the first body of the list (called by HORZ x1)"
@@ -6628,21 +6694,21 @@ STO 13
 RTN
 REM "HORZ 16: the name on the left of the symbol near the right edge (called by HORZ x2)"
 LBL 16
-RCL 23
+RCL 21
 28
 -
-RCL- 12
-STO 06
+RCL- 11
+STO 24
 RTN
 REM "HORZ 17: the mark T at the top right: the tables in use (called by HORZ x1)"
 LBL 17
 "T"
-STO 19
+STO 22
 RTN
 REM "HORZ 18: the mark X at the top right: a date outside the matrices (called by HORZ x1)"
 LBL 18
 "X"
-STO 19
+STO 22
 RTN
 REM "XEQ IND table: the symbol characters of the planets"
 REM "Venus"
@@ -6685,7 +6751,7 @@ RTN
 REM "HORZ 19: the star number on the left near the right edge (called by HORZ x1)"
 LBL 19
 22
-STO- 06
+STO- 24
 RTN
 REM "XEQ IND table: a number by body code"
 REM "the 1st planet tried: Venus"
@@ -6707,10 +6773,10 @@ RTN
 REM "HORZ 20: row and column of the symbol for PSYS (called by HORZ x4)"
 LBL 20
 RCL 91
-RCL- 24
+RCL- 19
 RCL 51
 -
-RCL 23
+RCL 21
 RCL 51
 -
 END
@@ -6719,16 +6785,16 @@ REM "======================================================================"
 REM "program HALMH"
 LBL "N06"
 REM "HALMH - view 2 SPLIT: horizon chart on top, the bodies below (8 rows)"
-STO 19
+STO 09
 R↓
 STO 18
 R↓
-STO 17
-RCL 17
-STO 13
+STO 19
+RCL 19
+STO 10
 RCL 18
 STO 14
-RCL 19
+RCL 09
 STO 13
 RCL 14
 RCL 43
@@ -6738,16 +6804,16 @@ X<>Y
 STO "W1"
 X<>Y
 CLLCD
-RCL 17
-XEQ "N64"
-STO 21
-R↓
-STO 12
-R↓
-STO 05
 RCL 19
+XEQ "N64"
+STO 10
+R↓
+STO 11
+R↓
+STO 24
+RCL 09
 RCL 18
-RCL 17
+RCL 19
 RCL 73
 XEQ "N83"
 -221
@@ -6758,13 +6824,13 @@ RCL 55
 376
 XEQ "N57"
 144.21203
-STO 01
+STO 09
 DO 01
-  RCL 01
+  RCL 09
   IP
   18
   PIXEL
-  ISG 01
+  ISG 09
 WHILE 01
 ENDDO 01
 155
@@ -6909,7 +6975,7 @@ RCL 61
 RCL 76
 PIXEL
 RCL 46
-STO 17
+STO 09
 RCL 18
 X≥0?
 IF 01
@@ -6917,7 +6983,7 @@ IF 01
   XEQ "N84"
 ELSE 01
   RCL 62
-  STO 17
+  STO 09
   135
   XEQ "N85"
 ENDIF 01
@@ -6938,7 +7004,7 @@ STOIJ
 ENTER
 1
 M.GETM
-RCL 17
+RCL 09
 +
 RCL 45
 MOD
@@ -6997,7 +7063,7 @@ M.PUTM
 ENTER
 STOIJ
 40
-STO 01
+STO 24
 DO 02
   RCLSEQ
   1E-4
@@ -7010,7 +7076,7 @@ DO 02
     J+
     J+
   ENDIF 02
-  DSE 01
+  DSE 24
 WHILE 02
 ENDDO 02
 DELITM "QP"
@@ -7058,19 +7124,19 @@ RCL 66
 +
 X<>Y
 107
-STO 18
-RCL 12
-RCL 21
+STO 19
+RCL 11
+RCL 10
 XEQ 05
-RCL 09
+RCL 15
 X>0?
 XEQ 06
-RCL 18
+RCL 19
 RCL 46
 "@"
 XEQ "N81"
 "SUN"
-RCL 18
+RCL 19
 RCL- 66
 RCL 74
 ATEXT Z
@@ -7080,25 +7146,25 @@ RCL 66
 X<>Y
 XEQ 01
 XEQ "N65"
-STO 21
+STO 10
 R↓
-STO 12
-RCL 12
-RCL 21
+STO 11
+RCL 11
+RCL 10
 XEQ 05
-RCL 09
+RCL 15
 X>0?
 XEQ 07
 1.004
-STO 19
+STO 20
 DO 03
-  RCL 19
+  RCL 20
   IP
   RCL 71
   +
-  STO 05
-  XEQ IND 05
-  STO 20
+  STO 23
+  XEQ IND 23
+  STO 08
   INDEX "ALMC"
   RCL 44
   +
@@ -7108,36 +7174,36 @@ DO 03
   RCLEL
   J-
   RCLEL
-  STO 21
+  STO 10
   X<>Y
-  STO 12
-  RCL 12
-  RCL 21
+  STO 11
+  RCL 11
+  RCL 10
   XEQ 05
-  RCL 09
+  RCL 15
   X>0?
   IF 03
     XEQ 02
     RTN
   ENDIF 03
-  ISG 19
+  ISG 20
 WHILE 03
 ENDDO 03
 XEQ 04
 RTN
 REM "HALMH 01: one row of the table: GHA, N / S Dec, Hc, Zn (Hc white on black when negative); one row lower (called by HALMH x4)"
 LBL 01
-RCL 18
+RCL 19
 138
-RCL 21
+RCL 10
 XEQ "N54"
 "N"
-STO 08
-RCL 12
+STO 17
+RCL 11
 X<0?
 XEQ 08
-RCL 08
-RCL 18
+RCL 17
+RCL 19
 RCL- 66
 214
 ATEXT Z
@@ -7145,45 +7211,48 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 18
+RCL 19
 216
-RCL 12
+RCL 11
 ABS
 XEQ "N54"
-RCL 18
+RCL 19
 287
-RCL 09
+RCL 15
 XEQ "N54"
-RCL 18
+RCL 19
 365
-RCL 05
+RCL 23
 XEQ "N56"
-RCL 09
+RCL 23
+RCL 15
+XEQ "N03"
+RCL 15
 X<0?
 XEQ 12
 14
-STO- 18
+STO- 19
 RTN
 REM "HALMH 02: the planet: its symbol on the chart, its row in the table (called by HALMH x1)"
 LBL 02
-RCL 20
+RCL 08
 IP
 70
 +
-STO 16
+STO 24
 XEQ 13
-XEQ IND 16
+XEQ IND 24
 XEQ "N82"
-RCL 18
+RCL 19
 RCL 46
-XEQ IND 16
+XEQ IND 24
 XEQ "N81"
-RCL 20
+RCL 08
 IP
 81
 +
 STO 08
-RCL 18
+RCL 19
 RCL 74
 XEQ IND 08
 XEQ "N50"
@@ -7191,27 +7260,27 @@ XEQ 01
 REM "HALMH 04: the stars by brightness (matrix SBR) that are above the horizon, until the rows are full (called by HALMH x1)"
 LBL 04
 RCL 46
-STO 19
-1.058
 STO 20
+1.058
+STO 08
 DO 04
   9
-  RCL 18
+  RCL 19
   X≥Y?
 WHILE 04
   INDEX "SBR"
-  RCL 20
+  RCL 08
   IP
   1
   STOIJ
   RCLEL
-  STO 22
+  STO 18
   XEQ "N68"
   RCL 92
   X≤Y?
   IF 04
     INDEX "ALMC"
-    RCL 22
+    RCL 18
     RCL 93
     +
     STO "KR"
@@ -7220,46 +7289,46 @@ WHILE 04
     RCLEL
     J-
     RCLEL
-    STO 21
+    STO 10
     X<>Y
-    STO 12
-    RCL 12
-    RCL 21
+    STO 11
+    RCL 11
+    RCL 10
     XEQ 05
     RCL 50
-    RCL 09
+    RCL 15
     X>Y?
     IF 05
       XEQ 13
       "*"
       XEQ "N82"
-      RCL 23
+      RCL 21
       RCL 88
       +
-      STO 23
+      STO 21
       380
-      RCL 23
+      RCL 21
       X>Y?
       XEQ 11
-      RCL 08
+      RCL 17
       RCL 51
       -
-      RCL 23
-      RCL 22
-      XEQ "N80"
+      RCL 21
       RCL 18
+      XEQ "N80"
+      RCL 19
       RCL 46
       "*"
       XEQ "N81"
-      RCL 18
+      RCL 19
       14
-      RCL 22
-      XEQ "N51"
-      RCL 22
-      XEQ "N48"
-      STO 08
-      RCL 08
       RCL 18
+      XEQ "N51"
+      RCL 18
+      XEQ "N48"
+      STO 17
+      RCL 17
+      RCL 19
       RCL- 66
       RCL 74
       ATEXT Z
@@ -7269,19 +7338,19 @@ WHILE 04
       X<>Y
       XEQ 01
       RCL 43
-      STO+ 19
+      STO+ 20
     ENDIF 05
   ENDIF 04
-  ISG 20
+  ISG 08
 WHILE 04
 ENDDO 04
 "S"
-STO 02
+STO 17
 FS? 11
 XEQ 09
 FS? 12
 XEQ 10
-RCL 02
+RCL 17
 RCL 73
 RCL- 66
 RCL 94
@@ -7295,8 +7364,8 @@ RTN
 REM "HALMH 05: Hc and Zn from the cache (CHCZ), then the place on the chart (called by HALMH x4)"
 LBL 05
 XEQ "N69"
-RCL 05
-RCL+ 17
+RCL 23
+RCL+ 09
 RCL 45
 MOD
 375
@@ -7306,14 +7375,14 @@ RCL 45
 RCL 55
 +
 IP
-STO 23
+STO 21
 RCL "V4"
 68
 ×
 144
 +
 IP
-STO 08
+STO 17
 RTN
 REM "HALMH 06: the Sun's symbol on the chart (called by HALMH x1)"
 LBL 06
@@ -7326,12 +7395,12 @@ LBL 07
 XEQ 13
 "("
 XEQ "N82"
-RCL 18
+RCL 19
 RCL 46
 "("
 XEQ "N81"
 "MOON"
-RCL 18
+RCL 19
 RCL- 66
 RCL 74
 ATEXT Z
@@ -7344,45 +7413,45 @@ RTN
 REM "HALMH 08: S for a south declination (called by HALMH x1)"
 LBL 08
 "S"
-STO 08
+STO 17
 RTN
 REM "HALMH 09: the mark T at the top right: the tables in use (called by HALMH x1)"
 LBL 09
 "T"
-STO 02
+STO 17
 RTN
 REM "HALMH 10: the mark X at the top right: a date outside the matrices (called by HALMH x1)"
 LBL 10
 "X"
-STO 02
+STO 17
 RTN
 REM "HALMH 11: the symbol kept inside the right edge (called by HALMH x1)"
 LBL 11
 22
-STO- 23
+STO- 21
 RTN
 REM "HALMH 12: Hc white on black (a box in XOR) (called by HALMH x1)"
 LBL 12
 WSIZE 16
 RCL 51
-STO 01
+STO 16
 GRMOD 01
 11111111111111#2
-STO 01
-RCL 18
+STO 16
+RCL 19
 RCL 43
 -
 294
 54
-STO 05
+STO 18
 R↓
 DO 05
-  AGRAPH 01
-  DSE 05
+  AGRAPH 16
+  DSE 18
 WHILE 05
 ENDDO 05
 RCL 46
-STO 01
+STO 16
 GRMOD 01
 WSIZE 64
 RTN
@@ -7439,10 +7508,10 @@ RCL 66
 RTN
 REM "HALMH 13: row and column of the symbol for PSYS (called by HALMH x4)"
 LBL 13
-RCL 08
+RCL 17
 RCL 51
 -
-RCL 23
+RCL 21
 RCL 51
 -
 END
@@ -7451,31 +7520,31 @@ REM "======================================================================"
 REM "program ALMF"
 LBL "N01"
 REM "ALMF - view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon"
-STO 24
-R↓
 STO 22
 R↓
-STO 23
-XEQ 06
-XEQ "N71"
 STO 18
-XEQ 06
-XEQ "N72"
-STO 17
-XEQ 06
-XEQ "N73"
+R↓
 STO 19
 XEQ 06
-XEQ "N74"
+XEQ "N71"
+STO 21
+XEQ 06
+XEQ "N72"
+STO 09
+XEQ 06
+XEQ "N73"
 STO 20
 XEQ 06
+XEQ "N74"
+STO 08
+XEQ 06
 XEQ "N75"
-STO 21
-RCL 23
-STO 13
-RCL 22
+STO 10
+RCL 19
+STO 11
+RCL 18
 STO 14
-RCL 24
+RCL 22
 STO 13
 RCL 14
 RCL 43
@@ -7485,18 +7554,18 @@ X<>Y
 STO "W1"
 X<>Y
 CLLCD
-RCL 23
+RCL 19
 XEQ "N64"
 STO 26
 R↓
-STO 12
+STO 11
 R↓
-STO 08
-RCL 05
+STO 17
+RCL 23
 15.99383
 X<>Y
 ÷
-STO 29
+STO 14
 INDEX "ALMC"
 66
 RCL 44
@@ -7504,12 +7573,12 @@ STOIJ
 RCLEL
 J-
 RCLEL
-STO 25
+STO 12
 X<>Y
-STO 28
-RCL 24
+STO 30
 RCL 22
-RCL 23
+RCL 18
+RCL 19
 RCL 73
 XEQ "N83"
 -221
@@ -7570,17 +7639,17 @@ RCL 66
 X<>Y
 193
 138
-RCL 08
+RCL 17
 XEQ "N54"
 177
-STO 23
+STO 19
 XEQ 14
-RCL 23
+RCL 19
 RCL 46
 "@"
 XEQ "N81"
 "SUN"
-RCL 23
+RCL 19
 RCL- 66
 RCL 74
 ATEXT Z
@@ -7590,29 +7659,29 @@ RCL 66
 X<>Y
 XEQ 01
 RCL 44
-STO 41
+STO 32
 XEQ "N65"
 STO 26
 R↓
-STO 12
+STO 11
 R↓
-STO 24
+STO 22
 R↓
-STO 40
+STO 31
 XEQ 14
-RCL 09
+RCL 15
 X>0?
 XEQ 05
 1.004
-STO 22
+STO 18
 DO 01
-  RCL 22
+  RCL 18
   IP
   RCL 71
   +
-  STO 05
-  XEQ IND 05
-  STO 08
+  STO 23
+  XEQ IND 23
+  STO 17
   INDEX "ALMC"
   RCL 44
   +
@@ -7624,32 +7693,32 @@ DO 01
   RCLEL
   STO 26
   X<>Y
-  STO 12
+  STO 11
   XEQ 14
-  RCL 09
+  RCL 15
   X>0?
   IF 01
     XEQ 03
     RTN
   ENDIF 01
-  ISG 22
+  ISG 18
 WHILE 01
 ENDDO 01
 XEQ 04
 RTN
 REM "ALMF 01: one row of the table: GHA, N / S Dec, Hc, Zn (Hc white on black when negative); one row lower (called by ALMF x3)"
 LBL 01
-RCL 23
+RCL 19
 138
 RCL 26
 XEQ "N54"
 "N"
-STO 22
-RCL 12
+STO 18
+RCL 11
 X<0?
 XEQ 07
-RCL 22
-RCL 23
+RCL 18
+RCL 19
 RCL- 66
 214
 ATEXT Z
@@ -7657,74 +7726,77 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 23
+RCL 19
 216
-RCL 12
+RCL 11
 ABS
 XEQ "N54"
-RCL 23
+RCL 19
 287
-RCL 09
+RCL 15
 XEQ "N54"
-RCL 23
+RCL 19
 365
-RCL 05
+RCL 23
 XEQ "N56"
-RCL 09
+RCL 23
+RCL 15
+XEQ "N03"
+RCL 15
 X<0?
 XEQ 13
 RCL 47
-STO- 23
+STO- 19
 RTN
 REM "ALMF 02: the name, then the row (01); counts the rows (called by ALMF x2)"
 LBL 02
 XEQ "N50"
 XEQ 01
 RCL 43
-STO+ 41
+STO+ 32
 RTN
 REM "ALMF 03: the planet's row: symbol, name, values (called by ALMF x1)"
 LBL 03
-RCL 08
+RCL 17
 IP
 70
 +
-STO 11
-RCL 23
+STO 24
+RCL 19
 RCL 46
-XEQ IND 11
+XEQ IND 24
 XEQ "N81"
-RCL 08
+RCL 17
 IP
 81
 +
-STO 08
-RCL 23
+STO 17
+RCL 19
 RCL 74
-XEQ IND 08
+XEQ IND 17
 XEQ 02
 REM "ALMF 04: the stars by brightness (matrix SBR) that are above the horizon, until the 8 rows are full (called by ALMF x1)"
 LBL 04
 1.058
-STO 42
+STO 36
 DO 02
   9
-  RCL 41
+  RCL 32
   X<Y?
 WHILE 02
   INDEX "SBR"
-  RCL 42
+  RCL 36
   IP
   1
   STOIJ
   RCLEL
-  STO 22
+  STO 18
   XEQ "N68"
   RCL 92
   X≤Y?
   IF 02
     INDEX "ALMC"
-    RCL 22
+    RCL 18
     RCL 93
     +
     STO "KR"
@@ -7735,25 +7807,25 @@ WHILE 02
     RCLEL
     STO 26
     X<>Y
-    STO 12
+    STO 11
     XEQ 14
     RCL 50
-    RCL 09
+    RCL 15
     X>Y?
     IF 03
-      RCL 23
+      RCL 19
       RCL 46
       "*"
       XEQ "N81"
-      RCL 23
+      RCL 19
       14
-      RCL 22
+      RCL 18
       XEQ "N51"
-      RCL 22
+      RCL 18
       XEQ "N48"
-      STO 08
-      RCL 08
-      RCL 23
+      STO 17
+      RCL 17
+      RCL 19
       RCL- 66
       RCL 74
       ATEXT Z
@@ -7763,10 +7835,10 @@ WHILE 02
       X<>Y
       XEQ 01
       RCL 43
-      STO+ 41
+      STO+ 32
     ENDIF 03
   ENDIF 02
-  ISG 42
+  ISG 36
 WHILE 02
 ENDDO 02
 -57
@@ -7782,11 +7854,11 @@ RCL 66
 X<>Y
 43
 83
-RCL 18
+RCL 21
 XEQ "N53"
 43
 123
-RCL 21
+RCL 10
 XEQ "N53"
 "RISE/SET"
 25
@@ -7798,11 +7870,11 @@ RCL 66
 X<>Y
 29
 83
-RCL 17
+RCL 09
 XEQ "N53"
 29
 123
-RCL 20
+RCL 08
 XEQ "N53"
 "MER PASS"
 RCL 48
@@ -7815,7 +7887,7 @@ RCL 66
 X<>Y
 RCL 48
 83
-RCL 19
+RCL 20
 XEQ "N53"
 "SD "
 RCL 48
@@ -7826,19 +7898,19 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 29
+RCL 14
 XEQ "N52"
 "WAXING"
-STO 03
-RCL 28
+STO 17
+RCL 30
 14.765
 X<Y?
 XEQ 08
-RCL 25
+RCL 12
 99.5
 X≤Y?
 XEQ 11
-RCL 25
+RCL 12
 RCL 56
 X>Y?
 XEQ 12
@@ -7850,14 +7922,14 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 25
+RCL 12
 XEQ "N51"
 "% "
 XEQ "N50"
-STO 01
+STO 24
 R↓
-STO 02
-RCL 28
+STO 23
+RCL 30
 RCL 95
 ÷
 RCL 84
@@ -7869,14 +7941,14 @@ RCL 84
 MOD
 48
 +
-STO 04
-RCL 02
-RCL 01
-XEQ IND 04
+STO 36
+RCL 23
+RCL 24
+XEQ IND 36
 XEQ "N81"
 " "
 XEQ "N50"
-RCL 03
+RCL 17
 XEQ "N50"
 "AGE "
 25
@@ -7886,7 +7958,7 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 28
+RCL 30
 XEQ "N52"
 " DAYS"
 XEQ "N50"
@@ -7899,19 +7971,19 @@ X<>Y
 RCL 66
 +
 X<>Y
-RCL 24
+RCL 22
 XEQ "N52"
 " SD "
 XEQ "N50"
-RCL 40
+RCL 31
 XEQ "N52"
 "S"
-STO 02
+STO 17
 FS? 11
 XEQ 09
 FS? 12
 XEQ 10
-RCL 02
+RCL 17
 RCL 73
 RCL- 66
 RCL 94
@@ -7924,78 +7996,78 @@ XEQ "N63"
 RTN
 REM "ALMF 05: the Moon's row (called by ALMF x1)"
 LBL 05
-RCL 23
+RCL 19
 RCL 46
 "("
 XEQ "N81"
-RCL 23
+RCL 19
 RCL 74
 "MOON"
 XEQ 02
 RTN
 REM "ALMF 06: the date at 0 h, latitude and longitude for the sun times (called by ALMF x5)"
 LBL 06
-RCL 23
+RCL 19
 RCL 56
 -
 IP
 RCL 56
 +
+RCL 18
 RCL 22
-RCL 24
 RTN
 REM "ALMF 07: S for a south declination (called by ALMF x1)"
 LBL 07
 "S"
-STO 22
+STO 18
 RTN
 REM "ALMF 08: the Moon text WANING (called by ALMF x1)"
 LBL 08
 "WANING"
-STO 03
+STO 17
 RTN
 REM "ALMF 09: the mark T at the top right: the tables in use (called by ALMF x1)"
 LBL 09
 "T"
-STO 02
+STO 17
 RTN
 REM "ALMF 10: the mark X at the top right: a date outside the matrices (called by ALMF x1)"
 LBL 10
 "X"
-STO 02
+STO 17
 RTN
 REM "ALMF 11: the Moon text FULL (called by ALMF x1)"
 LBL 11
 "FULL"
-STO 03
+STO 17
 RTN
 REM "ALMF 12: the Moon text NEW (called by ALMF x1)"
 LBL 12
 "NEW"
-STO 03
+STO 17
 RTN
 REM "ALMF 13: Hc white on black (a box in XOR) (called by ALMF x1)"
 LBL 13
 WSIZE 16
 RCL 51
-STO 01
+STO 24
 GRMOD 01
 11111111111111#2
-STO 01
-RCL 23
+STO 24
+RCL 19
 RCL 43
 -
 294
 54
-STO 05
+STO 23
 R↓
 DO 03
-  AGRAPH 01
-  DSE 05
+  AGRAPH 24
+  DSE 23
 WHILE 03
 ENDDO 03
 RCL 46
-STO 01
+STO 24
 GRMOD 01
 WSIZE 64
 RTN
@@ -8085,7 +8157,7 @@ LBL 55
 RTN
 REM "ALMF 14: Hc and Zn from the cache (CHCZ) (called by ALMF x4)"
 LBL 14
-RCL 12
+RCL 11
 RCL 26
 XEQ "N69"
 END
@@ -8232,8 +8304,8 @@ REM "======================================================================"
 REM "program SNMU"
 LBL "N48"
 REM "SNMU - star name from its number"
-STO 01
-XEQ IND 01
+STO 16
+XEQ IND 16
 RTN
 REM "XEQ IND table: the names of the 58 stars by number"
 REM "star 1"
@@ -8475,117 +8547,117 @@ LBL "N46"
 REM "PHA2 - Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)"
 DEG
 RCL 62
-RCL- 38
-RCL 36
+RCL- 42
+RCL 41
 SIN
 6.289
 ×
 -
-RCL 05
+RCL 23
 SIN
 2.1
 ×
 +
-RCL 38
+RCL 42
 RCL 44
 ×
-RCL- 36
+RCL- 41
 SIN
 1.274
 ×
 -
-RCL 38
+RCL 42
 RCL 44
 ×
 SIN
 0.658
 ×
 -
-RCL 36
+RCL 41
 RCL 44
 ×
 SIN
 0.214
 ×
 -
-RCL 38
+RCL 42
 SIN
 0.11
 ×
 -
 COS
-STO 09
-RCL 38
+STO 15
+RCL 42
 RCL 45
 MOD
 12.190749
 ÷
-STO 10
+STO 25
 RCL 46
-STO 11
+STO 27
 REPEAT 01
-  RCL 05
-  RCL 10
+  RCL 23
+  RCL 25
   0.98560028
   ×
   -
-  STO 07
-  RCL 36
-  RCL 10
+  STO 29
+  RCL 41
+  RCL 25
   13.064993
   ×
   -
-  STO 15
+  STO 42
   RCL 37
-  RCL 10
+  RCL 25
   13.2293505
   ×
   -
-  STO 16
-  RCL 15
+  STO 28
+  RCL 42
   SIN
   -0.4072
   ×
-  RCL 07
+  RCL 29
   SIN
   0.17241
   ×
   +
-  RCL 15
+  RCL 42
   RCL 44
   ×
   SIN
   0.01608
   ×
   +
-  RCL 16
+  RCL 28
   RCL 44
   ×
   SIN
   0.01039
   ×
   +
-  RCL 15
-  RCL- 07
+  RCL 42
+  RCL- 29
   SIN
   0.00739
   ×
   +
-  RCL 15
-  RCL+ 07
+  RCL 42
+  RCL+ 29
   SIN
   -0.00514
   ×
   +
-  RCL 07
+  RCL 29
   RCL 44
   ×
   SIN
   0.00208
   ×
   +
-  RCL 15
-  RCL 16
+  RCL 42
+  RCL 28
   RCL 44
   ×
   -
@@ -8593,8 +8665,8 @@ REPEAT 01
   -0.00111
   ×
   +
-  RCL 15
-  RCL 16
+  RCL 42
+  RCL 28
   RCL 44
   ×
   +
@@ -8602,30 +8674,30 @@ REPEAT 01
   -0.00057
   ×
   +
-  RCL 15
+  RCL 42
   RCL 44
   ×
-  RCL+ 07
+  RCL+ 29
   SIN
   0.00056
   ×
   +
-  RCL 10
+  RCL 25
   X<>Y
   -
-  STO 07
-  RCL 11
+  STO 42
+  RCL 27
   X≠0?
   IF 01
-    RCL 07
+    RCL 42
     X<0?
     IF 02
-      RCL 01
-      STO 07
+      RCL 16
+      STO 42
     ENDIF 02
     1
   ELSE 01
-    RCL 07
+    RCL 42
     X≥0?
     IF 03
       RCL 65
@@ -8634,25 +8706,25 @@ REPEAT 01
         1
       ELSE 04
         RCL 44
-        STO 11
-        RCL 07
-        STO 01
+        STO 27
+        RCL 42
+        STO 16
         RCL 95
-        STO- 10
+        STO- 25
         0
       ENDIF 04
     ELSE 03
       RCL 43
-      STO 11
+      STO 27
       RCL 95
-      STO+ 10
+      STO+ 25
       0
     ENDIF 03
   ENDIF 01
   X≠0?
 UNTIL 01
-RCL 07
-RCL 09
+RCL 42
+RCL 15
 RCL 43
 +
 50
@@ -8667,28 +8739,239 @@ REM "loop left only by RTN (0 X≠0? UNTIL is never true)"
 REPEAT 01
   DO 01
     PAUSE 50
-    KEY? 08
+    KEY? 17
   WHILE 01
   ENDDO 01
-  RCL 08
+  RCL "V3"
+  3
+  X>Y?
+  IF 01
+    RCL 17
+    XEQ "N05"
+    X≠0?
+    RTN
+  ENDIF 01
+  RCL 17
   85
   X=Y?
   RTN
-  RCL 08
+  RCL 17
   RCL 67
   X=Y?
   RTN
-  RCL 08
+  RCL 17
   61
   X=Y?
   RTN
-  RCL 08
+  RCL 17
   54
   X=Y?
   SNAP
   0
   X≠0?
 UNTIL 01
+END
+
+REM "======================================================================"
+REM "program PICK"
+LBL "N02"
+REM "PKNW - keys 1-8: an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn"
+8
+ENTER
+3
+NEWMAT
+STO "KB"
+0
+STO "KC"
+STO "KD"
+STO "KI"
+STO "KJ"
+STO "KN"
+RTN
+LBL "N03"
+REM "PKRC - keys 1-8: X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB"
+INDEX "KB"
+1
+STO+ "KC"
+RCL "KC"
+X<>Y
+STOIJ
+DROP
+DROP
+RCL "KR"
+STOSEQ
+DROP
+STOSEQ
+X<>Y
+STOSEQ
+RTN
+LBL "N05"
+REM "PKEY - keys 1-8: X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0"
+STO "KD"
+10
+MOD
+STO "KJ"
+3
+-
+ABS
+1
+X≥Y?
+IF 01
+  RCL "KD"
+  10
+  ÷
+  IP
+  STO "KI"
+  6
+  -
+  ABS
+  1
+  X≥Y?
+  IF 02
+    7
+    RCL "KI"
+    -
+    3
+    ×
+    RCL "KJ"
+    +
+    1
+    -
+    STO "KD"
+    RCL "KC"
+    X≥Y?
+    IF 03
+      RCL "KD"
+      RTN
+    ENDIF 03
+  ENDIF 02
+ENDIF 01
+0
+STO "KD"
+RTN
+LBL "N07"
+REM "PKBD - keys 1-8: the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc"
+INDEX "KB"
+RCL "KD"
+1
+STOIJ
+RCLSEQ
+RCLSEQ
+STO "KH"
+RCLSEQ
+STO "KZ"
+DROP
+DROP
+STO 43
+6
+X≥Y?
+IF 04
+  XEQ IND 43
+ELSE 04
+  RCL 43
+  6
+  -
+  XEQ "N48"
+ENDIF 04
+STO "KT"
+" Zn "
+x→α "KT"
+RCL "KZ"
+10
+×
+0.5
++
+IP
+3600
+MOD
+STO "KN"
+1000
+X>Y?
+IF 05
+  "0"
+  x→α "KT"
+ENDIF 05
+RCL "KN"
+100
+X>Y?
+IF 06
+  "0"
+  x→α "KT"
+ENDIF 06
+RCL "KN"
+10
+÷
+IP
+αIP "KT"
+"."
+x→α "KT"
+RCL "KN"
+10
+MOD
+αIP "KT"
+" Hc "
+x→α "KT"
+RCL "KH"
+X<0?
+IF 07
+  "-"
+  x→α "KT"
+ENDIF 07
+RCL "KH"
+ABS
+600
+×
+0.5
++
+IP
+STO "KN"
+600
+÷
+IP
+αIP "KT"
+" "
+x→α "KT"
+RCL "KN"
+600
+MOD
+STO "KN"
+100
+X>Y?
+IF 08
+  "0"
+  x→α "KT"
+ENDIF 08
+RCL "KN"
+10
+÷
+IP
+αIP "KT"
+"."
+x→α "KT"
+RCL "KN"
+10
+MOD
+αIP "KT"
+RTN
+REM "XEQ IND table: the names of ALMC rows 1-6 (the Sun, the Moon, Venus, Mars, Jupiter, Saturn)"
+LBL 01
+"SUN"
+RTN
+LBL 02
+"MOON"
+RTN
+LBL 03
+"VENUS"
+RTN
+LBL 04
+"MARS"
+RTN
+LBL 05
+"JUPITER"
+RTN
+LBL 06
+"SATURN"
+RTN
 END
 
 REM "======================================================================"
@@ -8968,31 +9251,31 @@ REM "program TGET"
 LBL "N49"
 REM "TGET - almanac tables (TBL): Chebyshev lookup; used only when tables are loaded (TBL is not part of v2.2.0)"
 DEG
-STO 10
+STO 27
 R↓
-STO 11
-RCL 10
+STO 28
+RCL 27
 RCL 55
 +
-STO 16
-XEQ IND 16
+STO 25
+XEQ IND 25
 RCL 43
 RCL 43
 STOIJ
 RCLEL
-STO 30
+STO 29
 J+
 RCLEL
-STO 32
+STO 40
 J+
 RCLEL
-STO 27
+STO 07
 J+
 RCLEL
-STO 09
-RCL 11
-RCL- 30
-RCL÷ 32
+STO 15
+RCL 28
+RCL- 29
+RCL÷ 40
 X<0?
 IF 01
   RCL 85
@@ -9000,56 +9283,56 @@ IF 01
 ENDIF 01
 IP
 STO 26
-RCL 27
+RCL 07
 X≤Y?
 IF 02
   RCL 85
   RTN
 ENDIF 02
-RCL 11
-RCL- 30
+RCL 28
+RCL- 29
 RCL 26
-RCL× 32
+RCL× 40
 -
 RCL 44
 ×
-RCL÷ 32
+RCL÷ 40
 RCL 43
 -
-STO 27
+STO 07
 RCL 26
 RCL 44
 +
 STO 26
-RCL 09
-STO 16
+RCL 15
+STO 25
 XEQ 02
 RCL 43
 XEQ 01
 RCL 45
 MOD
 STO 33
-RCL 27
+RCL 07
 X≠0?
 IF 03
-  RCL 09
+  RCL 15
   RCL 43
   +
   XEQ 01
-  STO 06
+  STO 24
   RCL 43
-  RCL 27
+  RCL 07
   X≠Y?
   IF 04
     RCL 66
-    STO 16
-    RCL 09
+    STO 25
+    RCL 15
     RCL 44
     ×
     RCL 43
     +
     XEQ 01
-    STO 12
+    STO 11
     RCL 57
     ÷
     SIN
@@ -9057,12 +9340,12 @@ IF 03
     ×
     RCL 57
     ÷
-    RCL 12
-    RCL 06
+    RCL 11
+    RCL 24
     RCL 33
     RTN
   ENDIF 04
-  RCL 06
+  RCL 24
   RCL 33
   RTN
 ENDIF 03
@@ -9071,17 +9354,17 @@ RCL 33
 RTN
 REM "TGET 01: one Chebyshev sum: the block's coefficients (M.GETM) DOT the polynomials ('Q2') (called by TGET x3)"
 LBL 01
-STO 32
-RCL 10
+STO 40
+RCL 27
 RCL 55
 +
-STO 27
-XEQ IND 27
+STO 07
+XEQ IND 07
 RCL 26
-RCL 32
+RCL 40
 STOIJ
 RCL 43
-RCL 16
+RCL 25
 M.GETM
 INDEX "Q2"
 RCL 43
@@ -9090,43 +9373,43 @@ STOIJ
 DROP
 DROP
 RCL 43
-RCL 16
+RCL 25
 M.GETM
 DOT
 RTN
 REM "TGET 02: the Chebyshev polynomials T0 ... Tn at the time in the block, into 'Q2' (called by TGET x1)"
 LBL 02
 RCL 43
-RCL 09
+RCL 15
 NEWMAT
 STO "Q2"
 INDEX "Q2"
 RCL 43
 STOSEQ
-RCL 27
+RCL 07
 STOSEQ
-RCL 09
+RCL 15
 RCL 44
 -
-STO 32
+STO 40
 X=0?
 RTN
 RCL 43
-STO 08
-RCL 27
+STO 17
+RCL 07
 STO 33
 DO 01
   RCL 33
-  RCL× 27
+  RCL× 07
   RCL 44
   ×
-  RCL- 08
+  RCL- 17
   RCL 33
-  STO 08
+  STO 17
   X<>Y
   STO 33
   STOSEQ
-  DSE 32
+  DSE 40
 WHILE 01
 ENDDO 01
 RTN
@@ -9135,43 +9418,43 @@ REM "TSU the Sun"
 LBL 20
 INDEX "TSU"
 RCL 43
-STO 27
+STO 07
 RTN
 REM "TVE Venus"
 LBL 21
 INDEX "TVE"
 RCL 43
-STO 27
+STO 07
 RTN
 REM "TMA Mars"
 LBL 22
 INDEX "TMA"
 RCL 43
-STO 27
+STO 07
 RTN
 REM "TJU Jupiter"
 LBL 23
 INDEX "TJU"
 RCL 43
-STO 27
+STO 07
 RTN
 REM "TSA Saturn"
 LBL 24
 INDEX "TSA"
 RCL 43
-STO 27
+STO 07
 RTN
 REM "TMO the Moon"
 LBL 25
 INDEX "TMO"
 RCL 44
-STO 27
+STO 07
 RTN
 REM "TAR Aries"
 LBL 26
 INDEX "TAR"
 RCL 46
-STO 27
+STO 07
 END
 
 REM "======================================================================"

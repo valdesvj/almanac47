@@ -2,22 +2,31 @@ LBL "N63"
 REPEAT
   DO
     PAUSE 50
-    KEY? 08
+    KEY? 17
   WHILE
   ENDDO
-  RCL 08
+  RCL "V3"
+  3
+  X>Y?
+  IF
+    RCL 17
+    XEQ "N05"
+    X≠0?
+    RTN
+  ENDIF
+  RCL 17
   85
   X=Y?
   RTN
-  RCL 08
+  RCL 17
   RCL 67
   X=Y?
   RTN
-  RCL 08
+  RCL 17
   61
   X=Y?
   RTN
-  RCL 08
+  RCL 17
   54
   X=Y?
   SNAP

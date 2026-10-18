@@ -23,6 +23,8 @@ ROUTINES = {
     ('NAV', '10'): 'DATE prompt in the D.MY date format',
     ('NAV', '11'): 'DATE prompt in the M.DY date format',
     ('NAV', '12'): 'two columns of what lives in 06',
+    ('NAV', '13'): 'the end: the screen cleared, the work variables deleted, the font and your stack size back, '
+                   'NAV\'s registers R07-R98 cleared (R-CLR 7.92: R00-R06 and R99 stay yours)',
     # CALC: the sky for a new time or place
     ('CALC', '01'): 'once: the 58 stars of the catalogue ST as unit vectors now (SXA) and their change a century (SXD, '
                     'proper motion)',
@@ -32,19 +34,19 @@ ROUTINES = {
     ('CALC', '05'): 'a 3 x 3 rotation about the x axis by the angle X',
     ('CALC', '06'): 'one star\'s vector into its row ("YK") of the indexed matrix',
     # PTXS: the text routines
-    ('PTXS', '01'): 'appends X as two digits (00-99) to the text in R11',
-    ('PTXS', '02'): 'starts the text in R11 with the whole number X',
-    ('PTXS', '05'): 'writes the text in R11 at row R10, column R01 (ATEXT in GRFNT 21) -> Y row, X next column',
-    ('PTXS', '06'): 'the sign of R07: a space or "-"',
+    ('PTXS', '01'): 'appends X as two digits (00-99) to the text in R25',
+    ('PTXS', '02'): 'starts the text in R25 with the whole number X',
+    ('PTXS', '05'): 'writes the text in R25 at row R28, column R16 (ATEXT in GRFNT 21) -> Y row, X next column',
+    ('PTXS', '06'): 'the sign of R27: a space or "-"',
     ('PTXS', '07'): 'an azimuth of 360.0 written as 000.0',
     ('PTXS', '08'): 'appends the last digit of X',
     # HANIM: view 4 ANIM
     ('HANIM', '01'): 'the Moon at the frame\'s hour: three computed positions (matrix "AQ") interpolated',
     ('HANIM', '02'): 'the Sun (SUNF) and the Moon (a short series) at the hour X of the animation',
-    ('HANIM', '03'): 'a body on the whole-sky chart: column from its Zn (R05), row from sin Hc ("V4")',
+    ('HANIM', '03'): 'a body on the whole-sky chart: column from its Zn (R23), row from sin Hc ("V4")',
     ('HANIM', '04'): 'writes or erases the frame\'s time (XOR, GRMOD 1)',
     ('HANIM', '05'): 'the chart: horizon, altitude dots, the shared axes (OUT4), the compass row (south up for S latitudes)',
-    ('HANIM', '06'): 'the time arguments of the hour R28: days and centuries from J2000, sidereal time',
+    ('HANIM', '06'): 'the time arguments of the hour R30: days and centuries from J2000, sidereal time',
     ('HANIM', '07'): 'the sky label TWILIGHT',
     ('HANIM', '08'): 'the sky label DAY',
     ('HANIM', '09'): 'an angle into -180 ... +180',
@@ -57,11 +59,11 @@ ROUTINES = {
     ('HANIM', '16'): 'GHA of the frame\'s hour, 0-360',
     # PSYS: symbols, 7 rows
     ('PSYS', '01'): 'two columns shared by the 7-row symbols',
-    ('PSYS', '02'): 'the last column of a symbol; R01 = the next column',
+    ('PSYS', '02'): 'the last column of a symbol; R16 = the next column',
     ('PSYS', '03'): 'two columns shared by the 7-row symbols',
     # ALLSKY: view 5
-    ('ALLSKY', '01'): 'draws the symbol of the body R22 at its place on the chart',
-    ('ALLSKY', '02'): 'a body on the whole-sky chart: column from its Zn (R05), row from sin Hc ("V4")',
+    ('ALLSKY', '01'): 'draws the symbol of the body R21 at its place on the chart',
+    ('ALLSKY', '02'): 'a body on the whole-sky chart: column from its Zn (R23), row from sin Hc ("V4")',
     ('ALLSKY', '03'): 'one text row lower',
     ('ALLSKY', '04'): 'the sky label TWILIGHT',
     ('ALLSKY', '05'): 'the sky label DAY',
@@ -110,20 +112,20 @@ ROUTINES = {
     ('MOO2', '03'): 'the four arguments D, M, M\', F into the indexed matrix',
     # RISE: sun times
     ('RISE', '01'): 'the time of the event, by iteration on the Sun\'s hour angle (SUNG); 99 when there is none',
-    ('RISE', '02'): 'Z JD, Y latitude, X longitude into R25 R14 R13',
+    ('RISE', '02'): 'Z JD, Y latitude, X longitude into R12 R36 R23',
     ('RISE', '03'): 'the same, with the altitude of sunrise and sunset (-0 50\')',
     ('RISE', '04'): '99: no event that day (midnight sun or polar night)',
     # PSYB: symbols, 12 rows
-    ('PSYB', '05'): 'the next column in R06',
+    ('PSYB', '05'): 'the next column in R24',
     # HORZ: view 3 SKY
     ('HORZ', '02'): 'a star: its symbol and its number (tinyFont) on the chart, and into the list "H1"',
     ('HORZ', '03'): 'Hc and Zn from the cache (CHCZ), then the place on the chart (04)',
-    ('HORZ', '04'): 'the place on the chart: column R23 from Zn, row R24 from sin Hc',
+    ('HORZ', '04'): 'the place on the chart: column R21 from Zn, row R19 from sin Hc',
     ('HORZ', '05'): 'the Sun\'s symbol',
     ('HORZ', '06'): 'the Moon\'s symbol, into the list',
     ('HORZ', '07'): 'the first planet above the horizon (planets 1-4 in turn): its symbol, into the list',
-    ('HORZ', '08'): 'the name of the body R22 next to its symbol (SUN, MOON, a planet or a star)',
-    ('HORZ', '09'): 'adds a body (code X, Zn R05, Hc R09) to the list "H1" the names go round',
+    ('HORZ', '08'): 'the name of the body R18 next to its symbol (SUN, MOON, a planet or a star)',
+    ('HORZ', '09'): 'adds a body (code X, Zn R23, Hc R15) to the list "H1" the names go round',
     ('HORZ', '10'): 'writes or erases the name (XOR, GRMOD 1)',
     ('HORZ', '11'): 'the sky label TWILIGHT',
     ('HORZ', '12'): 'the sky label DAY',
@@ -190,6 +192,8 @@ ENTRIES = {
              (('91', '92', '93', '94'), 'XEQ IND table: a number by body code'),
              (('48', '49', '50', '51', '52', '53', '54', '55'), 'XEQ IND table: the Moon phase symbol characters 0-7')],
     'SNMU': [(tuple('%02d' % n for n in range(1, 59)), 'XEQ IND table: the names of the 58 stars by number')],
+    'PICK': [(('01', '02', '03', '04', '05', '06'), 'XEQ IND table: the names of ALMC rows 1-6 (the Sun, the Moon, '
+              'Venus, Mars, Jupiter, Saturn)')],
     'TGET': [(('20', '21', '22', '23', '24', '25', '26'), 'XEQ IND table: the table matrices TSU TVE TMA TJU TSA TMO '
               'TAR (Sun, planets, Moon, Aries)')],
 }
@@ -261,6 +265,8 @@ MOON_TABLES = [(('48', '49', '50', '51', '52', '53', '54', '55'), 'XEQ IND table
 # comments inside a program's main part: (step as listed, its occurrence, lines before it, text)
 BLOCKS = {
     'NAV': [
+        ('LocR 09', 1, 0, 'your stack (X ... D) and LASTx into the local registers R.00-R.08 of NAV\'s own level: '
+                          'given back at the end'),
         ('1', 1, 0, 'the numbers used most, once into R43-R98: each use is then a 2-byte RCL'),
         ('SSIZE#', 1, 0, 'your stack size kept in "F0"; the 8-level stack while it runs (the fonts read register D)'),
         ('RCL 85', 1, 0, 'work variables of the run; i and i pi/180 as complex numbers ("C1" "C2") for the series'),
@@ -276,7 +282,9 @@ BLOCKS = {
         ('IF 05', 1, 9, 'keys 1-6 by arithmetic: the row and the column of the key code (72 73 74 / 62 63 64)'),
         ('DO 03', 1, 0, 'the view, drawn again after each arrow while it is shown (+ goes back to the menu)'),
         ('"ALMANAC 47 - INFO"', 1, 1, '6 INFO'),
-        ('DELITM "Q2"', 1, 1, '0: the end - the work variables deleted, your stack size back, CLREGS, CLSTK'),
+        ('RCL "KD"', 1, 0, 'a key 1-8 on ALMANAC or SPLIT (WPLS gives it back): the body of that row (N07), the end '
+                           '(13), your stack, then Z its text, Y its Zn, X its Hc'),
+        ('XEQ 13', 2, 0, '0: the end (13), then your stack and LASTx back'),
     ],
 }
 

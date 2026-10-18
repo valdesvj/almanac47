@@ -90,10 +90,11 @@ def labels_file(L):
            '',
            'Routines you can call yourself',
            '------------------------------',
-           'Run ALMA47 with your date, time and DR, then leave it with EXIT (or R/S), NOT with 0: 0 clears the',
-           'registers (CLREGS), and these routines read the numbers ALMA47 stores in R43-R98 at its start (the table',
-           'at the end), the DR of the run (R13 longitude, R14 latitude) and the matrices of NAVINIT. They use',
-           'R00-R42 for their work. JD: the C47\'s Julian Date (DATE, then ⅅ→J) + UT / 24, a plain number.',
+           'Run ALMA47 with your date, time and DR, then leave it with EXIT (or R/S), NOT with 0 or a key 1-8: they',
+           'clear ALMA47\'s registers R07-R98 (R-CLR 7.92), and these routines read the numbers ALMA47 stores in',
+           'R43-R98 at its start (the table at the end), the DR of the run (R13 longitude, R14 latitude) and the',
+           'matrices of NAVINIT. They use R07-R42 for their work (R00-R06 and R99 are never touched). JD: the',
+           'C47\'s Julian Date (DATE, then ⅅ→J) + UT / 24, a plain number.',
            '']
     for lab, name, inp, outp in CALLABLE:
         out.append('  XEQ "%s"  %-5s %s' % (lab, name, inp))

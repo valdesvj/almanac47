@@ -152,10 +152,12 @@ class Calc:
         k = str(int(k)) if isinstance(k, int) else k
         if k.startswith('R.'): loc, n = self.local(k); return loc[n]
         if k in ('X', 'Y', 'Z', 'T'): return self.s['XYZT'.index(k)]          # IND X: a stack register
+        if k == 'L': return self.lastx                                         # RCL L: LASTx (register L)
         return self.reg.get(k.lstrip('0') or '0', D(0))
     def rset(self, k, v):
         k = str(int(k)) if isinstance(k, int) else k
         if k.startswith('R.'): loc, n = self.local(k); loc[n] = v; return
+        if k == 'L': self.lastx = v; return                                    # STO L: LASTx (register L)
         self.reg[k.lstrip('0') or '0'] = v
     def indlab(self, n, pc):
         if isinstance(n, str): return n                     # XEQ IND r with a label name in r
@@ -418,6 +420,13 @@ class Calc:
                 if x < 0 or y < 0: raise ValueError('POINT with a negative X or Y: not modelled in c47sim yet')
                 continue
             if op == 'CLREGS': self.reg = {k: v for k, v in self.reg.items() if not re.fullmatch(r'\d+', k)}; continue
+            if op == 'R-CLR':
+                # registers.c fnRegClr / getRegParam: X = sss.nn, n registers from Rsss (n = 0: to R99); X stays
+                x = self.s[0]; st = int(x); n = int((x - st) * 100)
+                n = n or 100 - st
+                if x < 0 or st + n > 100: raise ValueError('R-CLR %s out of range' % x)
+                for r in range(st, st + n): self.reg.pop(str(r), None)
+                continue
             if op == 'CLΣ': self.stat=[]; continue
             if op == 'Σ+': self.stat.append((float(self.s[0]),float(self.s[1]))); continue
             if op in ('PLSTAT','PLTFCNS'): continue
@@ -531,7 +540,7 @@ class Calc:
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue
             if op == 'RCL':
                 k = self.regkey(arg)
-                if isinstance(k, str) and not re.fullmatch(r'\d+|R\.\d\d|[XYZT]', k) and k not in self.reg and k not in self.mats:
+                if isinstance(k, str) and not re.fullmatch(r'\d+|R\.\d\d|[XYZTL]', k) and k not in self.reg and k not in self.mats:
                     # the firmware (_executeOp): RCL "name" of a missing variable stops the program with an error;
                     # IGN1ER does not catch it there (only STO, STO+ ... create a missing variable)
                     raise ValueError('RCL "%s": undefined source variable' % k)

@@ -89,20 +89,25 @@ S += [P('3. Starting ALMA47', h2),
       P('Title ALMANAC 47 and the period of the matrices; under it the date, UT and DR in use. Under the items, the '
         'keys: + MENU, ↑↓ ±1 HOUR and 9 SNAP.', small),
       prose_tbl([['Key', 'On the menu', 'On a view'],
-                 ['1 – 6', 'the item is highlighted and its view is drawn (6: INFO)', '—'],
+                 ['1 – 6', 'the item is highlighted and its view is drawn (6: INFO)', 'ALMANAC and SPLIT, 1 – 8: that row\'s body '
+                  'on your stack, ALMA47 ends (Z text, Y Zn, X Hc)'],
                  ['9', 'SNAP (a screenshot)', 'SNAP (a screenshot)'],
                  ['+', '—', 'back to the menu'],
                  ['▲ / ▼', 'one hour later / earlier (the title shows the new time)', 'the same view one hour later / earlier'],
-                 ['0', 'end of ALMA47: clears the numbered registers (CLREGS), the screen and the stack', '—'],
+                 ['0', 'end of ALMA47: clears its registers R07–R98 and the screen; your stack and LASTx back', '—'],
                  ['other keys', 'ignored', 'ignored (R/S or EXIT stop the program)']],
                 [26 * mm, 77 * mm, 77 * mm]),
       P('The hours added with the arrows stay for the other views. New date or position: XEQ "ALMA47" again.', small),
-      P('<b>ALMA47 uses the numbered registers and the 8-level stack.</b> It uses R00–R98 while it runs (its values and '
-        'its most used numbers) and the 8-level stack (the text routines need it). Leaving with 0 clears R00–R99 '
-        '(CLREGS) and the stack, puts your stack size back and the standard font (GRFNT 20). <b>Save your registers '
-        'first.</b> Named variables and matrices are not touched (DATE, UTC, LAT, LON and the matrices of NAVINIT stay). '
-        'If you stop ALMA47 with R/S or EXIT, the registers keep its values: that is how the routines of section 7 can be '
-        'called from the keyboard. Up to v2.1.0 NAV saved your registers and gave them back; since v2.2.0 it does not.')]
+      P('<b>Keys 1 – 8 on ALMANAC and SPLIT.</b> They pick a body of the table: 1 the Sun, 2 – 8 the next rows. ALMA47 '
+        'ends and leaves the body on your stack: Z its text (e.g. SUN Zn 216.7 Hc 54 11.6), Y its Zn, X its Hc, in '
+        'decimal degrees (a body below the horizon too: Hc negative). Your stack is pushed up by three.', small),
+      P('<b>Your stack and your registers.</b> ALMA47 keeps the stack you had (X Y Z T, and A B C D with the 8-level '
+        'stack) and LASTx: when it ends they are as before XEQ "ALMA47". While it runs it uses the 8-level stack (the '
+        'text routines need it) and the numbered registers R07–R98 (its values and its most used numbers, R43–R98); '
+        'at the end it clears only those (R-CLR 7.92), puts your stack size back and the standard font (GRFNT 20): '
+        'R00–R06 and R99 stay yours. Named variables and matrices are not touched (DATE, UTC, LAT, LON and the '
+        'matrices of NAVINIT stay). If you stop ALMA47 with R/S or EXIT, the registers keep its values: that is how '
+        'the routines of section 7 can be called from the keyboard.')]
 
 S += [PageBreak(), P('5. The views', h2),
       P('All views: 23 Sep 2026 23:30 UT, 10° N 075° 30′ W (the menu: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E). '
@@ -173,10 +178,10 @@ S += [PageBreak(), P('7. Inside ALMA47: the labels', h2),
         'those of earlier versions: a number missing below belongs to a routine that is gone. The comments of ALMA47.p47u '
         'say what every routine does; the source is programs_struct/ in the repository (one file per program, indented).'),
       P('Routines you can call yourself', h3),
-      P('Run ALMA47 with your date, time and DR, then leave it with <b>EXIT</b> (or R/S), not with 0 — 0 clears the '
-        'registers. These routines read the numbers ALMA47 stores in R43–R98 when it starts (the table at the end of '
-        'this section), the DR of the run (R13 longitude, R14 latitude) and the matrices of NAVINIT; they use R00–R42 '
-        'for their work. JD is the C47\'s Julian Date (the date, then ⅅ→J) + UT / 24, a plain number.'),
+      P('Run ALMA47 with your date, time and DR, then leave it with <b>EXIT</b> (or R/S), not with 0 or a key 1 – 8 — they '
+        'clear ALMA47\'s registers R07–R98. These routines read the numbers ALMA47 stores in R43–R98 when it starts (the table at the end of '
+        'this section), the DR of the run (R13 longitude, R14 latitude) and the matrices of NAVINIT; they use R07–R42 '
+        'for their work (R00–R06 and R99 are never touched). JD is the C47\'s Julian Date (the date, then ⅅ→J) + UT / 24, a plain number.'),
       prose_tbl([['Label', 'Name', 'Input', 'Output']] + [[a, b, c, d] for a, b, c, d in _R.CALLABLE],
                 [14 * mm, 14 * mm, 70 * mm, 82 * mm]),
       P('Example: ALMA47 for 23 Sep 2026, 25° 20′ N 055° 12′ E, left with EXIT. <b>2461307 XEQ "N15"</b> gives '

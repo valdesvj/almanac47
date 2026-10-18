@@ -1,4 +1,22 @@
 LBL "NAV"
+LocR 09
+STO R.00
+R↓
+STO R.01
+R↓
+STO R.02
+R↓
+STO R.03
+R↓
+STO R.04
+R↓
+STO R.05
+R↓
+STO R.06
+R↓
+STO R.07
+RCL L
+STO R.08
 1
 STO 43
 2
@@ -114,6 +132,7 @@ STO 98
 SSIZE#
 STO "F0"
 SSIZE8
+XEQ "N02"
 RCL 85
 STO "U0"
 STO "U1"
@@ -291,13 +310,13 @@ STO "KQA2"
 RCL 46
 STO "W4"
 "DATE YYYY.MMDD"
-STO 02
+STO 07
 FS? 'DMY'
 XEQ 10
 FS? 'MDY'
 XEQ 11
 CLSTK
-RCL 02
+RCL 07
 INPUT "DATE"
 CLSTK
 "UT HH.MMSS"
@@ -319,20 +338,20 @@ XEQ 04
 DO
   DO
     PAUSE 50
-    KEY? 08
+    KEY? 17
   WHILE
   ENDDO
-  RCL 08
+  RCL 17
   RCL 87
   X≠Y?
 WHILE
-  RCL 08
+  RCL 17
   54
   X=Y?
   IF
     SNAP
   ELSE
-    RCL 08
+    RCL 17
     56
     -
     ABS
@@ -340,7 +359,7 @@ WHILE
     X=Y?
     IF
       56
-      RCL- 08
+      RCL- 17
       5
       ÷
       STO+ "W4"
@@ -348,21 +367,21 @@ WHILE
       XEQ 03
       XEQ 04
     ELSE
-      RCL 08
+      RCL 17
       RCL 50
       MOD
-      STO 12
+      STO 11
       3
       -
       ABS
       1
       X≥Y?
       IF
-        RCL 08
+        RCL 17
         RCL 50
         ÷
         IP
-        STO 02
+        STO 13
         6.5
         -
         ABS
@@ -370,45 +389,46 @@ WHILE
         X=Y?
         IF
           7
-          RCL- 02
+          RCL- 13
           RCL 51
           ×
-          RCL+ 12
+          RCL+ 11
           RCL 43
           -
-          STO 02
+          STO 11
           STO "V3"
           6
           X=Y?
           IF
             174
-            STO 12
+            STO 11
             202
-            STO 02
+            STO 13
             XEQ 08
             PAUSE 0
             XEQ 06
           ELSE
-            RCL 02
+            RCL 11
             28
             ×
             202
             X<>Y
             -
-            STO 12
+            STO 11
             12
-            STO 02
+            STO 13
             XEQ 08
             PAUSE 0
             XEQ 06
           ENDIF
           DO
             RCL 46
-            STO 08
+            STO 17
             RCL 43
             RCL "V3"
             X=Y?
             IF
+              XEQ "N02"
               XEQ 02
               XEQ "N01"
             ELSE
@@ -416,6 +436,7 @@ WHILE
               RCL "V3"
               X=Y?
               IF
+                XEQ "N02"
                 XEQ 02
                 XEQ "N06"
               ELSE
@@ -516,7 +537,30 @@ WHILE
                 ENDIF
               ENDIF
             ENDIF
-            RCL 08
+            RCL "KD"
+            X≠0?
+            IF
+              XEQ "N07"
+              XEQ 13
+              RCL R.08
+              STO L
+              RCL R.07
+              RCL R.06
+              RCL R.05
+              RCL R.04
+              RCL R.03
+              RCL R.02
+              RCL R.01
+              RCL R.00
+              RCL "KT"
+              RCL "KZ"
+              RCL "KH"
+              DELITM "KT"
+              DELITM "KZ"
+              DELITM "KH"
+              RTN
+            ENDIF
+            RCL 17
             56
             -
             ABS
@@ -524,13 +568,13 @@ WHILE
             X=Y?
             IF
               56
-              RCL- 08
+              RCL- 17
               5
               ÷
               STO+ "W4"
             ENDIF
             XEQ 06
-            RCL 08
+            RCL 17
             56
             -
             ABS
@@ -544,22 +588,17 @@ WHILE
     ENDIF
   ENDIF
 ENDDO
-CLLCD
-DELITM "Q2"
-DELITM "U2"
-DELITM "U3"
-DELITM "C1"
-DELITM "C2"
-DELITM "HT"
-RCL 55
-GRFNT
-DROP
-RCL "F0"
-RCL 66
-X=Y?
-SSIZE4
-CLREGS
-CLSTK
+XEQ 13
+RCL R.08
+STO L
+RCL R.07
+RCL R.06
+RCL R.05
+RCL R.04
+RCL R.03
+RCL R.02
+RCL R.01
+RCL R.00
 RTN
 LBL 01
 XEQ "N50"
@@ -583,19 +622,19 @@ x→ⅅ
 ⅅ→J
 RCL 56
 -
-STO 02
+STO 19
 RCL "UTC"
 10000
 ×
 RCL 56
 +
 IP
-STO 03
+STO 13
 RCL 64
 MOD
 RCL 54
 ÷
-RCL 03
+RCL 13
 RCL 64
 ÷
 IP
@@ -604,28 +643,28 @@ MOD
 RCL 57
 ÷
 +
-RCL 03
+RCL 13
 10000
 ÷
 IP
 +
-STO 03
+STO 13
 RCL 70
 ÷
-STO+ 02
+STO+ 19
 RCL "W4"
 RCL 70
 ÷
-STO+ 02
+STO+ 19
 RCL "LAT"
 XEQ 07
-STO 03
+STO 13
 RCL "LON"
 XEQ 07
-STO 04
-RCL 02
-RCL 03
-RCL 04
+STO 18
+RCL 19
+RCL 13
+RCL 18
 RTN
 LBL 03
 XEQ 02
@@ -633,7 +672,7 @@ STO 13
 R↓
 STO 14
 R↓
-STO 17
+STO 09
 RCL 14
 RCL 43
 →REC
@@ -641,9 +680,9 @@ STO "V6"
 X<>Y
 STO "W1"
 X<>Y
-RCL 17
+RCL 09
 XEQ "N64"
-RCL 17
+RCL 09
 RCL 56
 -
 IP
@@ -653,7 +692,7 @@ RCL 14
 RCL 13
 XEQ "N71"
 RCL 43
-STO 22
+STO 13
 RTN
 LBL 04
 XEQ 02
@@ -676,9 +715,9 @@ RCL 66
 X<>Y
 RCL "VAL"
 XEQ "N50"
-RCL 04
-RCL 03
-RCL 02
+RCL 18
+RCL 13
+RCL 19
 206
 XEQ "N83"
 200
@@ -755,36 +794,36 @@ GRMOD
 105
 110
 111111111111111111111111111111#2
-STO 03
+STO 13
 R↓
-AGRAPH 03
-AGRAPH 03
+AGRAPH 13
+AGRAPH 13
 110000000000000000000000000011#2
-STO 03
+STO 19
 R↓
 22
-STO 07
+STO 13
 R↓
 DO
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  DSE 07
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  AGRAPH 19
+  DSE 13
 WHILE
 ENDDO
 111111111111111111111111111111#2
-STO 03
+STO 13
 R↓
-AGRAPH 03
-AGRAPH 03
+AGRAPH 13
+AGRAPH 13
 RCL 46
 GRMOD
-STO 04
+STO 13
 WSIZE 64
 "SINKING....ABOUT"
 110
@@ -809,54 +848,54 @@ X<>Y
 RCL 46
 FS? 47
 RCL 55
-STO 02
+STO 18
 XEQ 05
-RCL 02
+RCL 18
 X=0?
 RTN
 DO
   WSIZE 16
   RCL 51
-  STO 03
+  STO 11
   GRMOD 03
   RAN#
   390
   ×
   IP
-  STO 06
+  STO 24
   RAN#
   RCL 62
   ×
   IP
   RCL 55
   +
-  STO 12
-  RCL 12
-  RCL 06
+  STO 11
+  RCL 11
+  RCL 24
   XEQ 12
   00111100111111#2
-  STO 03
+  STO 13
   R↓
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
-  AGRAPH 03
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
+  AGRAPH 13
   XEQ 12
   RCL 46
-  STO 03
+  STO 13
   GRMOD 03
   WSIZE 64
   PAUSE 1
-  DSE 02
+  DSE 18
 WHILE
 ENDDO
 RTN
 LBL 07
-STO 04
+STO 18
 IP
-RCL 04
+RCL 18
 FP
 RCL 64
 ×
@@ -867,46 +906,70 @@ RTN
 LBL 08
 WSIZE 18
 RCL 51
-STO 01
+STO 16
 GRMOD 01
 1111111111111111#2
-STO 01
-RCL 12
-RCL 02
+STO 16
+RCL 11
+RCL 13
 17
-STO 02
+STO 13
 R↓
 DO
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  AGRAPH 01
-  DSE 02
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  AGRAPH 16
+  DSE 13
 WHILE
 ENDDO
 RCL 46
-STO 01
+STO 16
 GRMOD 01
 WSIZE 64
 RTN
 LBL 10
 "DATE DD.MMYYYY"
-STO 02
+STO 07
 RTN
 LBL 11
 "DATE MM.DDYYYY"
-STO 02
+STO 07
 RTN
 LBL 12
 11000000000000#2
-STO 03
+STO 13
 R↓
-AGRAPH 03
-AGRAPH 03
+AGRAPH 13
+AGRAPH 13
+LBL 13
+CLLCD
+DELITM "Q2"
+DELITM "U2"
+DELITM "U3"
+DELITM "C1"
+DELITM "C2"
+DELITM "HT"
+DELITM "KB"
+DELITM "KC"
+DELITM "KD"
+DELITM "KI"
+DELITM "KJ"
+DELITM "KN"
+RCL 55
+GRFNT
+DROP
+RCL "F0"
+RCL 66
+X=Y?
+SSIZE4
+7.92
+R-CLR
+RTN
 END

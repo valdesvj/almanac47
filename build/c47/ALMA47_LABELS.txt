@@ -7,10 +7,11 @@ comments of ALMA47.p47u say what each one does).
 
 Routines you can call yourself
 ------------------------------
-Run ALMA47 with your date, time and DR, then leave it with EXIT (or R/S), NOT with 0: 0 clears the
-registers (CLREGS), and these routines read the numbers ALMA47 stores in R43-R98 at its start (the table
-at the end), the DR of the run (R13 longitude, R14 latitude) and the matrices of NAVINIT. They use
-R00-R42 for their work. JD: the C47's Julian Date (DATE, then ⅅ→J) + UT / 24, a plain number.
+Run ALMA47 with your date, time and DR, then leave it with EXIT (or R/S), NOT with 0 or a key 1-8: they
+clear ALMA47's registers R07-R98 (R-CLR 7.92), and these routines read the numbers ALMA47 stores in
+R43-R98 at its start (the table at the end), the DR of the run (R13 longitude, R14 latitude) and the
+matrices of NAVINIT. They use R07-R42 for their work (R00-R06 and R99 are never touched). JD: the
+C47's Julian Date (DATE, then ⅅ→J) + UT / 24, a plain number.
 
   XEQ "N15"  SUNA  X = JD (UT)
                     -> X GHA of the Sun, Y Dec, Z GHA of Aries
@@ -44,7 +45,7 @@ Example: run ALMA47 for 23 Sep 2026, 25 20 N 055 12 E, leave with EXIT;
 Every global label
 ------------------
 Label    Name    What it does
-ALMA47   NAV     graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program (NAV in the sources)
+ALMA47   NAV     graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept (R-CLR 7.92); the only named program (NAV in the sources)
 N95      CALC    the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks
 N80      PTNT    TEXT: whole number in the tinyFont
 N54      PDMS    TEXT: degrees and minutes 'ddd mm.m' with sign
@@ -92,6 +93,10 @@ N98      CALL    ALLSKY: a star without values (-98, -99) -> all 58 at once with
 N48      SNMU    star name from its number
 N46      PHA2    Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)
 N63      WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
+N02      PKNW    keys 1-8: an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn
+N03      PKRC    keys 1-8: X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB
+N05      PKEY    keys 1-8: X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0
+N07      PKBD    keys 1-8: the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc
 N84      CMN     compass row N E S W N of a chart (X row)
 N90      OUT5    steps shared by several routines (tools/navmat.py outline)
 N89      OUT4    steps shared by several routines (tools/navmat.py outline)

@@ -1,0 +1,194 @@
+LBL "N02"
+8
+ENTER
+3
+NEWMAT
+STO "KB"
+0
+STO "KC"
+STO "KD"
+STO "KI"
+STO "KJ"
+STO "KN"
+RTN
+LBL "N03"
+INDEX "KB"
+1
+STO+ "KC"
+RCL "KC"
+X<>Y
+STOIJ
+DROP
+DROP
+RCL "KR"
+STOSEQ
+DROP
+STOSEQ
+X<>Y
+STOSEQ
+RTN
+LBL "N05"
+STO "KD"
+10
+MOD
+STO "KJ"
+3
+-
+ABS
+1
+X≥Y?
+IF
+  RCL "KD"
+  10
+  ÷
+  IP
+  STO "KI"
+  6
+  -
+  ABS
+  1
+  X≥Y?
+  IF
+    7
+    RCL "KI"
+    -
+    3
+    ×
+    RCL "KJ"
+    +
+    1
+    -
+    STO "KD"
+    RCL "KC"
+    X≥Y?
+    IF
+      RCL "KD"
+      RTN
+    ENDIF
+  ENDIF
+ENDIF
+0
+STO "KD"
+RTN
+LBL "N07"
+INDEX "KB"
+RCL "KD"
+1
+STOIJ
+RCLSEQ
+RCLSEQ
+STO "KH"
+RCLSEQ
+STO "KZ"
+DROP
+DROP
+STO 43
+6
+X≥Y?
+IF
+  XEQ IND 43
+ELSE
+  RCL 43
+  6
+  -
+  XEQ "N48"
+ENDIF
+STO "KT"
+" Zn "
+x→α "KT"
+RCL "KZ"
+10
+×
+0.5
++
+IP
+3600
+MOD
+STO "KN"
+1000
+X>Y?
+IF
+  "0"
+  x→α "KT"
+ENDIF
+RCL "KN"
+100
+X>Y?
+IF
+  "0"
+  x→α "KT"
+ENDIF
+RCL "KN"
+10
+÷
+IP
+αIP "KT"
+"."
+x→α "KT"
+RCL "KN"
+10
+MOD
+αIP "KT"
+" Hc "
+x→α "KT"
+RCL "KH"
+X<0?
+IF
+  "-"
+  x→α "KT"
+ENDIF
+RCL "KH"
+ABS
+600
+×
+0.5
++
+IP
+STO "KN"
+600
+÷
+IP
+αIP "KT"
+" "
+x→α "KT"
+RCL "KN"
+600
+MOD
+STO "KN"
+100
+X>Y?
+IF
+  "0"
+  x→α "KT"
+ENDIF
+RCL "KN"
+10
+÷
+IP
+αIP "KT"
+"."
+x→α "KT"
+RCL "KN"
+10
+MOD
+αIP "KT"
+RTN
+LBL 01
+"SUN"
+RTN
+LBL 02
+"MOON"
+RTN
+LBL 03
+"VENUS"
+RTN
+LBL 04
+"MARS"
+RTN
+LBL 05
+"JUPITER"
+RTN
+LBL 06
+"SATURN"
+RTN
+END
