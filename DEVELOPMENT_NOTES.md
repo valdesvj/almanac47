@@ -996,3 +996,18 @@ body below the horizon pushed too.
 - Docs of the release unchanged (v2.2.0); the next version has build/dev/next/README.txt and its .p47u header ('@
   Tested:' says simulator only). Its comments: only the global labels (the routine comments of struct_comments name
   the v2.2.0 register numbers).
+
+## Oct 18, 2026 - c47sim: R-CLR ranges, local flags, LASTx (branch sim-flags)
+
+For Elements 47 (its python/elem47sim.py split() works around them today); from the firmware sources (Oct 9).
+- R-CLR (registers.c fnRegClr / getRegParam): X = sss.nn clears nn registers from sss, X stays. 0-99: sss + nn must be
+  below 100 (0.99 is R00-R98, 1.99 an error), nn = 0 to R99. 100-111: X Y Z T A B C D L I J K (104.04 A-D, 108.01 L =
+  LASTx). 112-210: the local registers R.00-R.98, within the level's LocR. nn = 0 in those two ranges is an error in the
+  sim: the firmware compares with the C number of R.00 (7000) there and would run on past K / past the LocR.
+  X negative, |X| >= 1000 or not a real number: an error.
+- Local flags .00-.31 (firmware listing 'SF .05'; 'F.05' read too): SF CF FS? FC? FS?C FC?C. As the firmware: they are
+  in the subroutine level's header next to its local registers, so they come with the level's first LocR (even LocR
+  00), all clear; a second LocR keeps them; RTN drops them; an XEQ'd level has none until its own LocR. Without LocR the
+  firmware ignores them (FS? false, SF nothing): an error in the sim. FS?C / FC?C on global flags too.
+- LASTx: the firmware's name LASTx accepted (LASTX as before); RCL L / STO L on LASTx (from the stack-keys work).
+- tests/test_c47sim.py.

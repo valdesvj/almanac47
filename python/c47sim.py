@@ -148,6 +148,40 @@ class Calc:
         loc = getattr(self, 'locs', {}).get(getattr(self, 'depth', 0)); n = int(k[2:])
         if loc is None or n >= len(loc): raise ValueError('no local register %s at level %d' % (k, getattr(self, 'depth', 0)))
         return loc, n
+    def localflag(self, op, n, pc):
+        """SF / CF / FS? / FC? / FS?C / FC?C .nn (F.nn): the local flags of the running subroutine level (flags.c, local
+        flag 112 + nn). The firmware has them only after a LocR on the level (registers.c allocateLocalRegisters: in the
+        level's header) and then ignores them (FS? false); here an error, as in a program it is a mistake."""
+        fl = getattr(self, 'lflags', {}).get(getattr(self, 'depth', 0))
+        if fl is None: raise ValueError('%s .%02d: no local flags at level %d (no LocR)' % (op, n, getattr(self, 'depth', 0)))
+        if n >= 32: raise ValueError('%s .%02d: local flags are .00-.31' % (op, n))
+        on = n in fl
+        if op == 'SF' or op == 'CF' or op.endswith('C'):
+            (fl.add if op == 'SF' else fl.discard)(n)
+        if op == 'SF' or op == 'CF': return pc
+        return self.test(on == op.startswith('FS'), pc)
+    def regclr(self):
+        """R-CLR (registers.c fnRegClr / getRegParam): X = sss.nn clears nn registers from sss; X stays. The ranges:
+        0-99 R00-R99 (nn = 0: to R99; sss + nn must stay below 100: 0.99 is R00-R98), 100-111 X Y Z T A B C D L I J K
+        (nn = 0 not modelled: the firmware runs on past K), 112-210 the local registers R.00-R.98 (nn = 0 not modelled)."""
+        x = self.s[0]
+        if isinstance(x, (str, tuple, Mat, complex)) or not -1000 < x < 1000: raise ValueError('R-CLR: X %s' % (x,))
+        if x < 0: raise ValueError('R-CLR %s out of range' % x)
+        st = int(x); n = int((x - st) * 100)
+        if st < 100:
+            if st + n >= 100: raise ValueError('R-CLR %s out of range' % x)
+            keys = [str(r) for r in range(st, st + (n or 100 - st))]
+        elif st < 112:
+            if n == 0 or st + n > 112: raise ValueError('R-CLR %s: past K (not modelled)' % x)
+            keys = list('XYZTABCDLIJK'[st - 100:st - 100 + n])
+        else:
+            nl = len(getattr(self, 'locs', {}).get(getattr(self, 'depth', 0)) or [])
+            if n == 0 or st - 112 + n > nl: raise ValueError('R-CLR %s: local registers R.00-R.%02d' % (x, nl - 1))
+            keys = ['R.%02d' % (r - 112) for r in range(st, st + n)]
+        for k in keys:
+            if k in 'XYZT': self.s['XYZT'.index(k)] = D(0)
+            elif k.startswith('R.') or k == 'L': self.rset(k, D(0))
+            else: self.reg.pop(k, None)
     def rget(self, k):
         k = str(int(k)) if isinstance(k, int) else k
         if k.startswith('R.'): loc, n = self.local(k); return loc[n]
@@ -262,6 +296,7 @@ class Calc:
             if ln.startswith('"'): self.alpha=ln.strip('"'); self.push(ln.strip('"')); continue
             if op in ('RTN', 'END'):
                 getattr(self, 'locs', {}).pop(len(rs), None)        # local registers live in their subroutine level
+                getattr(self, 'lflags', {}).pop(len(rs), None)      # ... and its local flags
                 if rs: pc = rs.pop(); continue
                 return
             if op == 'CLα': self.rset(self.regkey(arg), ''); continue      # the text in a register: empty
@@ -270,7 +305,9 @@ class Calc:
                 # the firmware (allocateLocalRegisters): a second LocR on the same level keeps the values and
                 # only changes the number; new ones are 0
                 self.locs = getattr(self, 'locs', {}); old = self.locs.get(len(rs), [])
-                self.locs[len(rs)] = (old + [D(0)] * int(arg))[:int(arg)]; continue
+                self.locs[len(rs)] = (old + [D(0)] * int(arg))[:int(arg)]
+                # the 32 local flags .00-.31 come with the level's first LocR (all clear), a second LocR keeps them
+                self.lflags = getattr(self, 'lflags', {}); self.lflags.setdefault(len(rs), set()); continue
             if op == 'GTO':
                 if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
                 pc = self.labels[arg] + 1; continue
@@ -420,13 +457,7 @@ class Calc:
                 if x < 0 or y < 0: raise ValueError('POINT with a negative X or Y: not modelled in c47sim yet')
                 continue
             if op == 'CLREGS': self.reg = {k: v for k, v in self.reg.items() if not re.fullmatch(r'\d+', k)}; continue
-            if op == 'R-CLR':
-                # registers.c fnRegClr / getRegParam: X = sss.nn, n registers from Rsss (n = 0: to R99); X stays
-                x = self.s[0]; st = int(x); n = int((x - st) * 100)
-                n = n or 100 - st
-                if x < 0 or st + n > 100: raise ValueError('R-CLR %s out of range' % x)
-                for r in range(st, st + n): self.reg.pop(str(r), None)
-                continue
+            if op == 'R-CLR': self.regclr(); continue
             if op == 'CLΣ': self.stat=[]; continue
             if op == 'Σ+': self.stat.append((float(self.s[0]),float(self.s[1]))); continue
             if op in ('PLSTAT','PLTFCNS'): continue
@@ -507,7 +538,7 @@ class Calc:
             if op == 'ASIN': self.unary(lambda x: self.ang_out(math.asin(f(x)))); continue
             if op == 'X^2': self.unary(lambda x: x*x); continue
             if op == '→DEG': self.unary(lambda x: x*D(180)/D(math.pi)); continue
-            if op == 'LASTX': self.push(self.lastx); continue
+            if op in ('LASTX', 'LASTx'): self.push(self.lastx); continue
             if op == 'X<>Y': self.s[0], self.s[1] = self.s[1], self.s[0]; self.lift = True; continue
             if op == 'R↓': self.s = self.s[1:] + self.s[:1]; self.lift = True; continue
             if op == '→POL':
@@ -574,8 +605,13 @@ class Calc:
             if op == 'SQRT': self.unary(lambda x: x.sqrt()); continue
             if op == '2ˣ': self.unary(lambda x: D(2) ** int(x) if x == int(x) else D(2 ** f(x))); continue
             if op == 'SINT': self.unary(lambda x: D(int(x))); continue   # real -> short integer (the bits stay)
+            if op in ('SF', 'CF', 'FS?', 'FC?', 'FS?C', 'FC?C') and re.fullmatch(r'F?\.\d\d', arg):
+                pc = self.localflag(op, int(arg[-2:]), pc); continue
             if op == 'CF': self.flags.discard(int(arg)); continue
             if op == 'SF': self.flags.add(int(arg)); continue
+            if op in ('FS?C', 'FC?C'):                                 # test, then clear (flags.c fnIsFlagSetClear)
+                on = int(arg) in self.flags; self.flags.discard(int(arg))
+                pc = self.test(on == (op == 'FS?C'), pc); continue
             if op in ('FS?', 'FC?') and arg.strip("'") in ('DMY', 'MDY', 'YMD'):   # the date-format system flags
                 on = getattr(self, 'datefmt', 'YMD') == arg.strip("'")
                 pc = self.test(on == (op == 'FS?'), pc); continue
