@@ -1011,3 +1011,18 @@ For Elements 47 (its python/elem47sim.py split() works around them today); from 
   firmware ignores them (FS? false, SF nothing): an error in the sim. FS?C / FC?C on global flags too.
 - LASTx: the firmware's name LASTx accepted (LASTX as before); RCL L / STO L on LASTx (from the stack-keys work).
 - tests/test_c47sim.py.
+
+## Oct 18, 2026 - MOON47 of the next version: your stack kept (branch moon-next)
+
+As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next/MOON47.txt, MOON47.p47u
+(tools/build_next.py; build_struct_src.build_moon(NEXT)). v2.2.0's MOON47 (build/forum/, build/c47/) unchanged.
+- LocR 09 at MOON47's start saves your stack (8 levels; with SSIZE4 the 4 twice) and LASTx in R.00-R.08; the end gives
+  them back (RCL R.08 STO L, RCL R.07 ... R.00) instead of CLSTK, after the SSIZE4 of v2.2.0.
+- The registers: v2.2.0 uses R03-R53 and, by RCL / STO IND 39, two tables R54-R57, R58-R61 (base 54 + the phase,
+  + 4): R03-R61 never cleared. Moved + 4 (every register step, the base 54 -> 58) to R07-R65, inside ALMA47's block
+  R07-R98, and cleared at the end with R-CLR 7.59: R00-R06 and R66-R99 stay yours. A shift, not tools/regblock.py:
+  the tables are addressed by number. The build checks the block (MOON_REGS) and the R-CLR.
+- The work matrices M7T M7C M7A M7V M7W as v2.2.0 (M7T, M7C set to 0 at the end); 1465 steps (+29).
+- tests/test_struct_src.py moon_next: n dates and time zones (north, and south after +/-) pixel for pixel v2.2.0, your
+  X Y Z T and LASTx back, R00-R06 / R66-R99 kept, R07-R65 cleared, the M7 matrices as v2.2.0. Simulator only: rejig,
+  the firmware test and the calculator still to do.

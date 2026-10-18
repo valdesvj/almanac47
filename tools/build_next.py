@@ -12,15 +12,23 @@ From programs_struct/next/ (tools/build_struct_src.py build_next: the v2.2.0 sou
   build/dev/next/ALMA47.p47u    the same as a rejig source: the '@' header, a ';' comment on each global label
   build/dev/next/ALMA47.p47     with rejig (not in git)
 
+MOON47 the same way (programs_struct/next/MOON47.txt, build_struct_src.build_moon(NEXT)): v2.2.0's MOON47 with your stack
+(8 levels) and LASTx kept (LocR 09), its registers R07-R65 (v2.2.0's R03-R61 + 4) cleared at its end (R-CLR 7.59):
+R00-R06 and R66-R99 stay yours.
+  build/dev/next/MOON47.txt     the program
+  build/dev/next/MOON47.p47u    the rejig source, the comments of build/forum/MOON47.p47u (their register numbers + 4)
+  build/dev/next/MOON47.p47     with rejig (not in git)
+
   python3 tools/build_next.py
 """
-import os, shutil, subprocess, sys
+import os, re, shutil, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path[:0] = [HERE]
 import c47struct as C                                                         # noqa: E402
 import build_struct_src as B                                                  # noqa: E402
+import build_forum as F                                                       # noqa: E402
 
 OUT = os.path.join(ROOT, 'build', 'dev', 'next')
 MAIN = 'ALMA47'
@@ -44,6 +52,33 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @
 """
+
+MOON_HEAD = """@ Index:   Moon phase, age and the next phases
+@ Author:  Victor Valdes
+@ Version: next (after 2.2.0, not released)
+@ Source:  https://github.com/valdesvj/almanac47
+@ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
+@ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
+@ Input:   none: the date and time from the clock (UT; for a clock on local time UT+4: 4 STO 'TZ')
+@ Output:  the page as v2.2.0 (clock 03-10-2026 12:00 UT: LAST QUARTER, 51 % lit, age 22.4 days, HP 59.2', SD 16.1')
+@
+@ As MOON47 v2.2.0, and:
+@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends;
+@   - it uses the registers R07-R65 and clears only those when it ends (R-CLR 7.59): R00-R06 and R66-R99 stay yours.
+@ Keys: +/- turns the picture to the view from the south, any other key ends. Its work matrices M7T, M7C, M7A, M7V,
+@ M7W as v2.2.0 (M7T, M7C set to 0 at the end; TZ stays).
+@ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
+@
+"""
+
+
+def moon():
+    """MOON47 of the next version: (listing, .p47u body). The comments of build/forum/MOON47.p47u, the register numbers
+    in them moved as the code (+ 4)."""
+    M = B.build_moon(B.NEXT)
+    com = [re.sub(r'\bR(\d\d)\b', lambda m: 'R%02d' % (int(m.group(1)) + 4), l) if l.strip().startswith('REM ') else l
+           for l in B.commented_moon(M)[3:]]
+    return M, F.commented(com)
 
 
 def listing():
@@ -71,13 +106,18 @@ def main():
     P = source(L)
     assert [l.split(';')[0].strip() for l in P] == L
     open(os.path.join(OUT, 'ALMA47.p47u'), 'w', encoding='utf-8').write(HEAD + '\n'.join(P) + '\n')
-    size = None
-    if shutil.which('rejig'):
-        subprocess.run(['rejig', '--validate=r47', '-o', os.path.join(OUT, 'ALMA47.p47'), os.path.join(OUT, 'ALMA47.txt')],
-                       check=True)
-        T = open(os.path.join(OUT, 'ALMA47.p47'), encoding='ascii').read().split('\n')
-        size = T[T.index('PROGRAM') + 1]
-    print('  build/dev/next/ALMA47.txt, ALMA47.p47u: %d steps; .p47 %s bytes' % (len(L), size or '? (no rejig)'))
+    M, MP = moon()
+    open(os.path.join(OUT, 'MOON47.txt'), 'w', encoding='utf-8').write('\n'.join(M) + '\n')
+    assert [l.split(';')[0].strip() for l in MP] == M
+    open(os.path.join(OUT, 'MOON47.p47u'), 'w', encoding='utf-8').write(MOON_HEAD + '\n'.join(MP) + '\n')
+    for name, n in (('ALMA47', len(L)), ('MOON47', len(M))):
+        size = None
+        if shutil.which('rejig'):
+            subprocess.run(['rejig', '--validate=r47', '-o', os.path.join(OUT, name + '.p47'), os.path.join(OUT, name + '.txt')],
+                           check=True)
+            T = open(os.path.join(OUT, name + '.p47'), encoding='ascii').read().split('\n')
+            size = T[T.index('PROGRAM') + 1]
+        print('  build/dev/next/%s.txt, %s.p47u: %d steps; .p47 %s bytes' % (name, name, n, size or '? (no rejig)'))
 
 
 if __name__ == '__main__':

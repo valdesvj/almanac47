@@ -13,7 +13,8 @@
   5. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
 
   6. programs_struct/next/ (the next version, tools/build_next.py): its build, every page pixel for pixel as v2.2.0,
-     your stack, LASTx and R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT against python/native
+     your stack, LASTx and R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT against python/native; its MOON47
+     (programs_struct/next/MOON47.txt) pixel for pixel v2.2.0, your stack, LASTx and R00-R06 / R66-R99 kept
 
   python3 tests/test_struct_src.py [n]      (n random cases, default 16)
 """
@@ -289,6 +290,53 @@ def next_version(n):
     keys(L)
     pages(L, 'programs_struct/next', picks=True)
     places(L, n, 'programs_struct/next')
+    moon_next(n)
+
+
+def moon_next(n):
+    """MOON47 of the next version (programs_struct/next/MOON47.txt, build/dev/next/MOON47.txt): the page pixel for pixel
+    MOON47 v2.2.0 at n dates and time zones, north and south; your X Y Z T and LASTx back, R00-R06 and R66-R99 kept,
+    R07-R65 cleared; the work matrices as v2.2.0."""
+    import c47sim
+    import moon47 as M47
+    import build_next as NX
+    print('== MOON47 of the next version (programs_struct/next/MOON47.txt)')
+    M = B.build_moon(B.NEXT)
+    ok(M == lines(os.path.join(NX.OUT, 'MOON47.txt')), 'build/dev/next/MOON47.txt is the build of programs_struct/next/MOON47.txt')
+    P = [l.split(';')[0].strip() for l in open(os.path.join(NX.OUT, 'MOON47.p47u'), encoding='utf-8').read().split('\n')
+         if l.strip() and not l.startswith('@')]
+    ok(P == M, 'build/dev/next/MOON47.p47u: the same steps, the comments after ;')
+    print('  %d steps (v2.2.0 %d)' % (len(M), len(B.build_moon())))
+    mine = {'%d' % r: D(1000 + r) for r in list(range(0, 7)) + list(range(66, 100))}
+
+    def run(L, j, tz, keys):
+        c = c47sim.Calc('\n'.join(L))
+        c.clock = j + (tz or 0) / 24.0
+        if tz is not None:
+            c.reg['TZ'] = D(str(tz))
+        for k, v in mine.items():
+            c.reg[k] = v
+        for r in range(7, 66):
+            c.reg['%d' % r] = D(-r)
+        c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []; c.keys = list(keys)
+        c.run('MOON47', maxsteps=10 ** 8)
+        return [{(x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400} for f in c.frames], c
+    rnd = random.Random(4748)
+    cases = [(M47.julian(2026, 10, 3, 12.0), None), (M47.julian(2027, 1, 22, 3.5), -5.0), (M47.julian(2029, 3, 1, 1.0), -9.5)]
+    while len(cases) < n:
+        cases.append((M47.julian(rnd.randint(2000, 2050), rnd.randint(1, 12), rnd.randint(1, 28), rnd.uniform(0, 24)),
+                      rnd.choice([None, -3.5, 2.0, 9.0])))
+    old = B.build_moon()
+    for i, (j, tz) in enumerate(cases):
+        keys = [43, 82] if i % 2 == 0 else [82]
+        a, c0 = run(old, j, tz, keys)
+        b, c = run(M, j, tz, keys)
+        regs = all(c.reg.get(k) == v for k, v in mine.items()) and not any('%d' % r in c.reg for r in range(7, 66))
+        mats = {k: v for k, v in c.mats.items() if k.startswith('M7')} == {k: v for k, v in c0.mats.items() if k.startswith('M7')}
+        d, m, y, h = M47.from_julian(j)
+        ok(len(b) == len(keys) and a == b and c.s == [11, 12, 13, 14] and c.lastx == 99 and regs and mats,
+           '%02d-%02d-%04d %05.2f h TZ %-5s %s: pixel for pixel v2.2.0, your stack and LASTx back, R00-R06 / R66-R99 kept,'
+           ' R07-R65 cleared' % (d, m, y, h, tz, 'north and south' if len(keys) == 2 else 'north'))
 
 
 def keys(L_):

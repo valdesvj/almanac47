@@ -150,6 +150,8 @@ NEXT_ORDER = ORDER[:ORDER.index('WPLS') + 1] + ['PICK'] + ORDER[ORDER.index('WPL
 NEXT_NAV = ('NAV', 'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on '
             'ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept '
             '(R-CLR 7.92); the only named program')
+MOON_REGS = (7, 59)        # next: MOON47's registers R07-R65 (v2.2.0's R03-R61 + 4; R58-R65 its two tables read and
+                           # written by RCL / STO IND), cleared at its end (R-CLR 7.59); R00-R06 and R66-R99 yours
 REGS = (7, 92)            # next: NAV's numbered registers R07-R98, cleared at its end (R-CLR 7.92); R00-R06, R99 yours
 # a step with a numbered register (GRMOD nn and the flags, sizes, pauses are not registers)
 REG = re.compile(r'(RCL|RCL[+\-×÷]|STO|STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥|αLENG|CLα|KEY\?|AGRAPH|XEQ IND|HEAD) (\d\d)$')
@@ -270,10 +272,11 @@ def commented(L):
     return out
 
 
-def build_moon():
+def build_moon(src=SRC):
     """MOON47 (numbered), or SystemExit with the faults: one program, LBL "MOON47" its only global label, no GTO, no REM,
-    VALID."""
-    P = source(MOON)
+    VALID. src=NEXT: the next version (programs_struct/next/MOON47.txt), its registers only in MOON_REGS, its R-CLR that
+    block."""
+    P = source(MOON, src)
     faults = ['%s: %s' % (MOON, f) for f in C.check(P)]
     if len(C.split(P)) != 1:
         faults.append('%s: %d programs (one)' % (MOON, len(C.split(P))))
@@ -281,6 +284,14 @@ def build_moon():
     if glob != ['LBL "MOON47"']:
         faults.append('%s: global labels %s (only LBL "MOON47")' % (MOON, glob))
     faults += ['%s: %s' % (MOON, l) for l in P if l.startswith(('GTO', 'REM ', 'XEQ "'))]
+    if src == NEXT:
+        first, n = MOON_REGS
+        used = sorted({int(m.group(2)) for l in P for m in [REG.match(l) or re.fullmatch(r'(RCL IND|STO IND) (\d\d)', l)] if m})
+        if used[0] < first or used[-1] > first + n - 1:
+            faults.append('%s uses R%02d-R%02d: only R%02d-R%02d (MOON_REGS)' % (MOON, used[0], used[-1], first, first + n - 1))
+        rclr = [P[k - 1] for k, l in enumerate(P) if l == 'R-CLR']
+        if rclr != ['%d.%02d' % MOON_REGS]:
+            faults.append('%s: R-CLR %s, the block is %d.%02d' % (MOON, rclr, first, n))
     if faults:
         raise SystemExit('build_struct_src:\n  ' + '\n  '.join(faults))
     return C.number(P)
