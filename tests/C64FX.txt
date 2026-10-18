@@ -1,0 +1,200 @@
+LBL "C64FX"
+REM "C64-style tricks on the one-voice buzzer (BUZZ: Y Hz, X ms; calculator only, the PC sim is silent)"
+REM "1 fake chords (arpeggio)  2 vibrato lead  3 plucked notes (volume envelope); A minor, original tune"
+VOL#
+STO "KVOL"
+DEG
+REM "1: Am F G E, each chord 12 x 3 notes of 30 ms (semitones from A4)"
+0
+3
+7
+XEQ 01
+-4
+0
+3
+XEQ 01
+-2
+2
+5
+XEQ 01
+-5
+-1
+2
+XEQ 01
+0
+3
+7
+XEQ 01
+-4
+0
+3
+XEQ 01
+-7
+-3
+0
+XEQ 01
+-5
+-1
+2
+XEQ 01
+REM "2: the lead with vibrato (Y ms, X semitone)"
+300
+0
+XEQ 03
+150
+3
+XEQ 03
+150
+2
+XEQ 03
+300
+0
+XEQ 03
+600
+-5
+XEQ 03
+300
+-4
+XEQ 03
+150
+-5
+XEQ 03
+150
+-7
+XEQ 03
+900
+-5
+XEQ 03
+REM "3: plucked notes, each 5 pieces of 40 ms, volume 11 8 6 4 2"
+0
+XEQ 04
+7
+XEQ 04
+12
+XEQ 04
+7
+XEQ 04
+3
+XEQ 04
+7
+XEQ 04
+12
+XEQ 04
+15
+XEQ 04
+-4
+XEQ 04
+3
+XEQ 04
+8
+XEQ 04
+3
+XEQ 04
+-5
+XEQ 04
+-1
+XEQ 04
+2
+XEQ 04
+7
+XEQ 04
+0
+XEQ 04
+VOL IND "KVOL"
+DELITM "KVOL"
+CLSTK
+RTN
+LBL 01
+LocR 04
+XEQ 05
+STO R.00
+R↓
+XEQ 05
+STO R.01
+R↓
+XEQ 05
+STO R.02
+12
+STO R.03
+LBL 02
+RCL R.02
+30
+BUZZ
+RCL R.01
+30
+BUZZ
+RCL R.00
+30
+BUZZ
+CLSTK
+DSE R.03
+GTO 02
+RTN
+LBL 03
+LocR 03
+XEQ 05
+STO R.00
+R↓
+25
+÷
+IP
+STO R.01
+0
+STO R.02
+LBL 06
+RCL R.02
+60
+×
+SIN
+0.012
+×
+1
++
+RCL R.00
+×
+25
+BUZZ
+CLSTK
+1
+STO+ R.02
+DSE R.01
+GTO 06
+RTN
+LBL 04
+LocR 01
+XEQ 05
+STO R.00
+VOL 11
+RCL R.00
+40
+BUZZ
+CLSTK
+VOL 8
+RCL R.00
+40
+BUZZ
+CLSTK
+VOL 6
+RCL R.00
+40
+BUZZ
+CLSTK
+VOL 4
+RCL R.00
+40
+BUZZ
+CLSTK
+VOL 2
+RCL R.00
+40
+BUZZ
+CLSTK
+RTN
+LBL 05
+12
+÷
+2ˣ
+440
+×
+RTN
+END

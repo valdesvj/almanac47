@@ -1,0 +1,51 @@
+Hi all,
+
+I am an old fan of the Commodore 64, so I decided to see what the C47 buzzer can do from a program.
+
+I read the sound code in the C47 firmware (src/c47/ui/tone.c and the hal/audio.c files).
+
+I was surprised by what I found, and with the help of AI I made a little demo of Commodore 64 tricks on one voice.
+
+THE SOUND COMMANDS (C47 firmware, master)
+
+  TONE n    one fixed note of 250 ms, n = 0..9:
+            E3 A3 B3 C#4 D4 E4 F#4 G#4 A4 C#5 (164.8 ... 554.4 Hz)
+  BEEP      TONE 8, 5, 9, 8 (A4 E4 C#5 A4)
+  BUZZ      Y = frequency in Hz (whole Hz, 0 = silence, max 20 kHz),
+            X = length in ms (max 2000). The program waits until the note ends.
+  PLAY r    plays an N x 2 matrix (Hz, ms per row). After each note a silence of
+            1/8 of its length; EXIT stops it. An N x 3 matrix adds a volume (0..11)
+            per note, and your volume setting is put back at the end.
+  VOL n     buzzer volume 0..11; VOL# reads it; VOL^ / VOLv one step up / down.
+  System flag QUIET silences everything.
+
+ONE VOICE AGAINST THE SID
+
+The C64's SID had 3 voices, 4 waveforms (triangle, saw, pulse, noise), an ADSR
+envelope per voice, a resonant filter, ring modulation and sync. The C47 has one
+buzzer, one note at a time, no envelope, no filter. So it is closer to a PC speaker
+or a ZX Spectrum beeper than to a SID.
+
+But the C64 composers used tricks that work on a beeper too, and C64FX plays three
+of them (an original tune in A minor, about 15 s):
+
+  1. Fake chords: the three notes of a chord in turn, 30 ms each, 12 rounds.
+     The ear hears a chord.
+  2. Vibrato: a long note cut into 25 ms pieces whose pitch goes up and down
+     1.2 % along a sine (about 6.7 Hz).
+  3. Plucked notes: each note cut into 5 pieces of 40 ms at volume 11 8 6 4 2,
+     a crude envelope.
+
+It uses BUZZ (no gap between notes, which the arpeggios need), local registers
+only, and gives your volume back at the end (VOL# at the start, VOL IND at the end).
+Note: it sets the angle mode to DEG for the vibrato's SIN.
+
+THE FILES
+
+  C64FX.p47 / C64FX.txt   the demo (998 bytes), XEQ "C64FX"
+  C64FX_doc.txt           the listing with a comment on every step
+
+It only works on the calculator: the PC simulator has no sound for BUZZ.
+Have fun, and turn the volume down before trying it in a meeting.
+
+Victorio

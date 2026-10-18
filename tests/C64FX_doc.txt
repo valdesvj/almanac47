@@ -1,0 +1,249 @@
+; ======================================================================
+; C64FX - Commodore 64 sound tricks on the C47 buzzer (one voice)
+; ======================================================================
+; The C64's SID chip had 3 voices, 4 waveforms, ADSR envelopes and a filter.
+; The C47 has ONE buzzer that plays one square-ish note at a time. C64
+; musicians used three tricks to sound richer than the hardware; this demo
+; plays all three, in A minor (an original tune, about 15 s):
+;
+;   1. Fake chords (arpeggio): the three notes of a chord in turn, 30 ms
+;      each, so fast that the ear hears one chord.
+;   2. Vibrato: one long note cut into 25 ms pieces whose pitch goes up and
+;      down 1.2 % along a sine (about 6.7 times a second).
+;   3. Envelope: one note cut into 5 pieces of 40 ms at volume 11 8 6 4 2,
+;      so it sounds plucked (loud attack, fading tail).
+;
+; Sound commands (C47 firmware, c47-dmcp/hal/audio.c):
+;   BUZZ   Y = frequency in Hz (whole Hz, 0 = silence), X = length in ms
+;          (max 2000); the program waits until the note ends. Stack unchanged.
+;   VOL n  buzzer volume 0-11;  VOL# puts the current volume in X;
+;          VOL IND "KVOL" sets it from a variable (used to give yours back).
+;   TONE n / BEEP play fixed 250 ms notes (not used here).
+; The PC simulator plays TONE and BEEP only: BUZZ and PLAY are silent there,
+; so run C64FX on the calculator.
+;
+; Notes are given as semitones from A4 (440 Hz): 0 = A4, 3 = C5, 7 = E5,
+; -4 = F4 ...  LBL 05 turns them into Hz: f = 440 x 2^(s/12).
+; Uses: local registers only (LocR), variable KVOL (deleted at the end).
+; Side effect: the angle mode is set to DEG (for the vibrato's SIN).
+; ======================================================================
+;
+; ---- main: the three parts in turn, then your volume back
+0001  LBL "C64FX"             
+0002  REM "C64-style tricks on the one-voice buzzer (BUZZ: Y Hz, X ms; calculator only, the PC sim is silent)"
+0003  REM "1 fake chords (arpeggio)  2 vibrato lead  3 plucked notes (volume envelope); A minor, original tune"
+0004  VOL#                    ; your volume (0-11) into X
+0005  STO "KVOL"              ; ... kept, to give it back at the end
+0006  DEG                     ; SIN below takes degrees
+;
+; ---- PART 1: fake chords Am F G E Am F Dm E (notes as semitones from A4)
+0007  REM "1: Am F G E, each chord 12 x 3 notes of 30 ms (semitones from A4)"
+0008  0                       
+0009  3                       
+0010  7                       
+0011  XEQ 01                  ; chord Am  A C E
+0012  -4                      
+0013  0                       
+0014  3                       
+0015  XEQ 01                  ; chord F   F A C
+0016  -2                      
+0017  2                       
+0018  5                       
+0019  XEQ 01                  ; chord G   G B D
+0020  -5                      
+0021  -1                      
+0022  2                       
+0023  XEQ 01                  ; chord E   E G# B
+0024  0                       
+0025  3                       
+0026  7                       
+0027  XEQ 01                  ; chord Am  A C E
+0028  -4                      
+0029  0                       
+0030  3                       
+0031  XEQ 01                  ; chord F   F A C
+0032  -7                      
+0033  -3                      
+0034  0                       
+0035  XEQ 01                  ; chord Dm  D F A
+0036  -5                      
+0037  -1                      
+0038  2                       
+0039  XEQ 01                  ; chord E   E G# B
+;
+; ---- PART 2: the lead, 9 notes with vibrato (ms, then semitone)
+0040  REM "2: the lead with vibrato (Y ms, X semitone)"
+0041  300                     
+0042  0                       
+0043  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0044  150                     
+0045  3                       
+0046  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0047  150                     
+0048  2                       
+0049  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0050  300                     
+0051  0                       
+0052  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0053  600                     
+0054  -5                      
+0055  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0056  300                     
+0057  -4                      
+0058  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0059  150                     
+0060  -5                      
+0061  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0062  150                     
+0063  -7                      
+0064  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+0065  900                     
+0066  -5                      
+0067  XEQ 03                  ; Y = ms, X = semitone: one lead note with vibrato
+;
+; ---- PART 3: 17 plucked notes (a broken-chord line)
+0068  REM "3: plucked notes, each 5 pieces of 40 ms, volume 11 8 6 4 2"
+0069  0                       
+0070  XEQ 04                  ; X = semitone: one plucked note
+0071  7                       
+0072  XEQ 04                  ; X = semitone: one plucked note
+0073  12                      
+0074  XEQ 04                  ; X = semitone: one plucked note
+0075  7                       
+0076  XEQ 04                  ; X = semitone: one plucked note
+0077  3                       
+0078  XEQ 04                  ; X = semitone: one plucked note
+0079  7                       
+0080  XEQ 04                  ; X = semitone: one plucked note
+0081  12                      
+0082  XEQ 04                  ; X = semitone: one plucked note
+0083  15                      
+0084  XEQ 04                  ; X = semitone: one plucked note
+0085  -4                      
+0086  XEQ 04                  ; X = semitone: one plucked note
+0087  3                       
+0088  XEQ 04                  ; X = semitone: one plucked note
+0089  8                       
+0090  XEQ 04                  ; X = semitone: one plucked note
+0091  3                       
+0092  XEQ 04                  ; X = semitone: one plucked note
+0093  -5                      
+0094  XEQ 04                  ; X = semitone: one plucked note
+0095  -1                      
+0096  XEQ 04                  ; X = semitone: one plucked note
+0097  2                       
+0098  XEQ 04                  ; X = semitone: one plucked note
+0099  7                       
+0100  XEQ 04                  ; X = semitone: one plucked note
+0101  0                       
+0102  XEQ 04                  ; X = semitone: one plucked note
+0103  VOL IND "KVOL"          ; your volume back
+0104  DELITM "KVOL"           ; and the variable gone
+0105  CLSTK                   ; clean stack
+0106  RTN                     
+;
+; ---- LBL 01: FAKE CHORD. In: Z Y X = three semitones. 12 rounds of the
+;      three notes, 30 ms each = 1.08 s of one chord (36 notes).
+0107  LBL 01                  
+0108  LocR 04                 ; 4 local registers: R.00-R.02 the Hz, R.03 the counter
+0109  XEQ 05                  ; semitone -> Hz
+0110  STO R.00                ; X = the last note given (top)
+0111  R↓                      
+0112  XEQ 05                  ; semitone -> Hz
+0113  STO R.01                ; middle note
+0114  R↓                      
+0115  XEQ 05                  ; semitone -> Hz
+0116  STO R.02                ; Z = the first note given (bottom)
+0117  12                      ; 12 rounds
+0118  STO R.03                ; ... counter
+0119  LBL 02                  ; one round: bottom, middle, top (rising arpeggio)
+0120  RCL R.02                
+0121  30                      ; 30 ms
+0122  BUZZ                    ; play Y Hz for X ms
+0123  RCL R.01                
+0124  30                      ; 30 ms
+0125  BUZZ                    ; play Y Hz for X ms
+0126  RCL R.00                
+0127  30                      ; 30 ms
+0128  BUZZ                    ; play Y Hz for X ms
+0129  CLSTK                   ; clean stack
+0130  DSE R.03                ; next round
+0131  GTO 02                  
+0132  RTN                     
+;
+; ---- LBL 03: VIBRATO. In: Y = length in ms, X = semitone. The note is cut
+;      into ms/25 pieces of 25 ms; piece k has pitch f x (1 + 0.012 sin(60k)),
+;      a full wobble every 6 pieces (150 ms = 6.7 Hz), +-1.2 % = +-20 cents.
+0133  LBL 03                  
+0134  LocR 03                 ; R.00 Hz, R.01 pieces left, R.02 piece number k
+0135  XEQ 05                  ; semitone -> Hz
+0136  STO R.00                ; the note
+0137  R↓                      ; X = the length in ms
+0138  25                      
+0139  ÷                       ; pieces of 25 ms
+0140  IP                      ; whole pieces
+0141  STO R.01                ; counter
+0142  0                       ; k = 0
+0143  STO R.02                
+0144  LBL 06                  ; one piece:
+0145  RCL R.02                ; k
+0146  60                      
+0147  ×                       ; 60k degrees
+0148  SIN                     ; sin(60k)
+0149  0.012                   ; depth 1.2 %
+0150  ×                       ; 0.012 sin(60k)
+0151  1                       
+0152  +                       ; 1 + 0.012 sin(60k)
+0153  RCL R.00                
+0154  ×                       ; f x (1 + 0.012 sin(60k)): this piece's Hz
+0155  25                      ; 25 ms
+0156  BUZZ                    ; play the piece
+0157  CLSTK                   
+0158  1                       
+0159  STO+ R.02               ; k + 1
+0160  DSE R.01                ; pieces left
+0161  GTO 06                  
+0162  RTN                     
+;
+; ---- LBL 04: PLUCK (volume envelope). In: X = semitone. Five pieces of
+;      40 ms with the volume stepping down 11 8 6 4 2 (200 ms a note).
+0163  LBL 04                  
+0164  LocR 01                 ; R.00 the Hz
+0165  XEQ 05                  ; semitone -> Hz
+0166  STO R.00                
+0167  VOL 11                  ; attack: loudest
+0168  RCL R.00                
+0169  40                      ; 40 ms a piece
+0170  BUZZ                    ; play the piece
+0171  CLSTK                   
+0172  VOL 8                   
+0173  RCL R.00                
+0174  40                      ; 40 ms a piece
+0175  BUZZ                    ; play the piece
+0176  CLSTK                   
+0177  VOL 6                   
+0178  RCL R.00                
+0179  40                      ; 40 ms a piece
+0180  BUZZ                    ; play the piece
+0181  CLSTK                   
+0182  VOL 4                   
+0183  RCL R.00                
+0184  40                      ; 40 ms a piece
+0185  BUZZ                    ; play the piece
+0186  CLSTK                   
+0187  VOL 2                   ; tail: almost silent
+0188  RCL R.00                
+0189  40                      ; 40 ms a piece
+0190  BUZZ                    ; play the piece
+0191  CLSTK                   
+0192  RTN                     
+;
+; ---- LBL 05: SEMITONES -> Hz. X = s from A4  ->  X = 440 x 2^(s/12).
+0193  LBL 05                  
+0194  12                      
+0195  ÷                       ; s/12
+0196  2ˣ                      ; 2^(s/12): the frequency ratio
+0197  440                     ; A4
+0198  ×                       ; Hz
+0199  RTN                     
+0200  END                     

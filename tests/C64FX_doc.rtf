@@ -1,0 +1,242 @@
+{\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 C47__StandardFont;}}{\pard\sl240\slmult1\f0\fs24\lang9\f0\loch
+C47 Program file export: Export format version 3, C47 program version 1.
+ \par
+0000: { Prgm #10/10: 2963 bytes / 230 steps } \par
+0001:    REM \u8216?C64FX - Commodore 64 sound tricks on the C47 buzzer (one voice)\u8217?\par
+0002:    REM \u8216?The C64's SID chip had 3 voices, 4 waveforms, ADSR envelopes and a filter.\u8217?\par
+0003:    REM \u8216?The C47 has ONE buzzer that plays one square-ish note at a time. C64\u8217?\par
+0004:    REM \u8216?musicians used three tricks to sound richer than the hardware; this demo\u8217?\par
+0005:    REM \u8216?plays all three, in A minor (an original tune, about 15 s):\u8217?\par
+0006:    REM \u8216?1. Fake chords (arpeggio): the three notes of a chord in turn, 30 ms\u8217?\par
+0007:    REM \u8216?each, so fast that the ear hears one chord.\u8217?\par
+0008:    REM \u8216?2. Vibrato: one long note cut into 25 ms pieces whose pitch goes up and\u8217?\par
+0009:    REM \u8216?down 1.2 % along a sine (about 6.7 times a second).\u8217?\par
+0010:    REM \u8216?3. Envelope: one note cut into 5 pieces of 40 ms at volume 11 8 6 4 2,\u8217?\par
+0011:    REM \u8216?so it sounds plucked (loud attack, fading tail).\u8217?\par
+0012:    REM \u8216?Sound commands (C47 firmware, c47-dmcp/hal/audio.c):\u8217?\par
+0013:    REM \u8216?BUZZ   Y = frequency in Hz (whole Hz, 0 = silence), X = length in ms\u8217?\par
+0014:    REM \u8216?(max 2000); the program waits until the note ends. Stack unchanged.\u8217?\par
+0015:    REM \u8216?VOL n  buzzer volume 0-11;  VOL# puts the current volume in X;\u8217?\par
+0016:    REM \u8216?VOL IND "KVOL" sets it from a variable (used to give yours back).\u8217?\par
+0017:    REM \u8216?TONE n / BEEP play fixed 250 ms notes (not used here).\u8217?\par
+0018:    REM \u8216?The PC simulator plays TONE and BEEP only: BUZZ and PLAY are silent there,\u8217?\par
+0019:    REM \u8216?so run C64FX on the calculator.\u8217?\par
+0020:    REM \u8216?Notes are given as semitones from A4 (440 Hz): 0 = A4, 3 = C5, 7 = E5,\u8217?\par
+0021:    REM \u8216?-4 = F4 ...  LBL 05 turns them into Hz: f = 440 x 2^(s/12).\u8217?\par
+0022:    REM \u8216?Uses: local registers only (LocR), variable KVOL (deleted at the end).\u8217?\par
+0023:    REM \u8216?Side effect: the angle mode is set to DEG (for the vibrato's SIN).\u8217?\par
+0024:    REM \u8216?---- main: the three parts in turn, then your volume back\u8217?\par
+\par
+0025:    LBL \u8216?C64FX\u8217?\par
+0026:    VOL#\par
+0027:    STO \u8216?KVOL\u8217?\par
+0028:    DEG\par
+0029:    REM \u8216?---- PART 1: fake chords Am F G E Am F Dm E (notes as semitones from A4)\u8217?\par
+0030:    0\par
+0031:    3\par
+0032:    7\par
+0033:    XEQ 01\par
+0034:    -4\par
+0035:    0\par
+0036:    3\par
+0037:    XEQ 01\par
+0038:    -2\par
+0039:    2\par
+0040:    5\par
+0041:    XEQ 01\par
+0042:    -5\par
+0043:    -1\par
+0044:    2\par
+0045:    XEQ 01\par
+0046:    0\par
+0047:    3\par
+0048:    7\par
+0049:    XEQ 01\par
+0050:    -4\par
+0051:    0\par
+0052:    3\par
+0053:    XEQ 01\par
+0054:    -7\par
+0055:    -3\par
+0056:    0\par
+0057:    XEQ 01\par
+0058:    -5\par
+0059:    -1\par
+0060:    2\par
+0061:    XEQ 01\par
+0062:    REM \u8216?---- PART 2: the lead, 9 notes with vibrato (ms, then semitone)\u8217?\par
+0063:    300\par
+0064:    0\par
+0065:    XEQ 03\par
+0066:    150\par
+0067:    3\par
+0068:    XEQ 03\par
+0069:    150\par
+0070:    2\par
+0071:    XEQ 03\par
+0072:    300\par
+0073:    0\par
+0074:    XEQ 03\par
+0075:    600\par
+0076:    -5\par
+0077:    XEQ 03\par
+0078:    300\par
+0079:    -4\par
+0080:    XEQ 03\par
+0081:    150\par
+0082:    -5\par
+0083:    XEQ 03\par
+0084:    150\par
+0085:    -7\par
+0086:    XEQ 03\par
+0087:    900\par
+0088:    -5\par
+0089:    XEQ 03\par
+0090:    REM \u8216?---- PART 3: 17 plucked notes (a broken-chord line)\u8217?\par
+0091:    0\par
+0092:    XEQ 04\par
+0093:    7\par
+0094:    XEQ 04\par
+0095:    12\par
+0096:    XEQ 04\par
+0097:    7\par
+0098:    XEQ 04\par
+0099:    3\par
+0100:    XEQ 04\par
+0101:    7\par
+0102:    XEQ 04\par
+0103:    12\par
+0104:    XEQ 04\par
+0105:    15\par
+0106:    XEQ 04\par
+0107:    -4\par
+0108:    XEQ 04\par
+0109:    3\par
+0110:    XEQ 04\par
+0111:    8\par
+0112:    XEQ 04\par
+0113:    3\par
+0114:    XEQ 04\par
+0115:    -5\par
+0116:    XEQ 04\par
+0117:    -1\par
+0118:    XEQ 04\par
+0119:    2\par
+0120:    XEQ 04\par
+0121:    7\par
+0122:    XEQ 04\par
+0123:    0\par
+0124:    XEQ 04\par
+0125:    VOL \u8594?\u8216?KVOL\u8217?\par
+0126:    DELITM \u8216?KVOL\u8217?\par
+0127:    CLSTK\par
+0128:    RTN\par
+0129:    REM \u8216?---- LBL 01: FAKE CHORD. In: Z Y X = three semitones. 12 rounds of the\u8217?\par
+0130:    REM \u8216?three notes, 30 ms each = 1.08 s of one chord (36 notes).\u8217?\par
+\par
+0131:    LBL 01\par
+0132:    LocR 04\par
+0133:    XEQ 05\par
+0134:    STO .00\par
+0135:    R\u8595?\par
+0136:    XEQ 05\par
+0137:    STO .01\par
+0138:    R\u8595?\par
+0139:    XEQ 05\par
+0140:    STO .02\par
+0141:    12\par
+0142:    STO .03\par
+\par
+0143:    LBL 02\par
+0144:    RCL .02\par
+0145:    30\par
+0146:    BUZZ\par
+0147:    RCL .01\par
+0148:    30\par
+0149:    BUZZ\par
+0150:    RCL .00\par
+0151:    30\par
+0152:    BUZZ\par
+0153:    CLSTK\par
+0154:    DSE .03\par
+0155:      GTO 02\par
+0156:    RTN\par
+0157:    REM \u8216?---- LBL 03: VIBRATO. In: Y = length in ms, X = semitone. The note is cut\u8217?\par
+0158:    REM \u8216?into ms/25 pieces of 25 ms; piece k has pitch f x (1 + 0.012 sin(60k)),\u8217?\par
+0159:    REM \u8216?a full wobble every 6 pieces (150 ms = 6.7 Hz), +-1.2 % = +-20 cents.\u8217?\par
+\par
+0160:    LBL 03\par
+0161:    LocR 03\par
+0162:    XEQ 05\par
+0163:    STO .00\par
+0164:    R\u8595?\par
+0165:    25\par
+0166:    \u247?\par
+0167:    IP\par
+0168:    STO .01\par
+0169:    0\par
+0170:    STO .02\par
+\par
+0171:    LBL 06\par
+0172:    RCL .02\par
+0173:    60\par
+0174:    \u215?\par
+0175:    SIN\par
+0176:    0.012\par
+0177:    \u215?\par
+0178:    1\par
+0179:    +\par
+0180:    RCL .00\par
+0181:    \u215?\par
+0182:    25\par
+0183:    BUZZ\par
+0184:    CLSTK\par
+0185:    1\par
+0186:    STO+ .02\par
+0187:    DSE .01\par
+0188:      GTO 06\par
+0189:    RTN\par
+0190:    REM \u8216?---- LBL 04: PLUCK (volume envelope). In: X = semitone. Five pieces of\u8217?\par
+0191:    REM \u8216?40 ms with the volume stepping down 11 8 6 4 2 (200 ms a note).\u8217?\par
+\par
+0192:    LBL 04\par
+0193:    LocR 01\par
+0194:    XEQ 05\par
+0195:    STO .00\par
+0196:    VOL 11\par
+0197:    RCL .00\par
+0198:    40\par
+0199:    BUZZ\par
+0200:    CLSTK\par
+0201:    VOL 08\par
+0202:    RCL .00\par
+0203:    40\par
+0204:    BUZZ\par
+0205:    CLSTK\par
+0206:    VOL 06\par
+0207:    RCL .00\par
+0208:    40\par
+0209:    BUZZ\par
+0210:    CLSTK\par
+0211:    VOL 04\par
+0212:    RCL .00\par
+0213:    40\par
+0214:    BUZZ\par
+0215:    CLSTK\par
+0216:    VOL 02\par
+0217:    RCL .00\par
+0218:    40\par
+0219:    BUZZ\par
+0220:    CLSTK\par
+0221:    RTN\par
+0222:    REM \u8216?---- LBL 05: SEMITONES -> Hz. X = s from A4  ->  X = 440 x 2^(s/12).\u8217?\par
+\par
+0223:    LBL 05\par
+0224:    12\par
+0225:    \u247?\par
+0226:    2\u739?\par
+0227:    440\par
+0228:    \u215?\par
+0229:    RTN\par
+0230:  END\par
+}}
