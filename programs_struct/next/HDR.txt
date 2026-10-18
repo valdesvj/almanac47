@@ -1,0 +1,149 @@
+LBL "N83"
+LocR 06
+STO R.00
+R↓
+STO R.01
+R↓
+STO R.02
+R↓
+STO R.03
+RCL R.00
+RCL 44
+RCL R.01
+XEQ "N55"
+RCL R.00
+79
+RCL R.01
+RCL 56
++
+RCL 43
+MOD
+RCL 70
+×
+XEQ "N53"
+"UT"
+RCL R.00
+RCL- 66
+118
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+RCL "HT"
+STRI?
+IF
+ELSE
+  "DR   N"
+  STO R.04
+  RCL R.02
+  X<0?
+  IF
+    "DR   S"
+    STO R.04
+  ENDIF
+  RCL R.02
+  ABS
+  600
+  ×
+  RCL 56
+  +
+  IP
+  STO R.05
+  " "
+  x→α R.04
+  RCL R.05
+  600
+  ÷
+  IP
+  αIP R.04
+  " "
+  x→α R.04
+  RCL R.05
+  600
+  MOD
+  10
+  ÷
+  IP
+  10
+  X>Y?
+  IF
+    "0"
+    x→α R.04
+  ENDIF
+  RCL R.05
+  600
+  MOD
+  10
+  ÷
+  IP
+  αIP R.04
+  "."
+  x→α R.04
+  RCL R.05
+  10
+  MOD
+  αIP R.04
+  RCL R.03
+  X≥0?
+  IF
+    "   E"
+  ELSE
+    "   W"
+  ENDIF
+  x→α R.04
+  RCL R.03
+  ABS
+  600
+  ×
+  RCL 56
+  +
+  IP
+  STO R.05
+  " "
+  x→α R.04
+  RCL R.05
+  600
+  ÷
+  IP
+  αIP R.04
+  " "
+  x→α R.04
+  RCL R.05
+  600
+  MOD
+  10
+  ÷
+  IP
+  10
+  X>Y?
+  IF
+    "0"
+    x→α R.04
+  ENDIF
+  RCL R.05
+  600
+  MOD
+  10
+  ÷
+  IP
+  αIP R.04
+  "."
+  x→α R.04
+  RCL R.05
+  10
+  MOD
+  αIP R.04
+  RCL R.04
+  STO "HT"
+ENDIF
+RCL "HT"
+RCL R.00
+RCL- 66
+RCL 60
+ATEXT Z
+X<>Y
+RCL 66
++
+X<>Y
+END

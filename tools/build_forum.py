@@ -37,10 +37,9 @@ NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reducti
 @ Author:  %(author)s
 @ Version: %(version)s
 @ Source:  %(source)s
-@ Tested:  v2.2.0 on the C47 by the author (Oct 2026): every view, the arrows, the timing
-@ Tested:  this version in the C47 simulator (python/c47sim.py): every view pixel for pixel the reference build, 3 places
-@ Tested:  and 16 random dates 2000-2049, 65 S - 65 N, FULL and FAST; the stack (4 levels), LASTx, R00-R06 / R99 kept;
-@ Tested:  keys 1-8 on ALMANAC and SPLIT give the bodies and values of the PC almanac (python/native)
+@ Tested:  on the C47 by the author (Oct 2026): every view, the arrows, the timing
+@ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel the reference build, 3 places and 16
+@ Tested:  random dates 2000-2049, 65 S - 65 N, FULL and FAST matrices
 @ Input:   NAVINIT run once. XEQ 'ALMA47' asks DATE (YYYY.MMDD), UTC (H.MM), LAT and LON (D.MM, S and W negative)
 @ Output:  FAST, DATE 2030.1019, UTC 17.45, LAT -53.11, LON 48.01, key 1 (ALMANAC) then the up arrow (18:45 UT):
 @ Output:  Sun GHA 105 01.7, Dec S 10 11.7, Hc -22 35.0, Zn 208.9; the stars Canopus, Rigil Kent, Rigel, Achernar ...
@@ -58,12 +57,10 @@ NAV_HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reducti
 @   2. Delete NAVINIT (GTO 'NAVINIT', DELP): the matrices stay. Do not use CLPALL (it deletes ALMA47 too).
 @   3. XEQ 'ALMA47': date, UT and position once, then the menu:
 @      1 ALMANAC  2 SPLIT  3 SKY  4 ANIM  5 ALLSKY  6 INFO  9 SNAP (a picture of the screen)  0 END.
-@      In a view: + back to the menu, up / down arrow one hour later / earlier. On ALMANAC and SPLIT a key 1-8
-@      picks a body of the table (1 the Sun): ALMA47 ends with Z its text (SUN Zn 216.7 Hc 54 11.6), Y Zn, X Hc.
+@      In a view: + back to the menu, up / down arrow one hour later / earlier.
 @
-@ Only ALMA47 has a name; the other programs show as N01, N02 ... ALMA47 keeps your stack and LASTx; while it runs
-@ it uses the 8-level stack and the registers R07-R98, and it clears only those when it ends (R00-R06 and R99
-@ stay yours). It keeps its named matrices between runs
+@ Only ALMA47 has a name; the other programs show as N01, N02 ... ALMA47 uses the numbered registers and the 8-level stack
+@ and clears them when it ends (CLREGS, CLSTK): save your registers first. It keeps its named matrices between runs
 @ (the sky of the last time and place: the same inputs again show the views at once).
 @
 @ Matrices: NAVINIT.p47u builds the FAST set (a series fitted to 2026-2030; an X in the top right corner marks a

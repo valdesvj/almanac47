@@ -960,6 +960,11 @@ without copied code, all at once.
   defines.h) and not in package 4, the one in the 05.00a0.ALPHA release assets.
 
 ## Oct 18, 2026 - Your stack and registers kept, keys 1-8 push a body (branch stack-keys, from v2.2.0)
+APART FROM THE RELEASE (Victor: an additional version, v2.2.0 not modified): the new source is programs_struct/next/
+(the 26 programs + PICK), built by tools/build_next.py into build/dev/next/ (ALMA47.txt, ALMA47.p47u); programs_struct/,
+build/c47/, build/forum/, the manual and the release tools stay v2.2.0. build_struct_src.build(src, order, regs),
+build_next(); regblock --write works on programs_struct/next/; test_struct_src next_version() (the keys, the stack, the
+registers, every page pixel for pixel); test_fw_c47 is v2.2.0's again. What follows describes the next version.
 Task from the Elements 47 session (ALMANAC47_STACK_KEYS_TASK.md). Victor's answers: registers renumbered into one
 block (then: the block R07-R98, measured), Z one text with Y Zn and X Hc in decimal degrees, each view's own rows, a
 body below the horizon pushed too.
@@ -988,6 +993,6 @@ body below the horizon pushed too.
   rows of python/native (c47screen21.bodies, the PC almanac), within 0.05' and 0.01 deg (found equal). The old case
   "SPLIT, a digit back to the menu" is now SPLIT with 0 and 9 on the view (a digit picks a body). Pixel for pixel
   18_hourglass as before (3 places, menu keys, 16 random cases).
-- Docs: build/c47/QUICKSTART.txt, ALMA47_LABELS.txt (build_release_c47), the forum header (build_forum: '@ Tested:'
-  says the C47 run was v2.2.0, this version the simulator), the manual (manual_nav.py), the comments (struct_comments:
-  the register numbers of the routines, NAV 13, the PICK table, the new blocks). Version and name left at v2.2.0.
+- Docs of the release unchanged (v2.2.0); the next version has build/dev/next/README.txt and its .p47u header ('@
+  Tested:' says simulator only). Its comments: only the global labels (the routine comments of struct_comments name
+  the v2.2.0 register numbers).

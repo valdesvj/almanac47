@@ -12,6 +12,9 @@
      and python/moon47.py at 16 dates and time zones, north and south
   5. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
 
+  6. programs_struct/next/ (the next version, tools/build_next.py): its build, every page pixel for pixel as v2.2.0,
+     your stack, LASTx and R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT against python/native
+
   python3 tests/test_struct_src.py [n]      (n random cases, default 16)
 """
 import os, random, re, sys
@@ -65,9 +68,9 @@ def source():
     return L
 
 
-def pages(B_):
+def pages(B_, title='build/dev/struct_src', picks=False):
     import test_v2 as V
-    print('== build/dev/struct_src against 18_hourglass')
+    print('== %s against 18_hourglass' % title)
     A = V.lines(REF)
     ran = set()
     cases = [('FULL', ('2026.1004', '9.30', '25.20', '55.12')), ('FAST', ('2027.0315', '3.30', '-33.54', '18.25')),
@@ -91,7 +94,9 @@ def pages(B_):
     for keys, what in (([K['up'], K['down'], K['down'], K[1], K['+'], K[0]], 'menu: arrows, ALMANAC'),
                        ([54, 52, 53, 85, K[3], K['+'], K[0]], 'menu: 9 SNAP, 7, 8, +, SKY'),
                        ([K[6], K['up'], K['+'], K[0]], 'INFO, arrow'),
-                       ([K[2], K['down'], K[0], K[9], K['up'], K['+'], K[4], K['+'], K[0]], 'SPLIT, 0 and 9 (SNAP) on the view, ANIM'),
+                       ([K[2], K['down'], K[0], K[9], K['up'], K['+'], K[4], K['+'], K[0]], 'SPLIT, 0 and 9 on the view, ANIM')
+                       if picks else                     # next: a key 1-8 on SPLIT picks a body (keys())
+                       ([K[2], K['down'], K[4], K[4], K['up'], K['+'], K[0]], 'SPLIT, a digit back to the menu, ANIM'),
                        ([11, 21, 31, 41, 71, 81, K[1], K['+'], K[0]], 'menu: keys that are no view')):
         a = V.session(A, keys, 'FULL', False, marks=False)
         b = V.session(B_, keys, 'FULL', False, marks=False)
@@ -100,9 +105,9 @@ def pages(B_):
     print('  structures entered on these pages: %d of %d' % (len([i for i in st if i in ran]), len(st)))
 
 
-def places(B_, n):
+def places(B_, n, title='build/dev/struct_src'):
     import test_v2 as V
-    print('== build/dev/struct_src against 18_hourglass at %d random dates and places' % n)
+    print('== %s against 18_hourglass at %d random dates and places' % (title, n))
     A = V.lines(REF)
     rnd = random.Random(7)
     for t in range(n):
@@ -267,12 +272,31 @@ def moon_dm42(n):
            '%02d-%02d-%04d %05.2f h TZ %-5s north and south pixel for pixel the STRUCT MOON47, X = Y = 0' % (d, m, y, h, tz))
 
 
+def next_version(n):
+    """programs_struct/next/ (tools/build_next.py, apart from the v2.2.0 release): its build, NAV's registers only in
+    R07-R98; every page pixel for pixel 18_hourglass as v2.2.0; the stack, the registers and the keys 1-8 (keys())."""
+    import build_next as NX
+    print('== programs_struct/next/ (the next version, build/dev/next/)')
+    L = B.build_next()
+    ok(NX.listing() == lines(os.path.join(NX.OUT, 'ALMA47.txt')) == ['LBL "ALMA47"'] + L[1:],
+       'build/dev/next/ALMA47.txt is the build of programs_struct/next/ (NAV named ALMA47)')
+    P = [l.split(';')[0].strip() for l in open(os.path.join(NX.OUT, 'ALMA47.p47u'), encoding='utf-8').read().split('\n')
+         if l.strip() and not l.startswith('@')]
+    ok(P == ['LBL "ALMA47"'] + L[1:], 'build/dev/next/ALMA47.p47u: the same steps, the comments after ;')
+    st = B.stats(L)
+    print('  %d steps (v2.2.0 %d), %d labels, IF %d, DO %d, REPEAT %d, GTO %d'
+          % (st['steps'], len(B.build()), st['labels'], st['IF'], st['DO'], st['REPEAT'], st['GTO']))
+    keys(L)
+    pages(L, 'programs_struct/next', picks=True)
+    places(L, n, 'programs_struct/next')
+
+
 def keys(L_):
-    """Your stack and registers, and the keys 1-8 (v2.3.0): NAV keeps the stack you had (X Y Z T and LASTx; the
-    simulator has 4 levels, the 8 of the C47 are the same code), clears only its block R07-R98 (R-CLR 7.92; R00-R06
-    and R99 stay yours) and leaves none of its variables K*; on ALMANAC and SPLIT a key 1-8 ends NAV with Z = the text
-    'NAME Zn ddd.d Hc dd mm.m', Y = Zn, X = Hc of that row, the same bodies and values as python/native (c47screen21
-    bodies, the PC almanac), your stack above them."""
+    """Your stack and registers, and the keys 1-8 (programs_struct/next): NAV keeps the stack you had (X Y Z T and
+    LASTx; the simulator has 4 levels, the 8 of the C47 are the same code), clears only its block R07-R98 (R-CLR 7.92;
+    R00-R06 and R99 stay yours) and leaves none of its variables K*; on ALMANAC and SPLIT a key 1-8 ends NAV with Z the
+    text 'NAME Zn ddd.d Hc dd mm.m', Y Zn, X Hc of that row, the same bodies and values as python/native
+    (c47screen21 bodies, the PC almanac), your stack above them."""
     import test_v2 as V
     sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
     import c47screen as PS
@@ -335,13 +359,13 @@ def keys(L_):
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
-    keys(L)
     forum(L)
     moon(n)
     little(n)
     moon_dm42(n)
     pages(L)
     places(L, n)
+    next_version(n)
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 

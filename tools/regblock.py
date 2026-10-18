@@ -13,7 +13,7 @@ Local registers (R.nn), lettered registers and named variables are not touched; 
 GRMOD and then the number nn).
 
   python3 tools/regblock.py LISTING         how many registers the listing needs, and the block it would take
-  python3 tools/regblock.py --write         programs_struct/ (NAV) renumbered into the block, its R-CLR set: only when
+  python3 tools/regblock.py --write         programs_struct/next/ (NAV) renumbered into the block, its R-CLR set: only when
                                             a register below the block is in use (renumbering a numbered listing again
                                             finds other webs: other numbers for nothing); --force to do it anyway
 """
@@ -144,22 +144,22 @@ def block(L, keep=43, pin=PIN):
 
 
 def write():
-    """programs_struct/ renumbered in place: NAV's registers into the block, R-CLR set to it; a REGS of
+    """programs_struct/next/ (the next version) renumbered in place: NAV's registers into the block, R-CLR set to it; a REGS of
     build_struct_src.py that does not match is reported (it must be changed by hand)."""
     import build_struct_src as B
-    L0 = B.build_unchecked()
+    L0 = B.build_next(regs=False)
     used = {int(m.group(2)) for l in L0 for m in [B.REG.match(l)] if m}
     if '--force' not in sys.argv and min(used) >= B.REGS[0]:
         # the analysis of an already numbered listing finds other webs: renumbered again it changes for nothing
-        print('programs_struct/: NAV already in R%02d-R%02d, unchanged (--force to renumber anyway)' % (min(used), max(used)))
+        print('programs_struct/next/: NAV already in R%02d-R%02d, unchanged (--force to renumber anyway)' % (min(used), max(used)))
         return
     L, k = block(L0)
     P = C.plain(L)
     i = P.index('R-CLR')
     P[i - 1] = '%d.%02d' % (TOP - k + 1, k)
-    for name, prog in zip(B.ORDER, C.split(P)):
-        open(os.path.join(B.SRC, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(C.indent(prog)) + '\n')
-    print('programs_struct/: NAV in R%02d-R%02d, R-CLR %s%s' % (TOP - k + 1, TOP, P[i - 1],
+    for name, prog in zip(B.NEXT_ORDER, C.split(P)):
+        open(os.path.join(B.NEXT, name + '.txt'), 'w', encoding='utf-8').write('\n'.join(C.indent(prog)) + '\n')
+    print('programs_struct/next/: NAV in R%02d-R%02d, R-CLR %s%s' % (TOP - k + 1, TOP, P[i - 1],
           '' if (TOP - k + 1, k) == B.REGS else '  (set REGS = (%d, %d) in build_struct_src.py)' % (TOP - k + 1, k)))
 
 

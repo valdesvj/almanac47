@@ -1,0 +1,186 @@
+LBL "N46"
+DEG
+RCL 62
+RCL- 42
+RCL 41
+SIN
+6.289
+×
+-
+RCL 23
+SIN
+2.1
+×
++
+RCL 42
+RCL 44
+×
+RCL- 41
+SIN
+1.274
+×
+-
+RCL 42
+RCL 44
+×
+SIN
+0.658
+×
+-
+RCL 41
+RCL 44
+×
+SIN
+0.214
+×
+-
+RCL 42
+SIN
+0.11
+×
+-
+COS
+STO 15
+RCL 42
+RCL 45
+MOD
+12.190749
+÷
+STO 25
+RCL 46
+STO 27
+REPEAT
+  RCL 23
+  RCL 25
+  0.98560028
+  ×
+  -
+  STO 29
+  RCL 41
+  RCL 25
+  13.064993
+  ×
+  -
+  STO 42
+  RCL 37
+  RCL 25
+  13.2293505
+  ×
+  -
+  STO 28
+  RCL 42
+  SIN
+  -0.4072
+  ×
+  RCL 29
+  SIN
+  0.17241
+  ×
+  +
+  RCL 42
+  RCL 44
+  ×
+  SIN
+  0.01608
+  ×
+  +
+  RCL 28
+  RCL 44
+  ×
+  SIN
+  0.01039
+  ×
+  +
+  RCL 42
+  RCL- 29
+  SIN
+  0.00739
+  ×
+  +
+  RCL 42
+  RCL+ 29
+  SIN
+  -0.00514
+  ×
+  +
+  RCL 29
+  RCL 44
+  ×
+  SIN
+  0.00208
+  ×
+  +
+  RCL 42
+  RCL 28
+  RCL 44
+  ×
+  -
+  SIN
+  -0.00111
+  ×
+  +
+  RCL 42
+  RCL 28
+  RCL 44
+  ×
+  +
+  SIN
+  -0.00057
+  ×
+  +
+  RCL 42
+  RCL 44
+  ×
+  RCL+ 29
+  SIN
+  0.00056
+  ×
+  +
+  RCL 25
+  X<>Y
+  -
+  STO 42
+  RCL 27
+  X≠0?
+  IF
+    RCL 42
+    X<0?
+    IF
+      RCL 16
+      STO 42
+    ENDIF
+    1
+  ELSE
+    RCL 42
+    X≥0?
+    IF
+      RCL 65
+      X≥Y?
+      IF
+        1
+      ELSE
+        RCL 44
+        STO 27
+        RCL 42
+        STO 16
+        RCL 95
+        STO- 25
+        0
+      ENDIF
+    ELSE
+      RCL 43
+      STO 27
+      RCL 95
+      STO+ 25
+      0
+    ENDIF
+  ENDIF
+  X≠0?
+UNTIL
+RCL 42
+RCL 15
+RCL 43
++
+50
+×
+END

@@ -2,9 +2,7 @@
 """test_fw_c47.py - the v2.2.0 C47 files (build/c47/, tools/build_release_c47.py) in the C47 firmware itself: the PC
 simulator built from the firmware sources, headless with its script (--script).
 
-  1. runs: ALMA47 (NAVINIT_FAST) each page, + menu, 0 end: no error, X = 0 (your X), only R07-R98 cleared (R-CLR
-     7.92: R00-R06 and R99 kept); your 8-level stack and LASTx back after 0, and after a key 1-8 on ALMANAC / SPLIT
-     the body pushed on it (Z text, Y Zn, X Hc);
+  1. runs: ALMA47 (NAVINIT_FAST) each page, + menu, 0 end: no error, X = 0, the registers cleared (CLREGS);
      NAVLITTLE (NAVINIT_LITTLE): up, down, + end: no error, your registers kept; MOON47 and MOON47 for the old DM42
      (build/c47/dm42/) without TZ and with TZ = -5
   2. ephemeris: ALMA47 against JPL DE421 + ERFA, the reference and the limits of tests/test_ephem.py. Random instants
@@ -61,11 +59,11 @@ def p47(src, d, name=None, copy=False):
     return dst[:-4] + '.p47'
 
 
-def helper(d, setup, keys, extra=(), stack=()):
+def helper(d, setup, keys, extra=()):
     code = 0
     for k in reversed(keys):
         code = code * 100 + k
-    P = ['LBL "TSET"', 'SF 81'] + setup + [str(code), 'STO "TKEY"', 'CLSTK'] + list(stack) + ['RTN'] + list(extra) + ['END']
+    P = ['LBL "TSET"', 'SF 81'] + setup + [str(code), 'STO "TKEY"', 'CLSTK', 'RTN'] + list(extra) + ['END']
     f = os.path.join(d, 'TSET.txt')
     open(f, 'w', encoding='utf-8').write('\n'.join(P) + '\n')
     subprocess.run(['rejig', '-o', f[:-4] + '.p47', f], check=True, capture_output=True)
@@ -130,33 +128,10 @@ def runs():
         out, err = sim(d, tcl)
         regs = {m.group(1): m.group(2) for l in out for m in [re.match(r'R(\d\d)=(.*)', l)] if m}
         x = next((l[2:] for l in out if l.startswith('X=')), None)
-        cleared = len(regs) == 100 and all(v.strip() in ('0', '0.') for r, v in regs.items() if 7 <= int(r) <= 98) \
-            and all('.25' in v for r, v in regs.items() if not 7 <= int(r) <= 98)
+        cleared = len(regs) == 100 and all(v.strip() in ('0', '0.') for v in regs.values())
         ok = not err and x == '0' and cleared
         bad += not ok
-        print('  %-10s X=%s  R07-R98 %s  %s' % (name, x, 'cleared, R00-R06 R99 kept' if cleared else 'NOT AS EXPECTED',
-                                            err[:2] or 'no error'))
-        shutil.rmtree(d, ignore_errors=True)
-    print('== ALMA47: your 8-level stack and LASTx (X 11 ... D 18, LASTx -11); a key 1-8 on ALMANAC / SPLIT')
-    names = ('X', 'Y', 'Z', 'T', 'A', 'B', 'C', 'D', 'L')
-    for keys, what in (([82], 'menu, 0'), ([72, 85, 82], 'ALMANAC, +, 0'), ([72, 72], 'ALMANAC, key 1 (the Sun)'),
-                       ([73, 53], 'SPLIT, key 8')):
-        d = tmp()
-        files = [p47(os.path.join(C47, 'NAVINIT_FAST.txt'), d, copy=True), p47(os.path.join(C47, 'ALMA47.txt'), d),
-                 helper(d, INPUTS, keys, stack=['SSIZE8', '18', '17', '16', '15', '14', '13', '12', '-11', 'ABS'])]
-        tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET', 'xeq ALMA47'] + ['press R/S'] * 4
-        tcl += ['puts "%s=[reg %s]"' % (n, n) for n in names]
-        out, err = sim(d, tcl)
-        st = {n: next((l[len(n) + 1:].strip() for l in out if l.startswith(n + '=')), None) for n in names}
-        if len(keys) == 2 and keys[1] != 85:                            # a body on top of your stack
-            want = {'T': '11', 'A': '12', 'B': '13', 'C': '14', 'D': '15', 'L': '-11'}
-            body = (st['Z'] or '').startswith(('SUN Zn' if keys[1] == 72 else '')) and 'Hc' in (st['Z'] or '')
-        else:
-            want = dict(zip(names, ('11', '12', '13', '14', '15', '16', '17', '18', '-11')))
-            body = True
-        good = not err and body and all(st[k] == v for k, v in want.items())
-        bad += not good
-        print('  %-24s %s  %s' % (what, ' '.join('%s=%s' % (n, st[n]) for n in names), err[:2] or 'no error'))
+        print('  %-10s X=%s  registers %s  %s' % (name, x, 'cleared' if cleared else 'NOT CLEARED', err[:2] or 'no error'))
         shutil.rmtree(d, ignore_errors=True)
     print('== NAVLITTLE (the old DM42 with the C47 firmware): up, down, + end')
     d = tmp()

@@ -47,11 +47,11 @@ import struct_comments as SC                                                  # 
 SRC = os.path.join(ROOT, 'programs_struct')
 OUT = os.path.join(ROOT, 'build', 'dev', 'struct_src')
 ORDER = ['NAV', 'CALC', 'PTXS', 'HANIM', 'PSYS', 'ALLSKY', 'PLN2', 'HCZ', 'SUNA', 'HDR', 'CSUN', 'MOO2', 'RISE', 'PSYB',
-         'HORZ', 'HALMH', 'ALMF', 'CSTA', 'SNMU', 'PHA2', 'WPLS', 'PICK', 'CMN', 'OUT5', 'OUT4', 'TGET', 'CMS']
+         'HORZ', 'HALMH', 'ALMF', 'CSTA', 'SNMU', 'PHA2', 'WPLS', 'CMN', 'OUT5', 'OUT4', 'TGET', 'CMS']
 
 # the global labels: the name in the sources and the documentation (build/NAVFULL_LABELS.txt), what it does
 LABELS = {
-    'NAV': ('NAV', 'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept (R-CLR 7.92); the only named program'),
+    'NAV': ('NAV', 'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program'),
     'N01': ('ALMF', 'view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon'),
     'N04': ('HORZ', 'view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)'),
     'N06': ('HALMH', 'view 2 SPLIT: horizon chart on top, the bodies below (8 rows)'),
@@ -117,10 +117,10 @@ LABELS = {
     'N92': ('OUT7', 'steps shared by several routines (tools/navmat.py outline)'),
     'N93': ('OUT8', 'steps shared by several routines (tools/navmat.py outline)'),
     'N94': ('OUT9', 'steps shared by several routines (tools/navmat.py outline)'),
-    'N02': ('PKNW', 'keys 1-8: an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn'),
-    'N03': ('PKRC', 'keys 1-8: X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB'),
-    'N05': ('PKEY', 'keys 1-8: X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0'),
-    'N07': ('PKBD', 'keys 1-8: the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc'),
+    'N02': ('PKNW', 'keys 1-8 (programs_struct/next): an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn'),
+    'N03': ('PKRC', 'keys 1-8 (next): X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB'),
+    'N05': ('PKEY', 'keys 1-8 (next): X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0'),
+    'N07': ('PKBD', 'keys 1-8 (next): the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc'),
     'N95': ('CALC', 'the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks'),
     'N97': ('CSTA', 'star X: GHA Dec Hc Zn from its rows of SXE / SXH (4 ->POL) into its ALMC row'),
     'N98': ('CALL', 'ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)'),
@@ -142,30 +142,40 @@ MOON_LABELS = {
 }
 
 
-REGS = (7, 92)            # NAV's numbered registers R07-R98: cleared at its end (R-CLR 7.92); R00-R06 and R99 stay yours
+# programs_struct/next/: the next version, apart from the release (v2.2.0 stays as it is): your stack and LASTx kept,
+# NAV's registers in one block R07-R98 cleared at its end (R-CLR 7.92), keys 1-8 on ALMANAC and SPLIT push a body
+# (program PICK). tools/build_next.py builds it; tools/regblock.py renumbers its registers.
+NEXT = os.path.join(SRC, 'next')
+NEXT_ORDER = ORDER[:ORDER.index('WPLS') + 1] + ['PICK'] + ORDER[ORDER.index('WPLS') + 1:]
+NEXT_NAV = ('NAV', 'graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on '
+            'ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept '
+            '(R-CLR 7.92); the only named program')
+REGS = (7, 92)            # next: NAV's numbered registers R07-R98, cleared at its end (R-CLR 7.92); R00-R06, R99 yours
 # a step with a numbered register (GRMOD nn and the flags, sizes, pauses are not registers)
 REG = re.compile(r'(RCL|RCL[+\-×÷]|STO|STO[+\-×÷]|ISG|DSE|x→α|αIP|α→𝑥|αLENG|CLα|KEY\?|AGRAPH|XEQ IND|HEAD) (\d\d)$')
 
 
-def source(name):
-    """The steps of programs_struct/NAME.txt: no indentation, no partner numbers."""
-    lines = open(os.path.join(SRC, name + '.txt'), encoding='utf-8').read().split('\n')
+def source(name, src=SRC):
+    """The steps of programs_struct/NAME.txt (or of src): no indentation, no partner numbers."""
+    lines = open(os.path.join(src, name + '.txt'), encoding='utf-8').read().split('\n')
     return C.plain([l for l in lines if l.strip()])
 
 
-def build_unchecked():
-    """The listing without the register check (tools/regblock.py --write renumbers it)."""
-    return build(regs=False)
+def build_next(regs=True):
+    """The next version (programs_struct/next/), numbered; its registers checked against REGS unless regs is False
+    (tools/regblock.py --write renumbers it)."""
+    return build(NEXT, NEXT_ORDER, REGS if regs else None)
 
 
-def build(regs=True):
-    """The listing (numbered), or SystemExit with the faults."""
-    left = sorted(set(f[:-4] for f in os.listdir(SRC) if f.endswith('.txt') and f != 'README.txt') - set(ORDER) - {MOON})
+def build(src=SRC, order=ORDER, regs=None):
+    """The listing (numbered), or SystemExit with the faults. regs (first, count): NAV may use only that block of
+    numbered registers, and its R-CLR clears it."""
+    left = sorted(set(f[:-4] for f in os.listdir(src) if f.endswith('.txt') and f != 'README.txt') - set(order) - {MOON})
     if left:
         raise SystemExit('build_struct_src: %s not in ORDER' % ', '.join(left))
     L, faults = [], []
-    for name in ORDER:
-        P = source(name)
+    for name in order:
+        P = source(name, src)
         progs = C.split(P)
         if len(progs) != 1:
             faults.append('%s: %d programs (one END a file)' % (name, len(progs)))
@@ -180,15 +190,15 @@ def build(regs=True):
             if m and m.group(1) not in LABELS:
                 faults.append('%s: LBL "%s" has no entry in LABELS' % (name, m.group(1)))
         L += P
-    # NAV's numbered registers: only the block R07-R98 (tools/regblock.py), the one NAV's end clears with R-CLR
-    first, n = REGS if regs else (0, 100)
-    used = sorted({int(m.group(2)) for l in L for m in [REG.match(l)] if m})
-    if used and (used[0] < first or used[-1] > first + n - 1):
-        faults.append('NAV uses R%02d-R%02d: only R%02d-R%02d (REGS; tools/regblock.py renumbers them)'
-                      % (used[0], used[-1], first, first + n - 1))
-    rclr = [L[i - 1] for i, l in enumerate(L) if l == 'R-CLR']
-    if regs and rclr != ['%d.%02d' % REGS]:
-        faults.append('NAV: R-CLR %s, the block is %d.%02d' % (rclr, first, n))
+    if regs:
+        first, n = regs
+        used = sorted({int(m.group(2)) for l in L for m in [REG.match(l)] if m})
+        if used and (used[0] < first or used[-1] > first + n - 1):
+            faults.append('NAV uses R%02d-R%02d: only R%02d-R%02d (REGS; tools/regblock.py renumbers them)'
+                          % (used[0], used[-1], first, first + n - 1))
+        rclr = [L[k - 1] for k, l in enumerate(L) if l == 'R-CLR']
+        if rclr != ['%d.%02d' % regs]:
+            faults.append('NAV: R-CLR %s, the block is %d.%02d' % (rclr, first, n))
     if faults:
         raise SystemExit('build_struct_src:\n  ' + '\n  '.join(faults))
     return C.number(L)

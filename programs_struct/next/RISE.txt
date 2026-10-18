@@ -1,0 +1,121 @@
+LBL "N38"
+XEQ 03
+RCL 85
+STO 14
+XEQ 01
+RTN
+LBL "N39"
+XEQ 03
+RCL 43
+STO 14
+XEQ 01
+RTN
+LBL "N44"
+XEQ 02
+RCL 46
+STO 14
+XEQ 01
+RTN
+LBL "N40"
+XEQ 02
+-12
+STO 30
+RCL 85
+STO 14
+XEQ 01
+RTN
+LBL "N41"
+XEQ 02
+-12
+STO 30
+RCL 43
+STO 14
+XEQ 01
+RTN
+LBL 01
+RCL 14
+RCL 93
+×
+12
++
+STO 32
+RCL 50
+STO 38
+DO
+  RCL 32
+  RCL 70
+  ÷
+  RCL+ 12
+  XEQ "N16"
+  STO 17
+  R↓
+  STO 15
+  RCL 46
+  RCL 14
+  X≠0?
+  IF
+    RCL 30
+    SIN
+    RCL 36
+    SIN
+    RCL 15
+    SIN
+    ×
+    -
+    RCL 36
+    COS
+    RCL 15
+    COS
+    ×
+    ÷
+    STO 15
+    ABS
+    RCL 43
+    X<Y?
+    IF
+      XEQ 04
+      RTN
+    ENDIF
+    RCL 15
+    ACOS
+    RCL× 14
+  ENDIF
+  RCL- 17
+  RCL- 23
+  540
+  +
+  RCL 45
+  MOD
+  RCL 62
+  -
+  RCL 48
+  ÷
+  STO+ 32
+  ABS
+  0.0003
+  X<Y?
+WHILE
+  DSE 38
+WHILE
+ENDDO
+RCL 32
+RTN
+LBL 02
+STO 23
+R↓
+STO 36
+R↓
+STO 12
+RTN
+LBL 03
+STO 23
+R↓
+STO 36
+R↓
+STO 12
+-0.8333333333333333
+STO 30
+RTN
+LBL 04
+99
+END

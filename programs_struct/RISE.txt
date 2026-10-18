@@ -1,74 +1,74 @@
 LBL "N38"
 XEQ 03
 RCL 85
-STO 14
+STO 29
 XEQ 01
 RTN
 LBL "N39"
 XEQ 03
 RCL 43
-STO 14
+STO 29
 XEQ 01
 RTN
 LBL "N44"
 XEQ 02
 RCL 46
-STO 14
+STO 29
 XEQ 01
 RTN
 LBL "N40"
 XEQ 02
 -12
-STO 30
+STO 28
 RCL 85
-STO 14
+STO 29
 XEQ 01
 RTN
 LBL "N41"
 XEQ 02
 -12
-STO 30
+STO 28
 RCL 43
-STO 14
+STO 29
 XEQ 01
 RTN
 LBL 01
-RCL 14
+RCL 29
 RCL 93
 ×
 12
 +
-STO 32
+STO 31
 RCL 50
-STO 38
+STO 05
 DO
-  RCL 32
+  RCL 31
   RCL 70
   ÷
-  RCL+ 12
+  RCL+ 25
   XEQ "N16"
-  STO 17
+  STO 08
   R↓
-  STO 15
+  STO 09
   RCL 46
-  RCL 14
+  RCL 29
   X≠0?
   IF
-    RCL 30
+    RCL 28
     SIN
-    RCL 36
+    RCL 14
     SIN
-    RCL 15
+    RCL 09
     SIN
     ×
     -
-    RCL 36
+    RCL 14
     COS
-    RCL 15
+    RCL 09
     COS
     ×
     ÷
-    STO 15
+    STO 09
     ABS
     RCL 43
     X<Y?
@@ -76,12 +76,12 @@ DO
       XEQ 04
       RTN
     ENDIF
-    RCL 15
+    RCL 09
     ACOS
-    RCL× 14
+    RCL× 29
   ENDIF
-  RCL- 17
-  RCL- 23
+  RCL- 08
+  RCL- 13
   540
   +
   RCL 45
@@ -90,31 +90,31 @@ DO
   -
   RCL 48
   ÷
-  STO+ 32
+  STO+ 31
   ABS
   0.0003
   X<Y?
 WHILE
-  DSE 38
+  DSE 05
 WHILE
 ENDDO
-RCL 32
+RCL 31
 RTN
 LBL 02
-STO 23
+STO 13
 R↓
-STO 36
+STO 14
 R↓
-STO 12
+STO 25
 RTN
 LBL 03
-STO 23
+STO 13
 R↓
-STO 36
+STO 14
 R↓
-STO 12
+STO 25
 -0.8333333333333333
-STO 30
+STO 28
 RTN
 LBL 04
 99

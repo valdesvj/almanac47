@@ -50,15 +50,10 @@ stars) with its reduced NAVINIT_LITTLE and a MOON47 of its own; needs a DM42 fir
             6 INFO     the repository, the licence, no warranty, cross-check with the almanac
           0 on the menu ends ALMA47. New date or position: XEQ "ALMA47" again; the same date, time
           and place show the views at once (the sky is kept in the matrix ALMC between runs).
-          ON ALMANAC AND SPLIT: keys 1-8 pick a body of the table, 1 the Sun, 2-8 the next rows. The key
-          ends ALMA47 and leaves the body on your stack: Z its text (e.g. SUN Zn 216.7 Hc 54 11.6),
-          Y its Zn, X its Hc (decimal degrees; a body below the horizon too, Hc negative).
 
-REGISTERS AND STACK: ALMA47 keeps your stack (X Y Z T, and A B C D with the 8-level stack) and
-  LASTx: when it ends they are as before XEQ "ALMA47" (a key 1-8 then pushes the body on top). While it runs it
-  uses the 8-level stack (the text routines need it) and the numbered registers R07-R98; at the end it clears
-  only those (R-CLR 7.92) and puts your stack size back: R00-R06 and R99 stay yours. Named variables and
-  matrices are not touched (DATE, UTC, LAT, LON, the matrices).
+REGISTERS AND STACK: ALMA47 uses the numbered registers (R00-R98) and the 8-level stack while it runs.
+  0 clears the numbered registers (CLREGS) and the stack and puts your stack size back: save your
+  registers first. Named variables and matrices are not touched (DATE, UTC, LAT, LON, the matrices).
   If you stop it with EXIT or R/S, the registers keep ALMA47's values: the routines of
   ALMA47_LABELS.txt (Sun, Moon, planets, Hc / Zn, sunrise ...) can then be called from the keyboard.
 
@@ -72,9 +67,6 @@ WHAT IS NEW IN v2.2.0: the same screens and results as the v2.1.0 views (with th
   hourglass), much faster: every view and every hour about 20-55 % fewer steps run than v2.1.0 (ALMANAC
   -18 %, SPLIT -42 %, SKY -53 %, ANIM -54 %, ALLSKY -40 %), and about 85 % less of the work the C47
   spends looking for labels and returns. Details: OPTIMIZATIONS.md.
-
-NEW SINCE v2.2.0 (not released yet): your stack and LASTx kept; only R07-R98 cleared (R00-R06, R99 stay);
-  keys 1-8 on ALMANAC and SPLIT end ALMA47 with that body's text, Zn and Hc on the stack.
 
 MOON47: XEQ "MOON47". It asks nothing (the clock; if the clock is not on UT: 4 STO "TZ" for UT+4).
   +/- turns the picture to the view from the south, any other key ends.
