@@ -566,6 +566,21 @@ class Calc:
             if op == '42DIM#':                                  # fnGetMatrixDimensions42: X (a matrix) -> Y rows, X columns
                 m = self.s[0]; r, c = m.dims() if isinstance(m, Mat) else m[1:3]
                 self.s = self.s[1:] + self.s[-1:]; self.push(D(r)); self.push(D(c)); continue
+            if op in ('STOS', 'RCLS'):                              # store / recall the whole stack (fnStoreStack,
+                # fnRecallStack): registers n .. n+7 on the C47's 8-level stack (SSIZE 8, the default; 4 at SSIZE 4),
+                # global (n + 8 <= 100) or local (R.nn: LocR of at least nn + 8). The stack is modelled as 4 levels:
+                # X Y Z T go to n .. n+3 and come back from them; all 8 registers must exist. LASTx not touched.
+                k = self.regkey(arg); k = str(int(k)) if isinstance(k, int) else k
+                loc = k.startswith('R.'); n0 = int(k[2:]) if loc else int(k)
+                ks = [('R.%02d' % (n0 + i)) if loc else str(n0 + i) for i in range(8)]
+                if loc:
+                    self.local(ks[-1])                              # an error if the LocR is too small
+                elif n0 + 8 > 100: raise ValueError('%s %s: registers %d-%d out of range' % (op, k, n0, n0 + 7))
+                if op == 'STOS':
+                    for i in range(4): self.rset(ks[i], self.s[i])
+                else:
+                    self.s = [self.rget(ks[i]) for i in range(4)]
+                self.lift = True; continue
             if op in ('STO', 'STO+', 'STO-', 'STO×', 'STO÷'):
                 k = self.regkey(arg); v = self.rget(k); x = self.s[0]
                 self.rset(k, {'STO': lambda: x, 'STO+': lambda: v+x, 'STO-': lambda: v-x, 'STO×': lambda: v*x, 'STO÷': lambda: v/x}[op]()); self.lift = True; continue

@@ -8,6 +8,8 @@
      clear at its first LocR, kept by a second LocR, gone at its RTN; a level XEQ'd from it has none of its own until
      its LocR; without LocR an error (the firmware ignores them); the global flag of the same number untouched
   3. LASTx: LASTx (and LASTX) pushes the last X; RCL L, STO L read and write it as register L
+  4. STOS / RCLS (fnStoreStack / fnRecallStack): the stack to the registers n .. n+7 (8 levels, the C47's default)
+     and back, global or local (R.nn); too few registers an error; LASTx not touched
 
   python3 tests/test_c47sim.py
 """
@@ -116,10 +118,25 @@ def lastx():
     ok(c.lastx == 3 and c.s[0] == 0, 'STO L does not change the stack')
 
 
+def stos():
+    print('== STOS / RCLS')
+    c = run(['4', '3', '2', '1', 'STOS 90', 'CLSTK', 'RCLS 90'])
+    ok(c.s[:4] == [1, 2, 3, 4], 'STOS 90, CLSTK, RCLS 90: the stack back')
+    ok(c.rget('90') == 1 and c.rget('93') == 4, 'X in R90, T in R93')
+    c = run(['SQRT', 'LocR 09', '4', '3', '2', '1', 'STOS R.00', 'LASTx', 'STO R.08', 'CLSTK', 'RCL R.08',
+             'STO L', 'RCLS R.00'], '9')
+    ok(c.s[:4] == [1, 2, 3, 4] and c.lastx == 9, 'LocR 9, STOS R.00 and LASTx in R.08: the stack and LASTx back')
+    c = run(['SQRT', 'STOS 90', 'CLSTK', 'RCLS 90'], '16')
+    ok(c.lastx == 16, 'STOS / RCLS do not change LASTx')
+    ok(fails(['LocR 08', 'STOS R.01']) and fails(['STOS R.00']), 'STOS R.01 with 8 local registers, without LocR: errors')
+    ok(fails(['STOS 93']) and fails(['RCLS 93']) and not fails(['STOS 92']), 'STOS 93 an error (R93-R100), STOS 92 not')
+
+
 def main():
     regclr()
     localflags()
     lastx()
+    stos()
     print('\n%s' % ('ALL PASSED' if not BAD else '%d FAILED: %s' % (len(BAD), '; '.join(BAD))))
     return 1 if BAD else 0
 
