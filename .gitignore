@@ -16,3 +16,4 @@ tools/almanac/tables_2000-2050.csv
 build/free42/TBL_50.*
 build/dev/opt/free42/TBL_50.*
 .aider*
+tests/THANKS.txt
