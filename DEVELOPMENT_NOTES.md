@@ -1026,3 +1026,13 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
 - tests/test_struct_src.py moon_next: n dates and time zones (north, and south after +/-) pixel for pixel v2.2.0, your
   X Y Z T and LASTx back, R00-R06 / R66-R99 kept, R07-R65 cleared, the M7 matrices as v2.2.0. Simulator only: rejig,
   the firmware test and the calculator still to do.
+
+## Oct 23, 2026 - c47sim: STOS / RCLS (branch c47sim-stos-rcls)
+
+- From the forum (a reply to Victor): save the user's stack with `LocR 9`, `STOS R.00` and give it back with
+  `RCLS R.00`, instead of STO R.00 R↓ ... (8 times) and RCL R.07 ... RCL R.00. Victor ran STOS / RCLS (R.00 and
+  global registers) on his C47 (Oct 23): the stack and LASTx came back.
+- c47sim: STOS / RCLS n (fnStoreStack / fnRecallStack, TM_REGISTER 0-99): registers n .. n+7 (the 8-level stack;
+  the simulator's 4 levels go to n .. n+3), global or local; too few registers an error (all 8 must exist); LASTx
+  not touched (LASTx is kept in its own register). tests/test_c47sim.py 4.
+- For Zones 47, Logic 47 and Elements 47 (ZONE47, LOAD47, LOGIC47, ELEM47 keep the user's stack this way).
