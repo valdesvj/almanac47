@@ -17,21 +17,7 @@
 @
 LBL "ALMA47"                            ; ALMA47 - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept (R-CLR 7.92); the only named program
 LocR 09
-STO R.00
-R↓
-STO R.01
-R↓
-STO R.02
-R↓
-STO R.03
-R↓
-STO R.04
-R↓
-STO R.05
-R↓
-STO R.06
-R↓
-STO R.07
+STOS R.00
 RCL L
 STO R.08
 1
@@ -561,14 +547,7 @@ WHILE 01
               XEQ 13
               RCL R.08
               STO L
-              RCL R.07
-              RCL R.06
-              RCL R.05
-              RCL R.04
-              RCL R.03
-              RCL R.02
-              RCL R.01
-              RCL R.00
+              RCLS R.00
               RCL "KT"
               RCL "KZ"
               RCL "KH"
@@ -608,14 +587,7 @@ ENDDO 01
 XEQ 13
 RCL R.08
 STO L
-RCL R.07
-RCL R.06
-RCL R.05
-RCL R.04
-RCL R.03
-RCL R.02
-RCL R.01
-RCL R.00
+RCLS R.00
 RTN
 LBL 01
 XEQ "N50"
