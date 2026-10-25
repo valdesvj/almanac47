@@ -1036,3 +1036,27 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
   the simulator's 4 levels go to n .. n+3), global or local; too few registers an error (all 8 must exist); LASTx
   not touched (LASTx is kept in its own register). tests/test_c47sim.py 4.
 - For Zones 47, Logic 47 and Elements 47 (ZONE47, LOAD47, LOGIC47, ELEM47 keep the user's stack this way).
+
+## Oct 25, 2026 - v2.2.1: the stack kept everywhere (branch claude/v2.2.1)
+
+- programs_struct/next/ (NAV, MOON47): the 8 STO / R↓ and the 8 RCL of the stack save became `STOS R.00` and
+  `RCLS R.00` (LocR 9, LASTx in R.08), the forum's trick; the pages pixel for pixel v2.2.0 (tests/test_struct_src.py).
+  The headers of build/dev/next/*.p47u say 2.2.1. ALMA47 keeps the keys 1-8 of ALMANAC / SPLIT (Oct 18).
+- programs_struct/little/NAVLITTLE_221.txt: v2.2.0's NAVLITTLE (programs_struct/little/NAVLITTLE.txt) with LocR 45,
+  STOS R.36, LASTx in R.44 at the start and RCL R.44, STO L, RCLS R.36 at the end (in place of CLSTK); R.00-R.35 are
+  still your registers R00-R35. The DM42 MOON47: build_release_c47.moon_dm42(programs_struct/next/MOON47.txt, 4)
+  (the patterns of LBL 03, 14, 28 with the registers + 4); 10 IF, 5 DO, 6 REPEAT.
+- Free42: build_release_v221.f42_stack on v2.1.0's build/free42 listings (the generator build_free42.py no longer
+  gives those files back: do not regenerate build/free42 for this). X Y Z T and LASTX into S7X ... S7L after the
+  program's LBL; at its one end (CLST CLD RTN) RCL "S7L", STO ST L, CLST, the four RCL, CLV of the five. f42run
+  (sh tools/f42/setup.sh) writes the .raw. tests/test_v221_f42.py: NAVFULL (menu, the six views, arrows), NAVLITTLE,
+  MOON47 pixel for pixel v2.1.0 with the stack back.
+- tools/build_release_v221.py: build/v2.2.1/{c47,dm42,free42} (only what changed; the zips take NAVINIT_*, TBL_* from
+  build/c47, build/c47/dm42, build/free42), QUICKSTART from v2.2.0's, with rejig the .p47 (--validate=r47 for the
+  C47) and the three zips with RELEASE_NOTES_v2.2.1.md and the manuals of build/manuals/.
+- c47sim: Date→ⅅ and J→ⅅℸ used the name n for the day number and so set the run's step counter (the Zones 47 note);
+  now jn. No clock set: 2461338.0 (2026-10-24 12:00).
+- A standby check (as in the other 47 programs) was tried and dropped: the hangs of Oct 24 were a flat CR2032
+  (BATT# 2.08 V); STBY ran 498 passes of PAUSE 50 without a standby on the C47. A running PAUSE / KEY? loop does
+  not go to standby. LOWBAT only shows the icon; SBbatV shows the gauge (2.054-3.045 V).
+- To do: rejig (the .p47, --validate=r47), the firmware test (tests/test_fw_c47.py), the calculators.

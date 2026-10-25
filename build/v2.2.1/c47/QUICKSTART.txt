@@ -1,9 +1,10 @@
-Almanac 47 v2.2.0 "Struct on Attack" - QUICK START (C47 / R47 only)
-=====================================================================
+Almanac 47 v2.2.1 - QUICK START (C47 / R47; the DM42n with the C47 firmware)
+==============================================================================
 
 This version is for the SwissMicros C47 and R47 ONLY. It is written with the C47's structured
 programming commands (IF ELSE ENDIF, DO WHILE ENDDO, REPEAT UNTIL: no GTO at all), which Free42,
-Plus42 and the DM42 / HP-42S firmware do not have. Free42 / DM42 / Plus42 users: keep v2.1.0.
+Plus42 and the DM42 / HP-42S firmware do not have. Free42 / DM42 / Plus42 users (stock firmware):
+Almanac47_Free42_DM42_v2.2.1.zip - the programs of v2.1.0, now keeping your stack (README_F42.txt).
 
 FIRMWARE: a C47 / R47 firmware with ATEXT, GRFNT and the STRUCT commands: 00.109.05.00a0.ALPHA
 (5 Oct 2026) or later. On the older public firmware 00.109.04.00b0 use the v1.1.0 release
@@ -18,9 +19,9 @@ THE FILES (.p47 ready to load; the .txt are the same programs as listings)
   ALMA47_LABELS.txt the labels of ALMA47, and the routines you can call yourself
   p47u/             the same programs as rejig sources, with comments (for the C47 PROGRAMS folder)
   C47_Nav_User_Manual.pdf   the manual: every view, the labels, MOON47
-The old DM42 with the C47 firmware (64 KiB): Almanac47_DM42_C47firmware_v2.2.0.zip - NAVLITTLE (Sun and
+The old DM42 with the C47 firmware (64 KiB): Almanac47_DM42_C47firmware_v2.2.1.zip - NAVLITTLE (Sun and
 stars) with its reduced NAVINIT_LITTLE and a MOON47 of its own; needs a DM42 firmware package with STRUCT
-(1, 2 or 3: at most 10 IF / DO / REPEAT a program); see its README_DM42.txt. The DM42n runs ALMA47. The almanac tables (TBL) of earlier versions are not part of v2.2.0.
+(1, 2 or 3: at most 10 IF / DO / REPEAT a program); see its README_DM42.txt. The DM42n runs ALMA47. The almanac tables (TBL) of earlier versions are not part of v2.2.x.
 
 1. LOAD   ALMA47.p47 and NAVINIT_FAST.p47 (or NAVINIT_FULL.p47): copy them to the calculator
           (USB disk) and load them (I/O menu, READP).
@@ -41,6 +42,8 @@ stars) with its reduced NAVINIT_LITTLE and a MOON47 of its own; needs a DM42 fir
             KEY A NUMBER   + MENU   up/down arrows +-1 HOUR   9 SNAP
           Press the number (no R/S). On a view: + back to the menu, up / down arrow the same view
           one hour later / earlier, 9 SNAP (a screenshot). On the menu the arrows change the hour too.
+          On ALMANAC and SPLIT a key 1-8 picks that row of the table: ALMA47 ends with the body on
+          your stack - Z its text ("SUN Zn 216.7 Hc 54 11.6"), Y Zn, X Hc (decimal degrees).
             1 ALMANAC  GHA, Dec, Hc, Zn of the Sun, the Moon, a planet, the brightest stars; twilight,
                        rise/set, meridian passage, the Moon (lit, phase, age, HP, SD)
             2 SPLIT    horizon chart on top, the bodies below (8 rows)
@@ -51,9 +54,11 @@ stars) with its reduced NAVINIT_LITTLE and a MOON47 of its own; needs a DM42 fir
           0 on the menu ends ALMA47. New date or position: XEQ "ALMA47" again; the same date, time
           and place show the views at once (the sky is kept in the matrix ALMC between runs).
 
-REGISTERS AND STACK: ALMA47 uses the numbered registers (R00-R98) and the 8-level stack while it runs.
-  0 clears the numbered registers (CLREGS) and the stack and puts your stack size back: save your
-  registers first. Named variables and matrices are not touched (DATE, UTC, LAT, LON, the matrices).
+REGISTERS AND STACK: ALMA47 gives you back your stack (X ... D, the 8 levels) and LASTx when it ends
+  (0, or a key 1-8 with the body pushed on top). It saves them with LocR 9 / STOS R.00 (LASTx in R.08)
+  and gives them back with RCLS R.00: the trick from the SwissMicros forum. It uses R07-R98 while it
+  runs and clears only those (R-CLR 7.92): R00-R06 and R99 stay yours; your stack size comes back.
+  Named variables and matrices are not touched (DATE, UTC, LAT, LON, the matrices).
   If you stop it with EXIT or R/S, the registers keep ALMA47's values: the routines of
   ALMA47_LABELS.txt (Sun, Moon, planets, Hc / Zn, sunrise ...) can then be called from the keyboard.
 
@@ -63,12 +68,16 @@ REGISTERS AND STACK: ALMA47 uses the numbered registers (R00-R98) and the 8-leve
 MEMORY (program bytes, measured with rejig): ALMA47 27.2 KB, MOON47 4.5 KB; NAVINIT while loaded:
   FAST 28.5 KB, FULL 57.8 KB. The matrices: FAST about 55 KB, FULL about 95 KB; the cache ALMC about 6 KB.
 
-WHAT IS NEW IN v2.2.0: the same screens and results as the v2.1.0 views (with the new top bar and the
+WHAT IS NEW IN v2.2.1: your stack and LASTx kept (ALMA47, MOON47), only R07-R98 (MOON47
+  R07-R65) used and cleared, the keys 1-8 on ALMANAC and SPLIT. The pages are those of v2.2.0.
+
+WHAT WAS NEW IN v2.2.0: the same screens and results as the v2.1.0 views (with the new top bar and the
   hourglass), much faster: every view and every hour about 20-55 % fewer steps run than v2.1.0 (ALMANAC
   -18 %, SPLIT -42 %, SKY -53 %, ANIM -54 %, ALLSKY -40 %), and about 85 % less of the work the C47
   spends looking for labels and returns. Details: OPTIMIZATIONS.md.
 
 MOON47: XEQ "MOON47". It asks nothing (the clock; if the clock is not on UT: 4 STO "TZ" for UT+4).
-  +/- turns the picture to the view from the south, any other key ends.
+  +/- turns the picture to the view from the south, any other key ends. Your stack and LASTx come
+  back; it uses R07-R65 and clears only those.
 
 DOES NOT REPLACE THE NAUTICAL ALMANAC.

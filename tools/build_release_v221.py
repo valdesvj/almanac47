@@ -38,6 +38,7 @@ VERSION = '2.2.1'
 OUT = os.path.join(ROOT, 'build', 'v' + VERSION)
 C47, DM42, F42 = (os.path.join(OUT, d) for d in ('c47', 'dm42', 'free42'))
 MANUAL = os.path.join(ROOT, 'build', 'manuals', 'C47_Nav_User_Manual.pdf')
+MANUAL_F42 = os.path.join(ROOT, 'build', 'manuals', 'Almanac47_Free42_Manual.pdf')
 F42RUN = os.path.join(ROOT, 'tools', 'f42', 'f42run')
 LITTLE = os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE_221.txt')
 MOON_NEXT = os.path.join(ROOT, 'programs_struct', 'next', 'MOON47.txt')
@@ -119,6 +120,50 @@ def dm42():
                                                                             if sep else readme + note)
 
 
+def quickstart():
+    """QUICKSTART.txt of v2.2.1: v2.2.0's (build/c47/) with the stack kept, the keys 1-8, the three zips."""
+    q = open(os.path.join(ROOT, 'build', 'c47', 'QUICKSTART.txt'), encoding='utf-8').read()
+    for old, new in (
+            ('Almanac 47 v2.2.0 "Struct on Attack" - QUICK START (C47 / R47 only)\n'
+             '=====================================================================',
+             'Almanac 47 v2.2.1 - QUICK START (C47 / R47; the DM42n with the C47 firmware)\n'
+             '=============================================================================='),
+            ('Plus42 and the DM42 / HP-42S firmware do not have. Free42 / DM42 / Plus42 users: keep v2.1.0.',
+             'Plus42 and the DM42 / HP-42S firmware do not have. Free42 / DM42 / Plus42 users (stock firmware):\n'
+             'Almanac47_Free42_DM42_v2.2.1.zip - the programs of v2.1.0, now keeping your stack (README_F42.txt).'),
+            ('Almanac47_DM42_C47firmware_v2.2.0.zip', 'Almanac47_DM42_C47firmware_v2.2.1.zip'),
+            ('The almanac tables (TBL) of earlier versions are not part of v2.2.0.',
+             'The almanac tables (TBL) of earlier versions are not part of v2.2.x.'),
+            ('          Press the number (no R/S). On a view: + back to the menu, up / down arrow the same view\n'
+             '          one hour later / earlier, 9 SNAP (a screenshot). On the menu the arrows change the hour too.',
+             '          Press the number (no R/S). On a view: + back to the menu, up / down arrow the same view\n'
+             '          one hour later / earlier, 9 SNAP (a screenshot). On the menu the arrows change the hour too.\n'
+             '          On ALMANAC and SPLIT a key 1-8 picks that row of the table: ALMA47 ends with the body on\n'
+             '          your stack - Z its text ("SUN Zn 216.7 Hc 54 11.6"), Y Zn, X Hc (decimal degrees).'),
+            ('REGISTERS AND STACK: ALMA47 uses the numbered registers (R00-R98) and the 8-level stack while it runs.\n'
+             '  0 clears the numbered registers (CLREGS) and the stack and puts your stack size back: save your\n'
+             '  registers first. Named variables and matrices are not touched (DATE, UTC, LAT, LON, the matrices).\n'
+             '  If you stop it with EXIT or R/S, the registers keep ALMA47\'s values: the routines of\n'
+             '  ALMA47_LABELS.txt (Sun, Moon, planets, Hc / Zn, sunrise ...) can then be called from the keyboard.',
+             'REGISTERS AND STACK: ALMA47 gives you back your stack (X ... D, the 8 levels) and LASTx when it ends\n'
+             '  (0, or a key 1-8 with the body pushed on top). It saves them with LocR 9 / STOS R.00 (LASTx in R.08)\n'
+             '  and gives them back with RCLS R.00: the trick from the SwissMicros forum. It uses R07-R98 while it\n'
+             '  runs and clears only those (R-CLR 7.92): R00-R06 and R99 stay yours; your stack size comes back.\n'
+             '  Named variables and matrices are not touched (DATE, UTC, LAT, LON, the matrices).\n'
+             '  If you stop it with EXIT or R/S, the registers keep ALMA47\'s values: the routines of\n'
+             '  ALMA47_LABELS.txt (Sun, Moon, planets, Hc / Zn, sunrise ...) can then be called from the keyboard.'),
+            ('WHAT IS NEW IN v2.2.0:', 'WHAT IS NEW IN v2.2.1: your stack and LASTx kept (ALMA47, MOON47), only R07-R98 (MOON47\n'
+             '  R07-R65) used and cleared, the keys 1-8 on ALMANAC and SPLIT. The pages are those of v2.2.0.\n\n'
+             'WHAT WAS NEW IN v2.2.0:'),
+            ('  +/- turns the picture to the view from the south, any other key ends.',
+             '  +/- turns the picture to the view from the south, any other key ends. Your stack and LASTx come\n'
+             '  back; it uses R07-R65 and clears only those.')):
+        if q.count(old) != 1:
+            raise SystemExit('build_release_v221 QUICKSTART: %r not found once' % old[:50])
+        q = q.replace(old, new)
+    return q.rstrip('\n').split('\n')
+
+
 def p47(path, validate):
     out = path[:-4] + '.p47'
     cmd = ['rejig'] + (['--validate=r47'] if validate else []) + ['-o', out, path]
@@ -142,7 +187,7 @@ def zips():
         'Almanac47_DM42_C47firmware_v%s.zip' % VERSION: ('Almanac47_DM42_C47', MANUAL, [
             (j(d, n), n) for n in ('NAVLITTLE.p47', 'NAVLITTLE.txt', 'MOON47.p47', 'MOON47.txt', 'README_DM42.txt')] +
             [(j(d0, n), n) for n in ('NAVINIT_LITTLE.p47', 'NAVINIT_LITTLE.txt')]),
-        'Almanac47_Free42_DM42_v%s.zip' % VERSION: ('Almanac47_Free42', j(ROOT, 'docs', 'Almanac47_Free42_Manual.pdf'), [
+        'Almanac47_Free42_DM42_v%s.zip' % VERSION: ('Almanac47_Free42', j(ROOT, 'build', 'manuals', 'Almanac47_Free42_Manual.pdf'), [
             (j(f, n), n) for n in ('NAVFULL.raw', 'NAVFULL.txt', 'NAVLITTLE.raw', 'NAVLITTLE.txt', 'MOON47.raw', 'MOON47.txt',
                                    'README_F42.txt')] +
             [(j(f0, n), n) for n in ('NAVINIT_FULL.raw', 'NAVINIT_FULL.txt', 'NAVINIT_FAST.raw', 'NAVINIT_FAST.txt',
@@ -160,7 +205,7 @@ def zips():
 
 def main():
     c47()
-    shutil.copyfile(os.path.join(ROOT, 'build', 'c47', 'QUICKSTART.txt'), os.path.join(C47, 'QUICKSTART.txt'))
+    write(os.path.join(C47, 'QUICKSTART.txt'), quickstart())
     dm42()
     free42()
     rejig = shutil.which('rejig')
@@ -177,8 +222,9 @@ def main():
         raw = path[:-4] + '.raw'
         print('  %s: %d lines; .raw %s' % (os.path.relpath(path, ROOT), len(lines(path)),
                                           '%d bytes' % os.path.getsize(raw) if os.path.exists(raw) else '?'))
-    if not rejig or not os.path.exists(MANUAL):
-        print('  no zips: %s' % ('rejig missing' if not rejig else 'build the manual first (tools/generators/build_manual.py)'))
+    if not rejig or not os.path.exists(MANUAL) or not os.path.exists(MANUAL_F42):
+        print('  no zips: %s' % ('rejig missing' if not rejig else 'build the manuals first (tools/generators/build_manual.py '
+                                 'and build_port_manuals.py)'))
         return
     zips()
 

@@ -4,6 +4,11 @@ Sun, Aries, 57 navigation stars + Polaris, sunrise/sunset/twilight.
 Apparent geocentric positions, almanac accuracy (better than 0.1').
 Time argument: UT1. For a sight timed in UTC, add DUT1 (< 0.9 s).
 
+This file describes the single programs (programs/). The release to load on a calculator is
+v2.2.1 (build/v2.2.1/, RELEASE_NOTES_v2.2.1.md): ALMA47 and MOON47 for the C47 / R47, NAVLITTLE and
+MOON47 for the old DM42 with the C47 firmware, NAVFULL / NAVLITTLE / MOON47 for Free42; all of them
+give you back your stack and LASTx when they end (the SwissMicros forum's LocR 9 / STOS / RCLS trick).
+
 FILES
 -----
 programs/   plain UTF-8, one command per line (HP-42S / Free42 names)
