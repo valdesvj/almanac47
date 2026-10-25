@@ -36,7 +36,7 @@ COL = 40
 
 HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  Victor Valdes
-@ Version: next (after 2.2.0, not released)
+@ Version: 2.2.1
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: every view pixel for pixel v2.2.0, the stack (4 levels) and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
@@ -44,7 +44,8 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
 @
 @ As ALMA47 v2.2.0, and:
-@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'ALMA47' when it ends;
+@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'ALMA47' when it ends: saved with
+@     LocR 9 / STOS R.00 (LASTx in R.08) and given back with RCLS R.00, the trick from the SwissMicros forum;
 @   - it uses the registers R07-R98 and clears only those when it ends (R-CLR 7.92): R00-R06 and R99 stay yours;
 @   - on ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun): ALMA47 ends with Z its text,
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
@@ -55,7 +56,7 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 
 MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: next (after 2.2.0, not released)
+@ Version: 2.2.1
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
 @ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
@@ -63,7 +64,8 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ Output:  the page as v2.2.0 (clock 03-10-2026 12:00 UT: LAST QUARTER, 51 % lit, age 22.4 days, HP 59.2', SD 16.1')
 @
 @ As MOON47 v2.2.0, and:
-@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends;
+@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
+@     STOS R.00 / RCLS R.00, from the SwissMicros forum);
 @   - it uses the registers R07-R65 and clears only those when it ends (R-CLR 7.59): R00-R06 and R66-R99 stay yours.
 @ Keys: +/- turns the picture to the view from the south, any other key ends. Its work matrices M7T, M7C, M7A, M7V,
 @ M7W as v2.2.0 (M7T, M7C set to 0 at the end; TZ stays).

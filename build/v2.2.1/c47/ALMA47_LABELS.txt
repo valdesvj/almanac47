@@ -1,0 +1,120 @@
+ALMA47 v2.2.1 (C47 / R47) - the program labels
+================================================================
+ALMA47 is 26 programs; only ALMA47 has a name, the others start with a numbered global label N01, N02 ...
+(the names do not clash with yours). The numbers are the ones of earlier versions: a missing number
+belongs to a routine that is gone. Inside each program the routines are local labels 01, 02 ... (the
+comments of ALMA47.p47u say what each one does).
+
+Routines you can call yourself
+------------------------------
+Run ALMA47 with your date, time and DR, then leave it with EXIT (or R/S), NOT with 0: 0 clears the
+registers (CLREGS), and these routines read the numbers ALMA47 stores in R43-R98 at its start (the table
+at the end), the DR of the run (R13 longitude, R14 latitude) and the matrices of NAVINIT. They use
+R00-R42 for their work. JD: the C47's Julian Date (DATE, then ⅅ→J) + UT / 24, a plain number.
+
+  XEQ "N15"  SUNA  X = JD (UT)
+                    -> X GHA of the Sun, Y Dec, Z GHA of Aries
+  XEQ "N17"  SUNF  X = JD (UT)
+                    -> X GHA of the Sun, Y Dec (low precision, 0.01 deg)
+  XEQ "N25"  MOO2  right after N15, same JD
+                    -> X GHA of the Moon, Y Dec, Z HP ('), T SD (')
+  XEQ "N28"  PLN2  right after N15; X = planet 1-4 (Venus, Mars, Jupiter, Saturn)
+                    -> X GHA, Y Dec, Z SHA, T HP (')
+  XEQ "N29"  PLN3  right after N15; X = planet 1-4
+                    -> X GHA, Y Dec (a quick position, the full series only when the planet can be above the horizon)
+  XEQ "N32"  HCZ   Y = Dec, X = GHA (decimal degrees)
+                    -> X Hc, Y Zn for the DR of the last run
+  XEQ "N38"  RISE  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
+                    -> X sunrise (UT hours; 99 = none that day)
+  XEQ "N39"  SET   Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
+                    -> X sunset (UT hours; 99 = none)
+  XEQ "N44"  TRAN  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
+                    -> X meridian passage of the Sun (UT hours)
+  XEQ "N40"  NTWA  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
+                    -> X nautical twilight, morning (UT hours; 99 = none)
+  XEQ "N41"  NTWP  Z = JD at 0 h UT, Y = lat, X = lon (decimal degrees, N and E +)
+                    -> X nautical twilight, evening (UT hours; 99 = none)
+  XEQ "N48"  SNMU  X = star number 1-58
+                    -> the star's name in ALPHA
+
+Example: run ALMA47 for 23 Sep 2026, 25 20 N 055 12 E, leave with EXIT;
+  2461307 XEQ "N15" -> X 1.9070 (GHA of the Sun), Y -0.1932 (Dec), Z 182.3525 (GHA of Aries)
+  then XEQ "N25" -> the Moon; 2461306.5 ENTER 25.333 ENTER 55.2 XEQ "N38" -> 2.13 (sunrise 02:08 UT)
+
+Every global label
+------------------
+Label    Name    What it does
+ALMA47   NAV     graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends (CLREGS CLSTK); the only named program (NAV in the sources)
+N95      CALC    the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks
+N80      PTNT    TEXT: whole number in the tinyFont
+N54      PDMS    TEXT: degrees and minutes 'ddd mm.m' with sign
+N55      PDTS    TEXT: date 'dd-mm-yyyy' from a Julian Date
+N53      PHMS    TEXT: hh:mm from hours
+N51      PINS    TEXT: whole number (one ATEXT)
+N79      PTTY    TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
+N50      PTXS    TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
+N56      PZNS    TEXT: azimuth 'ddd.d'
+N52      PF1S    TEXT: number with one decimal
+N57      PHLS    horizontal line (X = length in pixels)
+N61      HANIM   view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
+N82      PSYS    SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
+N62      ALLSKY  view 5 ALLSKY: whole sky, over the horizon above, under the horizon below
+N29      PLN3    planet for the screens: quick position first, full series only if it can be above the horizon
+N28      PLN2    planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
+N32      HCZ     sight reduction for the DR (R13 lon, R14 lat): Y = Dec, X = GHA -> X Hc, Y Zn (also R09, R05), sin Hc in 'V4'
+N18      SER     sum of one series matrix with the matrix functions (COS, DOT)
+N19      SERT    the time vectors SV1 SV2 used by SER
+N16      SUNG    Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+N17      SUNF    Sun, low-precision formula (0.01 deg) for sunrise/twilight
+N15      SUNA    Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+N83      HDR     header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)
+N69      CHCZ    Hc Zn from the cache for the body just read (else the real HCZ)
+N71      CNTA    nautical twilight am from the cache (the five sun times: computed once per date and place)
+N68      CSQK    star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks
+N72      CRIS    sunrise from the cache
+N73      CTRN    meridian passage from the cache
+N74      CSET    sunset from the cache
+N75      CNTP    nautical twilight pm from the cache
+N77      CEQQ    celestial equator of the charts: its dots for this place (U3 SKY / SPLIT, U2 ANIM / ALLSKY), computed again only for a new place
+N65      CMOO    Moon from the cache
+N64      CSUN    Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
+N25      MOO2    Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
+N38      RISE    sunrise time UT (SUNRISE program)
+N39      SET     sunset time UT
+N44      TRAN    meridian passage of the Sun, UT
+N40      NTWA    nautical twilight, morning, UT
+N41      NTWP    nautical twilight, evening, UT
+N81      PSYB    SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
+N04      HORZ    view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)
+N06      HALMH   view 2 SPLIT: horizon chart on top, the bodies below (8 rows)
+N01      ALMF    view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
+N98      CALL    ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)
+N48      SNMU    star name from its number
+N46      PHA2    Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)
+N63      WPLS    every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
+N02      PKNW    keys 1-8 (programs_struct/next): an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn
+N03      PKRC    keys 1-8 (next): X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB
+N05      PKEY    keys 1-8 (next): X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0
+N07      PKBD    keys 1-8 (next): the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc
+N84      CMN     compass row N E S W N of a chart (X row)
+N90      OUT5    steps shared by several routines (tools/navmat.py outline)
+N89      OUT4    steps shared by several routines (tools/navmat.py outline)
+N49      TGET    almanac tables (TBL): Chebyshev lookup; used only when tables are loaded (TBL is not part of v2.2.0)
+N85      CMS     compass row S W N E S of a chart, south up (X row)
+
+The numbers ALMA47 stores in R43-R98 when it starts (each use is a 2-byte RCL)
+------------------------------------------------------------------------------
+  R43 1                 R44 2                 R45 360               R46 0
+  R47 16                R48 15                R49 17                R50 10
+  R51 3                 R52 117               R53 116               R54 3600
+  R55 20                R56 0.5               R57 60                R58 212
+  R59 207               R60 143               R61 142               R62 180
+  R63 176               R64 100               R65 27                R66 4
+  R67 51                R68 26                R69 25                R70 24
+  R71 90                R72 238               R73 226               R74 34
+  R75 30                R76 395               R77 363               R78 360.98564736629
+  R79 332               R80 301               R81 270               R82 145
+  R83 113               R84 8                 R85 -1                R86 184
+  R87 82                R88 5                 R89 280.46061837      R90 2451545
+  R91 241               R92 0.15643           R93 6                 R94 388
+  R95 29.530589         R96 199               R97 164               R98 150
