@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """test_fw_c47.py - the v2.2.0 C47 files (build/c47/, tools/build_release_c47.py) in the C47 firmware itself: the PC
 simulator built from the firmware sources, headless with its script (--script).
+V221=1 python3 tests/test_fw_c47.py: the v2.2.1 files (build/v2.2.1/, tools/build_release_v221.py) instead: your stack
+back (X = 0 here: the helper clears the stack), ALMA47 clears only R07-R98 (R00-R06, R99 kept), MOON47 read with its
+registers + 4 (a test copy without its end's R-CLR 7.59).
 
   1. runs: ALMA47 (NAVINIT_FAST) each page, + menu, 0 end: no error, X = 0, the registers cleared (CLREGS);
      NAVLITTLE (NAVINIT_LITTLE): up, down, + end: no error, your registers kept; MOON47 and MOON47 for the old DM42
@@ -48,6 +51,14 @@ SIM = os.environ.get('C47SIM', os.path.expanduser('~/.cache/c47fw/c47'))
 RES = os.path.join(os.path.dirname(SIM), 'res')
 C47 = os.path.join(ROOT, 'build', 'c47')
 DM42 = os.path.join(C47, 'dm42')                 # the old DM42 (the simulator has STRUCT, 255 a program)
+# V221=1: the v2.2.1 files (build/v2.2.1/c47, dm42: ALMA47, MOON47, NAVLITTLE; the NAVINITs stay those of build/c47):
+# your stack back, ALMA47 clears only R07-R98, MOON47 only R07-R65 (its registers + 4)
+V221 = os.environ.get('V221') == '1'
+INIT_C47, INIT_DM42 = C47, DM42
+if V221:
+    C47 = os.path.join(ROOT, 'build', 'v2.2.1', 'c47')
+    DM42 = os.path.join(ROOT, 'build', 'v2.2.1', 'dm42')
+MOON_SHIFT = 4 if V221 else 0
 ONLY = os.environ.get('ONLY', 'runs,FULL,FAST,LITTLE,MOON').split(',')
 
 
@@ -96,7 +107,7 @@ def state(init):
     if init in STATES:
         return STATES[init]
     d = tmp()
-    f = p47(os.path.join(C47, init + '.txt'), d, copy=True)
+    f = p47(os.path.join(INIT_C47, init + '.txt'), d, copy=True)
     out, err = sim(d, ['readp %s' % f, 'xeq NAVINIT', 'savest %s/full.s47' % d])
     assert not err, err[:3]
     sim(d, ['savest %s/empty.s47' % d])
@@ -120,7 +131,7 @@ def runs():
     for k, name in ((72, '1 ALMANAC'), (73, '2 SPLIT'), (74, '3 SKY'), (62, '4 ANIM'), (63, '5 ALLSKY'), (64, '6 INFO'),
                     (54, '9 SNAP'), (51, 'up arrow')):
         d = tmp()
-        files = [p47(os.path.join(C47, 'NAVINIT_FAST.txt'), d, copy=True), p47(os.path.join(C47, 'ALMA47.txt'), d),
+        files = [p47(os.path.join(INIT_C47, 'NAVINIT_FAST.txt'), d, copy=True), p47(os.path.join(C47, 'ALMA47.txt'), d),
                  helper(d, INPUTS, [k, 85, 82] if k != 51 else [51, 72, 85, 82])]
         tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET']
         tcl += ['reg %02d %d.25' % (r, 4000 + r) for r in range(100)] + ['xeq ALMA47'] + ['press R/S'] * 4
@@ -128,14 +139,17 @@ def runs():
         out, err = sim(d, tcl)
         regs = {m.group(1): m.group(2) for l in out for m in [re.match(r'R(\d\d)=(.*)', l)] if m}
         x = next((l[2:] for l in out if l.startswith('X=')), None)
-        cleared = len(regs) == 100 and all(v.strip() in ('0', '0.') for v in regs.values())
+        mine = [] if not V221 else list(range(0, 7)) + [99]      # v2.2.1: R00-R06 and R99 stay yours
+        cleared = len(regs) == 100 and all((v.strip() in ('0', '0.')) != (int(r) in mine) or (int(r) in mine and '.25' in v)
+                                           for r, v in regs.items())
         ok = not err and x == '0' and cleared
         bad += not ok
-        print('  %-10s X=%s  registers %s  %s' % (name, x, 'cleared' if cleared else 'NOT CLEARED', err[:2] or 'no error'))
+        print('  %-10s X=%s  registers %s  %s' % (name, x, ('R07-R98 cleared, R00-R06 R99 kept' if V221 else 'cleared')
+                                                  if cleared else 'NOT AS EXPECTED', err[:2] or 'no error'))
         shutil.rmtree(d, ignore_errors=True)
     print('== NAVLITTLE (the old DM42 with the C47 firmware): up, down, + end')
     d = tmp()
-    files = [p47(os.path.join(DM42, 'NAVINIT_LITTLE.txt'), d, copy=True), p47(os.path.join(DM42, 'NAVLITTLE.txt'), d),
+    files = [p47(os.path.join(INIT_DM42, 'NAVINIT_LITTLE.txt'), d, copy=True), p47(os.path.join(DM42, 'NAVLITTLE.txt'), d),
              helper(d, INPUTS, [51, 61, 85])]
     tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET'] + ['reg %02d %d.25' % (r, 4000 + r) for r in range(100)]
     tcl += ['xeq ALMA47'] + ['press R/S'] * 4 + ['puts "X=[reg X]"'] + ['puts "R%02d=[reg %02d]"' % (r, r) for r in range(100)]
@@ -257,7 +271,7 @@ def little_ephem(n, rnd):
     extra = ['LBL "STR"', 'XEQ "N09"', 'RTN']
     for k, j in enumerate(js):
         extra += ['LBL "P%02d"' % k, repr(j), 'XEQ "N02"', 'RTN']
-    files = [p47(os.path.join(DM42, 'NAVINIT_LITTLE.txt'), d, copy=True), nav[:-4] + '.p47', helper(d, INPUTS, [], extra)]
+    files = [p47(os.path.join(INIT_DM42, 'NAVINIT_LITTLE.txt'), d, copy=True), nav[:-4] + '.p47', helper(d, INPUTS, [], extra)]
     tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET', 'xeq ALMA47'] + ['press R/S'] * 4
     for k in range(n):
         tcl += ['xeq P%02d' % k, 'puts "S%d=[reg X] [reg Y] [reg Z]"' % k]
@@ -328,9 +342,18 @@ def moon_ephem(src, n, rnd):
         jnow = A.jd(now.year, now.month, now.day) + (now.hour + now.minute / 60.0 + now.second / 3600.0) / 24.0
         tz = round((jnow - target) * 24.0, 6)
         d = tmp()
-        files = [p47(src, d), helper(d, ['%r' % tz, 'STO "TZ"'], [43, 82])]
+        S_ = MOON_SHIFT
+        if V221:                                     # the end's 7.59 R-CLR left out, so the registers can be read
+            keep = os.path.join(d, 'MOONK.txt')
+            L_ = [l for l in open(src, encoding='utf-8').read().split('\n') if l]
+            k_ = L_.index('R-CLR'); assert L_[k_ - 1] == '7.59'
+            open(keep, 'w', encoding='utf-8').write('\n'.join(L_[:k_ - 1] + L_[k_ + 1:]) + '\n')
+            src_ = keep
+        else:
+            src_ = src
+        files = [p47(src_, d), helper(d, ['%r' % tz, 'STO "TZ"'], [43, 82])]
         tcl = ['readp %s' % f for f in files] + ['xeq TSET', 'xeq MOON47']
-        tcl += ['puts "R%02d=[reg %02d]"' % (r, r) for r in (6, 18, 19, 20, 24, 54, 55, 56, 57, 58, 59, 60, 61)]
+        tcl += ['puts "R%02d=[reg %02d]"' % (r, r + S_) for r in (6, 18, 19, 20, 24, 54, 55, 56, 57, 58, 59, 60, 61)]
         out, err = sim(d, tcl)
         shutil.rmtree(d, ignore_errors=True)
         v = {}

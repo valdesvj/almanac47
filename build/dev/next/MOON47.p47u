@@ -1,6 +1,6 @@
 @ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: next (after 2.2.0, not released)
+@ Version: 2.2.1
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
 @ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
@@ -8,7 +8,8 @@
 @ Output:  the page as v2.2.0 (clock 03-10-2026 12:00 UT: LAST QUARTER, 51 % lit, age 22.4 days, HP 59.2', SD 16.1')
 @
 @ As MOON47 v2.2.0, and:
-@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends;
+@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
+@     STOS R.00 / RCLS R.00, from the SwissMicros forum);
 @   - it uses the registers R07-R65 and clears only those when it ends (R-CLR 7.59): R00-R06 and R66-R99 stay yours.
 @ Keys: +/- turns the picture to the view from the south, any other key ends. Its work matrices M7T, M7C, M7A, M7V,
 @ M7W as v2.2.0 (M7T, M7C set to 0 at the end; TZ stays).
@@ -852,21 +853,7 @@ UNTIL 05
 RTN
 LBL "MOON47"            ; MOON47 - the Moon phase from the clock: disc, % lit, age, HP, SD, the next four phases (UT); +/- north / south, any other key ends
 LocR 09
-STO R.00
-R↓
-STO R.01
-R↓
-STO R.02
-R↓
-STO R.03
-R↓
-STO R.04
-R↓
-STO R.05
-R↓
-STO R.06
-R↓
-STO R.07
+STOS R.00
 RCL L
 STO R.08
 SSIZE#
@@ -921,14 +908,7 @@ REPEAT 06
     R-CLR
     RCL R.08
     STO L
-    RCL R.07
-    RCL R.06
-    RCL R.05
-    RCL R.04
-    RCL R.03
-    RCL R.02
-    RCL R.01
-    RCL R.00
+    RCLS R.00
     RTN
   ENDIF 13
   1

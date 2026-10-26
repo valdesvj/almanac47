@@ -3,13 +3,21 @@
 Celestial navigation for the SwissMicros C47 / R47 calculator (RPN), with a PC
 version and the base for a phone app (**Almanac 47**).
 
+- **v2.2.1 (latest):** `build/v2.2.1/` - v2.2.0 with **your stack and LASTx kept** when a program ends, by the trick
+  from the SwissMicros forum (`LocR 9`, `STOS R.00` at the start, `RCLS R.00` at the end; Free42: the variables
+  S7X ... S7L). On the C47 / R47 the keys 1-8 on ALMANAC and SPLIT end ALMA47 with that body on your stack (Z the text,
+  Y Zn, X Hc), and ALMA47 / MOON47 clear only their own registers (R07-R98 / R07-R65). Builds for the C47 / R47
+  (`c47/`), the old DM42 with the C47 firmware (`dm42/`) and Free42 / DM42 stock firmware, big NAVFULL and tiny
+  NAVLITTLE (`free42/`, .raw included). The same pages pixel for pixel. Notes: `RELEASE_NOTES_v2.2.1.md`; build:
+  `python3 tools/build_release_v221.py` (rejig for the .p47 and the zips); tests: `tests/test_struct_src.py`,
+  `tests/test_v221.py`, `tests/test_v221_f42.py` (needs `tools/f42`).
 - **v2.2.0 "Struct on Attack" (C47 / R47 only):** `build/c47/` - ALMA47, NAVINIT_FAST / _FULL, MOON47,
   written with the C47 STRUCT commands (no GTO), much faster than v2.1.0; `build/c47/QUICKSTART.txt`,
   `build/c47/ALMA47_LABELS.txt`, the commented rejig sources `build/forum/*.p47u`, the source `programs_struct/`.
   The old DM42 (64 KiB): `build/c47/dm42/` - NAVLITTLE with its reduced NAVINIT_LITTLE and a MOON47 of its own, in
   STRUCT within the DM42 firmware's 10 IF / DO / REPEAT a program (firmware packages 1-3; package 4 has no STRUCT).
   Build: `python3 tools/build_release_c47.py`; in the firmware and against DE421: `tests/test_fw_c47.py`.
-  Free42 / DM42 stock firmware / Plus42 stay on v2.1.0 (below).
+  Free42 / DM42 stock firmware / Plus42: v2.1.0 (below), or v2.2.1 above (the same programs, your stack kept).
 - **Install and run (v2.1.0):** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
   graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,

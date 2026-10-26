@@ -388,8 +388,8 @@ class Calc:
                 _, y, m, d = self.s[0]; a = (14 - m) // 12; yy = y + 4800 - a; mm = m + 12 * a - 3
                 self.s[0] = D(d + (153 * mm + 2) // 5 + 365 * yy + yy // 4 - yy // 100 + yy // 400 - 32045); continue
             if op == 'J→ⅅℸ':                         # JDN (.0 = noon) -> Y date, X time (hours)
-                j = self.s[0] + D('0.5'); n = int(j // 1); fr = j - n
-                a = n + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
+                j = self.s[0] + D('0.5'); jn = int(j // 1); fr = j - jn   # jn: n is the step counter
+                a = jn + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
                 dd = (4 * c + 3) // 1461; e = c - 1461 * dd // 4; mm = (5 * e + 2) // 153
                 day = e - (153 * mm + 2) // 5 + 1; mon = mm + 3 - 12 * (mm // 10); yr = 100 * b + dd - 4800 + mm // 10
                 self.lastx = self.s[0]; self.s[0] = ('D', yr, mon, day); self.lift = True; self.push(fr * 24); continue
@@ -606,10 +606,11 @@ class Calc:
                 self.ign1er = op == 'SF'; continue
             if op == 'SSIZE8' or op == 'SSIZE4': continue           # stack size: modelled as 4 levels
             if op == 'Date→ⅅ' or op == 'Time→ℸ':                    # the clock: self.clock, a JD of the local time
-                j = D(str(getattr(self, 'clock'))) + D('0.5'); n = int(j // 1); fr = j - n
+                # jn, not n (n is the run's step counter); no clock set: 2461338.0 (2026-10-24 12:00)
+                j = D(str(getattr(self, 'clock', 2461338.0))) + D('0.5'); jn = int(j // 1); fr = j - jn
                 if op == 'Time→ℸ':
                     self.push(('T', fr * 24)); continue
-                a = n + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
+                a = jn + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
                 dd = (4 * c + 3) // 1461; e = c - 1461 * dd // 4; mm = (5 * e + 2) // 153
                 self.push(('D', 100 * b + dd - 4800 + mm // 10, mm + 3 - 12 * (mm // 10), e - (153 * mm + 2) // 5 + 1)); continue
             if op == 'ⅅℸ→J':                                         # Y date, X time -> JD

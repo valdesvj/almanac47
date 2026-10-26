@@ -404,6 +404,85 @@ def keys(L_):
                % (case[0], case[2], vname, PS.body_name(rows[0][0]), len(rows)))
 
 
+def dm42_221(n):
+    """v2.2.1 for the old DM42 (C47 firmware): NAVLITTLE from programs_struct/little/NAVLITTLE_221.txt and MOON47 from
+    programs_struct/next/MOON47.txt (registers + 4): the screens pixel for pixel v2.1.0's NAVLITTLE and the STRUCT
+    MOON47; your stack (X Y Z T) and LASTx back (STOS / RCLS), your registers kept; within the DM42 limits."""
+    import tempfile
+    import c47sim
+    import moon47 as M47
+    import build_release_c47 as R
+    import test_v2 as V
+    print('== v2.2.1 for the old DM42: your stack and LASTx kept (STOS / RCLS)')
+    S_ = sys.modules['c47struct']
+    K = V.K
+    L, I = R.little(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE_221.txt'))
+    ok(not [l for l in L if l.startswith('GTO')], 'NAVLITTLE v2.2.1: %d steps, no GTO, within the DM42 limits' % len(L))
+    back = ['LBL "NAV"' if l == 'LBL "ALMA47"' else '"INIT"' if l == '"NAVINIT"' else l for l in L]
+    ib = ['LBL "INIT"'] + I[1:]
+    old = lines(os.path.join(ROOT, 'build', 'dm42', 'NAVLITTLE.txt'))
+    oi = lines(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'))
+
+    def load(P):
+        t = tempfile.mkdtemp(); files = []
+        for i, pr in enumerate(S_.split(P)):
+            f = os.path.join(t, 'p%d.txt' % i); open(f, 'w', encoding='utf-8').write('\n'.join(pr) + '\n'); files.append(f)
+        return c47sim.load(files)
+
+    def session(P, init, inp, keys):
+        c = load(init + P); c.flags.add(82); c.grfnt = 21
+        c.run('INIT', maxsteps=10 ** 7)
+        for k, v in inp:
+            c.reg[k] = D(v)
+        m = {'%02d' % r: D(8000 + r) + D('0.5') for r in range(100)}
+        for r, v in m.items():
+            c.rset(r, v)
+        c.flags.add(81); c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []
+        c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+        fr = [frozenset((x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400) for f in c.frames]
+        return fr, (all(c.rget(r) == v for r, v in m.items()) and c.s == [D(11), D(12), D(13), D(14)]
+                    and c.lastx == D(99))
+    rnd = random.Random(221)
+    cases = [V.INPUTS, (('DATE', '2031.0315'), ('UTC', '3.30'), ('LAT', '-33.54'), ('LON', '18.25'))]
+    while len(cases) < n:
+        cases.append((('DATE', '%d.%02d%02d' % (rnd.randint(2000, 2049), rnd.randint(1, 12), rnd.randint(1, 28))),
+                      ('UTC', '%d.%02d' % (rnd.randint(0, 23), rnd.randint(0, 59))), ('LAT', '%.2f' % rnd.uniform(-65, 65)),
+                      ('LON', '%.2f' % rnd.uniform(-179, 179))))
+    for inp in cases:
+        keys = [K['up'], K['down'], K['down'], K['+']]
+        a, good = session(back, ib, inp, keys)
+        b, _, _ = V.little_session(old, oi, keys, inp, marks=False)
+        ok(a == b and good, 'NAVLITTLE %s %s %s %s: %d screens pixel for pixel v2.1.0, your stack, LASTx and registers back'
+           % (tuple(v for _, v in inp) + (len(a),)))
+    D_ = R.moon_dm42(os.path.join(ROOT, 'programs_struct', 'next', 'MOON47.txt'), 4)
+    P = S_.plain(D_)
+    ok(all(sum(l == o for l in P) <= 10 for o in S_.OPENERS) and not [l for l in P if l.startswith('GTO')],
+       'MOON47 v2.2.1 for the DM42: %d steps, IF %d DO %d REPEAT %d (10 at most), no GTO'
+       % ((len(D_),) + tuple(sum(l == o for l in P) for o in ('IF', 'DO', 'REPEAT'))))
+    M = B.build_moon()
+
+    def moon(P, j, tz):
+        c = load(P); c.clock = j + (tz or 0) / 24.0
+        if tz is not None:
+            c.reg['TZ'] = D(str(tz))
+        c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []; c.keys = [43, 82]
+        c.run('MOON47', maxsteps=10 ** 8)
+        return [{(x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400} for f in c.frames], c
+    rnd = random.Random(2210)
+    cases = [(M47.julian(2026, 10, 3, 12.0), None), (M47.julian(2027, 1, 22, 3.5), -5.0)]
+    while len(cases) < max(3, n // 4):
+        cases.append((M47.julian(rnd.randint(2000, 2050), rnd.randint(1, 12), rnd.randint(1, 28), rnd.uniform(0, 24)),
+                      rnd.choice([None, -3.5, 2.0, 9.0])))
+    for j, tz in cases:
+        a, _ = moon(M, j, tz)
+        b, c = moon(D_, j, tz)
+        d, m, y, h = M47.from_julian(j)
+        ok(a == b and c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99),
+           'MOON47 %02d-%02d-%04d %05.2f h TZ %-5s: pixel for pixel the STRUCT MOON47, your stack and LASTx back'
+           % (d, m, y, h, tz))
+
+
 def main():
     n = int(sys.argv[1]) if sys.argv[1:] else 16
     L = source()
@@ -411,6 +490,7 @@ def main():
     moon(n)
     little(n)
     moon_dm42(n)
+    dm42_221(n)
     pages(L)
     places(L, n)
     next_version(n)

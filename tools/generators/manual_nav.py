@@ -1,4 +1,4 @@
-# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.2.0, the STRUCT build), the views,
+# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.2.1, the STRUCT build), the views,
 # the labels, MOON47.
 # Run through build_manual.py (exec): uses its S, P, B, styles, tables, DOCS and ROOT.
 import re as _re
@@ -7,6 +7,8 @@ import build_struct_src as _B
 import build_release_c47 as _R
 
 C47DOCS = os.path.join(DOCS, 'c47')                 # the screens of v2.2.0 (tools/generators/c47_struct_shots.py)
+VERSION = '2.2.1'                                   # v2.2.1: the v2.2.0 pages; your stack kept, the keys 1-8 of
+                                                    # ALMANAC / SPLIT (tools/build_release_v221.py)
 
 
 def img(name, frac=0.49, where=None):
@@ -25,16 +27,22 @@ def lines(path):
 
 
 S += [P('Almanac 47', title),
-      P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (_R.VERSION, _R.NAME), sub),
+      P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (VERSION, _R.NAME), sub),
       Spacer(1, 6),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
         'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation).'),
-      P('<b>Version 2.2.0 is for the C47 and the R47 only.</b> It is written with the C47\'s structured programming '
-        'commands — IF … ELSE … ENDIF, DO … WHILE … ENDDO, REPEAT … UNTIL — and has no GTO at all; Free42, Plus42, the '
-        'DM42 and HP-42S firmware do not have these commands. It carries all the speed work done since v2.1.0: the same '
-        'pages, drawn with far fewer steps (section 6). <b>Free42 / Plus42 / DM42 users: keep v2.1.0</b> and its manual '
-        '(Almanac47_Free42_Manual.pdf).'),
+      P('<b>This manual is for the C47 and the R47</b> (and the DM42n with the C47 firmware). ALMA47 is written with the '
+        'C47\'s structured programming commands — IF … ELSE … ENDIF, DO … WHILE … ENDDO, REPEAT … UNTIL — and has no GTO '
+        'at all; Free42, Plus42, the DM42 and HP-42S firmware do not have these commands. It carries all the speed work '
+        'done since v2.1.0: the same pages, drawn with far fewer steps (section 6). <b>Free42 / Plus42 / DM42 with the '
+        'stock firmware:</b> the zip Almanac47_Free42_DM42_v2.2.1.zip (the programs of v2.1.0, now keeping your stack) and '
+        'its manual, Almanac47_Free42_Manual.pdf.'),
+      P('<b>New in v2.2.1:</b> ALMA47 and MOON47 give you back your stack (X … D of the 8 levels) and LASTx when they '
+        'end, and use only part of the numbered registers (ALMA47 R07–R98, MOON47 R07–R65; the others stay yours). On '
+        'ALMANAC and SPLIT, a key 1–8 picks that row of the table and puts the body on your stack: Z its text, Y Zn, X Hc '
+        '(section 4). The stack is saved with <b>LocR 9</b>, <b>STOS R.00</b> and given back with <b>RCLS R.00</b>, a '
+        'trick from the SwissMicros forum (section 4). The pages are those of v2.2.0, pixel for pixel.'),
       P('<b>It supports, and does not replace, the Nautical Almanac.</b> The menu and INFO say so.'),
       P('<b>Author:</b> Victor Valdes (valdes.vj@gmail.com). The programs, the PC version and this manual were written with the help of '
         'AI (Claude, by Anthropic). The results were checked against JPL Horizons and USNO data, and the screens '
@@ -55,7 +63,7 @@ S += [P('Almanac 47', title),
           ['p47u/', 'the same programs as rejig sources (.p47u) with comments, for the PROGRAMS folder of the C47']],
           [32 * mm, 148 * mm]),
       P('Each comes as .p47 (load it as it is) and as .txt (the listing). The old DM42 with the C47 firmware (64 KiB) has '
-        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2.0 '
+        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2.x '
         '(they stay in the repository).', small),
       P('2. First start', h2)] + B([
       'The C47 needs a firmware with <b>ATEXT</b>, <b>GRFNT</b> and the <b>STRUCT</b> commands: 00.109.05.00a0.ALPHA '
@@ -70,8 +78,8 @@ S += [P('Almanac 47', title),
       'with the C47\'s own date functions; the prompt shows which.',
       'What changed inside is in OPTIMIZATIONS.md (in the zip, docs/ in the repository).'])
 S += [P('3. Starting ALMA47', h2),
-      P('XEQ "ALMA47" asks four numbers, once, with INPUT (R/S keeps the value shown). At each prompt the stack is '
-        'clear and Y shows only the format of that input: DATE YYYY.MMDD (DATE DD.MMYYYY or DATE MM.DDYYYY when the '
+      P('XEQ "ALMA47" asks four numbers, once, with INPUT (R/S keeps the value shown). Your stack is saved first; at each '
+        'prompt the stack is clear and Y shows only the format of that input: DATE YYYY.MMDD (DATE DD.MMYYYY or DATE MM.DDYYYY when the '
         'CLK date format is D.MY or M.DY), UT HH.MMSS, LAT DD.MMm  S -, LON DDD.MMm  W -.'),
       prose_tbl([['Input', 'Meaning', 'Example'],
                  ['DATE', 'UT date in the CLK date format: YYYY.MMDD, DD.MMYYYY or MM.DDYYYY', '2026.0926'],
@@ -93,16 +101,24 @@ S += [P('3. Starting ALMA47', h2),
                  ['9', 'SNAP (a screenshot)', 'SNAP (a screenshot)'],
                  ['+', '—', 'back to the menu'],
                  ['▲ / ▼', 'one hour later / earlier (the title shows the new time)', 'the same view one hour later / earlier'],
-                 ['0', 'end of ALMA47: clears the numbered registers (CLREGS), the screen and the stack', '—'],
+                 ['1 – 8', '—', 'ALMANAC and SPLIT: ALMA47 ends with that row on your stack (Z the text, Y Zn, X Hc)'],
+                 ['0', 'end of ALMA47: your stack and LASTx back, R07–R98 cleared, the normal screen', '—'],
                  ['other keys', 'ignored', 'ignored (R/S or EXIT stop the program)']],
                 [26 * mm, 77 * mm, 77 * mm]),
       P('The hours added with the arrows stay for the other views. New date or position: XEQ "ALMA47" again.', small),
-      P('<b>ALMA47 uses the numbered registers and the 8-level stack.</b> It uses R00–R98 while it runs (its values and '
-        'its most used numbers) and the 8-level stack (the text routines need it). Leaving with 0 clears R00–R99 '
-        '(CLREGS) and the stack, puts your stack size back and the standard font (GRFNT 20). <b>Save your registers '
-        'first.</b> Named variables and matrices are not touched (DATE, UTC, LAT, LON and the matrices of NAVINIT stay). '
-        'If you stop ALMA47 with R/S or EXIT, the registers keep its values: that is how the routines of section 7 can be '
-        'called from the keyboard. Up to v2.1.0 NAV saved your registers and gave them back; since v2.2.0 it does not.')]
+      P('<b>A body on your stack (keys 1–8).</b> On ALMANAC or SPLIT, press the number of a row (1 is the first body of '
+        'the table, the Sun): ALMA47 ends and pushes three values on your stack — Z a text such as '
+        '"SUN Zn 216.7 Hc 54 11.6", Y the azimuth Zn and X the altitude Hc (decimal degrees) — ready for a sight '
+        'reduction. Your own X, Y … are above them. A row that is not there does nothing.'),
+      P('<b>Your stack and registers.</b> ALMA47 saves your stack (the 8 levels, X … D) and LASTx when it starts and gives '
+        'them back when it ends, with 0 or with a key 1–8. It does it in one step each way, the trick shared on the '
+        'SwissMicros forum: <b>LocR 9</b> (nine local registers, R.00–R.08), <b>STOS R.00</b> (the stack into R.00–R.07), '
+        'LASTx into R.08; at the end RCL R.08, STO L, <b>RCLS R.00</b> — and the local registers go away with the '
+        'program\'s return. It uses the numbered registers <b>R07–R98</b> while it runs and clears only those at the end '
+        '(R-CLR 7.92): <b>R00–R06 and R99 stay yours.</b> It also puts your stack size back and the standard font '
+        '(GRFNT 20). Named variables and matrices are not touched (DATE, UTC, LAT, LON and the matrices of NAVINIT stay). '
+        'If you stop ALMA47 with R/S or EXIT, the registers keep its values (that is how the routines of section 7 can be '
+        'called from the keyboard) and the stack is ALMA47\'s.')]
 
 S += [PageBreak(), P('5. The views', h2),
       P('All views: 23 Sep 2026 23:30 UT, 10° N 075° 30′ W (the menu: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E). '
@@ -218,10 +234,11 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'secant method; tests/test_moon47.py checks it.',
       '<b>v2.2.0:</b> one program with MOON47 its only global label (the text and symbol routines are numbered labels '
       'inside it), written with the STRUCT commands, no GTO: 4.5 KB (4.8 KB before) and about 28 % less time spent '
-      'looking for labels and returns. It uses the registers R03–R53 (save yours first), leaves your stack size as it '
-      'was and a clear stack; its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).',
-      'Free42 (build/free42/MOON47.raw), the old DM42, the NumWorks and the HP Prime have their own MOON47 with the same '
-      'page (v2.1.0): see their manuals.'])
+      'looking for labels and returns. Its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).',
+      '<b>v2.2.1:</b> MOON47 gives you back your stack (X … D) and LASTx when it ends (LocR 9, STOS R.00 / RCLS R.00, as '
+      'ALMA47) and your stack size; it uses the registers R07–R65 and clears only those: R00–R06 and R66–R99 stay yours.',
+      'Free42 (MOON47.raw, v2.2.1: your stack kept), the old DM42, the NumWorks and the HP Prime have their own MOON47 '
+      'with the same page: see their manuals.'])
 
 # ---- NAVLITTLE: the old DM42 with the C47 firmware
 S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
@@ -230,7 +247,7 @@ S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
         '(the program ALMA47) with its own reduced <b>NAVINIT_LITTLE</b> (only the Sun series, valid 2000–2050, the '
         'nutation and the stars: 8.7 KB instead of 28.5 or 57.8 KB) and a <b>MOON47</b> of its own. No menu: the '
         'ALMANAC page straight after the inputs (the Moon and planet rows taken by the next stars), ▲ / ▼ one hour later / '
-        'earlier, 9 SNAP, + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.2.0.zip, with README_DM42.txt.'),
+        'earlier, 9 SNAP, + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.2.1.zip, with README_DM42.txt.'),
       prose_tbl([['Firmware', 'ATEXT', 'GRFNT', 'STRUCT'],
                  ['00.109.05.00a0.ALPHA or later: C47, R47, DM42n', 'in', 'in', 'in (255 a series per program)'],
                  ['old DM42, packages 1, 2, 3', 'in', 'in', 'in, at most 10 IF, 10 DO and 10 REPEAT a program'],
@@ -250,4 +267,7 @@ S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
       'and returns than v2.1.0 (simulator), the same page pixel for pixel. It saves your registers R00–R35 while it runs '
       'and gives them back at the end. Memory: NAVLITTLE 7.3 KB, NAVINIT_LITTLE 8.7 KB (delete it after use), MOON47 '
       '4.5 KB; NAVLITTLE with its matrices about 31 KB.',
+      '<b>v2.2.1:</b> NAVLITTLE and its MOON47 give you back your stack (X … D) and LASTx when they end: NAVLITTLE with '
+      'LocR 45 (R.00–R.35 your registers, R.36–R.43 the stack with STOS R.36, R.44 LASTx), MOON47 with LocR 9, as on the '
+      'C47. The pages are those of v2.2.0. The keys 1–8 that pick a body are in the C47 / R47 ALMA47 only.',
       'Checked in the simulators; not yet on an old DM42: please report the free memory and any problem.'])

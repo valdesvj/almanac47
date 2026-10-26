@@ -1,6 +1,6 @@
 @ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  Victor Valdes
-@ Version: next (after 2.2.0, not released)
+@ Version: 2.2.1
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: every view pixel for pixel v2.2.0, the stack (4 levels) and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
@@ -8,7 +8,8 @@
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
 @
 @ As ALMA47 v2.2.0, and:
-@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'ALMA47' when it ends;
+@   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'ALMA47' when it ends: saved with
+@     LocR 9 / STOS R.00 (LASTx in R.08) and given back with RCLS R.00, the trick from the SwissMicros forum;
 @   - it uses the registers R07-R98 and clears only those when it ends (R-CLR 7.92): R00-R06 and R99 stay yours;
 @   - on ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun): ALMA47 ends with Z its text,
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
@@ -17,21 +18,7 @@
 @
 LBL "ALMA47"                            ; ALMA47 - graphic menu (KEY?): asks DATE UTC LAT LON, keys 1-6 a view, 9 SNAP, arrows one hour, 0 ends; on ALMANAC / SPLIT a key 1-8 ends with that body (Z text, Y Zn, X Hc); your stack, LASTx and R00-R06 R99 kept (R-CLR 7.92); the only named program
 LocR 09
-STO R.00
-R↓
-STO R.01
-R↓
-STO R.02
-R↓
-STO R.03
-R↓
-STO R.04
-R↓
-STO R.05
-R↓
-STO R.06
-R↓
-STO R.07
+STOS R.00
 RCL L
 STO R.08
 1
@@ -561,14 +548,7 @@ WHILE 01
               XEQ 13
               RCL R.08
               STO L
-              RCL R.07
-              RCL R.06
-              RCL R.05
-              RCL R.04
-              RCL R.03
-              RCL R.02
-              RCL R.01
-              RCL R.00
+              RCLS R.00
               RCL "KT"
               RCL "KZ"
               RCL "KH"
@@ -608,14 +588,7 @@ ENDDO 01
 XEQ 13
 RCL R.08
 STO L
-RCL R.07
-RCL R.06
-RCL R.05
-RCL R.04
-RCL R.03
-RCL R.02
-RCL R.01
-RCL R.00
+RCLS R.00
 RTN
 LBL 01
 XEQ "N50"

@@ -71,11 +71,17 @@ def moon47(n, where, start, keys, extra):
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
     S = [P('Almanac 47 for Free42', title),
-         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.1.0 (Supercharger)', sub), Spacer(1, 6),
+         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.2.1 (the programs of 2.1.0 Supercharger, your stack kept)', sub), Spacer(1, 6),
          P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 5 views and INFO — '
            'converted to Free42 3.3 with the DM42 graphics extension (the whole 400 × 240 screen). The menu, the screens '
            'and the values are the same as on the C47: in the Free42 core (SwissMicros source, release 3.3.10) each '
            'screen was compared pixel by pixel with the C47 version.'),
+         P('<b>New in v2.2.1:</b> NAVFULL, NAVLITTLE and MOON47 give you back your stack when they end: X, Y, Z, T and '
+           'LASTX are as they were before XEQ "NAV" (or XEQ "MOON47"). Free42 has no STOS and no local registers, so the '
+           'four levels and LASTX go into the variables S7X, S7Y, S7Z, S7T, S7L at the start and come back at the end '
+           '(STO ST L, then the four RCL); the variables are deleted. With the 4-level stack of the HP-42S (Free42\'s '
+           'dynamic stack keeps only those four). The screens and the keys are those of v2.1.0. On the C47 / R47 the same '
+           'idea is the forum\'s STOS / RCLS trick.'),
          P(WARN), P(LIC, small),
          P('1. What you need', h2)] + B([
         'A <b>DM42n</b> (recommended) or DM42 with the SwissMicros stock firmware (DM42 3.26 = Free42 3.3.10 or later). '
@@ -103,7 +109,7 @@ def free42():
         'matrices stay.',
         'Load NAVFULL.raw and <b>XEQ "NAV"</b>.'])
     S += [P('4. Starting NAV', h2),
-          P('NAV asks four numbers with INPUT (R/S keeps the value shown). At each prompt the stack is clear and Y '
+          P('NAV asks four numbers with INPUT (R/S keeps the value shown). Your stack is saved first; at each prompt the stack is clear and Y '
             'shows the format of that input (DATE Y.MMDD, UT H.MMSS, LAT D.MMm  S -, LON D.MMm  W -):'),
           prose_tbl([['Input', 'Meaning', 'Example'],
                      ['DATE', 'UT date, YYYY.MMDD', '2026.0926'],
@@ -121,7 +127,7 @@ def free42():
                      ['9', 'SNAP: here PRLCD, the screen to the printer (a screenshot)', 'PRLCD'],
                      ['+', '—', 'back to the menu'],
                      ['▲ / ▼', 'one hour later / earlier', 'the same view one hour later / earlier'],
-                     ['0', 'end of NAV: your registers and SIZE back, screen and stack cleared', '—'],
+                     ['0', 'end of NAV: your registers, SIZE, X Y Z T and LASTX back, the normal screen', '—'],
                      ['R/S, EXIT', 'stop the program', 'stop the program']],
                     [26 * mm, 77 * mm, 77 * mm]),
           PageBreak(), P('6. The views', h2),
@@ -176,7 +182,7 @@ def free42():
         'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
         'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
-        'earlier (the screen stays while it computes), + ends (GrMod 0, screen and stack cleared).',
+        'earlier (the screen stays while it computes), + ends (GrMod 0; your registers, X Y Z T and LASTX back).',
         'Programs: NAVLITTLE 8.7 KB, NAVINIT_LITTLE 8 KB (.raw files), matrices 667 numbers.',
         'Tested in the Free42 core against the same screen in the C47 simulator, pixel by pixel '
         '(tests/test_f42_little.py); not yet on '

@@ -141,13 +141,14 @@ def p47(name):
 DM42_MAX = 10                     # the DM42 build of the firmware: partner numbers 1-10 a series, 10 open at once
 
 
-def little():
+def little(src=None):
     """NAVLITTLE in STRUCT from its source programs_struct/little/NAVLITTLE.txt (made once from v2.1.0's
     build/dm42/NAVLITTLE.txt by tools/build_little_struct.py): numbered, every program VALID and within the DM42 limits,
-    no GTO. INIT of build/dm42/NAVINIT_LITTLE.txt named NAVINIT. -> (ALMA47 lines, NAVINIT lines)"""
+    no GTO. INIT of build/dm42/NAVINIT_LITTLE.txt named NAVINIT. -> (ALMA47 lines, NAVINIT lines)
+    src: another source (v2.2.1: programs_struct/little/NAVLITTLE_221.txt, the stack kept)."""
     import c47struct as C
     I = lines(os.path.join(ROOT, 'build', 'dm42', 'NAVINIT_LITTLE.txt'))
-    S = C.number(C.plain(lines(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE.txt'))))
+    S = C.number(C.plain(lines(src or os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE.txt'))))
     assert S[0] == 'LBL "%s"' % MAIN and S.count('"NAVINIT"') == 1
     faults = []
     for P in C.split(S):
@@ -170,7 +171,7 @@ def little():
     return S, ['LBL "NAVINIT"'] + I[1:]
 
 
-def moon_dm42():
+def moon_dm42(src=None, shift=0):
     """MOON47 for the old DM42 (the DM42 build of the firmware: at most 10 IF / DO / REPEAT a program): the STRUCT
     MOON47 of programs_struct/MOON47.txt with 7 of its 17 IF written without a structure, the same steps run:
       - an IF without ELSE and without RTN in it (4 of them): T IF body ENDIF -> T XEQ nn, the body a routine LBL nn
@@ -178,9 +179,12 @@ def moon_dm42():
       - LBL 37 / 38 (UT or LT, AS SEEN FROM THE NORTH or SOUTH): the second text first, T XEQ nn puts the first in its
         place (X<>Y DROP text X<>Y), then DROP
       - LBL 14 (a leading 0): T XEQ nn (DROP DROP "0" XEQ 25, then two values the DROP DROP after it takes away)
-    -> the numbered listing, checked as VALID and against the DM42 limits."""
+    -> the numbered listing, checked as VALID and against the DM42 limits.
+    src, shift: another MOON47 source and how far its registers are moved (v2.2.1: programs_struct/next/MOON47.txt,
+    + 4: R03 -> R07, R28 -> R32, R48 -> R52)."""
     import c47struct as C
-    P = C.plain(lines(os.path.join(ROOT, 'programs_struct', 'MOON47.txt')))
+    P = C.plain(lines(src or os.path.join(ROOT, 'programs_struct', 'MOON47.txt')))
+    r = lambda n: '%02d' % (n + shift)
     free = iter(['%02d' % n for n in range(68, 90) if 'LBL %02d' % n not in P])
     extra = []
 
@@ -205,21 +209,21 @@ def moon_dm42():
                 extra += ['LBL ' + n] + body + ['RTN']
                 P = P[:i] + ['XEQ ' + n] + P[j + 1:]
         i += 1
-    for lab, reg, first, second in (('37', '03', 'UT', 'LT'),
-                                    ('38', '28', 'AS SEEN FROM THE NORTH', 'AS SEEN FROM THE SOUTH')):
+    for lab, reg, first, second in (('37', r(3), 'UT', 'LT'),
+                                    ('38', r(28), 'AS SEEN FROM THE NORTH', 'AS SEEN FROM THE SOUTH')):
         old = ['LBL ' + lab, 'RCL ' + reg, 'X=0?', 'IF', 'DROP', '"%s"' % first, 'RTN', 'ENDIF', 'DROP', '"%s"' % second, 'RTN']
         k = P.index('LBL ' + lab)
         assert P[k:k + len(old)] == old, lab
         n = next(free)
         P[k:k + len(old)] = ['LBL ' + lab, '"%s"' % second, 'RCL ' + reg, 'X=0?', 'XEQ ' + n, 'DROP', 'RTN']
         extra += ['LBL ' + n, 'X<>Y', 'DROP', '"%s"' % first, 'X<>Y', 'RTN']
-    old = ['LBL 14', 'STO 48', 'DROP', 'RCL 48', '10', 'X>Y?', 'IF', 'DROP', 'DROP', '"0"', 'XEQ 25', 'ELSE', 'DROP', 'DROP',
-           'ENDIF']
+    old = ['LBL 14', 'STO ' + r(48), 'DROP', 'RCL ' + r(48), '10', 'X>Y?', 'IF', 'DROP', 'DROP', '"0"', 'XEQ 25', 'ELSE',
+           'DROP', 'DROP', 'ENDIF']
     k = P.index('LBL 14')
     assert P[k:k + len(old)] == old
     n = next(free)
-    P[k:k + len(old)] = ['LBL 14', 'STO 48', 'DROP', 'RCL 48', '10', 'X>Y?', 'XEQ ' + n, 'DROP', 'DROP']
-    extra += ['LBL ' + n, 'DROP', 'DROP', '"0"', 'XEQ 25', 'RCL 48', 'RCL 48', 'RTN']
+    P[k:k + len(old)] = ['LBL 14', 'STO ' + r(48), 'DROP', 'RCL ' + r(48), '10', 'X>Y?', 'XEQ ' + n, 'DROP', 'DROP']
+    extra += ['LBL ' + n, 'DROP', 'DROP', '"0"', 'XEQ 25', 'RCL ' + r(48), 'RCL ' + r(48), 'RTN']
     assert P[-1] == 'END'
     M = C.number(P[:-1] + extra + ['END'])
     Q = C.plain(M)
