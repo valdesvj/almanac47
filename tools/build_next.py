@@ -43,6 +43,8 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks DATE, UTC, LAT, LON as v2.2.0
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
 @
+@@NARRATIVE@@
+@ ---- Technical notes ----
 @ As ALMA47 v2.2.0, and:
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'ALMA47' when it ends: saved with
 @     LocR 9 / STOS R.00 (LASTx in R.08) and given back with RCLS R.00, the trick from the SwissMicros forum;
@@ -63,6 +65,8 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ Input:   none: the date and time from the clock (UT; for a clock on local time UT+4: 4 STO 'TZ')
 @ Output:  the page as v2.2.0 (clock 03-10-2026 12:00 UT: LAST QUARTER, 51 % lit, age 22.4 days, HP 59.2', SD 16.1')
 @
+@@NARRATIVE@@
+@ ---- Technical notes ----
 @ As MOON47 v2.2.0, and:
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
 @     STOS R.00 / RCLS R.00, from the SwissMicros forum);
@@ -101,17 +105,40 @@ def source(L):
     return out
 
 
+def narrative(head, name):
+    """The '@' header with tools/forum/NAME.txt (what it does, how to use it, what it changes, the labels) in it."""
+    lines = open(os.path.join(ROOT, 'tools', 'forum', name + '.txt'), encoding='utf-8').read().rstrip('\n').split('\n')
+    text = '\n'.join('@ ' + l if l.strip() else '@' for l in lines) + '\n@'
+    return head.replace('@@NARRATIVE@@', text)
+
+
+def full(L):
+    """ALMA47's steps with the comments of build_struct_src.commented (every program, routine and table; the
+    next version's programs, PICK among them), after ';' as build_forum's; the main label's line as source()'s."""
+    old = B.ORDER
+    B.ORDER = B.NEXT_ORDER
+    try:
+        com = B.commented(['LBL "NAV"'] + L[1:])
+    finally:
+        B.ORDER = old
+    out = F.commented(com[4:])
+    while not out[0].strip():
+        out.pop(0)
+    out[0] = source(L)[0]
+    assert [l.split(';')[0].strip() for l in out if l.strip()] == L
+    return out
+
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     L = listing()
     open(os.path.join(OUT, 'ALMA47.txt'), 'w', encoding='utf-8').write('\n'.join(L) + '\n')
-    P = source(L)
-    assert [l.split(';')[0].strip() for l in P] == L
-    open(os.path.join(OUT, 'ALMA47.p47u'), 'w', encoding='utf-8').write(HEAD + '\n'.join(P) + '\n')
+    P = full(L)
+    open(os.path.join(OUT, 'ALMA47.p47u'), 'w', encoding='utf-8').write(narrative(HEAD, 'ALMA47') + '\n'.join(P) + '\n')
     M, MP = moon()
     open(os.path.join(OUT, 'MOON47.txt'), 'w', encoding='utf-8').write('\n'.join(M) + '\n')
-    assert [l.split(';')[0].strip() for l in MP] == M
-    open(os.path.join(OUT, 'MOON47.p47u'), 'w', encoding='utf-8').write(MOON_HEAD + '\n'.join(MP) + '\n')
+    assert [l.split(';')[0].strip() for l in MP if l.strip()] == M
+    open(os.path.join(OUT, 'MOON47.p47u'), 'w', encoding='utf-8').write(narrative(MOON_HEAD, 'MOON47') + '\n'.join(MP) + '\n')
     for name, n in (('ALMA47', len(L)), ('MOON47', len(M))):
         size = None
         if shutil.which('rejig'):

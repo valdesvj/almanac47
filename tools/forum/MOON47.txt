@@ -1,0 +1,23 @@
+---- What it is ----
+MOON47 shows the Moon's phase for now, from the calculator's clock: the Moon drawn as it looks, the part lit (%),
+its age in days, its horizontal parallax HP and semi-diameter SD (for sextant work), and the dates and times (UT)
+of the next new Moon, first quarter, full Moon and last quarter with their symbols. It uses 20 terms of Meeus'
+Astronomical Algorithms ch. 47: the phases within about 4 minutes, HP within 0.03'.
+
+---- How to use it ----
+Load MOON47 and press XEQ MOON47. It asks nothing: it reads the date and time from the clock as UT. If your clock
+is on local time, tell it the zone once: 4 STO "TZ" for a clock on UT+4 (TZ stays for the next runs).
+  +/-        turns the picture to the view from the southern hemisphere
+  any other key ends
+Example: clock 03-10-2026 12:00 UT: LAST QUARTER, 51 % lit, age 22.4 days, HP 59.2', SD 16.1'.
+
+---- What it changes on your calculator ----
+Your stack (all 8 levels) and LASTx are given back at the end (LocR 9 / STOS, the trick from the SwissMicros
+forum). It uses the registers R07-R65 and clears only those: R00-R06 and R66-R99 stay yours. Its work matrices
+M7T, M7C, M7A, M7V, M7W stay (M7T and M7C set to 0 at the end); the variable TZ stays if you made it.
+It needs no other program and no NAVINIT.
+
+---- Programs and labels ----
+One program, MOON47, with one global label (MOON47): the text printers and the phase symbols are local labels in
+it. Written with the STRUCT commands (IF / ELSE / ENDIF, DO / WHILE / ENDDO, REPEAT / UNTIL, no GTO) and ATEXT;
+it needs a C47 / R47 firmware with them (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).

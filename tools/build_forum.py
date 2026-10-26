@@ -15,7 +15,9 @@ The release's res/PROGRAMS/BUILD.md: one .p47u per program, named after its main
 
 The comments are those of build/dev/struct_src/NAVFULL_COMMENTED.txt and MOON47_COMMENTED.txt (tools/struct_comments.py),
 at the end of a step after ';': rejig drops them. A '#' line (or one that starts with ';') would become a REM step on the
-calculator. The almanac tables TBL are not in v2.2.0.
+calculator. The almanac tables TBL are not in v2.2.0. The NAVINIT files have a plain-English narrative after the
+metadata (tools/forum/NAVINIT.txt, NAVINIT_FULL.txt). The v2.2.1 release's ALMA47.p47u and MOON47.p47u are written by
+tools/build_next.py (build/dev/next/, copied to build/v2.2.1/c47/p47u/); build/forum/C64FX.p47u is written by hand.
 
   python3 tools/build_forum.py      -> build/forum/ALMA47.p47u, NAVINIT.p47u, NAVINIT_FULL.p47u, MOON47.p47u
 """
@@ -82,6 +84,8 @@ INIT_HEAD = """@ Index:   Matrices for ALMA47, valid 2026-2030
 @ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the cache ALMC)
 @ Output:  and the message MATRICES READY: FAST 2026-2030
 @
+@@NARRATIVE@@
+@ ---- Technical notes ----
 @ Run once with ALMA47 loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
 @ Run it again only for a new period.
 @
@@ -100,6 +104,8 @@ INIT_FULL_HEAD = """@ Index:   Matrices for ALMA47, valid 2000-2050 (FULL)
 @ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the cache ALMC)
 @ Output:  and the message MATRICES READY: FULL 2000-2050
 @
+@@NARRATIVE@@
+@ ---- Technical notes ----
 @ Run once with ALMA47 loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
 @
 @ Memory: the FULL set, VSOP87 (the Earth and the planets) and Meeus (the Moon) series valid 2000-2050: about
@@ -219,6 +225,8 @@ def main():
         p = os.path.join(OUT, fname)
         if fname.startswith('NAVINIT'):
             head = head + ''.join('@ %s\n' % m for m in MATRICES) + '@\n'
+            lines = open(os.path.join(HERE, 'forum', fname[:-5] + '.txt'), encoding='utf-8').read().rstrip('\n').split('\n')
+            head = head.replace('@@NARRATIVE@@', '\n'.join('@ ' + l if l.strip() else '@' for l in lines) + '\n@')
         open(p, 'w', encoding='utf-8').write(head % f + '\n'.join(body) + '\n')
         print('  %s: %d steps, %d with a comment' % (p[len(ROOT) + 1:], sum(1 for l in body if l.strip()),
                                                     sum(1 for l in body if ';' in l)))

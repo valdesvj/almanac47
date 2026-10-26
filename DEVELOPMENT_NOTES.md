@@ -1060,3 +1060,20 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
   (BATT# 2.08 V); STBY ran 498 passes of PAUSE 50 without a standby on the C47. A running PAUSE / KEY? loop does
   not go to standby. LOWBAT only shows the icon; SBbatV shows the gauge (2.054-3.045 V).
 - To do: rejig (the .p47, --validate=r47), the firmware test (tests/test_fw_c47.py), the calculators.
+
+## Oct 26, 2026 - the forum files for new users (branch claude/almanac47-forum)
+
+- The forum (the PROGRAMS folder of the C47 release) asked contributors for instructions in plain words inside the
+  .p47u, in '@' lines (not '#': rejig makes a '#' line a REM step), and for local labels. Each file now has, after
+  the '@' metadata, tools/forum/NAME.txt (What it is, How to use it, What it changes on your calculator, Programs and
+  labels), then the technical notes: ALMA47 and MOON47 v2.2.1 (tools/build_next.py, copied to build/v2.2.1/c47/p47u/
+  by tools/build_release_v221.py), NAVINIT and NAVINIT_FULL (tools/build_forum.py).
+- C64FX.p47u (by hand) 1.1: its 51 '#' lines are '@' lines now (51 REM steps fewer on the calculator; the 195
+  steps those of tests/C64FX.txt without its REMs), the header in the four parts.
+- v2.2.1's ALMA47.p47u had a comment on its global labels only; now the comments of build_struct_src.commented with
+  NEXT_ORDER (the PICK program of 2.2.1 among them), as v2.2.0's: 386 lines.
+- ALMA47's 57 global labels (N01 ... N98) stay: about 370 labels in all, a C47 program takes 100 local ones (said in
+  the narrative).
+- tools/build_p47.py (Victor, with rejig): build/p47/*.p47 from the five forum files, each checked against the plain
+  listing (C64FX: none). tests/test_forum.py.
+

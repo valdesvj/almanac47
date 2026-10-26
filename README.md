@@ -11,6 +11,12 @@ version and the base for a phone app (**Almanac 47**).
   NAVLITTLE (`free42/`, .raw included). The same pages pixel for pixel. Notes: `RELEASE_NOTES_v2.2.1.md`; build:
   `python3 tools/build_release_v221.py` (rejig for the .p47 and the zips); tests: `tests/test_struct_src.py`,
   `tests/test_v221.py`, `tests/test_v221_f42.py` (needs `tools/f42`).
+- **The forum files (the C47's PROGRAMS folder):** `build/v2.2.1/c47/p47u/ALMA47.p47u`, `MOON47.p47u`,
+  `build/forum/NAVINIT.p47u`, `NAVINIT_FULL.p47u` and `C64FX.p47u` (the buzzer demo): each starts with how to use it
+  in plain words (What it is, How to use it, What it changes on your calculator, Programs and labels; the texts are
+  `tools/forum/*.txt`), the comments are `@` lines or after `;`, so rejig makes no REM step of them.
+  `python3 tools/build_p47.py` (on your computer, with rejig) writes `build/p47/*.p47` from them and checks each
+  against the plain listing; `python3 tests/test_forum.py`.
 - **v2.2.0 "Struct on Attack" (C47 / R47 only):** `build/c47/` - ALMA47, NAVINIT_FAST / _FULL, MOON47,
   written with the C47 STRUCT commands (no GTO), much faster than v2.1.0; `build/c47/QUICKSTART.txt`,
   `build/c47/ALMA47_LABELS.txt`, the commented rejig sources `build/forum/*.p47u`, the source `programs_struct/`.
