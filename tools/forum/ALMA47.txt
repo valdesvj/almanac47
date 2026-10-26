@@ -1,0 +1,41 @@
+---- What it is ----
+Almanac 47 is a celestial navigation almanac for the C47 / R47. For a date, a time (UT) and your dead-reckoning
+position it gives the Sun, the Moon, the planets and 58 navigation stars: GHA, declination, the computed altitude
+Hc and the azimuth Zn, ready for a sight reduction; sunrise, sunset and twilight, meridian passage, the Moon's
+phase, and charts of the sky: the horizon, the whole sky, the Sun and Moon moving over twelve hours.
+It does not replace the Nautical Almanac: cross-check before you navigate with it.
+
+---- How to use it ----
+You need two files: ALMA47 (the programs that stay on the calculator) and NAVINIT (builds the data once).
+  1. Load ALMA47 and NAVINIT (NAVINIT.p47u: valid 2026-2030, or NAVINIT_FULL.p47u: 2000-2050, more memory).
+  2. XEQ NAVINIT once. It takes a while and ends with MATRICES READY. Then delete NAVINIT (GTO NAVINIT, DELP):
+     the data stays. Do not use CLPALL, it deletes ALMA47 too.
+  3. XEQ ALMA47. It asks four values (R/S keeps the value shown):
+       DATE  as the calculator's date format, e.g. 2026.0927        UTC  HH.MMSS, e.g. 18.30
+       LAT   DD.MM, south negative, e.g. 25.12 = 25 12' N           LON  DDD.MM, west negative
+  4. The menu: press a number (no R/S).
+       1 ALMANAC  the table of the bodies: GHA, Dec, Hc, Zn; twilight, rise / set, meridian passage, the Moon
+       2 SPLIT    a horizon chart above, the bodies below
+       3 SKY      the horizon chart, the name of each body in turn
+       4 ANIM     the Sun and the Moon moving over 12 hours
+       5 ALLSKY   the whole sky, above and below the horizon
+       6 INFO     about the program;   9 SNAP a picture of the screen;   0 the end
+     In a view: + back to the menu, the up / down arrows the same view one hour later / earlier.
+     On ALMANAC and SPLIT a key 1-8 picks that row: ALMA47 ends with the body on your stack:
+     Z its text (SUN Zn 216.7 Hc 54 11.6), Y its Zn, X its Hc in decimal degrees.
+  An X in the top right corner means the date is outside the data's period. A body below the horizon has its
+  Hc shown white on black. The same date, time and place again show the views at once (the sky is kept).
+
+---- What it changes on your calculator ----
+Your stack (all 8 levels) and LASTx are given back when it ends (saved with LocR 9 / STOS, the trick from the
+SwissMicros forum). It uses the registers R07-R98 and clears only those: R00-R06 and R99 stay yours. It keeps its
+named matrices (the data from NAVINIT and the cache ALMC) and the variables DATE, UTC, LAT, LON between runs, and
+uses some named work variables while it runs. Memory: ALMA47 about 27 KB; the data about 55 KB (FAST) or 95 KB (FULL).
+
+---- Programs and labels ----
+ALMA47 is one file of 27 programs: the menu ALMA47 and 26 routines named N01 ... N98. Inside each program every
+routine is a local label; the N names are global only because a C47 program can hold at most 100 local labels and
+Almanac 47 has about 370 (the N-numbers are listed in ALMA47_LABELS.txt of the release: you can call the Sun,
+Moon, planet and sight-reduction routines yourself after leaving with EXIT). Written with the STRUCT commands
+(IF / ELSE / ENDIF, DO / WHILE / ENDDO, REPEAT / UNTIL, no GTO), ATEXT, GRFNT, AGRAPH, PIXEL and the matrix
+functions; it needs a C47 / R47 firmware with them (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).

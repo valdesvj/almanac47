@@ -7,6 +7,26 @@
 @ Output:  the matrices ALMA47 reads (Sun, Moon, planets, nutation, the star catalogue ST, the cache ALMC)
 @ Output:  and the message MATRICES READY: FAST 2026-2030
 @
+@ ---- What it is ----
+@ NAVINIT builds the data that ALMA47 (Almanac 47) needs: the series of the Sun, the Moon, the planets, the
+@ nutation and the catalogue of 58 stars, as named matrices. This file is the FAST set: series fitted to the years
+@ 2026-2030, smaller and quicker. NAVINIT_FULL.p47u builds the FULL set instead (2000-2050, about twice the memory)
+@ under the same program name: load one of the two.
+@
+@ ---- How to use it ----
+@ Load it with ALMA47 and press XEQ NAVINIT once. It takes a while and ends with MATRICES READY: FAST 2026-2030.
+@ Then delete it (GTO NAVINIT, DELP): the matrices stay and ALMA47 uses them. Do not use CLPALL (it deletes ALMA47
+@ too). Run it again only for another period (or to change from FAST to FULL).
+@
+@ ---- What it changes on your calculator ----
+@ It creates the named matrices listed below and the cache ALMC, which ALMA47 reads and keeps; they take about 55 KB
+@ (FAST) or 95 KB (FULL), and a few small variables (KQA2, KQA3, KR, VAL). It clears the stack at the end
+@ (save it first if you need it); the numbered registers are not touched.
+@
+@ ---- Programs and labels ----
+@ One program, NAVINIT, with one global label (NAVINIT); each matrix is built by a local routine (LBL 01-99).
+@
+@ ---- Technical notes ----
 @ Run once with ALMA47 loaded (XEQ 'NAVINIT'), then delete it (GTO 'NAVINIT', DELP): the matrices stay.
 @ Run it again only for a new period.
 @
