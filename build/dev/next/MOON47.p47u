@@ -70,7 +70,7 @@ LBL 02                  ; 02 a run of columns of one row (AGRAPH, at most 60 a s
 STO 51
 R↓
 STO 50
-REPEAT 01
+REPEAT 01               ; runs of at most 60 columns (one AGRAPH word) until the row's run is drawn
   RCL 51
   RCL 50
   -
@@ -122,7 +122,7 @@ X≠0?
 XEQ 34
 -62
 STO 44
-REPEAT 02
+REPEAT 02               ; the disc row by row (R48 from -62 to 62): the Moon's edge (radius 62.3), then the lit part out to the terminator from the phase
   62.3
   X↑2
   RCL 44
@@ -331,7 +331,7 @@ RTN
 LBL 16                  ; 16 the eight phase symbols in a row, today's one inverted (called 1 time)
 0
 STO 09
-REPEAT 03
+REPEAT 03               ; the eight phase symbols (R13 = 0-7), 29 columns apart; today's (R33) inverted (35)
   26
   RCL 09
   29
@@ -466,7 +466,7 @@ RTN
 LBL 20                  ; 20 the next four phases: symbol, date and time UT (called 1 time)
 0
 STO 09
-REPEAT 04
+REPEAT 04               ; the next four phases (R13 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, month and time UT written
   RCL 09
   58
   +
@@ -610,7 +610,7 @@ CHS
 STO 55
 3
 STO 13
-DO 01
+DO 01                   ; the secant method: the elongation's error at the time guessed, a new time from the last two; R17 rounds or until it no longer changes
   RCL 31
   XEQ 33
   RCL 30
@@ -839,7 +839,7 @@ IP
 STO 42
 0
 STO 09
-REPEAT 05
+REPEAT 05               ; the four phases after now in turn (R13 = 0-3): its kind (new, first quarter, full, last) and its time (23), kept for the page
   RCL 42
   RCL 09
   +
@@ -905,10 +905,10 @@ XEQ 24
 GRFNT
 DROP
 XEQ 31
-REPEAT 06
+REPEAT 06               ; the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, any other key ends
   CLLCD
   XEQ 18
-  DO 02
+  DO 02                 ; the key wait: PAUSE 50 shows the page, KEY? 43 reads the key
     PAUSE 50
     KEY? 43
   WHILE 02
@@ -1236,7 +1236,7 @@ RCL 09
 18
 STO 51
 R↓
-DO 03
+DO 03                   ; the symbol inverted: R55 columns in XOR
   AGRAPH 50
   DSE 51
 WHILE 03
@@ -1300,7 +1300,7 @@ IF 17
   STO 36
   RCL 35
   RCL 34
-  DO 04
+  DO 04                 ; the line: R42 columns of AGRAPH 36
     AGRAPH 36
     DSE 38
   WHILE 04
@@ -1322,7 +1322,7 @@ STO 34
 R↓
 STO 35
 WSIZE 16
-DO 05
+DO 05                   ; the string character by character: each code runs its glyph (XEQ IND 48-55) until the string is empty
   αLENG 37
   X≠0?
 WHILE 05
@@ -1435,28 +1435,28 @@ RCL 41
 XEQ 22
 STO 48
 RTN
-LBL 60                  ; XEQ IND table: the eight phase names
+LBL 60                  ; XEQ IND table: the eight phase names - phase 0: new Moon
 "NEW MOON"
 RTN
-LBL 61
+LBL 61                  ; phase 1: waxing crescent
 "WAXING CRESCENT"
 RTN
-LBL 62
+LBL 62                  ; phase 2: first quarter
 "FIRST QUARTER"
 RTN
-LBL 63
+LBL 63                  ; phase 3: waxing gibbous
 "WAXING GIBBOUS"
 RTN
-LBL 64
+LBL 64                  ; phase 4: full Moon
 "FULL MOON"
 RTN
-LBL 65
+LBL 65                  ; phase 5: waning gibbous
 "WANING GIBBOUS"
 RTN
-LBL 66
+LBL 66                  ; phase 6: last quarter
 "LAST QUARTER"
 RTN
-LBL 67
+LBL 67                  ; phase 7: waning crescent
 "WANING CRESCENT"
 RTN
 LBL 90                  ; XEQ IND table: the characters of the phase symbols - phase 0
