@@ -205,10 +205,13 @@ def entry(program, label):
 
 
 MOON = {
-    '01': 'one row of the disc between two columns (AGRAPH runs, 02)',
-    '02': 'a run of columns of one row (AGRAPH, at most 60 a step)',
-    '03': 'the disc: row by row, the edge of the Moon and the terminator from the age; turned for the south',
-    '04': 'a column measured from the disc\'s centre (120)',
+    '01': 'a run of rows (Y = a, X = b, |y| from the centre) into the column: the outline [R41, R45] or the lit part (b = R45: '
+           'R41 = the lower start; an inner part: 04)',
+    '02': 'the column R44 drawn: two AGRAPH words, the upper half (row 120 up) and the lower half (row 58 up), each the '
+           'sum 2^(b+1) - 2^a of its runs (the outline and the inner lit part, disjoint)',
+    '03': 'the disc: column by column, the edge of the Moon and the terminator from the age; turned for the south',
+    '04': 'an inner lit part [0, b] that does not reach the edge: kept in R42, ended one row before the outline (disjoint '
+           'runs: the sum is their union)',
     '05': 'the text in R49 at row R31, column R30 (M7TX)',
     '06': 'M7IN - TEXT: whole number (|X| rounded)',
     '07': 'columns shared by the phase symbols',
@@ -392,21 +395,36 @@ MOON_ITEMS.update({'%02d' % (60 + i): 'phase %d: %s' % (i, n) for i, n in enumer
 
 # MOON47's loops: what each round does (by the step as listed; one program, so each is unique)
 MOON_LOOPS = {
-    'REPEAT 01': 'runs of at most 60 columns (one AGRAPH word) until the row\'s run is drawn',
-    'REPEAT 02': 'the disc row by row (R44 from -62 to 62): the Moon\'s edge (radius 62.3), then the lit part out to '
-                 'the terminator from the phase',
-    'REPEAT 03': 'the eight phase symbols (R09 = 0-7), 29 columns apart; today\'s (R29) inverted (35)',
-    'REPEAT 04': 'the next four phases (R09 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, '
+    'REPEAT 01': 'the disc column by column (R44 from -62 to 62): the Moon\'s edge (radius 62.3), the outline run, the lit '
+                 'run out to the terminator from the phase, then the column drawn (02)',
+    'REPEAT 02': 'the eight phase symbols (R09 = 0-7), 29 columns apart; today\'s (R29) inverted (35)',
+    'REPEAT 03': 'the next four phases (R09 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, '
                  'month and time UT written',
     'DO 01': 'the secant method: the elongation\'s error at the time guessed, a new time from the last two; R13 rounds '
              'or until it no longer changes',
-    'REPEAT 05': 'the four phases after now in turn (R09 = 0-3): its kind (new, first quarter, full, last) and its time '
+    'REPEAT 04': 'the four phases after now in turn (R09 = 0-3): its kind (new, first quarter, full, last) and its time '
                  '(23), kept for the page',
-    'REPEAT 06': 'the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, '
+    'REPEAT 05': 'the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, '
                  'any other key ends',
     'DO 02': 'the key wait: PAUSE 50 shows the page, KEY? 43 reads the key',
     'DO 03': 'the symbol inverted: R51 columns in XOR',
     'DO 04': 'the line: R38 columns of AGRAPH 36',
     'DO 05': 'the string character by character: each code runs its glyph (XEQ IND 48-55) until the string is empty',
 }
+
+# v2.2.0's MOON47 (build/forum/MOON47.p47u, programs_struct/MOON47.txt): its disc routines and loops as they were
+MOON_V220 = {
+    '01': 'one row of the disc between two columns (AGRAPH runs, 02)',
+    '02': 'a run of columns of one row (AGRAPH, at most 60 a step)',
+    '03': 'the disc: row by row, the edge of the Moon and the terminator from the age; turned for the south',
+    '04': 'a column measured from the disc\'s centre (120)',
+}
+MOON_LOOPS_V220 = {
+    'REPEAT 01': 'runs of at most 60 columns (one AGRAPH word) until the row\'s run is drawn',
+    'REPEAT 02': 'the disc row by row (R44 from -62 to 62): the Moon\'s edge (radius 62.3), then the lit part out to '
+                 'the terminator from the phase',
+    'REPEAT 03': MOON_LOOPS['REPEAT 02'], 'REPEAT 04': MOON_LOOPS['REPEAT 03'], 'REPEAT 05': MOON_LOOPS['REPEAT 04'],
+    'REPEAT 06': MOON_LOOPS['REPEAT 05'],
+}
+MOON_LOOPS_V220.update({k: v for k, v in MOON_LOOPS.items() if k.startswith('DO')})
 

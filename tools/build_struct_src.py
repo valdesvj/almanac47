@@ -300,7 +300,7 @@ def build_moon(src=SRC):
     return C.number(P)
 
 
-def commented_moon(L):
+def commented_moon(L, v220=False):
     """MOON47 indented with REM lines: the printers' names, the callers of each routine, the XEQ IND tables."""
     out = ['REM "MOON47 (C47 / R47) in STRUCT - the commented listing of build/dev/struct_src/MOON47.txt"',
            'REM "built by tools/build_struct_src.py from programs_struct/MOON47.txt (code only); only to read"',
@@ -327,11 +327,13 @@ def commented_moon(L):
             if m.group(1) in SC.MOON_ITEMS:
                 out.append(pad + 'REM "%s"' % SC.MOON_ITEMS[m.group(1)])
         elif m:
-            what = SC.MOON.get(m.group(1), MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))).replace('"', "'")
+            texts = dict(SC.MOON, **(SC.MOON_V220 if v220 else {}))
+            what = texts.get(m.group(1), MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))).replace('"', "'")
             n = callers.get(m.group(1), 0)
             out.append(pad + 'REM "%s %s (called %d time%s)"' % (m.group(1), what, n, '' if n == 1 else 's'))
-        if l.strip() in getattr(SC, 'MOON_LOOPS', {}):                # what each round of a loop does
-            out.append(pad + 'REM "%s"' % SC.MOON_LOOPS[l.strip()].replace('"', "'"))
+        loops = SC.MOON_LOOPS_V220 if v220 else SC.MOON_LOOPS
+        if l.strip() in loops:                                         # what each round of a loop does
+            out.append(pad + 'REM "%s"' % loops[l.strip()].replace('"', "'"))
         out.append(l)
     return out
 
@@ -357,7 +359,7 @@ def main():
     M = build_moon()
     m = os.path.join(OUT, 'MOON47.txt')
     open(m, 'w', encoding='utf-8').write('\n'.join(M) + '\n')
-    open(os.path.join(OUT, 'MOON47_COMMENTED.txt'), 'w', encoding='utf-8').write('\n'.join(commented_moon(M)) + '\n')
+    open(os.path.join(OUT, 'MOON47_COMMENTED.txt'), 'w', encoding='utf-8').write('\n'.join(commented_moon(M, v220=True)) + '\n')
     g = os.path.join(OUT, 'NAVFULL_COMMENTED.txt')
     open(g, 'w', encoding='utf-8').write('\n'.join(commented(L)) + '\n')
     s = stats(L)

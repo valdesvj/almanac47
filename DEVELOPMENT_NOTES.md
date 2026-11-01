@@ -1077,3 +1077,18 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
 - tools/build_p47.py (Victor, with rejig): build/p47/*.p47 from the five forum files, each checked against the plain
   listing (C64FX: none). tests/test_forum.py.
 
+## Nov 1, 2026 - MOON47 2.2.2: the disc in two words a column (branch claude/moon47-columns)
+
+- Profiled (c47sim, 3 Oct 2026 12:00 UT): 30 129 steps to the page (5.1 s at 0.17 ms a step), 71 % the disc. It was
+  already drawn by columns, but each column drew the outline run, then the lit run over it, each run above and
+  below the centre, in AGRAPH words of at most 60 rows (LBL 02's REPEAT): about 200 steps a column.
+- Now LBL 01 merges a run into the column: the outline [R41, R45] (R45 the edge); a lit run that reaches the edge
+  lowers R41; an inner lit run [0, b] (LBL 04) ends one row before the outline starts, so the runs are disjoint.
+  LBL 02 draws the column with two words, the upper half from row 120 and the lower half from row 58, each the sum
+  of 2^(b+1) - 2^a over its runs (no IF: an empty run sums to 0; bits up to 62, SINT at WSIZE 64). The squares
+  62.3^2, 60.8^2 as constants. 21 446 steps (3.6 s), the same pixels (test_struct_src: v2.2.0 at 16 dates, north
+  and south). 1458 steps (+22), IF 16 (one fewer); the DM42 MOON47 from it has 9 IF.
+- The release folder build/v2.2.1/ is built from programs_struct/next/: MOON47.p47u says Version 2.2.2 (ALMA47
+  stays 2.2.1; test_v221 knows it). v2.2.0's files and comments (build/forum/MOON47.p47u, MOON47_COMMENTED.txt) keep
+  their own texts (struct_comments.MOON_V220, MOON_LOOPS_V220).
+
