@@ -280,6 +280,84 @@ BLOCKS = {
     ],
 }
 
+# the loops (DO / REPEAT) of every program: what each round does (Victor, Nov 1: every label and loop commented)
+_LOOPS = {
+    'NAV': [
+        ('DO 02', 'the key wait: round after round until a key comes (KEY? 17 puts its code in R17)'),
+        ('DO 04', 'the box: 22 rounds (R13) of 8 columns, its top and bottom edges drawn and its inside cleared'),
+        ('DO 05', 'the hourglass: R18 rounds, each a speck at a random place (RAN#) drawn in XOR, shown (PAUSE 1)'),
+        ('DO 06', 'the menu item inverted: 17 rounds (R13) of 10 columns in XOR'),
+    ],
+    'CALC': [
+        ('DO 01', 'the 58 star rows of the cache ALMC marked "to compute" (-98), one row a round (I+)'),
+        ('REPEAT 01', 'each star of the catalogue ST (YK = 1-58): RA, Dec and proper motion read, its unit vector now '
+                      '(SXA) and 50 years on (YS50)'),
+    ],
+    'PTXS': [
+        ('DO 01', 'the line\'s part at the right edge: R22 columns up to x 399, one AGRAPH column a round'),
+        ('DO 02', 'the rest of the line from the left edge: R16 columns, one a round'),
+    ],
+    'HANIM': [
+        ('DO 01', 'the 60 dots of the chart\'s grid, read in pairs (x, y) from the matrix just built, one POINT a round'),
+        ('REPEAT 01', 'the frames, one hour apart (R18 from 0 by R43 to R21): the time, the Sun and the Moon, the '
+                      'header with NIGHT or twilight, the two symbols, the frame shown (PAUSE 0)'),
+        ('DO 02', 'the dotted vertical axis at x 18: rows 24-212, every third (ISG 24.21203)'),
+    ],
+    'PSYS': [('DO 01', 'the text R28 character by character: each code (alpha to x) runs its symbol (XEQ IND, the table '
+                       'below) until the text is empty')],
+    'PSYB': [('DO 01', 'the text R16 character by character: each code runs its symbol (XEQ IND, the table below) until '
+                       'the text is empty')],
+    'ALLSKY': [
+        ('DO 01', 'the dotted vertical axis at x 18: rows 24-212, every third (ISG 24.21203)'),
+        ('DO 02', 'the 40 dots of the chart\'s grid, read in pairs (x, y) from the matrix just built'),
+        ('DO 03', 'the 58 stars (R10 = 1.058): GHA and Dec from the cache (computed first when new: N98), placed on the '
+                  'chart and drawn as *, the star\'s number beside it when there is room'),
+        ('DO 04', 'the 4 planets (R10 = 1.004): GHA and Dec from the cache, placed and drawn with their symbols (01)'),
+    ],
+    'PLN2': [('DO 01', 'the light-time: R24 passes, each the planet at the time less the light-time (its L B R from the '
+                       'series, less the Earth\'s), back to a distance and a direction')],
+    'CSUN': [
+        ('REPEAT 01', 'the planets in turn (R16 from 1): their place (PLN2), Hc and Zn, into their row of ALMC (08)'),
+        ('REPEAT 02', 'the equator\'s dots as powers of one complex rotation (W2): a whole column V5 of W3 a round'),
+        ('REPEAT 03', 'each column V5 of W3: the dots\' altitudes (ASIN) and the parts the chart needs'),
+    ],
+    'RISE': [('DO 01', 'the iteration: the Sun at the time guessed (SUNG), the hour angle for the event\'s altitude, the '
+                       'time corrected, until it settles (99 when the Sun never gets there)')],
+    'HORZ': [
+        ('DO 01', 'the dotted vertical axis at x 18: rows 30-212, every third (ISG 30.21203)'),
+        ('DO 02', 'the 60 dots of the grid in pairs (x, y); a dot whose value is under 1E-4 (below the horizon) skipped'),
+        ('DO 03', 'the stars by brightness (SBR, R22 = 1.058) until the list is full: each above the horizon (N68) '
+                  'placed and drawn with its name'),
+        ('DO 04', 'the 4 planets (R22 = 1.004): its symbol (XEQ IND 71-74), GHA and Dec from the cache; the first above '
+                  'the horizon goes into the list'),
+    ],
+    'HALMH': [
+        ('DO 01', 'the dotted vertical axis at x 18: rows 144-212, every third (ISG 144.21203)'),
+        ('DO 02', 'the 40 dots of the grid in pairs (x, y); a dot below the horizon (under 1E-4) skipped'),
+        ('DO 03', 'the 4 planets (R20 = 1.004): symbol, GHA and Dec from the cache, a row of the table when above '
+                  'the horizon'),
+        ('DO 04', 'the stars by brightness (SBR, R08 = 1.058) while the rows are not full (R19 under 9): each above '
+                  'the horizon (N68) into its row'),
+        ('DO 05', 'the box in XOR: 54 columns (R18), so Hc shows white on black'),
+    ],
+    'ALMF': [
+        ('DO 01', 'the 4 planets (R18 = 1.004): symbol, GHA and Dec from the cache, Hc and Zn (14), a row of the '
+                  'table when above the horizon'),
+        ('DO 02', 'the stars by brightness (SBR, R36 = 1.058) until the 8 rows are full (R32): each above the horizon '
+                  '(N68) into its row'),
+        ('DO 03', 'the box in XOR: 54 columns (R23), so Hc shows white on black'),
+    ],
+    'PHA2': [('REPEAT 01', 'the new-moon search: the Sun\'s and the Moon\'s mean anomalies and the Moon\'s argument at '
+                           'the new Moon guessed (R25 lunations back), Meeus\' corrections; a second pass when the age '
+                           'comes out negative')],
+    'WPLS': [('DO 01', 'the key wait: PAUSE 50 shows the screen, KEY? 17 reads the key')],
+    'TGET': [('DO 01', 'the Chebyshev recursion T(n+1) = 2 x T(n) - T(n-1): R40 terms, each stored in turn (STOSEQ)')],
+}
+for _p, _l in _LOOPS.items():
+    BLOCKS.setdefault(_p, [])
+    _have = {b[0] for b in BLOCKS[_p]}
+    BLOCKS[_p] += [(step, 1, 0, text) for step, text in _l if step not in _have]
+
 # each entry of an XEQ IND table: what it is
 _SYM = {'40': '( the Moon', '42': '* a star', '60': '< Venus', '62': '> Mars', '61': '= Jupiter', '63': '? Saturn',
         '64': '@ the Sun'}
@@ -310,3 +388,25 @@ ITEMS.update({('HORZ', '81'): 'Moon', ('HORZ', '82'): 'Venus', ('HORZ', '83'): '
 ITEMS.update({('SNMU', '%02d' % n): 'star %d' % n for n in range(1, 59)})
 MOON_ITEMS = {'%02d' % (48 + i): '%d %s' % (i, n) for i, n in enumerate(_PHASE)}
 MOON_ITEMS.update({'%02d' % (90 + i): 'phase %d' % i for i in range(8)})
+MOON_ITEMS.update({'%02d' % (60 + i): 'phase %d: %s' % (i, n) for i, n in enumerate(_PHASE)})
+
+# MOON47's loops: what each round does (by the step as listed; one program, so each is unique)
+MOON_LOOPS = {
+    'REPEAT 01': 'runs of at most 60 columns (one AGRAPH word) until the row\'s run is drawn',
+    'REPEAT 02': 'the disc row by row (R44 from -62 to 62): the Moon\'s edge (radius 62.3), then the lit part out to '
+                 'the terminator from the phase',
+    'REPEAT 03': 'the eight phase symbols (R09 = 0-7), 29 columns apart; today\'s (R29) inverted (35)',
+    'REPEAT 04': 'the next four phases (R09 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, '
+                 'month and time UT written',
+    'DO 01': 'the secant method: the elongation\'s error at the time guessed, a new time from the last two; R13 rounds '
+             'or until it no longer changes',
+    'REPEAT 05': 'the four phases after now in turn (R09 = 0-3): its kind (new, first quarter, full, last) and its time '
+                 '(23), kept for the page',
+    'REPEAT 06': 'the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, '
+                 'any other key ends',
+    'DO 02': 'the key wait: PAUSE 50 shows the page, KEY? 43 reads the key',
+    'DO 03': 'the symbol inverted: R51 columns in XOR',
+    'DO 04': 'the line: R38 columns of AGRAPH 36',
+    'DO 05': 'the string character by character: each code runs its glyph (XEQ IND 48-55) until the string is empty',
+}
+

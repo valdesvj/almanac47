@@ -257,6 +257,9 @@ def commented(L):
                     out.append(pad + 'REM "%s"' % SC.ITEMS[(name, n.group(1))])
                 elif not e and ind:
                     out.append(pad + 'REM "entry %s of the XEQ IND table (%s)"' % (n.group(1), owner[i]))
+                elif not e:                                      # no step calls it (a second name left from the conversion)
+                    out.append(pad + 'REM "label %s: no step calls it (a second entry left from the conversion; '
+                                     'harmless, one step)"' % n.group(1))
             if s.startswith('REPEAT'):
                 d, j = 0, i
                 while True:
@@ -321,12 +324,14 @@ def commented_moon(L):
             if table[0][0] not in seen:
                 seen.add(table[0][0])
                 out.append(pad + 'REM "%s"' % table[0][1])
-            if m.group(1) in SC.MOON_ITEMS and table[0][0][0] != '60':
+            if m.group(1) in SC.MOON_ITEMS:
                 out.append(pad + 'REM "%s"' % SC.MOON_ITEMS[m.group(1)])
         elif m:
             what = SC.MOON.get(m.group(1), MOON_LABELS.get(m.group(1), 'routine %s' % m.group(1))).replace('"', "'")
             n = callers.get(m.group(1), 0)
             out.append(pad + 'REM "%s %s (called %d time%s)"' % (m.group(1), what, n, '' if n == 1 else 's'))
+        if l.strip() in getattr(SC, 'MOON_LOOPS', {}):                # what each round of a loop does
+            out.append(pad + 'REM "%s"' % SC.MOON_LOOPS[l.strip()].replace('"', "'"))
         out.append(l)
     return out
 

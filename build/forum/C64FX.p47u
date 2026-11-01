@@ -40,7 +40,7 @@
 @ The comments are '@' lines: rejig does not compile them (version 1 had '#' lines: 51 REM steps on the
 @ calculator, gone in 1.1; the steps are the same).
 @
-LBL "C64FX"
+LBL "C64FX"             ; C64FX - the three parts in turn, your volume kept
 @   ---- main: your volume kept, the three parts in turn, then your volume back
   VOL#
   STO "KVOL"
@@ -164,7 +164,7 @@ LBL "C64FX"
   CLSTK
   RTN
 
-LBL 01
+LBL 01                  ; FAKE CHORD: Z Y X three semitones, 12 rounds
 @   ---- FAKE CHORD. In: Z Y X = three semitones. 12 rounds of the three notes,
 @   ---- 30 ms each = 1.08 s of one chord (36 notes)
 @   R.00 R.01 R.02 the three frequencies, R.03 the round counter
@@ -184,7 +184,7 @@ LBL 01
 @   12 rounds
   STO R.03
 @   the round loop: three notes, then DSE
-  LBL 02
+  LBL 02                ; the round loop of 01: three notes of 30 ms
     RCL R.02
     30
 @     lowest note, 30 ms
@@ -203,7 +203,7 @@ LBL 01
     GTO 02
   RTN
 
-LBL 03
+LBL 03                  ; VIBRATO: Y ms, X semitone
 @   ---- VIBRATO. In: Y = length in ms, X = semitone. The note is cut into ms/25 pieces of 25 ms;
 @   ---- piece k has pitch f x (1 + 0.012 sin(60k)): a full wobble every 6 pieces (150 ms = 6.7 Hz),
 @   ---- +-1.2 % = +-20 cents
@@ -221,7 +221,7 @@ LBL 03
 @   k = 0
   STO R.02
 @   the piece loop: one 25 ms piece, then DSE
-  LBL 06
+  LBL 06                ; the piece loop of 03: one 25 ms piece
     RCL R.02
     60
     ×
@@ -245,7 +245,7 @@ LBL 03
     GTO 06
   RTN
 
-LBL 04
+LBL 04                  ; PLUCK: X semitone, five pieces at volume 11 8 6 4 2
 @   ---- PLUCK (volume envelope). In: X = semitone. Five pieces of 40 ms with the volume
 @   ---- stepping down 11 8 6 4 2 (200 ms a note); unrolled, one piece after the other
 @   R.00 the frequency
@@ -281,7 +281,7 @@ LBL 04
   CLSTK
   RTN
 
-LBL 05
+LBL 05                  ; SEMITONES -> Hz: 440 x 2^(s/12)
 @   ---- SEMITONES -> Hz. X = s from A4  ->  X = 440 x 2^(s/12)
   12
   ÷

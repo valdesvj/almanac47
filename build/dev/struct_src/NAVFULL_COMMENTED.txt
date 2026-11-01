@@ -332,6 +332,7 @@ XEQ 03
 XEQ 04
 REM "the key loop: one key a round; 0 ends (its key code is in R87)"
 DO 01
+  REM "the key wait: round after round until a key comes (KEY? 17 puts its code in R17)"
   DO 02
     REM "waits for a key: PAUSE 50 shows the screen, KEY? reads the key"
     PAUSE 50
@@ -792,6 +793,7 @@ R↓
 22
 STO 07
 R↓
+REM "the box: 22 rounds (R13) of 8 columns, its top and bottom edges drawn and its inside cleared"
 DO 04
   AGRAPH 03
   AGRAPH 03
@@ -842,6 +844,7 @@ XEQ 05
 RCL 02
 X=0?
 RTN
+REM "the hourglass: R18 rounds, each a speck at a random place (RAN#) drawn in XOR, shown (PAUSE 1)"
 DO 05
   WSIZE 16
   RCL 51
@@ -906,6 +909,7 @@ RCL 02
 17
 STO 02
 R↓
+REM "the menu item inverted: 17 rounds (R13) of 10 columns in XOR"
 DO 06
   AGRAPH 01
   AGRAPH 01
@@ -1020,6 +1024,7 @@ STOIJ
 58
 STO 25
 -98
+REM "the 58 star rows of the cache ALMC marked 'to compute' (-98), one row a round (I+)"
 DO 01
   STOEL
   I+
@@ -1051,6 +1056,7 @@ STO "SXA"
 STO "YS50"
 1
 STO "YK"
+REM "each star of the catalogue ST (YK = 1-58): RA, Dec and proper motion read, its unit vector now (SXA) and 50 years on (YS50)"
 REPEAT 01
   INDEX "ST"
   RCL "YK"
@@ -1556,6 +1562,7 @@ LBL "N79"
 REM "PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text"
 ⇄ zyxt
 X<>Y
+REM "label 03: no step calls it (a second entry left from the conversion; harmless, one step)"
 LBL 03
 RCL 50
 GRFNT
@@ -1567,6 +1574,7 @@ DROP
 RTN
 LBL "N50"
 REM "PTXS - TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text"
+REM "label 04: no step calls it (a second entry left from the conversion; harmless, one step)"
 LBL 04
 ⇄ zyxt
 RCL 66
@@ -1681,6 +1689,7 @@ IF 04
     RCL 07
     400
     RCL- 05
+    REM "the line's part at the right edge: R22 columns up to x 399, one AGRAPH column a round"
     DO 01
       AGRAPH 09
       DSE 05
@@ -1693,6 +1702,7 @@ IF 04
   IF 06
     RCL 07
     RCL 46
+    REM "the rest of the line from the left edge: R16 columns, one a round"
     DO 02
       AGRAPH 09
       DSE 05
@@ -1823,6 +1833,7 @@ ENTER
 STOIJ
 60
 STO 02
+REM "the 60 dots of the chart's grid, read in pairs (x, y) from the matrix just built, one POINT a round"
 DO 01
   RCLSEQ
   RCLSEQ
@@ -1848,6 +1859,7 @@ XEQ 02
 XEQ 02
 23
 XEQ 02
+REM "the frames, one hour apart (R18 from 0 by R43 to R21): the time, the Sun and the Moon, the header with NIGHT or twilight, the two symbols, the frame shown (PAUSE 0)"
 REPEAT 01
   RCL 22
   RCL× 20
@@ -2226,6 +2238,7 @@ RCL 46
 PIXEL
 24.21203
 STO 02
+REM "the dotted vertical axis at x 18: rows 24-212, every third (ISG 24.21203)"
 DO 02
   RCL 02
   IP
@@ -2356,6 +2369,7 @@ STO 01
 R↓
 STO 10
 WSIZE 14
+REM "the text R28 character by character: each code (alpha to x) runs its symbol (XEQ IND, the table below) until the text is empty"
 DO 01
   αLENG 07
   X≠0?
@@ -2572,6 +2586,7 @@ RCL 46
 PIXEL
 24.21203
 STO 02
+REM "the dotted vertical axis at x 18: rows 24-212, every third (ISG 24.21203)"
 DO 01
   RCL 02
   IP
@@ -2679,6 +2694,7 @@ ENTER
 STOIJ
 40
 STO 01
+REM "the 40 dots of the chart's grid, read in pairs (x, y) from the matrix just built"
 DO 02
   RCLSEQ
   RCLSEQ
@@ -2699,6 +2715,7 @@ RCL 54
 STO 06
 1.058
 STO 21
+REM "the 58 stars (R10 = 1.058): GHA and Dec from the cache (computed first when new: N98), placed on the chart and drawn as *, the star's number beside it when there is room"
 DO 03
   RCL 21
   IP
@@ -2744,6 +2761,7 @@ WHILE 03
 ENDDO 03
 1.004
 STO 21
+REM "the 4 planets (R10 = 1.004): GHA and Dec from the cache, placed and drawn with their symbols (01)"
 DO 04
   RCL 21
   IP
@@ -3078,6 +3096,7 @@ IF 05
   STO 16
 ENDIF 05
 RAD
+REM "the light-time: R24 passes, each the planet at the time less the light-time (its L B R from the series, less the Earth's), back to a distance and a direction"
 DO 01
   RCL 30
   RCL 08
@@ -3568,6 +3587,7 @@ DOT
 RTN
 LBL "N19"
 REM "SERT - the time vectors SV1 SV2 used by SER"
+REM "label 02: no step calls it (a second entry left from the conversion; harmless, one step)"
 LBL 02
 RCL 88
 ENTER
@@ -4425,6 +4445,7 @@ RCL "W9"
 STOEL
 RCL 43
 STO 07
+REM "the planets in turn (R16 from 1): their place (PLN2), Hc and Zn, into their row of ALMC (08)"
 REPEAT 01
   RCL 85
   STO "Q1"
@@ -4860,6 +4881,7 @@ X<>Y
 STO "V2"
 RCL 43
 STO "V5"
+REM "the equator's dots as powers of one complex rotation (W2): a whole column V5 of W3 a round"
 REPEAT 02
   RCL "V5"
   RCL 44
@@ -4912,6 +4934,7 @@ NEWMAT
 STO "W3"
 RCL 43
 STO "V5"
+REM "each column V5 of W3: the dots' altitudes (ASIN) and the parts the chart needs"
 REPEAT 03
   INDEX "W3"
   RCL "V5"
@@ -5431,6 +5454,7 @@ RCL 93
 STO 31
 RCL 50
 STO 05
+REM "the iteration: the Sun at the time guessed (SUNG), the hour angle for the event's altitude, the time corrected, until it settles (99 when the Sun never gets there)"
 DO 01
   RCL 31
   RCL 70
@@ -5523,6 +5547,7 @@ STO 06
 R↓
 STO 07
 WSIZE 16
+REM "the text R16 character by character: each code runs its symbol (XEQ IND, the table below) until the text is empty"
 DO 01
   αLENG 01
   X≠0?
@@ -5937,6 +5962,7 @@ RCL 55
 XEQ "N57"
 30.21203
 STO 01
+REM "the dotted vertical axis at x 18: rows 30-212, every third (ISG 30.21203)"
 DO 01
   RCL 01
   IP
@@ -6228,6 +6254,7 @@ ENTER
 STOIJ
 60
 STO 10
+REM "the 60 dots of the grid in pairs (x, y); a dot whose value is under 1E-4 (below the horizon) skipped"
 DO 02
   RCLSEQ
   1E-4
@@ -6283,6 +6310,7 @@ XEQ 06
 XEQ 07
 1.058
 STO 19
+REM "the stars by brightness (SBR, R22 = 1.058) until the list is full: each above the horizon (N68) placed and drawn with its name"
 DO 03
   RCL 84
   RCL 18
@@ -6464,6 +6492,7 @@ REM "HORZ 07: the first planet above the horizon (planets 1-4 in turn): its symb
 LBL 07
 1.004
 STO 19
+REM "the 4 planets (R22 = 1.004): its symbol (XEQ IND 71-74), GHA and Dec from the cache; the first above the horizon goes into the list"
 DO 04
   RCL 19
   IP
@@ -6759,6 +6788,7 @@ RCL 55
 XEQ "N57"
 144.21203
 STO 01
+REM "the dotted vertical axis at x 18: rows 144-212, every third (ISG 144.21203)"
 DO 01
   RCL 01
   IP
@@ -6998,6 +7028,7 @@ ENTER
 STOIJ
 40
 STO 01
+REM "the 40 dots of the grid in pairs (x, y); a dot below the horizon (under 1E-4) skipped"
 DO 02
   RCLSEQ
   1E-4
@@ -7091,6 +7122,7 @@ X>0?
 XEQ 07
 1.004
 STO 19
+REM "the 4 planets (R20 = 1.004): symbol, GHA and Dec from the cache, a row of the table when above the horizon"
 DO 03
   RCL 19
   IP
@@ -7194,6 +7226,7 @@ RCL 46
 STO 19
 1.058
 STO 20
+REM "the stars by brightness (SBR, R08 = 1.058) while the rows are not full (R19 under 9): each above the horizon (N68) into its row"
 DO 04
   9
   RCL 18
@@ -7376,6 +7409,7 @@ RCL 43
 54
 STO 05
 R↓
+REM "the box in XOR: 54 columns (R18), so Hc shows white on black"
 DO 05
   AGRAPH 01
   DSE 05
@@ -7605,6 +7639,7 @@ X>0?
 XEQ 05
 1.004
 STO 22
+REM "the 4 planets (R18 = 1.004): symbol, GHA and Dec from the cache, Hc and Zn (14), a row of the table when above the horizon"
 DO 01
   RCL 22
   IP
@@ -7707,6 +7742,7 @@ REM "ALMF 04: the stars by brightness (matrix SBR) that are above the horizon, u
 LBL 04
 1.058
 STO 42
+REM "the stars by brightness (SBR, R36 = 1.058) until the 8 rows are full (R32): each above the horizon (N68) into its row"
 DO 02
   9
   RCL 41
@@ -7989,6 +8025,7 @@ RCL 43
 54
 STO 05
 R↓
+REM "the box in XOR: 54 columns (R23), so Hc shows white on black"
 DO 03
   AGRAPH 01
   DSE 05
@@ -8523,6 +8560,7 @@ MOD
 STO 10
 RCL 46
 STO 11
+REM "the new-moon search: the Sun's and the Moon's mean anomalies and the Moon's argument at the new Moon guessed (R25 lunations back), Meeus' corrections; a second pass when the age comes out negative"
 REPEAT 01
   RCL 05
   RCL 10
@@ -8665,6 +8703,7 @@ LBL "N63"
 REM "WPLS - every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier"
 REM "loop left only by RTN (0 X≠0? UNTIL is never true)"
 REPEAT 01
+  REM "the key wait: PAUSE 50 shows the screen, KEY? 17 reads the key"
   DO 01
     PAUSE 50
     KEY? 08
@@ -9115,6 +9154,7 @@ RCL 43
 STO 08
 RCL 27
 STO 33
+REM "the Chebyshev recursion T(n+1) = 2 x T(n) - T(n-1): R40 terms, each stored in turn (STOSEQ)"
 DO 01
   RCL 33
   RCL× 27

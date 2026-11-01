@@ -33,6 +33,7 @@ LBL 02
 STO 47
 R↓
 STO 46
+REM "runs of at most 60 columns (one AGRAPH word) until the row's run is drawn"
 REPEAT 01
   RCL 47
   RCL 46
@@ -86,6 +87,7 @@ X≠0?
 XEQ 34
 -62
 STO 40
+REM "the disc row by row (R44 from -62 to 62): the Moon's edge (radius 62.3), then the lit part out to the terminator from the phase"
 REPEAT 02
   62.3
   X↑2
@@ -308,6 +310,7 @@ REM "16 the eight phase symbols in a row, today's one inverted (called 1 time)"
 LBL 16
 0
 STO 05
+REM "the eight phase symbols (R09 = 0-7), 29 columns apart; today's (R29) inverted (35)"
 REPEAT 03
   26
   RCL 05
@@ -447,6 +450,7 @@ REM "20 the next four phases: symbol, date and time UT (called 1 time)"
 LBL 20
 0
 STO 05
+REM "the next four phases (R09 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, month and time UT written"
 REPEAT 04
   RCL 05
   54
@@ -594,6 +598,7 @@ CHS
 STO 51
 3
 STO 09
+REM "the secant method: the elongation's error at the time guessed, a new time from the last two; R13 rounds or until it no longer changes"
 DO 01
   RCL 27
   XEQ 33
@@ -832,6 +837,7 @@ IP
 STO 38
 0
 STO 05
+REM "the four phases after now in turn (R09 = 0-3): its kind (new, first quarter, full, last) and its time (23), kept for the page"
 REPEAT 05
   RCL 38
   RCL 05
@@ -895,9 +901,11 @@ XEQ 24
 GRFNT
 DROP
 XEQ 31
+REM "the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, any other key ends"
 REPEAT 06
   CLLCD
   XEQ 18
+  REM "the key wait: PAUSE 50 shows the page, KEY? 43 reads the key"
   DO 02
     PAUSE 50
     KEY? 39
@@ -1227,6 +1235,7 @@ RCL 05
 18
 STO 47
 R↓
+REM "the symbol inverted: R51 columns in XOR"
 DO 03
   AGRAPH 46
   DSE 47
@@ -1296,6 +1305,7 @@ IF 17
   STO 32
   RCL 31
   RCL 30
+  REM "the line: R38 columns of AGRAPH 36"
   DO 04
     AGRAPH 32
     DSE 34
@@ -1319,6 +1329,7 @@ STO 30
 R↓
 STO 31
 WSIZE 16
+REM "the string character by character: each code runs its glyph (XEQ IND 48-55) until the string is empty"
 DO 05
   αLENG 33
   X≠0?
@@ -1447,27 +1458,35 @@ XEQ 22
 STO 44
 RTN
 REM "XEQ IND table: the eight phase names"
+REM "phase 0: new Moon"
 LBL 60
 "NEW MOON"
 RTN
+REM "phase 1: waxing crescent"
 LBL 61
 "WAXING CRESCENT"
 RTN
+REM "phase 2: first quarter"
 LBL 62
 "FIRST QUARTER"
 RTN
+REM "phase 3: waxing gibbous"
 LBL 63
 "WAXING GIBBOUS"
 RTN
+REM "phase 4: full Moon"
 LBL 64
 "FULL MOON"
 RTN
+REM "phase 5: waning gibbous"
 LBL 65
 "WANING GIBBOUS"
 RTN
+REM "phase 6: last quarter"
 LBL 66
 "LAST QUARTER"
 RTN
+REM "phase 7: waning crescent"
 LBL 67
 "WANING CRESCENT"
 RTN

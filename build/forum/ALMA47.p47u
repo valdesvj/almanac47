@@ -356,7 +356,7 @@ XEQ 06
 XEQ 03
 XEQ 04
 DO 01                   ; the key loop: one key a round; 0 ends (its key code is in R87)
-  DO 02
+  DO 02                 ; the key wait: round after round until a key comes (KEY? 17 puts its code in R17)
     PAUSE 50            ; waits for a key: PAUSE 50 shows the screen, KEY? reads the key
     KEY? 08
   WHILE 02
@@ -804,7 +804,7 @@ R↓
 22
 STO 07
 R↓
-DO 04
+DO 04                   ; the box: 22 rounds (R13) of 8 columns, its top and bottom edges drawn and its inside cleared
   AGRAPH 03
   AGRAPH 03
   AGRAPH 03
@@ -853,7 +853,7 @@ XEQ 05
 RCL 02
 X=0?
 RTN
-DO 05
+DO 05                   ; the hourglass: R18 rounds, each a speck at a random place (RAN#) drawn in XOR, shown (PAUSE 1)
   WSIZE 16
   RCL 51
   STO 03
@@ -915,7 +915,7 @@ RCL 02
 17
 STO 02
 R↓
-DO 06
+DO 06                   ; the menu item inverted: 17 rounds (R13) of 10 columns in XOR
   AGRAPH 01
   AGRAPH 01
   AGRAPH 01
@@ -1024,7 +1024,7 @@ STOIJ
 58
 STO 25
 -98
-DO 01
+DO 01                   ; the 58 star rows of the cache ALMC marked 'to compute' (-98), one row a round (I+)
   STOEL
   I+
   DSE 25
@@ -1054,7 +1054,7 @@ STO "SXA"
 STO "YS50"
 1
 STO "YK"
-REPEAT 01
+REPEAT 01               ; each star of the catalogue ST (YK = 1-58): RA, Dec and proper motion read, its unit vector now (SXA) and 50 years on (YS50)
   INDEX "ST"
   RCL "YK"
   1
@@ -1545,7 +1545,7 @@ RTN
 LBL "N79"               ; PTTY - TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
 ⇄ zyxt
 X<>Y
-LBL 03
+LBL 03                  ; label 03: no step calls it (a second entry left from the conversion; harmless, one step)
 RCL 50
 GRFNT
 DROP
@@ -1555,7 +1555,7 @@ GRFNT
 DROP
 RTN
 LBL "N50"               ; PTXS - TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
-LBL 04
+LBL 04                  ; label 04: no step calls it (a second entry left from the conversion; harmless, one step)
 ⇄ zyxt
 RCL 66
 -
@@ -1665,7 +1665,7 @@ IF 04
     RCL 07
     400
     RCL- 05
-    DO 01
+    DO 01               ; the line's part at the right edge: R22 columns up to x 399, one AGRAPH column a round
       AGRAPH 09
       DSE 05
     WHILE 01
@@ -1677,7 +1677,7 @@ IF 04
   IF 06
     RCL 07
     RCL 46
-    DO 02
+    DO 02               ; the rest of the line from the left edge: R16 columns, one a round
       AGRAPH 09
       DSE 05
     WHILE 02
@@ -1802,7 +1802,7 @@ ENTER
 STOIJ
 60
 STO 02
-DO 01
+DO 01                   ; the 60 dots of the chart's grid, read in pairs (x, y) from the matrix just built, one POINT a round
   RCLSEQ
   RCLSEQ
   POINT
@@ -1827,7 +1827,7 @@ XEQ 02
 XEQ 02
 23
 XEQ 02
-REPEAT 01
+REPEAT 01               ; the frames, one hour apart (R18 from 0 by R43 to R21): the time, the Sun and the Moon, the header with NIGHT or twilight, the two symbols, the frame shown (PAUSE 0)
   RCL 22
   RCL× 20
   RCL 70
@@ -2200,7 +2200,7 @@ RCL 46
 PIXEL
 24.21203
 STO 02
-DO 02
+DO 02                   ; the dotted vertical axis at x 18: rows 24-212, every third (ISG 24.21203)
   RCL 02
   IP
   18
@@ -2317,7 +2317,7 @@ STO 01
 R↓
 STO 10
 WSIZE 14
-DO 01
+DO 01                   ; the text R28 character by character: each code (alpha to x) runs its symbol (XEQ IND, the table below) until the text is empty
   αLENG 07
   X≠0?
 WHILE 01
@@ -2520,7 +2520,7 @@ RCL 46
 PIXEL
 24.21203
 STO 02
-DO 01
+DO 01                   ; the dotted vertical axis at x 18: rows 24-212, every third (ISG 24.21203)
   RCL 02
   IP
   18
@@ -2627,7 +2627,7 @@ ENTER
 STOIJ
 40
 STO 01
-DO 02
+DO 02                   ; the 40 dots of the chart's grid, read in pairs (x, y) from the matrix just built
   RCLSEQ
   RCLSEQ
   POINT
@@ -2647,7 +2647,7 @@ RCL 54
 STO 06
 1.058
 STO 21
-DO 03
+DO 03                   ; the 58 stars (R10 = 1.058): GHA and Dec from the cache (computed first when new: N98), placed on the chart and drawn as *, the star's number beside it when there is room
   RCL 21
   IP
   STO 22
@@ -2692,7 +2692,7 @@ WHILE 03
 ENDDO 03
 1.004
 STO 21
-DO 04
+DO 04                   ; the 4 planets (R10 = 1.004): GHA and Dec from the cache, placed and drawn with their symbols (01)
   RCL 21
   IP
   INDEX "ALMC"
@@ -3001,7 +3001,7 @@ IF 05
   STO 16
 ENDIF 05
 RAD
-DO 01
+DO 01                   ; the light-time: R24 passes, each the planet at the time less the light-time (its L B R from the series, less the Earth's), back to a distance and a direction
   RCL 30
   RCL 08
   365250
@@ -3473,7 +3473,7 @@ DOT
 ×
 RTN
 LBL "N19"               ; SERT - the time vectors SV1 SV2 used by SER
-LBL 02
+LBL 02                  ; label 02: no step calls it (a second entry left from the conversion; harmless, one step)
 RCL 88
 ENTER
 RCL 43
@@ -4314,7 +4314,7 @@ RCL "W9"
 STOEL
 RCL 43
 STO 07
-REPEAT 01
+REPEAT 01               ; the planets in turn (R16 from 1): their place (PLN2), Hc and Zn, into their row of ALMC (08)
   RCL 85
   STO "Q1"
   DROP
@@ -4730,7 +4730,7 @@ X<>Y
 STO "V2"
 RCL 43
 STO "V5"
-REPEAT 02
+REPEAT 02               ; the equator's dots as powers of one complex rotation (W2): a whole column V5 of W3 a round
   RCL "V5"
   RCL 44
   ×
@@ -4782,7 +4782,7 @@ NEWMAT
 STO "W3"
 RCL 43
 STO "V5"
-REPEAT 03
+REPEAT 03               ; each column V5 of W3: the dots' altitudes (ASIN) and the parts the chart needs
   INDEX "W3"
   RCL "V5"
   RCL 43
@@ -5286,7 +5286,7 @@ RCL 93
 STO 31
 RCL 50
 STO 05
-DO 01
+DO 01                   ; the iteration: the Sun at the time guessed (SUNG), the hour angle for the event's altitude, the time corrected, until it settles (99 when the Sun never gets there)
   RCL 31
   RCL 70
   ÷
@@ -5373,7 +5373,7 @@ STO 06
 R↓
 STO 07
 WSIZE 16
-DO 01
+DO 01                   ; the text R16 character by character: each code runs its symbol (XEQ IND, the table below) until the text is empty
   αLENG 01
   X≠0?
 WHILE 01
@@ -5752,7 +5752,7 @@ RCL 55
 XEQ "N57"
 30.21203
 STO 01
-DO 01
+DO 01                   ; the dotted vertical axis at x 18: rows 30-212, every third (ISG 30.21203)
   RCL 01
   IP
   18
@@ -6043,7 +6043,7 @@ ENTER
 STOIJ
 60
 STO 10
-DO 02
+DO 02                   ; the 60 dots of the grid in pairs (x, y); a dot whose value is under 1E-4 (below the horizon) skipped
   RCLSEQ
   1E-4
   X<Y?
@@ -6098,7 +6098,7 @@ XEQ 06
 XEQ 07
 1.058
 STO 19
-DO 03
+DO 03                   ; the stars by brightness (SBR, R22 = 1.058) until the list is full: each above the horizon (N68) placed and drawn with its name
   RCL 84
   RCL 18
   X<Y?
@@ -6272,7 +6272,7 @@ RTN
 LBL 07                  ; HORZ 07: the first planet above the horizon (planets 1-4 in turn): its symbol, into the list (called by HORZ x1)
 1.004
 STO 19
-DO 04
+DO 04                   ; the 4 planets (R22 = 1.004): its symbol (XEQ IND 71-74), GHA and Dec from the cache; the first above the horizon goes into the list
   RCL 19
   IP
   RCL 71
@@ -6537,7 +6537,7 @@ RCL 55
 XEQ "N57"
 144.21203
 STO 01
-DO 01
+DO 01                   ; the dotted vertical axis at x 18: rows 144-212, every third (ISG 144.21203)
   RCL 01
   IP
   18
@@ -6776,7 +6776,7 @@ ENTER
 STOIJ
 40
 STO 01
-DO 02
+DO 02                   ; the 40 dots of the grid in pairs (x, y); a dot below the horizon (under 1E-4) skipped
   RCLSEQ
   1E-4
   X<Y?
@@ -6869,7 +6869,7 @@ X>0?
 XEQ 07
 1.004
 STO 19
-DO 03
+DO 03                   ; the 4 planets (R20 = 1.004): symbol, GHA and Dec from the cache, a row of the table when above the horizon
   RCL 19
   IP
   RCL 71
@@ -6969,7 +6969,7 @@ RCL 46
 STO 19
 1.058
 STO 20
-DO 04
+DO 04                   ; the stars by brightness (SBR, R08 = 1.058) while the rows are not full (R19 under 9): each above the horizon (N68) into its row
   9
   RCL 18
   X≥Y?
@@ -7143,7 +7143,7 @@ RCL 43
 54
 STO 05
 R↓
-DO 05
+DO 05                   ; the box in XOR: 54 columns (R18), so Hc shows white on black
   AGRAPH 01
   DSE 05
 WHILE 05
@@ -7354,7 +7354,7 @@ X>0?
 XEQ 05
 1.004
 STO 22
-DO 01
+DO 01                   ; the 4 planets (R18 = 1.004): symbol, GHA and Dec from the cache, Hc and Zn (14), a row of the table when above the horizon
   RCL 22
   IP
   RCL 71
@@ -7452,7 +7452,7 @@ XEQ 02
 LBL 04                  ; ALMF 04: the stars by brightness (matrix SBR) that are above the horizon, until the 8 rows are full (called by ALMF x1)
 1.058
 STO 42
-DO 02
+DO 02                   ; the stars by brightness (SBR, R36 = 1.058) until the 8 rows are full (R32): each above the horizon (N68) into its row
   9
   RCL 41
   X<Y?
@@ -7725,7 +7725,7 @@ RCL 43
 54
 STO 05
 R↓
-DO 03
+DO 03                   ; the box in XOR: 54 columns (R23), so Hc shows white on black
   AGRAPH 01
   DSE 05
 WHILE 03
@@ -8169,7 +8169,7 @@ MOD
 STO 10
 RCL 46
 STO 11
-REPEAT 01
+REPEAT 01               ; the new-moon search: the Sun's and the Moon's mean anomalies and the Moon's argument at the new Moon guessed (R25 lunations back), Meeus' corrections; a second pass when the age comes out negative
   RCL 05
   RCL 10
   0.98560028
@@ -8308,7 +8308,7 @@ END
 
 LBL "N63"               ; program WPLS - every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
 REPEAT 01               ; loop left only by RTN (0 X≠0? UNTIL is never true)
-  DO 01
+  DO 01                 ; the key wait: PAUSE 50 shows the screen, KEY? 17 reads the key
     PAUSE 50
     KEY? 08
   WHILE 01
@@ -8748,7 +8748,7 @@ RCL 43
 STO 08
 RCL 27
 STO 33
-DO 01
+DO 01                   ; the Chebyshev recursion T(n+1) = 2 x T(n) - T(n-1): R40 terms, each stored in turn (STOSEQ)
   RCL 33
   RCL× 27
   RCL 44
