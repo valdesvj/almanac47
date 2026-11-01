@@ -213,7 +213,7 @@ def navinit(kind):
 
 def moon():
     """build_struct_src's commented MOON47, the REM lines as ';' comments."""
-    com = B.commented_moon(B.build_moon())
+    com = B.commented_moon(B.build_moon(), v220=True)
     return commented(com[3:])
 
 

@@ -58,7 +58,7 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 
 MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: 2.2.1
+@ Version: 2.2.2
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
 @ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
@@ -67,6 +67,8 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @
 @@NARRATIVE@@
 @ ---- Technical notes ----
+@ 2.2.2: the disc drawn with two AGRAPH words a column (the outline and the lit part merged, each half one word
+@ 2^(b+1) - 2^a): the page in about 21 000 steps instead of 30 000 (3.6 s instead of 5.1 s), the same pixels.
 @ As MOON47 v2.2.0, and:
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
 @     STOS R.00 / RCLS R.00, from the SwissMicros forum);

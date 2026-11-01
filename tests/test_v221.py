@@ -35,8 +35,9 @@ def main():
     ok(m == B.build_moon(B.NEXT) and 'STOS R.00' in m and 'RCLS R.00' in m, 'c47/MOON47.txt: programs_struct/next/MOON47.txt')
     for n in ('ALMA47', 'MOON47'):
         h = get('c47', 'p47u', n + '.p47u')
-        ok('@ Version: 2.2.1' in h and any('forum' in l for l in h if l.startswith('@')),
-           'c47/p47u/%s.p47u: Version 2.2.1, the forum trick in the header' % n)
+        v = '2.2.2' if n == 'MOON47' else '2.2.1'                     # MOON47 2.2.2: the faster disc
+        ok('@ Version: %s' % v in h and any('forum' in l for l in h if l.startswith('@')),
+           'c47/p47u/%s.p47u: Version %s, the forum trick in the header' % (n, v))
     ok(get('c47', 'ALMA47_LABELS.txt')[0].startswith('ALMA47 v2.2.1'), 'c47/ALMA47_LABELS.txt: v2.2.1')
     S, I = R.little(V.LITTLE)
     ok(get('dm42', 'NAVLITTLE.txt') == S and 'STOS R.36' in S and 'RCLS R.36' in S,

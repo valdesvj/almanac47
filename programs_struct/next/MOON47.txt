@@ -1,61 +1,81 @@
 LBL 01
 STO 49
-X<>Y
+R↓
 STO 48
+RCL 48
 RCL 49
 X<Y?
 RTN
-RCL 48
-X≠0?
-IF
-  120
-  RCL 48
-  +
-  120
-  RCL 49
-  +
-  XEQ 02
-  XEQ 04
-  RCL 48
-  -
-  XEQ 02
-  RTN
-ENDIF
-XEQ 04
+RCL 45
 RCL 49
-+
+X≠Y?
+XEQ 04
+RCL 41
+RCL 48
+X<Y?
+STO 41
+RTN
+LBL 04
+RCL 41
+1
+-
+RCL 49
+X>Y?
+X<>Y
+STO 42
+99
+STO 48
+RTN
 LBL 02
-STO 51
-R↓
-STO 50
-REPEAT
-  RCL 51
-  RCL 50
-  -
-  1
-  +
-  60
-  X>Y?
-  X<>Y
-  STO 43
-  2ˣ
-  1
-  -
-  SINT
-  STO 52
-  RCL 50
-  RCL 44
-  80
-  +
-  AGRAPH 52
-  DROP
-  DROP
-  RCL 43
-  STO+ 50
-  RCL 50
-  RCL 51
-  X<Y?
-UNTIL
+RCL 45
+1
++
+2ˣ
+RCL 41
+2ˣ
+-
+RCL 42
+1
++
+2ˣ
++
+1
+-
+SINT
+STO 52
+63
+RCL 41
+-
+2ˣ
+62
+RCL 45
+-
+2ˣ
+-
+63
+2ˣ
++
+62
+RCL 42
+-
+2ˣ
+-
+SINT
+STO 53
+120
+RCL 44
+80
++
+AGRAPH 52
+DROP
+DROP
+58
+RCL 44
+80
++
+AGRAPH 53
+DROP
+DROP
 RTN
 LBL 03
 RCL 28
@@ -81,16 +101,14 @@ XEQ 34
 -62
 STO 44
 REPEAT
-  62.3
-  X↑2
+  3881.29
   RCL 44
   X↑2
   -
   SQRT
   IP
   STO 45
-  60.8
-  X↑2
+  3696.64
   RCL 44
   X↑2
   -
@@ -103,8 +121,9 @@ REPEAT
     1
     +
   ENDIF
-  RCL 45
-  XEQ 01
+  STO 41
+  -1
+  STO 42
   RCL 31
   RCL 44
   ×
@@ -157,18 +176,13 @@ REPEAT
       ENDIF
     ENDIF
   ENDIF
+  XEQ 02
   1
   STO+ 44
   62
   RCL 44
   X>Y?
 UNTIL
-RTN
-LBL 04
-120
-RCL 49
--
-120
 RTN
 LBL 05
 RCL 35

@@ -1,6 +1,6 @@
 @ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: 2.2.1
+@ Version: 2.2.2
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
 @ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
@@ -32,6 +32,8 @@
 @ it needs a C47 / R47 firmware with them (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
 @
 @ ---- Technical notes ----
+@ 2.2.2: the disc drawn with two AGRAPH words a column (the outline and the lit part merged, each half one word
+@ 2^(b+1) - 2^a): the page in about 21 000 steps instead of 30 000 (3.6 s instead of 5.1 s), the same pixels.
 @ As MOON47 v2.2.0, and:
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
 @     STOS R.00 / RCLS R.00, from the SwissMicros forum);
@@ -40,66 +42,86 @@
 @ M7W as v2.2.0 (M7T, M7C set to 0 at the end; TZ stays).
 @ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
 @
-LBL 01                  ; 01 one row of the disc between two columns (AGRAPH runs, 02) (called 4 times)
+LBL 01                  ; 01 a run of rows (Y = a, X = b, |y| from the centre) into the column: the outline [R45, R49] or the lit part (b = R49: R45 = the lower start; an inner part: 04) (called 3 times)
 STO 49
-X<>Y
+R↓
 STO 48
+RCL 48
 RCL 49
 X<Y?
 RTN
-RCL 48
-X≠0?
-IF 01
-  120
-  RCL 48
-  +
-  120
-  RCL 49
-  +
-  XEQ 02
-  XEQ 04
-  RCL 48
-  -
-  XEQ 02
-  RTN
-ENDIF 01
-XEQ 04
+RCL 45
 RCL 49
-+
-LBL 02                  ; 02 a run of columns of one row (AGRAPH, at most 60 a step) (called 2 times)
-STO 51
-R↓
-STO 50
-REPEAT 01               ; runs of at most 60 columns (one AGRAPH word) until the row's run is drawn
-  RCL 51
-  RCL 50
-  -
-  1
-  +
-  60
-  X>Y?
-  X<>Y
-  STO 43
-  2ˣ
-  1
-  -
-  SINT
-  STO 52
-  RCL 50
-  RCL 44
-  80
-  +
-  AGRAPH 52
-  DROP
-  DROP
-  RCL 43
-  STO+ 50
-  RCL 50
-  RCL 51
-  X<Y?
-UNTIL 01
+X≠Y?
+XEQ 04
+RCL 41
+RCL 48
+X<Y?
+STO 41
 RTN
-LBL 03                  ; 03 the disc: row by row, the edge of the Moon and the terminator from the age; turned for the south (called 1 time)
+LBL 04                  ; 04 an inner lit part [0, b] that does not reach the edge: kept in R46, ended one row before the outline (disjoint runs: the sum is their union) (called 1 time)
+RCL 41
+1
+-
+RCL 49
+X>Y?
+X<>Y
+STO 42
+99
+STO 48
+RTN
+LBL 02                  ; 02 the column R48 drawn: two AGRAPH words, the upper half (row 120 up) and the lower half (row 58 up), each the sum 2^(b+1) - 2^a of its runs (the outline and the inner lit part, disjoint) (called 1 time)
+RCL 45
+1
++
+2ˣ
+RCL 41
+2ˣ
+-
+RCL 42
+1
++
+2ˣ
++
+1
+-
+SINT
+STO 52
+63
+RCL 41
+-
+2ˣ
+62
+RCL 45
+-
+2ˣ
+-
+63
+2ˣ
++
+62
+RCL 42
+-
+2ˣ
+-
+SINT
+STO 53
+120
+RCL 44
+80
++
+AGRAPH 52
+DROP
+DROP
+58
+RCL 44
+80
++
+AGRAPH 53
+DROP
+DROP
+RTN
+LBL 03                  ; 03 the disc: column by column, the edge of the Moon and the terminator from the age; turned for the south (called 1 time)
 RCL 28
 29.530589
 ÷
@@ -122,31 +144,30 @@ X≠0?
 XEQ 34
 -62
 STO 44
-REPEAT 02               ; the disc row by row (R48 from -62 to 62): the Moon's edge (radius 62.3), then the lit part out to the terminator from the phase
-  62.3
-  X↑2
+REPEAT 01               ; the disc column by column (R48 from -62 to 62): the Moon's edge (radius 62.3), the outline run, the lit run out to the terminator from the phase, then the column drawn (02)
+  3881.29
   RCL 44
   X↑2
   -
   SQRT
   IP
   STO 45
-  60.8
-  X↑2
+  3696.64
   RCL 44
   X↑2
   -
   0
   X≤Y?
-  IF 02
+  IF 01
     X<>Y
     SQRT
     IP
     1
     +
-  ENDIF 02
-  RCL 45
-  XEQ 01
+  ENDIF 01
+  STO 41
+  -1
+  STO 42
   RCL 31
   RCL 44
   ×
@@ -160,34 +181,34 @@ REPEAT 02               ; the disc row by row (R48 from -62 to 62): the Moon's e
   STO 47
   RCL 30
   X≥0?
-  IF 03
+  IF 02
     RCL 46
     X>0?
-    IF 04
+    IF 03
       RCL 47
       X≥0?
-      IF 05
+      IF 04
         SQRT
         IP
         1
         +
-      ELSE 05
+      ELSE 04
         0
-      ENDIF 05
+      ENDIF 04
       RCL 45
       XEQ 01
-    ENDIF 04
-  ELSE 03
+    ENDIF 03
+  ELSE 02
     RCL 46
     X≥0?
-    IF 06
+    IF 05
       0
       RCL 45
       XEQ 01
-    ELSE 06
+    ELSE 05
       RCL 47
       X>0?
-      IF 07
+      IF 06
         SQRT
         IP
         RCL 45
@@ -196,21 +217,16 @@ REPEAT 02               ; the disc row by row (R48 from -62 to 62): the Moon's e
         0
         X<>Y
         XEQ 01
-      ENDIF 07
-    ENDIF 06
-  ENDIF 03
+      ENDIF 06
+    ENDIF 05
+  ENDIF 02
+  XEQ 02
   1
   STO+ 44
   62
   RCL 44
   X>Y?
-UNTIL 02
-RTN
-LBL 04                  ; 04 a column measured from the disc's centre (120) (called 2 times)
-120
-RCL 49
--
-120
+UNTIL 01
 RTN
 LBL 05                  ; 05 the text in R53 at row R35, column R34 (M7TX) (called 4 times)
 RCL 35
@@ -284,15 +300,15 @@ DROP
 RCL 52
 10
 X>Y?
-IF 08
+IF 07
   DROP
   DROP
   "0"
   XEQ 25
-ELSE 08
+ELSE 07
   DROP
   DROP
-ENDIF 08
+ENDIF 07
 RCL 52
 XEQ 06
 RTN
@@ -301,7 +317,7 @@ XEQ 28
 RCL 38
 98
 X≥Y?
-IF 09
+IF 08
   RCL 38
   60
   ×
@@ -322,16 +338,16 @@ IF 09
   60
   MOD
   XEQ 36
-ELSE 09
+ELSE 08
   "--:--"
   STO 53
-ENDIF 09
+ENDIF 08
 XEQ 05
 RTN
 LBL 16                  ; 16 the eight phase symbols in a row, today's one inverted (called 1 time)
 0
 STO 09
-REPEAT 03               ; the eight phase symbols (R13 = 0-7), 29 columns apart; today's (R33) inverted (35)
+REPEAT 02               ; the eight phase symbols (R13 = 0-7), 29 columns apart; today's (R33) inverted (35)
   26
   RCL 09
   29
@@ -354,7 +370,7 @@ REPEAT 03               ; the eight phase symbols (R13 = 0-7), 29 columns apart;
   8
   RCL 09
   X≥Y?
-UNTIL 03
+UNTIL 02
 RTN
 LBL 17                  ; 17 the time of day of a Julian Date as hh:mm (called 2 times)
 0.5
@@ -466,7 +482,7 @@ RTN
 LBL 20                  ; 20 the next four phases: symbol, date and time UT (called 1 time)
 0
 STO 09
-REPEAT 04               ; the next four phases (R13 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, month and time UT written
+REPEAT 03               ; the next four phases (R13 = 0-3): the symbol, its Julian Day to a calendar date (Meeus ch. 7), the day, month and time UT written
   RCL 09
   58
   +
@@ -565,7 +581,7 @@ REPEAT 04               ; the next four phases (R13 = 0-3): the symbol, its Juli
   4
   RCL 09
   X≥Y?
-UNTIL 04
+UNTIL 03
 RTN
 LBL 21                  ; 21 M7DT - TEXT: date dd-mm-yyyy from a Julian Date (called 1 time)
 XEQ 28
@@ -789,18 +805,18 @@ RTN
 LBL 29                  ; 29 the time zone TZ as +h or +h:mm (called 1 time)
 RCL 07
 X=0?
-IF 10
+IF 09
   XEQ 06
   RTN
-ENDIF 10
+ENDIF 09
 X≥0?
-IF 11
+IF 10
   DROP
   "+"
-ELSE 11
+ELSE 10
   DROP
   "-"
-ENDIF 11
+ENDIF 10
 XEQ 25
 RCL 07
 ABS
@@ -819,14 +835,14 @@ RCL 25
 MOD
 STO 25
 X≠0?
-IF 12
+IF 11
   DROP
   ":"
   XEQ 25
   RCL 25
   XEQ 14
   RTN
-ENDIF 12
+ENDIF 11
 DROP
 RTN
 LBL 30                  ; 30 the next new Moon, first quarter, full Moon and last quarter after now (called 1 time)
@@ -839,7 +855,7 @@ IP
 STO 42
 0
 STO 09
-REPEAT 05               ; the four phases after now in turn (R13 = 0-3): its kind (new, first quarter, full, last) and its time (23), kept for the page
+REPEAT 04               ; the four phases after now in turn (R13 = 0-3): its kind (new, first quarter, full, last) and its time (23), kept for the page
   RCL 42
   RCL 09
   +
@@ -874,7 +890,7 @@ REPEAT 05               ; the four phases after now in turn (R13 = 0-3): its kin
   4
   RCL 09
   X≥Y?
-UNTIL 05
+UNTIL 04
 RTN
 LBL "MOON47"            ; MOON47 - the Moon phase from the clock: disc, % lit, age, HP, SD, the next four phases (UT); +/- north / south, any other key ends
 LocR 09
@@ -905,7 +921,7 @@ XEQ 24
 GRFNT
 DROP
 XEQ 31
-REPEAT 06               ; the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, any other key ends
+REPEAT 05               ; the key loop: the page drawn (18), then a key; +/- turns the view (north / south) and draws it again, any other key ends
   CLLCD
   XEQ 18
   DO 02                 ; the key wait: PAUSE 50 shows the page, KEY? 43 reads the key
@@ -916,7 +932,7 @@ REPEAT 06               ; the key loop: the page drawn (18), then a key; +/- tur
   RCL 43
   43
   X≠Y?
-  IF 13
+  IF 12
     CLLCD
     20
     GRFNT
@@ -935,14 +951,14 @@ REPEAT 06               ; the key loop: the page drawn (18), then a key; +/- tur
     STO L
     RCLS R.00
     RTN
-  ENDIF 13
+  ENDIF 12
   1
   RCL 32
   -
   STO 32
   0
   X≠0?
-UNTIL 06
+UNTIL 05
 LBL 31                  ; 31 now: elongation, % lit, distance, HP, SD, the last new Moon and the age, the phase number (called 1 time)
 RCL 10
 XEQ 33
@@ -1251,32 +1267,32 @@ LBL 36                  ; 36 X (0-99) appended to R53 as two digits (called 4 ti
 STO 37
 10
 X>Y?
-IF 14
+IF 13
   "0"
   x→α 53
-ENDIF 14
+ENDIF 13
 RCL 37
 αIP 53
 RTN
 LBL 37                  ; 37 UT or LT for the clock line (called 1 time)
 RCL 07
 X=0?
-IF 15
+IF 14
   DROP
   "UT"
   RTN
-ENDIF 15
+ENDIF 14
 DROP
 "LT"
 RTN
 LBL 38                  ; 38 AS SEEN FROM THE NORTH / SOUTH (called 1 time)
 RCL 32
 X=0?
-IF 16
+IF 15
   DROP
   "AS SEEN FROM THE NORTH"
   RTN
-ENDIF 16
+ENDIF 15
 DROP
 "AS SEEN FROM THE SOUTH"
 RTN
@@ -1294,7 +1310,7 @@ STO 35
 RCL 38
 400
 X>Y?
-IF 17
+IF 16
   WSIZE 8
   1#2
   STO 36
@@ -1305,12 +1321,12 @@ IF 17
     DSE 38
   WHILE 04
   ENDDO 04
-ELSE 17
+ELSE 16
   RCL 35
   CHS
   0
   PIXEL
-ENDIF 17
+ENDIF 16
 WSIZE 64
 RCL 35
 RCL 34
