@@ -51,6 +51,44 @@
   footer a, .card a { color: var(--accent); }
   .warn { color: var(--now); }
   [hidden] { display: none !important; }
+  .sym { display: inline-block; width: 1.3em; text-align: center; }
+  .sym.sun { color: var(--sun); } .sym.moon { color: var(--moon); } .sym.pl { color: var(--accent); }
+  /* Vintage: the printed almanac - paper, ink, serif, ruled tables */
+  :root[data-style="vintage"] {
+    --paper: #efe6cf; --card: #f8f1de; --ink: #2a2118; --soft: #6e5f4b; --line: #cdbf9f; --grid: #e2d6b8;
+    --accent: #7d2c1c; --sun: #a4570b; --star: #2a2118; --moon: #4f4a42; --now: #9b2b17; --chip: #eadfc3;
+    --sky-day: #f3ead2; --sky-twi: #e3d6b6; --sky-night: #e9dfc4; --land: #b9aa86; --land-hi: #7d2c1c; --sea: #f3ead2;
+  }
+  :root[data-style="vintage"] body { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+    background: #efe6cf radial-gradient(ellipse at 50% 0%, #f6efdc 0%, #efe6cf 60%, #e9dec3 100%) no-repeat; min-height: 100vh; }
+  :root[data-style="vintage"], :root[data-style="calc"] { background: var(--paper); }
+  :root[data-style="vintage"] h1, :root[data-style="vintage"] .title h2 { font-variant: small-caps; letter-spacing: 0.04em; }
+  :root[data-style="vintage"] .card { border-radius: 2px; border: 1px solid #b9aa86; box-shadow: 0 1px 0 #fffaf0 inset, 0 2px 6px rgba(80,60,30,.12); }
+  :root[data-style="vintage"] table { border-top: 3px double var(--ink); border-bottom: 1px solid var(--ink); }
+  :root[data-style="vintage"] th { color: var(--ink); font-variant: small-caps; font-size: 14px; border-bottom: 1px solid var(--ink); }
+  :root[data-style="vintage"] .mono { font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; font-variant-numeric: lining-nums tabular-nums; }
+  :root[data-style="vintage"] select, :root[data-style="vintage"] input, :root[data-style="vintage"] button { border-radius: 2px; background: #fbf6e8; }
+  :root[data-style="vintage"] button.on { background: var(--accent); color: #fbf6e8; }
+  :root[data-style="vintage"] .tab { border-radius: 2px; }
+  /* Calculator: the C47 - LCD on the dark case */
+  :root[data-style="calc"] {
+    --paper: #232427; --card: #d9dcd2; --ink: #1c1f1c; --soft: #4b514b; --line: #b4b8ad; --grid: #c6c9bf;
+    --accent: #1c1f1c; --sun: #1c1f1c; --star: #1c1f1c; --moon: #1c1f1c; --now: #1c1f1c; --chip: #c6c9bf;
+    --land: #9da196; --land-hi: #1c1f1c; --sea: #d9dcd2;
+  }
+  :root[data-style="calc"] body { font-family: ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace; }
+  :root[data-style="calc"] header, :root[data-style="calc"] footer, :root[data-style="calc"] header label { color: #c9ccc2; }
+  :root[data-style="calc"] footer a { color: #e8ebe2; }
+  :root[data-style="calc"] h1 span { color: #8a8e86; }
+  :root[data-style="calc"] .card, :root[data-style="calc"] select, :root[data-style="calc"] input,
+  :root[data-style="calc"] button { border-radius: 3px; }
+  :root[data-style="calc"] button.on { background: #e8b23a; color: #1c1f1c; border-color: #e8b23a; }
+  :root[data-style="calc"] .tab { background: #3a3c40; color: #e8ebe2; border-color: #55585e; }
+  :root[data-style="calc"] .tab.on { background: #e8b23a; color: #1c1f1c; border-color: #e8b23a; }
+  .lcdcard { background: #2a2a2c !important; border-color: #3a3a3e !important; color: #c9ccc2; }
+  .lcdcard .meta, .lcdcard label { color: #b4b8ad; }
+  .lcdwrap canvas { display: block; width: 100%; max-width: 1236px; height: auto; image-rendering: pixelated; margin: 0 auto; }
+  .lcdcard .chips { align-items: center; }
   @media (max-width: 760px) { .two { grid-template-columns: 1fr; } h1 { width: 100%; } }
 </style>
 </head>
@@ -70,6 +108,12 @@
     <label for="zd">ZD</label>
     <input id="zd" class="small" type="text" title="Zone description: ZT + ZD = UT (e.g. -3 in UTC+3); empty = from the longitude">
   </div>
+  <div class="controls">
+    <label for="style">Style</label>
+    <select id="style" title="Modern; Vintage (the printed almanac); Calculator (the C47 screens of the PC app, pixel for pixel)">
+      <option value="modern">Modern</option><option value="vintage">Vintage</option><option value="calc">Calculator (nerd)</option>
+    </select>
+  </div>
 </header>
 <nav class="tabs" id="tabs"></nav>
 <main id="views"></main>
@@ -79,13 +123,16 @@
     <a href="https://github.com/valdesvj/zones47" target="_blank" rel="noopener">github.com/valdesvj/zones47</a> ·
     <a href="https://github.com/valdesvj" target="_blank" rel="noopener">github.com/valdesvj</a></div>
   <div>The same methods as the C47 / R47 programs: VSOP87D (truncated) and IAU 1980 nutation for the Sun, Hipparcos
-    J2000 stars with precession, nutation and aberration, Meeus for the Moon; time zones from the IANA tz database.
+    J2000 stars with precession, nutation and aberration, VSOP87D for the planets, Meeus 47 with the DE421 terms for the
+    Moon; the Calculator style runs the PC app's own Python (Pyodide); time zones from the IANA tz database.
     Time = UT1 (UTC + DUT1, within 0.9 s). <b>Not for navigation:</b> check against the Nautical Almanac.</div>
 </footer>
 <script src="data/navdata.js"></script>
+<script src="data/astro.js"></script>
 <script src="data/zones.js"></script>
 <script src="nav.js"></script>
 <script src="app.js"></script>
+<script src="calc.js"></script>
 <script src="zones.js"></script>
 </body>
 </html>

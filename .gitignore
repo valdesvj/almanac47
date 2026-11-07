@@ -17,3 +17,6 @@ build/free42/TBL_50.*
 build/dev/opt/free42/TBL_50.*
 .aider*
 tests/THANKS.txt
+
+# the web app: a local Pyodide (the Calculator style offline; see web/README.md)
+web/pyodide/

@@ -1099,3 +1099,11 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
 - web/app.js: Almanac (ALMF), Sky, Stars, Sun, Moon (MOON47); web/zones.js: ZONE47 from Zones 47's data
   (web/data/zones.js from a zones47 checkout), the places' times by Intl (the browser's tz database).
 - tests/test_web.py: 150 random dates and places against the Python: the ALMANAC page's text identical.
+- Styles (Nov 8): Modern, Vintage (CSS only: :root[data-style]) and Calculator. Modern / Vintage add the Moon and
+  the planets (nav.js moonPos / planet = c47astro MOON / PLAN, data/astro.js from c47data) and the symbols; the Sky is
+  the C47's horizon chart (sine altitude scale, celestial equator dotted, ALLSKY as an option), no longer a dome.
+- Calculator (web/calc.js): Pyodide 0.26.4 runs python/native unchanged (c47pc.Engine with build/TBL_5.txt, found
+  by c47tables.find('/a47')); the frames come back as 400 x 240 bytes and are drawn as render_rgb (scale 3, frame
+  6 px). Asks before the 10 MB download; web/pyodide/ (git-ignored) when served over http. ~60 ms a screen.
+- The time box showed 15:59:59 for 16:00 (cal() gives 15.99999999627 h, floored): rounded to the second now; a
+  second change event then moved the time by 1 s. tests/test_web_calc.py: 21 / 21 canvases identical to --png.

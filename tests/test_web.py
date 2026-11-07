@@ -3,12 +3,15 @@
 
 Random dates 1950-2100 and places: the Sun (GHA, Dec, GHA Aries, SD), all 58 stars (GHA, Dec, SHA), the events
 (nautical / civil twilight, rise, set, meridian passage), the Moon phase (nav.py), Hc / Zn, the ALMANAC page's
-strings (the same text), and MOON47's page (lit, age, HP, SD, the next phases).
+strings (the same text), MOON47's page (lit, age, HP, SD, the next phases), and the Moon and the planets against
+python/native/c47astro.py. The Calculator style runs that Python itself (Pyodide): tests/test_web_calc.py.
   python3 tests/test_web.py      (needs node; runs tools/make_web_data.py first)"""
 import json, os, random, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(ROOT, 'python'))
 import nav, moon47           # noqa: E402
+sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+import c47astro              # noqa: E402
 
 FAIL = []
 
@@ -20,7 +23,7 @@ def check(ok, what):
 
 
 JS = r"""
-require(process.argv[2] + '/data/navdata.js'); require(process.argv[2] + '/nav.js');
+require(process.argv[2] + '/data/navdata.js'); require(process.argv[2] + '/data/astro.js'); require(process.argv[2] + '/nav.js');
 const q = JSON.parse(require('fs').readFileSync(0, 'utf8'));
 const out = q.map(([j, lat, lon]) => {
   const s = NAV.sun(j);
@@ -28,7 +31,8 @@ const out = q.map(([j, lat, lon]) => {
   const j0 = Math.trunc(j - 0.5) + 0.5;
   const ev = {}; for (const k of Object.keys(NAV.EVENTS)) ev[k] = NAV.event(j0, lat, lon, k);
   return {sun: [s.gha, s.dec, s.aries, s.sd], stars, ev, phase: NAV.phase(j), hcz: NAV.hcz(lat, lon, s.dec, s.gha),
-          alm: NAV.almanac(j, lat, lon), moon: NAV.moonPage(j)};
+          alm: NAV.almanac(j, lat, lon), moon: NAV.moonPage(j),
+          mpos: NAV.moonPos(j, s), planets: [1, 2, 3, 4].map(p => NAV.planet(j, p, s))};
 });
 process.stdout.write(JSON.stringify(out));
 """
@@ -51,7 +55,7 @@ def main():
     finally:
         os.remove(js)
     out = json.loads(r.stdout)
-    ws = wst = we = wp = wh = wm = 0
+    ws = wst = we = wp = wh = wm = wmo = wpl = 0
     same_alm, nev = 0, 0
     for (j, lat, lon), g in zip(cases, out):
         s = nav.sun(j)
@@ -80,12 +84,20 @@ def main():
         m = g['moon']
         wm = max(wm, abs(p['lit'] - m['lit']), abs(p['age'] - m['age']), abs(p['hp'] - m['hp']), abs(p['sd'] - m['sd']),
                  max(abs(a[0] - b[0]) * 1440 for a, b in zip(p['next'], m['next'])))
+        cs = c47astro.Sun(j)
+        a, b = c47astro.moon(cs), g['mpos']
+        wmo = max(wmo, adiff(a[0], b[0]), abs(a[1] - b[1]), abs(a[2] - b[2]) / 60, abs(a[3] - b[3]) / 60)
+        for p in range(1, 5):
+            a, b = c47astro.planet(cs, p), g['planets'][p - 1]
+            wpl = max(wpl, adiff(a[0], b[0]), abs(a[1] - b[1]), adiff(a[2], b[2]), abs(a[3] - b[3]) / 60)
     print('%d random dates 1950-2100 and places' % len(cases))
     check(ws < 1e-9, 'the Sun: GHA, Dec, GHA Aries, SD within %.1g' % ws)
     check(wst < 1e-9, 'the 58 stars: GHA, Dec, SHA within %.1g degree' % wst)
     check(we < 1e-3, '%d events (twilights, rise, set, meridian passage) within %.1g s' % (nev, we))
     check(wp < 1e-6 and wh < 1e-9, 'the Moon phase within %.1g; Hc / Zn within %.1g' % (wp, wh))
     check(same_alm == len(cases), 'the ALMANAC page: the same text %d / %d' % (same_alm, len(cases)))
+    check(wmo < 1e-8, 'the Moon (c47astro MOON): GHA, Dec, HP, SD within %.1g degree' % wmo)
+    check(wpl < 1e-8, 'Venus, Mars, Jupiter, Saturn (c47astro PLAN): GHA, Dec, SHA, HP within %.1g degree' % wpl)
     check(wm < 1e-6, 'MOON47: lit, age, HP, SD and the next phases (minutes) within %.1g' % wm)
     print('ALL OK' if not FAIL else '%d FAILED' % len(FAIL))
     sys.exit(1 if FAIL else 0)

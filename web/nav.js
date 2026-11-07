@@ -283,6 +283,70 @@
       index: pyint(age / LUN * 8 + 0.5) % 8, next, elongation: e, name: NAMES[pyint(age / LUN * 8 + 0.5) % 8] };
   }
 
+  // ---- the Moon and the planets of python/native/c47astro.py (MOON, PLAN), when data/astro.js is loaded
+  const AD = root.ASTRODATA;
+  const dsin = x => sin(mod(x, 360) * D2R), dcos = x => cos(mod(x, 360) * D2R), dtan = x => tan(mod(x, 360) * D2R);
+  const horner = (c, T) => { let v = c[c.length - 1]; for (let i = c.length - 2; i >= 0; i--) v = v * T + c[i]; return v; };
+
+  // MOON / MOO2: [gha, dec, hp', sd'] at JD j (UT); s = sun(j)
+  function moonPos(j, s) {
+    s = s || sun(j);
+    const T = s.T;
+    const Lp = mod(horner([218.3164477, 481267.8812, -0.0015786, 1.855835024E-06, -1.533883486E-08], T), 360);
+    const D = mod(horner([297.8501921, 445267.1114, -0.0018819, 1.831944719E-06, -8.844469995E-09], T), 360);
+    const M = mod(horner([357.5291092, 35999.05029, -0.0001536, 4.083299306E-08], T), 360);
+    const Mp = mod(horner([134.9633964, 477198.8675, 0.0087414, 1.434740814E-05, -6.797172376E-08], T), 360);
+    const F = mod(horner([93.272095, 483202.0175, -0.0036539, -2.836074872E-07, 1.158332465E-09], T), 360);
+    const E = horner([1, -0.002516, -7.4E-06], T);
+    const acc = { 6: 0, 7: 0, 8: 0 };
+    for (const [tab, rs, rc] of [[AD.ML, 6, 7], [AD.MB, 8, 8], [AD.MCL, 6, 6], [AD.MCB, 8, 8]]) {
+      for (const [d, m, mp, f, cs, cc] of tab) {
+        const arg = d * D + m * M + mp * Mp + f * F, e = E ** Math.abs(m);
+        acc[rs] += cs * e * dsin(arg);
+        acc[rc] += cc * e * dcos(arg);
+      }
+    }
+    const A1 = T * 131.849 + 119.75;
+    acc[6] += dsin(A1) * 3958 + dsin(Lp - F) * 1962 + dsin(T * 479264.29 + 53.09) * 318 + (T * 367.1904613 + 56.41732779);
+    acc[8] += dsin(Lp) * -2235 + dsin(T * 481266.484 + 313.45) * 382 + dsin(A1 - F) * 175 + dsin(A1 + F) * 175 +
+      dsin(Lp - Mp) * 127 + dsin(Lp + Mp) * -115 + (T * 40.04748125 + -9.463218981);
+    const lam = acc[6] / 1e6 + Lp + s.dpsi / 3600, bet = acc[8] / 1e6, dist = acc[7] / 1000 + 385000.56;
+    const dec = asin(dsin(bet) * dcos(s.eps) + dcos(bet) * dsin(s.eps) * dsin(lam)) * R2D;
+    const ra = atan2(dsin(lam) * dcos(s.eps) - dtan(bet) * dsin(s.eps), dcos(lam)) * R2D;
+    return [mod(s.aries - ra + 360, 360), dec, asin(6378.14 / dist) * R2D * 60, 358473400 / dist / 60];
+  }
+
+  const PSER = { 1: ['VNL', 'VNB', 'VNR'], 2: ['MAL', 'MAB', 'MAR'], 3: ['JUL', 'JUB', 'JUR'], 4: ['SAL', 'SAB', 'SAR'] };
+  const PLANETS = { 1: 'VENUS', 2: 'MARS', 3: 'JUPITER', 4: 'SATURN' };
+
+  // PLAN: p = 1 Venus, 2 Mars, 3 Jupiter, 4 Saturn: [gha, dec, sha, hp'] at JD j (UT)
+  function planet(j, p, s) {
+    s = s || sun(j);
+    const T = s.T, tau = T / 10;
+    const L0 = ser(AD.EEL, tau), B0 = ser(AD.EEB, tau), R0 = ser(AD.EER, tau);
+    const [sl, sb, sr] = PSER[p].map(n => AD[n]);
+    let lt = 0, x, y, z, dist;
+    for (let k = 0; k < 2; k++) {
+      const tp = tau - lt / 365250;
+      const L = ser(sl, tp), B = ser(sb, tp), R = ser(sr, tp);
+      x = R * cos(B) * cos(L) - R0 * cos(B0) * cos(L0);
+      y = R * cos(B) * sin(L) - R0 * cos(B0) * sin(L0);
+      z = R * sin(B) - R0 * sin(B0);
+      dist = (x * x + y * y + z * z) ** 0.5;
+      lt = dist * 0.0057755183;
+    }
+    let lam = mod(atan2(y, x) * R2D + 360, 360), bet = atan2(z, Math.hypot(x, y)) * R2D;
+    const lp = lam - T * 1.397;                                          // FK5
+    lam += ((dcos(lp) + dsin(lp)) * dtan(bet) * 0.03916 - 0.09033) / 3600;
+    bet += (dcos(lp) - dsin(lp)) * 0.03916 / 3600;
+    const sn = L0 * 57.29577951308232 + 180, e = T * -0.000042037 + 0.016708634, pi = T * 1.71946 + 102.93735;
+    lam += ((dcos(sn - lam) * -20.49552 + dcos(pi - lam) * e * 20.49552) / dcos(bet) + s.dpsi) / 3600;   // aberration
+    bet += (dsin(sn - lam) - dsin(pi - lam) * e) * dsin(bet) * -20.49552 / 3600;
+    const dec = asin(dsin(bet) * dcos(s.eps) + dcos(bet) * dsin(s.eps) * dsin(lam)) * R2D;
+    const ra = mod(atan2(dsin(lam) * dcos(s.eps) - dtan(bet) * dsin(s.eps), dcos(lam)) * R2D + 360, 360);
+    return [mod(s.aries - ra + 360, 360), dec, mod(360 - ra, 360), 8.794 / dist / 60];
+  }
+
   root.NAV = { jd, sun, star, event, phase, hcz, bodies, cal, almanac, phaseIndex, daylight, moonword,
-    fdm, fns, fzn, fhm, f1, fdate, moon, phaseTime, moonPage, SN, BR, NBODY, EVENTS, NAMES, LUN };
+    fdm, fns, fzn, fhm, f1, fdate, moon, phaseTime, moonPage, moonPos, planet, PLANETS, SN, BR, NBODY, EVENTS, NAMES, LUN };
 })(typeof window !== 'undefined' ? window : globalThis);
