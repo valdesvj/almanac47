@@ -42,6 +42,20 @@
   const latText = v => NAV.fns(v, 'NS', 0).replace(/^([NS])\s*/, '$1 ');
   const lonText = v => NAV.fns(v, 'EW', 0).replace(/^([EW])\s*/, '$1 ');
   const dm = v => NAV.fdm(v) + '′';
+  // the times of the day's events: UT, or LT = the zone time of the ZD (ZT + ZD = UT), for that local day
+  const ltMode = () => S.tmode === 'lt';
+  const tLabel = () => ltMode() ? `LT (ZD ${zdText(zdOf())})` : 'UT';
+  function dayEvent(lat, lon, k) {
+    if (!ltMode()) return NAV.event(Math.trunc(S.j - 0.5) + 0.5, lat, lon, k);
+    const zd = zdOf(), jl = Math.trunc(S.j - zd / 24 - 0.5) + 0.5;      // 0h of the local date, as a UT day
+    for (const d of [0, -1, 1]) {
+      const u = NAV.event(jl + d, lat, lon, k);
+      if (u === null || u === undefined) continue;
+      const t = u + 24 * d - zd;
+      if (t >= 0 && t < 24) return t;
+    }
+    return null;
+  }
 
   function setInputs() {
     const [y, m, d, h] = NAV.cal(S.j + 0.5 / 86400);      // to the nearest second (16:00:00, not 15:59:59)
@@ -49,6 +63,8 @@
     const s = Math.floor(h * 3600);
     $('time').value = `${p2(Math.floor(s / 3600) % 24)}:${p2(Math.floor(s / 60) % 60)}:${p2(s % 60)}`;
     $('live').classList.toggle('on', S.live);
+    $('tmode').textContent = ltMode() ? 'Times: LT' : 'Times: UT';
+    $('tmode').classList.toggle('on', ltMode());
   }
 
   // ---- views ----
@@ -133,10 +149,8 @@
       }
     });
     h += '</table></div>';
-    h += '<table><tr><th>Sun (UT / ZT)</th><th class="num">Naut twi</th><th class="num">Rise</th><th class="num">Mer pass</th><th class="num">Set</th><th class="num">Naut twi</th><th class="num">SD</th></tr>';
-    const j0 = Math.trunc(S.j - 0.5) + 0.5;
-    const ev = k => NAV.event(j0, lat, lon, k);
-    const both = k => { const u = ev(k); return `${NAV.fhm(u)}<br><span class="meta">${NAV.fhm(zt(u))}</span>`; };
+    h += `<table><tr><th>Sun, ${tLabel()}</th>` + '<th class="num">Naut twi</th><th class="num">Rise</th><th class="num">Mer pass</th><th class="num">Set</th><th class="num">Naut twi</th><th class="num">SD</th></tr>';
+    const both = k => NAV.fhm(dayEvent(lat, lon, k));
     h += `<tr><td>this day</td><td class="num mono">${both('nauam')}</td><td class="num mono">${both('rise')}</td>` +
       `<td class="num mono">${both('tran')}</td><td class="num mono">${both('set')}</td><td class="num mono">${both('naupm')}</td>` +
       `<td class="num mono">${foot[5]}′</td></tr></table>`;
@@ -309,7 +323,6 @@
     const [lat, lon] = S.pos;
     const s = NAV.sun(S.j);
     const [hc, zn] = NAV.hcz(lat, lon, s.dec, s.gha);
-    const j0 = Math.trunc(S.j - 0.5) + 0.5;
     const rows = [['nauam', 'Nautical twilight (morning)'], ['civam', 'Civil twilight (morning)'], ['rise', 'Sunrise'],
       ['tran', 'Meridian passage'], ['set', 'Sunset'], ['civpm', 'Civil twilight (evening)'], ['naupm', 'Nautical twilight (evening)']];
     let h = headCard('Sun') + `<div class="chips"><span class="chip now">${NAV.daylight(hc)}</span></div>`;
@@ -317,8 +330,8 @@
       `<tr><td>GHA</td><td class="num mono">${dm(s.gha)}</td></tr><tr><td>Dec</td><td class="num mono">${NAV.fns(s.dec)}′</td></tr>` +
       `<tr><td>SD</td><td class="num mono">${NAV.f1(s.sd)}′</td></tr><tr><td>Hc</td><td class="num mono">${dm(hc)}</td></tr>` +
       `<tr><td>Zn</td><td class="num mono">${NAV.fzn(zn)}°</td></tr><tr><td>GHA Aries</td><td class="num mono">${dm(s.aries)}</td></tr></table>`;
-    h += '<table><tr><th>This day</th><th class="num">UT</th><th class="num">ZT</th></tr>';
-    for (const [k, t] of rows) { const u = NAV.event(j0, lat, lon, k); h += `<tr><td>${t}</td><td class="num mono">${NAV.fhm(u)}</td><td class="num mono">${NAV.fhm(zt(u))}</td></tr>`; }
+    h += `<table><tr><th>This day</th><th class="num">${tLabel()}</th></tr>`;
+    for (const [k, t] of rows) h += `<tr><td>${t}</td><td class="num mono">${NAV.fhm(dayEvent(lat, lon, k))}</td></tr>`;
     h += '</table></div><div class="meta">Rise and set: the upper limb on the horizon (−50′); civil −6°, nautical −12°. --:-- = none this day.</div>';
     el.innerHTML = `<section class="card">${h}</section>`;
   }
@@ -343,11 +356,10 @@
     h += `<table><tr><th>${sym('MOON')} Now</th><th class="num"></th></tr><tr><td>GHA</td><td class="num mono">${dm(mo.g)}</td></tr>` +
       `<tr><td>Dec</td><td class="num mono">${NAV.fns(mo.d)}′</td></tr><tr><td>Hc</td><td class="num mono">${dm(mo.hc)}</td></tr>` +
       `<tr><td>Zn</td><td class="num mono">${NAV.fzn(mo.zn)}°</td></tr></table>`;
-    h += '<table><tr><th>Next</th><th class="num">UT</th><th class="num">ZT</th></tr>';
+    h += `<table><tr><th>Next</th><th class="num">${tLabel()}</th></tr>`;
     for (const [t, name] of p.next) {
-      const [y, m, d, hh] = NAV.cal(t);
-      const [y2, m2, d2] = NAV.cal(t - zdOf() / 24);
-      h += `<tr><td>${name}</td><td class="num mono">${p2(d)}-${p2(m)} ${NAV.fhm(hh)}</td><td class="num mono">${p2(d2)}-${p2(m2)} ${NAV.fhm(zt(hh))}</td></tr>`;
+      const [, m, d, hh] = NAV.cal(ltMode() ? t - zdOf() / 24 : t);
+      h += `<tr><td>${name}</td><td class="num mono">${p2(d)}-${p2(m)} ${NAV.fhm(hh)}</td></tr>`;
     }
     h += '</table></div></div><div class="meta">MOON47: 20 terms of Meeus ch. 47; the phase does not depend on the place. HP and SD for the altitude corrections. ' +
       'GHA, Dec, Hc and Zn: the full Moon of the C47 (Meeus 47 + the DE421 terms).</div>';
@@ -390,6 +402,7 @@
       store.set('zd', S.zd); render();
     };
     $('style').onchange = () => setStyle($('style').value);
+    $('tmode').onclick = () => { S.tmode = ltMode() ? 'ut' : 'lt'; store.set('tmode', S.tmode); render(); };
     document.addEventListener('keydown', e => {
       if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
       if (e.key === '+' || e.key === '=') { S.live = false; S.j += 1 / 24; render(); }
@@ -415,6 +428,7 @@
   $('pos').value = S.posText;
   S.zd = store.get('zd'); if (S.zd !== null && S.zd !== undefined) $('zd').value = S.zd; else S.zd = null;
   S.south = !!store.get('south');
+  S.tmode = store.get('tmode') === 'lt' ? 'lt' : 'ut';
   S.skymode = ['horizon', 'all', 'dome'].includes(store.get('skymode')) ? store.get('skymode') : 'horizon';
   S.cview = store.get('cview') || 'ALMANAC';
   globalThis.A47 = { S, addView, render, store, headCard, p2, mod, zdOf, zdText, DAYS, setStyle, setCview, SYM, sym, parsePos };

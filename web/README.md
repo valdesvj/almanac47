@@ -51,7 +51,8 @@ address>:8047`.
 | **Zones** | ZONE47: the dot map in 24 columns of 15°, the 38 stops (the official offsets, −12 at sea), every stop's places with their local time and summer time now; your zone ▲; ← → the stop, ↑ ↓ the place |
 
 The top: **Now** follows the clock (UT from the computer), the time ticking every second and the view following it
-(every 5 s; the Calculator screens every 10 s); a second press stops it, so does a date, a UT or ±1 h; ±1 h; the **DR** (`27 12.0N 049
+(every 5 s; the Calculator screens every 10 s); a second press stops it, so does a date, a UT or ±1 h; **Times: UT / LT** shows sunrise, sunset, twilight, meridian passage and the
+Moon's phases in UT or in LT (the zone time of the ZD: ZT + ZD = UT; LT gives the events of the local date); ±1 h; the **DR** (`27 12.0N 049
 42.0E` or `27.2 49.7`) and the **ZD** (zone description: ZT + ZD = UT; empty: from the DR's longitude). Keys: + / −
 one hour.
 
