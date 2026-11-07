@@ -1,0 +1,21 @@
+# An EXAMPLE platform file for the Route chart - the positions are made up (around the field centres of gem.wiki),
+# they are NOT real platforms. Your own file: one platform a line, the name and the position, in any of these forms:
+#   name, lat, lon                 (decimal degrees, S and W negative)
+#   name  27 12.345N 049 42.123E   (degrees and minutes)
+# KML, GPX and GeoJSON points work too, and tide47's web/data/private.js (its stations).
+name, lat, lon
+EX-BR-1, 27.105, 49.652
+EX-BR-2, 27.128, 49.618
+EX-BR-3, 27.090, 49.600
+EX-KR-1, 27.731, 49.812
+EX-KR-2, 27.705, 49.840
+EX-MN-1, 27.722, 48.995
+EX-MN-2, 27.700, 48.970
+EX-AS-1, 26.802, 50.420
+EX-AS-2, 26.775, 50.445
+EX-HS-1, 28.150, 49.930
+EX-MJ-1, 28.445, 49.660
+EX-ZL-1, 28.600, 49.070
+EX-SF-1, 28.270, 48.760
+EX-SF-2, 28.300, 48.790
+EX-WP   26 38.10N 050 09.00E

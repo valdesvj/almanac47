@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Almanac 47</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
 <style>
   :root {
     --paper: #f4f3ee; --card: #ffffff; --ink: #1b2129; --soft: #697381; --line: #e2e0d8; --grid: #ebe8e0;
@@ -29,7 +31,7 @@
   input.pos { width: 11.5em; } input.small { width: 4.5em; }
   .tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 0 16px; }
   .tab { border-radius: 999px; padding: 4px 14px; }
-  main { padding: 0 16px 24px; max-width: 1100px; }
+  main { padding: 0 16px 24px; max-width: 1100px; } main.wide { max-width: 1600px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-top: 10px; }
   .title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 16px; align-items: baseline; }
   .title h2 { margin: 0; font-size: 21px; }
@@ -89,6 +91,13 @@
   .lcdcard .meta, .lcdcard label { color: #b4b8ad; }
   .lcdwrap canvas { display: block; width: 100%; max-width: 1236px; height: auto; image-rendering: pixelated; margin: 0 auto; }
   .lcdcard .chips { align-items: center; }
+  .rsplit { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 12px; margin-top: 8px; align-items: start; }
+  .rtab table { margin-top: 0; } .rtab th, .rtab td { padding: 4px 5px; font-size: 13px; }
+  table.rt input { padding: 2px 4px; border-radius: 4px; font-size: 13px; width: 5.5em; }
+  .filebtn { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; color: var(--ink); background: var(--card); }
+  .filebtn:hover { border-color: var(--accent); }
+  :root[data-style="vintage"] .filebtn { border-radius: 2px; background: #fbf6e8; }
+  :root[data-style="vintage"] body, :root[data-style="vintage"] .mono { font-family: "IM Fell English", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif; }
   @media (max-width: 760px) { .two { grid-template-columns: 1fr; } h1 { width: 100%; } }
 </style>
 </head>
@@ -124,15 +133,18 @@
     <a href="https://github.com/valdesvj" target="_blank" rel="noopener">github.com/valdesvj</a></div>
   <div>The same methods as the C47 / R47 programs: VSOP87D (truncated) and IAU 1980 nutation for the Sun, Hipparcos
     J2000 stars with precession, nutation and aberration, VSOP87D for the planets, Meeus 47 with the DE421 terms for the
-    Moon; the Calculator style runs the PC app's own Python (Pyodide); time zones from the IANA tz database.
+    Moon; the Calculator style runs the PC app's own Python (Pyodide); Route: NAV47's passage planning on the GSHHG
+    coastline (Wessel and Smith, LGPL-3.0, the shoreline of GMT); time zones from the IANA tz database.
     Time = UT1 (UTC + DUT1, within 0.9 s). <b>Not for navigation:</b> check against the Nautical Almanac.</div>
 </footer>
 <script src="data/navdata.js"></script>
 <script src="data/astro.js"></script>
 <script src="data/zones.js"></script>
+<script src="data/coast.js"></script>
 <script src="nav.js"></script>
 <script src="app.js"></script>
 <script src="calc.js"></script>
 <script src="zones.js"></script>
+<script src="route.js"></script>
 </body>
 </html>

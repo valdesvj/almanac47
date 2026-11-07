@@ -47,17 +47,37 @@ address>:8047`.
 | **Stars** | the 57 navigational stars and Polaris: SHA, GHA, Dec, Hc, Zn, brightness; sortable |
 | **Sun** | GHA, Dec, SD, Hc, Zn now; the day's twilights, rise, meridian passage and set in UT and ZT |
 | **Moon** | MOON47: the disc (northern or southern view), lit %, age, HP, SD, the next four phases in UT and ZT |
+| **Route** | passage planning as NAV47's ROUTE: waypoints (typed, the DR, or clicked on the chart; dragged to move; named), course (true) and distance of each leg and the total, **RL** (Mercator sailing, WGS84 meridional parts) or **GC** (initial course); SOG and ETD (the time at the top) give each ETA in UT and ZT. **Split** (chart and table side by side), **Chart** or **Table**. The chart: the GSHHG coastline (as GMT draws it: full resolution in the Gulf, intermediate in the Middle East, low elsewhere), the ports, the oil and gas fields, your platforms with their 500 m zones (the radius can be changed): a leg through a zone is flagged ⚠. Files: open / save NAV47's `ROUTE.TXT`, GPX; **Load platforms** (below) |
 | **Zones** | ZONE47: the dot map in 24 columns of 15°, the 38 stops (the official offsets, −12 at sea), every stop's places with their local time and summer time now; your zone ▲; ← → the stop, ↑ ↓ the place |
 
-The top: **Now** follows the clock (UT from the computer), or a date and a UT; ±1 h; the **DR** (`27 12.0N 049
+The top: **Now** follows the clock (UT from the computer), the time ticking every second and the view following it
+(every 5 s; the Calculator screens every 10 s); a second press stops it, so does a date, a UT or ±1 h; ±1 h; the **DR** (`27 12.0N 049
 42.0E` or `27.2 49.7`) and the **ZD** (zone description: ZT + ZD = UT; empty: from the DR's longitude). Keys: + / −
 one hour.
+
+## Route: your platforms
+
+**Load platforms** reads one or more files: a CSV or text file (one platform a line: `name, lat, lon` in decimal
+degrees, or `name 27 12.345N 049 42.123E`), KML, GPX or GeoJSON points, or Tide 47's `web/data/private.js` (its
+stations: Ras Tanura, Jubail, Abu Ali, Tanajib, West Pier ... are then drawn at their exact positions, as ports).
+They stay in this browser (localStorage) and are never sent anywhere; **Forget platforms** removes them. An example
+with made-up positions: `web/examples/platforms_example.csv`, and a route: `web/examples/route_example.txt`.
+
+The ports are drawn at approximate public positions and the fields at the centres given by the Global Energy Monitor
+wiki (gem.wiki): to find your way, not to navigate. The Vintage style draws the chart as an old one: paper, water
+lines along the coast, hatched land, a compass rose with its rhumb lines, a cartouche, and sea monsters in the open
+water (a sea serpent marks a leg through a zone: "Here be dangers").
+
+![Route](../docs/WEB_route.png)
+![Route, Vintage](../docs/WEB_route_vintage.png)
 
 ## Data
 
 `python3 tools/make_web_data.py [--zones ~/opt/zones47]` writes `web/data/navdata.js` from `python/navdata.py`,
 `web/data/astro.js` (the planets and the Moon) from `python/native/c47data.py`, `web/data/pysrc.js` and `web/data/tbl.js`
-(the Calculator style's Python and tables), and `web/data/zones.js` from a Zones 47 checkout (its `python/zones.py`, IANA tzdata, and `python/worldmap.py`). The
+(the Calculator style's Python and tables), and `web/data/zones.js`. `python3 tools/make_coast.py` writes
+`web/data/coast.js`, the coastline of the Route chart, from GSHHG 2.3.7 through GMT (`gmt coast -M -W`: Arch `gmt` and
+`gshhg-gmt`; Debian / Ubuntu `gmt gmt-gshhg-full`); GSHHG is LGPL-3.0 (Wessel and Smith; `web/data/gshhg/`) from a Zones 47 checkout (its `python/zones.py`, IANA tzdata, and `python/worldmap.py`). The
 places' local times and summer time come from the browser's own tz database (Intl), so they follow the rules in force.
 
 ## Checked
@@ -65,6 +85,9 @@ places' local times and summer time come from the browser's own tz database (Int
 `python3 tests/test_web.py` (node): 150 random dates 1950-2100 and places against the Python: the Sun, the 58 stars
 (1E-11°), 1050 events (1E-8 s), Hc / Zn, the ALMANAC page's text (the same, character for character), MOON47, and the
 Moon and the planets against `python/native/c47astro.py` (1E-10°).
+
+`python3 tests/test_route.py [--nav47 ~/opt/nav47.pg5]`: 605 legs against NAV47's own `src/route.c` (compiled):
+course and distance, RL and GC, within 1E-9; the platform files in each format.
 
 `python3 tests/test_web_calc.py` (Chromium, needs `web/pyodide/`): the Calculator style's canvas against
 `c47pc.py --png` for 3 dates and places (north, south, west) and 7 views: 21 / 21 identical, pixel for pixel.

@@ -91,5 +91,6 @@ firmware (GPL-3.0, `programs/LICENSE-PTXS.txt`). See `NOTICE`.
 The same methods in JavaScript, with Zones 47's time zones: the ALMANAC page, the sky, the 58 stars, the Sun's day,
 MOON47 and the world time zones in one page for Chrome or a phone, with the Moon and the planets and their symbols.
 Three styles: Modern, Vintage (the printed almanac) and Calculator, the PC app's C47 screens pixel for pixel (its own
-Python, run in the browser by Pyodide). Open `web/index.html`; see `web/README.md`.
+Python, run in the browser by Pyodide). **Route**: NAV47's passage planning on the GSHHG coastline (as GMT), with the
+ports, fields and your own platforms' 500 m zones. Open `web/index.html`; see `web/README.md`.
 

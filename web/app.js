@@ -360,13 +360,15 @@
     if (S.live) S.j = jdNow();
     setInputs();
     const el = $('views');
+    el.classList.toggle('wide', S.view === 'route');
     if (S.style === 'calc' && S.view === 'calc' && globalThis.A47.CALC) return globalThis.A47.CALC.render(el, S);
     const v = VIEWS.find(x => x.id === S.view) || VIEWS[0];
     v.render(el, S);
   }
 
   function bind() {
-    $('live').onclick = () => { S.live = !S.live; render(); };
+    // Now: back to the clock (a second press stops it); the time ticks every second, the view follows
+    $('live').onclick = () => { S.live = !S.live; S.j = jdNow(); render(); };
     const fromInputs = () => {
       const [y, m, d] = $('date').value.split('-').map(Number);
       const [hh, mm, ss] = ($('time').value || '0:0:0').split(':').map(Number);
@@ -395,7 +397,16 @@
     });
     let rt = null;
     window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
-    setInterval(() => { if (S.live) render(); }, 15000);
+    let ticks = 0;
+    setInterval(() => {
+      if (!S.live) return;
+      S.j = jdNow();
+      const busy = document.activeElement && $('views').contains(document.activeElement) &&
+        /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName);
+      const every = S.style === 'calc' && S.view === 'calc' ? 10 : 5;         // the views every 5 s (the C47 screens 10 s)
+      if (++ticks % every === 0 && !busy && S.view !== 'route') render();
+      else if (!['date', 'time'].includes(document.activeElement && document.activeElement.id)) setInputs();
+    }, 1000);
   }
 
   // ---- start ----
@@ -406,7 +417,7 @@
   S.south = !!store.get('south');
   S.skymode = ['horizon', 'all', 'dome'].includes(store.get('skymode')) ? store.get('skymode') : 'horizon';
   S.cview = store.get('cview') || 'ALMANAC';
-  globalThis.A47 = { S, addView, render, store, headCard, p2, mod, zdOf, zdText, DAYS, setStyle, setCview, SYM, sym };
+  globalThis.A47 = { S, addView, render, store, headCard, p2, mod, zdOf, zdText, DAYS, setStyle, setCview, SYM, sym, parsePos };
   bind();
   // calc.js and zones.js add themselves, then the style and the first render
   setTimeout(() => setStyle(['modern', 'vintage', 'calc'].includes(store.get('style')) ? store.get('style') : 'modern'), 0);

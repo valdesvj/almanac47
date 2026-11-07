@@ -1107,3 +1107,12 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
   6 px). Asks before the 10 MB download; web/pyodide/ (git-ignored) when served over http. ~60 ms a screen.
 - The time box showed 15:59:59 for 16:00 (cal() gives 15.99999999627 h, floored): rounded to the second now; a
   second change event then moved the time by 1 s. tests/test_web_calc.py: 21 / 21 canvases identical to --png.
+- Route (web/route.js, Nov 8): NAV47's src/route.c in JS (tests/test_route.py compiles the C: 605 legs to 1E-9).
+  The chart is a canvas, Mercator, panned and zoomed by hand. Coast: tools/make_coast.py dumps GSHHG through GMT
+  (gmt coast -M -W: pieces bin by bin), joins them end to start; the pieces that run edge to edge of the box are
+  closed round its corners on the side without any of the SEA points (the other side is the sea). Three layers:
+  full in 47.5-53 E 24.5-29.6 N, intermediate in 30-75 E 5-40 N, low lines elsewhere; each clipped to its ring of
+  boxes, the shore stroked without the box edges. Platforms: the user's files, localStorage only (never in git).
+  Vintage: the monsters go where 7 points round them are sea (isPointInPath) and nothing else is near.
+- Now: a press always goes back to the clock; the time ticks every second, the view every 5 s (10 s for the
+  Calculator screens; not the Route, nor while typing in the page).
