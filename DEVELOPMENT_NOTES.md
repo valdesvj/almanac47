@@ -1092,3 +1092,10 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
   stays 2.2.1; test_v221 knows it). v2.2.0's files and comments (build/forum/MOON47.p47u, MOON47_COMMENTED.txt) keep
   their own texts (struct_comments.MOON_V220, MOON_LOOPS_V220).
 
+## Nov 8, 2026 - the web app (branch claude/alma47-web)
+
+- web/nav.js: python/nav.py and python/moon47.py line for line (Python int() as Math.trunc, // as floor); the
+  coefficients from python/navdata.py (tools/make_web_data.py -> web/data/navdata.js).
+- web/app.js: Almanac (ALMF), Sky, Stars, Sun, Moon (MOON47); web/zones.js: ZONE47 from Zones 47's data
+  (web/data/zones.js from a zones47 checkout), the places' times by Intl (the browser's tz database).
+- tests/test_web.py: 150 random dates and places against the Python: the ALMANAC page's text identical.
