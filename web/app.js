@@ -13,7 +13,7 @@
   const jdNow = () => Date.now() / 864e5 + 2440587.5;
 
   const S = { live: true, j: jdNow(), pos: [27.2, 49.7], posText: '27 12.0N 049 42.0E', zd: null, view: 'almanac', south: false,
-    style: 'modern', cview: 'ALMANAC', allsky: false };
+    style: 'modern', cview: 'ALMANAC', skymode: 'horizon' };
 
   // ---- inputs ----
   function parsePos(s) {
@@ -159,12 +159,20 @@
   // The original Alma47 sky (the C47's CHART / SKY / ALLSKY): azimuth across (N E S W N; S W N E S south of the
   // equator), altitude up on the sine scale (marks at 10 20 30 45 60 90), the celestial equator dotted, the bodies
   // with their symbols and the stars with their almanac numbers. All sky: below the horizon too, mirrored.
+  // the Sky tab's three ways: the horizon chart, the whole sky (ALLSKY), the dome (zenith in the centre)
+  const skyModes = () => [['horizon', 'Above the horizon'], ['all', 'All sky'], ['dome', 'Dome']].map(([m, t]) =>
+    `<button class="skym${S.skymode === m ? ' on' : ''}" data-m="${m}">${t}</button>`).join('');
+  const bindModes = () => document.querySelectorAll('button.skym').forEach(b => {
+    b.onclick = () => { S.skymode = b.dataset.m; store.set('skymode', S.skymode); render(); };
+  });
+
   function renderSky(el) {
+    if (S.skymode === 'dome') return renderDome(el);
     const [stars, s] = starsNow();
     const sol = solar(s);
     const sun = sol[0];
     const dl = NAV.daylight(sun.hc);
-    const all = S.allsky;
+    const all = S.skymode === 'all';
     const W = Math.round(Math.min(1000, (el.getBoundingClientRect().width || 900) - 34));
     const L = 34, R = W - 14, T = 22, HS = Math.round((W - 48) * (all ? 0.22 : 0.4));
     const HB = T + HS, H = HB + (all ? HS : 0) + 34;
@@ -228,12 +236,56 @@
     t += '</table></div>';
     const up = stars.filter(x => x.hc > 10).length;
     el.innerHTML = `<section class="card">${headCard('Sky', dl)}<div class="chips"><span class="chip now">${dl}</span><span class="chip">${up} stars above 10°</span>` +
-      `<button id="allsky" class="${all ? 'on' : ''}">${all ? 'All sky' : 'Above the horizon'}</button></div>` +
+      `${skyModes()}</div>` +
       `<svg viewBox="0 0 ${W} ${H}" style="margin-top:8px">${g}</svg>${t}` +
       '<div class="meta">The Alma47 sky: azimuth across, altitude up on the C47\'s sine scale, the celestial equator dotted, ' +
-      'the stars with their almanac numbers. Hover a body for its Hc and Zn. All sky (the ALLSKY view): below the horizon too.</div></section>';
-    $('allsky').onclick = () => { S.allsky = !S.allsky; store.set('allsky', S.allsky); render(); };
+      'the stars with their almanac numbers. Hover a body for its Hc and Zn. All sky (the ALLSKY view): below the horizon too; Dome: the zenith in the centre.</div></section>';
+    bindModes();
   }
+
+  function renderDome(el) {
+    const [stars, s] = starsNow();
+    const [shc, szn] = NAV.hcz(S.pos[0], S.pos[1], s.dec, s.gha);
+    const dl = NAV.daylight(shc);
+    const W = Math.round(Math.min(640, (el.getBoundingClientRect().width || 640) - 34));
+    const R = W / 2 - 30, c = W / 2;
+    const P = (hc, zn) => { const r = R * (90 - hc) / 90, a = zn * Math.PI / 180; return [c + r * Math.sin(a), c - r * Math.cos(a)]; };
+    const bg = dl === 'DAY' ? 'var(--sky-day)' : dl === 'TWILIGHT' ? 'var(--sky-twi)' : 'var(--sky-night)';
+    const fg = dl === 'DAY' ? '#1b2129' : '#e7ebf0';
+    let g = `<circle cx="${c}" cy="${c}" r="${R}" fill="${bg}"/>`;
+    for (const a of [30, 60]) g += `<circle cx="${c}" cy="${c}" r="${R * (90 - a) / 90}" fill="none" stroke="${fg}" stroke-opacity="0.25"/>`;
+    for (let z = 0; z < 360; z += 30) { const [x, y] = P(0, z); g += `<line x1="${c}" y1="${c}" x2="${x}" y2="${y}" stroke="${fg}" stroke-opacity="0.12"/>`; }
+    [['N', 0], ['E', 90], ['S', 180], ['W', 270]].forEach(([t, z]) => {
+      const a = z * Math.PI / 180, x = c + (R + 16) * Math.sin(a), y = c - (R + 16) * Math.cos(a);
+      g += `<text x="${x}" y="${y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="var(--soft)">${t}</text>`;
+    });
+    for (const st of stars.filter(x => x.hc > 0).sort((a, b) => b.rank - a.rank)) {
+      const [x, y] = P(st.hc, st.zn);
+      const rr = Math.max(1.6, 5 - st.rank / 13);
+      g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rr.toFixed(1)}" fill="${fg}"><title>${st.n} ${st.name}  Hc ${NAV.fdm(st.hc)}′  Zn ${NAV.fzn(st.zn)}°</title></circle>`;
+      const right = x > c + R * 0.55;
+      if (st.rank < 24) g += `<text x="${(right ? x - rr - 3 : x + rr + 3).toFixed(1)}" y="${(y + 4).toFixed(1)}" text-anchor="${right ? 'end' : 'start'}" font-size="11" fill="${fg}" fill-opacity="0.85">${st.name}</text>`;
+    }
+    if (shc > -1) {
+      const [x, y] = P(Math.max(shc, 0), szn);
+      g += `<circle cx="${x}" cy="${y}" r="9" fill="var(--sun)"/><text x="${x + 12}" y="${y + 4}" font-size="12" font-weight="700" fill="${fg}">SUN</text>`;
+    }
+    for (const b of solar(s).slice(1)) {
+      if (b.hc <= 0) continue;
+      const [x, y] = P(b.hc, b.zn);
+      const col = b.name === 'MOON' ? (dl === 'DAY' ? 'var(--moon)' : '#f2efe4') : (dl === 'DAY' ? 'var(--accent)' : '#9fd0ff');
+      g += `<text x="${x.toFixed(1)}" y="${(y + 7).toFixed(1)}" text-anchor="middle" font-size="${b.name === 'MOON' ? 22 : 18}" font-weight="700" fill="${col}">${SYM[b.name]}<title>${b.name}  Hc ${NAV.fdm(b.hc)}′  Zn ${NAV.fzn(b.zn)}°</title></text>` +
+        `<text x="${(x + 12).toFixed(1)}" y="${(y + 4).toFixed(1)}" font-size="11" font-weight="600" fill="${col}">${b.name}</text>`;
+    }
+    g += `<circle cx="${c}" cy="${c}" r="${R}" fill="none" stroke="var(--soft)"/>`;
+    const up = stars.filter(x => x.hc > 10).length;
+    el.innerHTML = `<section class="card">${headCard('Sky', dl)}<div class="chips"><span class="chip">${up} stars above 10°</span>` +
+      `<span class="chip">Sun Hc ${NAV.fdm(shc)}′ Zn ${NAV.fzn(szn)}°</span>${skyModes()}</div>` +
+      `<svg viewBox="0 0 ${W} ${W}" style="max-width:${W}px;margin:8px auto 0">${g}</svg>` +
+      '<div class="meta">The sky from the DR: the zenith at the centre, the horizon round the edge, north up (rings at 30° and 60°). Hover a star for its Hc and Zn.</div></section>';
+    bindModes();
+  }
+
 
   let sortKey = 'rank', sortDir = 1;
   function renderStars(el) {
@@ -352,7 +404,7 @@
   $('pos').value = S.posText;
   S.zd = store.get('zd'); if (S.zd !== null && S.zd !== undefined) $('zd').value = S.zd; else S.zd = null;
   S.south = !!store.get('south');
-  S.allsky = !!store.get('allsky');
+  S.skymode = ['horizon', 'all', 'dome'].includes(store.get('skymode')) ? store.get('skymode') : 'horizon';
   S.cview = store.get('cview') || 'ALMANAC';
   globalThis.A47 = { S, addView, render, store, headCard, p2, mod, zdOf, zdText, DAYS, setStyle, setCview, SYM, sym };
   bind();

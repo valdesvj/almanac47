@@ -43,7 +43,7 @@ address>:8047`.
 | Tab | |
 |---|---|
 | **Almanac** | the C47's ALMANAC page (ALMF): GHA Aries; the Sun, the Moon (HP), Venus, Mars, Jupiter, Saturn (grey below the horizon) and the brightest stars more than 10° high, GHA, Dec, Hc, Zn; nautical twilight, rise, meridian passage, set (UT and ZT), the Sun's SD; DAY / TWILIGHT / NIGHT; the Moon |
-| **Sky** | the Alma47 sky (the C47's CHART / SKY): azimuth across N E S W N (S W N E S south of the equator), altitude up on the sine scale (10 20 30 45 60 90), the celestial equator dotted, the Sun, the Moon, the planets with their symbols, the 58 stars ★ with their numbers; **All sky** (ALLSKY): below the horizon too; the bodies of the ALMANAC page with Hc and Zn |
+| **Sky** | the Alma47 sky (the C47's CHART / SKY): azimuth across N E S W N (S W N E S south of the equator), altitude up on the sine scale (10 20 30 45 60 90), the celestial equator dotted, the Sun, the Moon, the planets with their symbols, the 58 stars ★ with their numbers; **All sky** (ALLSKY): below the horizon too; **Dome**: the sky from the DR with the zenith in the centre, north up, the stars by brightness, the Moon and the planets; the bodies of the ALMANAC page with Hc and Zn |
 | **Stars** | the 57 navigational stars and Polaris: SHA, GHA, Dec, Hc, Zn, brightness; sortable |
 | **Sun** | GHA, Dec, SD, Hc, Zn now; the day's twilights, rise, meridian passage and set in UT and ZT |
 | **Moon** | MOON47: the disc (northern or southern view), lit %, age, HP, SD, the next four phases in UT and ZT |
