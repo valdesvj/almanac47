@@ -20,3 +20,4 @@ tests/THANKS.txt
 
 # the web app: a local Pyodide (the Calculator style offline; see web/README.md)
 web/pyodide/
+gmt.history
