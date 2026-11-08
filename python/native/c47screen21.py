@@ -14,6 +14,7 @@ from c47fonts21 import F21, TINY, SYMB, SYMS
 
 NBODY = 8
 TIMES = {'tz': 0.0, 'local': False}     # the UT / LT switch (+/-, the variables TZ and TZLT): set_times()
+HEAD = {'next': False}                  # the header of the next version (programs_struct/next/HDR.txt): set_header()
 LUN = 29.530589
 PHASE_NAMES = ('NEW MOON', 'WAXING CRESCENT', 'FIRST QUARTER', 'WAXING GIBBOUS', 'FULL MOON',
                'WANING GIBBOUS', 'LAST QUARTER', 'WANING CRESCENT')
@@ -117,16 +118,42 @@ def shown(h):
     return h if h > 98 or not TIMES['local'] else (h + TIMES['tz']) % 24
 
 
-def header(sc, al, j=None, lat=None, lon=None, source=None, uth=None):
-    """date, time (UT, or LT with set_times), DR, N lat, E lon at row 226, T / S at 388, the line under (221)."""
-    T = top_x()
+def set_header(next_=False):
+    """The header of ALMA47's next version (programs_struct/next/HDR.txt, as NAV47's top bar): the date and time on
+    the left, the view's name inverted in the middle, the position from x 224 (no DR), T / S at 388. False: v2.2.0's."""
+    HEAD['next'] = bool(next_)
+
+
+NEXT_N = 224                                         # the next header: N of the position at x 224 (ends <= 372)
+
+
+def name_x(name):
+    """the next header: the view's name centred at x 176, between UT (ends at 136) and the position (224)"""
+    return (352 - width(name)) // 2
+
+
+def header(sc, al, j=None, lat=None, lon=None, source=None, uth=None, name=None):
+    """date, time (UT, or LT with set_times), DR, N lat, E lon at row 226, T / S at 388, the line under (221).
+    With set_header(True): no DR, the position from x 224, and the view's name inverted between (rows 224-239)."""
+    T = dict(top_x())
+    if HEAD['next']:
+        d = NEXT_N - T['N']
+        for k in ('N', 'lat', 'E', 'lon'):
+            T[k] += d
     j = al.j if j is None else j
     lat = al.lat if lat is None else lat
     lon = al.lon if lon is None else lon
     sc.pdat(226, T['date'], j + shown_tz() / 24.0)
     sc.phm(226, T['time'], shown(ut_hours(j) if uth is None else uth))
     sc.text(226, T['UT'], 'LT' if TIMES['local'] else 'UT')
-    sc.text(226, T['DR'], 'DR')
+    if not HEAD['next']:
+        sc.text(226, T['DR'], 'DR')
+    elif name:
+        x, w = name_x(name), width(name)
+        sc.xor_box(224, x - 2, w + 4, 16)             # GRMOD 3 + AGRAPH: the box, then the name flipped (ATEXT)
+        t = Screen(F21)
+        t.text(226, x, name)
+        sc.pix ^= t.pix
     sc.text(226, T['N'], 'S' if lat < 0 else 'N'); sc.pdm(226, T['lat'], abs(lat))
     sc.text(226, T['E'], 'W' if lon < 0 else 'E'); sc.pdm(226, T['lon'], abs(lon))
     sc.text(226, 388, al.source if source is None else source)
@@ -148,7 +175,7 @@ def almanac(al):
     NX, GX, NSX, DX, HX, ZX = X['name'], X['gha'], X['ns'], X['dec'], X['hc'], X['zn']
     TOP, PITCH, ROWS = 193, 16, NBODY + 1
     s, t = al.sun, al.times
-    header(sc, al)
+    header(sc, al, name='ALMANAC')
     for k, w in (('name', 'BODY'), ('hGHA', 'GHA'), ('hDEC', 'DEC'), ('hHC', 'HC'), ('hZN', 'ZN')):
         sc.text(207, X[k], w)
     sc.text(TOP, NX, 'ARIES'); sc.pdm(TOP, GX, s.aries)
@@ -287,7 +314,7 @@ def sky_frames(al):
             if ident == 0:
                 w = daylight(hc)
                 sc.text(4, state_x(w), w)
-    header(sc, al, al.j)
+    header(sc, al, al.j, name='SKY')
     names = []
     for ident, g, d, hc, zn in rows:
         if hc <= 0:
@@ -316,7 +343,7 @@ def split(al):
     X = table_x()
     NX, GX, NSX, DX, HX, ZX = X['name'], X['gha'], X['ns'], X['dec'], X['hc'], X['zn']
     HY, HS, TOP = 144, 68, 107
-    header(sc, al)
+    header(sc, al, name='SPLIT')
     sc.hline(HY, 20, 376)
     for y in range(HY, HY + HS + 1, 3):
         sc.pixel(y, 18)
@@ -411,7 +438,7 @@ def anim(al, frames=24, step=0.5):
         g, d = A.moon_quick(_Quick(j))
         _, xm, ym = pos(d, g)
         sc.pix = {p for p in sc.pix if p[1] < 224 and p[1] > 15}
-        header(sc, al, j, uth=uth)
+        header(sc, al, j, uth=uth, name='ANIM')
         w = daylight(hs)
         sc.text(4, state_x(w), w)
         sc.glyph(SYMS, '@', ys - 3, xs - 3)
@@ -427,7 +454,7 @@ def allsky(al):
     off = 180 if al.lat < 0 else 0
     sky_chart(sc, off)
     s = al.sun
-    header(sc, al)
+    header(sc, al, name='ALLSKY')
 
     def pos(dec, gha):
         hc, zn, sh = al.hczs(dec, gha)

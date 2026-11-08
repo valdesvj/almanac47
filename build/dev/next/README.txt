@@ -19,7 +19,10 @@ New, compared with v2.2.0:
   - On ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun, 2-8 the next rows; a body below the
     horizon too). ALMA47 ends and pushes on your stack: Z its text (e.g. SUN Zn 216.7 Hc 54 11.6), Y its Zn,
     X its Hc, in decimal degrees.
-  The other keys as v2.2.0. 9006 steps (v2.2.0: 8734).
+  - The header of every view as NAV47's top bar: the date and time (UT / LT) on the left, the view's name
+    inverted in the middle (ALMANAC, SPLIT, SKY, ANIM, ALLSKY), the position on the right (from x 224, no "DR"),
+    T / S at the end as before. The menu's second line: the position moved the same way.
+  The other keys as v2.2.0. 9116 steps (v2.2.0: 8734).
 
 MOON47, new compared with v2.2.0 (the same page and keys):
   - Your stack (X Y Z T, and A B C D with the 8-level stack) and LASTx are as before XEQ "MOON47" when it ends
@@ -27,8 +30,8 @@ MOON47, new compared with v2.2.0 (the same page and keys):
   - MOON47 uses the registers R07-R65 (v2.2.0: R03-R61, not cleared) and clears only those when it ends
     (R-CLR 7.59): R00-R06 and R66-R99 stay yours. 1465 steps (v2.2.0: 1436).
 
-Tested in the C47 simulator only (tests/test_struct_src.py next_version): every page pixel for pixel v2.2.0, the
-stack (4 levels in the simulator), LASTx and the registers, the keys 1-8 against the PC almanac (python/native);
+Tested in the C47 simulator only (tests/test_struct_src.py next_version): every page pixel for pixel v2.2.0 (but the new header,
+checked pixel for pixel too), the stack (4 levels in the simulator), LASTx and the registers, the keys 1-8 against the PC almanac (python/native);
 MOON47 (tests/test_struct_src.py moon_next) its page pixel for pixel v2.2.0, the stack, LASTx and the registers.
 Still to do: rejig, the firmware simulator, the calculator.
 

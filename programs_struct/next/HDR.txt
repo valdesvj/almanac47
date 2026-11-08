@@ -1,5 +1,5 @@
 LBL "N83"
-LocR 06
+LocR 08
 STO R.00
 R↓
 STO R.01
@@ -45,16 +45,93 @@ X<>Y
 RCL 66
 +
 X<>Y
+RCL R.00
+RCL 73
+X=Y?
+IF
+  "ALMANAC"
+  STO R.04
+  142
+  STO R.05
+  72
+  STO R.07
+  RCL "V3"
+  RCL 44
+  X=Y?
+  IF
+    "SPLIT"
+    STO R.04
+    156
+    STO R.05
+    44
+    STO R.07
+  ENDIF
+  RCL "V3"
+  RCL 51
+  X=Y?
+  IF
+    "SKY"
+    STO R.04
+    162
+    STO R.05
+    32
+    STO R.07
+  ENDIF
+  RCL "V3"
+  RCL 66
+  X=Y?
+  IF
+    "ANIM"
+    STO R.04
+    158
+    STO R.05
+    40
+    STO R.07
+  ENDIF
+  RCL "V3"
+  RCL 88
+  X=Y?
+  IF
+    "ALLSKY"
+    STO R.04
+    149
+    STO R.05
+    58
+    STO R.07
+  ENDIF
+  RCL 51
+  GRMOD 01
+  1111111111111111#2
+  STO R.06
+  RCL R.00
+  2
+  -
+  RCL R.05
+  2
+  -
+  DO
+    AGRAPH R.06
+    DSE R.07
+  WHILE
+  ENDDO
+  RCL R.04
+  RCL R.00
+  RCL- 66
+  RCL R.05
+  ATEXT Z
+  RCL 46
+  GRMOD 01
+ENDIF
 RCL "HT"
 STRI?
 IF
 ELSE
-  "DR   N"
+  "N"
   STO R.04
   RCL R.02
   X<0?
   IF
-    "DR   S"
+    "S"
     STO R.04
   ENDIF
   RCL R.02
@@ -155,7 +232,7 @@ ENDIF
 RCL "HT"
 RCL R.00
 RCL- 66
-RCL 60
+224
 ATEXT Z
 X<>Y
 RCL 66

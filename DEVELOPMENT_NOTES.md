@@ -1158,3 +1158,13 @@ before (the shift and its mod 24 only in LT).
   test_web_calc.py (two LT cases, 14 screens identical to c47pc --lt). Simulator, f42run and Chromium only: rejig,
   the firmware test and the calculators still to do.
 
+### Next version: the header as NAV47's top bar (C47 / R47 only)
+- programs_struct/next/HDR.txt (N83): no "DR"; the position from x 224 (old N at 182 -> +42, so a 3-digit longitude
+  still ends before T / S at 388); on a view (row 226) the view's name from "V3" (1-5: ALMANAC SPLIT SKY ANIM ALLSKY)
+  centred at x 176, inverted: GRMOD 3, AGRAPH a 16-row column pattern (rows 224-239: ANIM's CLLCDxy 224 clears it every
+  frame, so the XOR never piles up), ATEXT the name (flipped), GRMOD 0. LocR 08 (R.06 pattern, R.07 columns).
+  The menu (row 206): the position moved the same way, no name.
+- python/native/c47screen21.py set_header(True): the same name box (header(..., name=)); off by default, so v2.2.0,
+  the web app and Free42 are unchanged. Its position was never pixel for pixel the RPN's (N at 168, the RPN's at 182).
+- tests/test_struct_src.py next_header(): each next screen is v2.2.0's, or v2.2.0's with the header band changed
+  exactly so (DR gone, position +42, the name box of name_pixels()). The old DM42 next (dm42/) and Free42 unchanged.

@@ -12,7 +12,8 @@
      and python/moon47.py at 16 dates and time zones, north and south
   5. 16 random dates (2000-2049), times and places (65 S - 65 N), FULL and FAST, pages 1-5 with an hour arrow
 
-  6. programs_struct/next/ (the next version, tools/build_next.py): its build, every page pixel for pixel as v2.2.0,
+  6. programs_struct/next/ (the next version, tools/build_next.py): its build, every page pixel for pixel as v2.2.0
+     but its header (as NAV47's top bar: no DR, the position from x 224, the view's name inverted in the middle),
      your stack, LASTx and R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT against python/native; its MOON47
      (programs_struct/next/MOON47.txt) pixel for pixel v2.2.0, your stack, LASTx and R00-R06 / R66-R99 kept
 
@@ -69,6 +70,43 @@ def source():
     return L
 
 
+NAMES = ('ALMANAC', 'SPLIT', 'SKY', 'ANIM', 'ALLSKY')
+
+
+def name_pixels(name):
+    """the next header's view name (programs_struct/next/HDR.txt, c47screen21.header with set_header(True)): the
+    box rows 224-239 from x - 2, width + 4 columns, flipped (GRMOD 3), then the name flipped; rows from the top"""
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen21 as N
+    x, w = N.name_x(name), N.width(name)
+    t = N.Screen(N.F21)
+    t.text(226, x, name)
+    box = {(x - 2 + i, 224 + j) for i in range(w + 4) for j in range(16)}
+    return frozenset((px, 239 - py) for px, py in box ^ t.pix)
+
+
+def next_header(ref, new):
+    """the next version's screen against v2.2.0's: the same, or the same with the next header: in the header's band
+    (rows 0-17 on a view, 18-37 on the menu) right of x 137 the DR gone, the position 42 columns right (182 -> 224),
+    T / S at 388 as it was; on a view the name in the middle (one of NAMES)"""
+    if new == ref:
+        return True
+    for lo, hi, names in ((0, 18, NAMES), (18, 38, (None,))):
+        moved = set()
+        for x, y in ref:
+            if lo <= y < hi and x >= 137:
+                if x >= 388:
+                    moved.add((x, y))
+                elif x >= 182:
+                    moved.add((x + 42, y))
+            else:
+                moved.add((x, y))
+        for n in names:
+            if new == (frozenset(moved) ^ name_pixels(n) if n else frozenset(moved)):
+                return True
+    return False
+
+
 def pages(B_, title='build/dev/struct_src', picks=False):
     import test_v2 as V
     print('== %s against 18_hourglass' % title)
@@ -89,7 +127,9 @@ def pages(B_, title='build/dev/struct_src', picks=False):
             c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
             c.run('NAV', maxsteps=10 ** 8)
             frames = [frozenset((x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400) for f in c.frames]
-            ok(frames == a[0] and all(x == 0 for x in c.s), '%s %s %s %s %s: %d screens pixel for pixel, stack clear'
+            same = frames == a[0] if not picks else len(frames) == len(a[0]) and all(
+                next_header(r, f) for r, f in zip(a[0], frames))
+            ok(same and all(x == 0 for x in c.s), '%s %s %s %s %s: %d screens pixel for pixel, stack clear'
                % (init, dt, la, lo, name, len(frames)))
     K = V.K
     for keys, what in (([K['up'], K['down'], K['down'], K[1], K['+'], K[0]], 'menu: arrows, ALMANAC'),
@@ -101,12 +141,13 @@ def pages(B_, title='build/dev/struct_src', picks=False):
                        ([11, 21, 31, 41, 71, 81, K[1], K['+'], K[0]], 'menu: keys that are no view')):
         a = V.session(A, keys, 'FULL', False, marks=False)
         b = V.session(B_, keys, 'FULL', False, marks=False)
-        ok(a[0] == b[0] and b[2], '%s: %d screens pixel for pixel, stack clear' % (what, len(b[0])))
+        same = a[0] == b[0] if not picks else len(a[0]) == len(b[0]) and all(next_header(r, f) for r, f in zip(a[0], b[0]))
+        ok(same and b[2], '%s: %d screens pixel for pixel, stack clear' % (what, len(b[0])))
     st = [i for i, l in enumerate(B_) if S.op(l) in S.OPENERS]
     print('  structures entered on these pages: %d of %d' % (len([i for i in st if i in ran]), len(st)))
 
 
-def places(B_, n, title='build/dev/struct_src'):
+def places(B_, n, title='build/dev/struct_src', next_=False):
     import test_v2 as V
     print('== %s against 18_hourglass at %d random dates and places' % (title, n))
     A = V.lines(REF)
@@ -121,7 +162,8 @@ def places(B_, n, title='build/dev/struct_src'):
             keys = [V.K[p], V.K['up'], V.K['+'], V.K[0]]
             a = V.session(A, keys, init, False, inp, marks=False)
             b = V.session(B_, keys, init, False, inp, marks=False)
-            same.append(a[0] == b[0] and b[2])
+            same.append((a[0] == b[0] if not next_ else len(a[0]) == len(b[0]) and
+                         all(next_header(r, f) for r, f in zip(a[0], b[0]))) and b[2])
         ok(all(same), '%s %s %s %s %s: pages 1-5 pixel for pixel' % ((init,) + tuple(v for _, v in inp)))
 
 
@@ -290,7 +332,7 @@ def next_version(n):
     keys(L)
     times(L)
     pages(L, 'programs_struct/next', picks=True)
-    places(L, n, 'programs_struct/next')
+    places(L, n, 'programs_struct/next', next_=True)
     moon_next(n)
 
 
