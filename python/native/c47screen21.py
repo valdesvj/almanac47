@@ -458,15 +458,24 @@ def moon_disc(sc, cx, cy, r, age, south=False):
                 sc.pixel(cy + y, cx + dx); sc.pixel(cy - y, cx + dx)
 
 
-def moon47_screen(j, south=False, tz=None):
+def moon47_screen(j, south=False, tz=None, local=None):
     """MOON47: the phase as a disc, its name, % lit, age, Moon HP and SD, the next four phases
     and the eight phase glyphs with today's one inverted. j: JD (UT); tz: hours, the header shows the clock
-    (LT = UT + tz, or UT when tz = 0) and TZ=; None (the MOON view of NAV): UT only."""
+    (LT = UT + tz, or UT when tz = 0) and TZ=; None (the MOON view of NAV): UT only.
+    local: the UT / LT switch of MOON47 v2.2.3 (+/-, the variable TZLT): True every time in LT = UT + tz (the header
+    and the next phases), False every time in UT; None: v2.2.2 (the header as above, the phases in UT)."""
     p = M47.page(j, south)
     sc = Screen(F21)
     T = top_x()
-    lt = j + (tz or 0) / 24.0                  # the clock: UT when TZ = 0, else local time
-    sc.pdat(226, T['date'], lt); sc.phm(226, T['time'], ut_hours(lt)); sc.text(226, T['UT'], 'LT' if tz else 'UT')
+    if local is None:
+        lt = j + (tz or 0) / 24.0              # the clock: UT when TZ = 0, else local time
+        name = 'LT' if tz else 'UT'
+        shift = 0.0
+    else:
+        shift = (tz or 0) / 24.0 if local else 0.0
+        lt = j + shift
+        name = 'LT' if local else 'UT'
+    sc.pdat(226, T['date'], lt); sc.phm(226, T['time'], ut_hours(lt)); sc.text(226, T['UT'], name)
     if tz is not None:
         sc.text(226, T['DR'], 'TZ=' + M47.tz_text(tz))
     sc.pixel(-221, 0)
@@ -477,9 +486,13 @@ def moon47_screen(j, south=False, tz=None):
     x = sc.text(166, 168, 'HP '); x = sc.pf1(166, x, p['hp']); x = sc.text(166, x, "'  SD ")
     x = sc.pf1(166, x, p['sd']); sc.text(166, x, "'")
     sc.hline(156, 168, 230)
-    sc.text(139, 168, 'NEXT PHASES (UT)')
+    if local is None:
+        sc.text(139, 168, 'NEXT PHASES (UT)')
+    else:
+        x = sc.text(139, 168, 'NEXT PHASES ('); x = sc.text(139, x, name); sc.text(139, x, ')')
     y = 121
     for t, name in p['next']:
+        t += shift
         d, m, yr = jd_to_date(t)
         sc.text(y, 168, name)
         x = sc.text(y, 300, '%02d-%02d ' % (d, m))

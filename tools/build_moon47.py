@@ -85,13 +85,18 @@ def main_program(f42=False):
          'REM "MOON47: the Moon phase now (clock, minus TZ hours if TZ exists); +/- north / south view; other keys end"']
     P += (['SIZE 100', 'DEG'] if f42 else ['SSIZE#', 'STO 29', 'SSIZE8', 'DEG', 'WSIZE 64'])
     P += clock(f42) + ['STO 06', '0', 'STO 28']
+    if f42:   # the UT / LT switch (+/-): R04, kept in the variable TZLT (0 UT, 1 LT; flag 25 ignores a missing TZLT)
+        P += ['0', 'STO 04', 'SF 25', 'RCL "TZLT"', 'STO 04', 'CF 25']
     P += (['3', 'STO "GrMod"', '0', 'STO "RefLCD"', 'XEQ 29'] if f42 else ['21', 'GRFNT', 'DROP', 'XEQ 29'])
     P += ['LBL 01', 'CLLCD', 'XEQ 30'] + (['-1', 'STO "RefLCD"'] if f42 else [])
-    P += (['LBL 02', 'GETKEY', '15', 'X=Y?', 'GTO 04'] if f42 else       # Free42: GETKEY waits; +/- is 15
+    P += (['LBL 02', 'GETKEY', '15', 'X=Y?', 'GTO 05', 'R↓', '34', 'X=Y?', 'GTO 04'] if f42 else
+          # Free42: GETKEY waits; +/- (15) UT / LT, 0 (34) north / south
           ['LBL 02', 'PAUSE 50', 'KEY? 39', 'GTO 02', 'RCL 39', '43', 'X=Y?', 'GTO 04'])   # C47: the key read in a PAUSE
     P += (['CLLCD', '0', 'STO "GrMod"', '7', 'STO "RefLCD"', 'CLST', 'CLD', 'RTN'] if f42 else
           ['CLLCD', '20', 'GRFNT', 'DROP', 'RCL 29', '4', 'X=Y?', 'SSIZE4', 'CLSTK', 'RTN'])
     P += ['LBL 04', '1', 'RCL 28', '-', 'STO 28', 'GTO 01']
+    if f42:
+        P += ['LBL 05', '1', 'RCL 04', '-', 'STO 04', 'STO "TZLT"', 'GTO 01']
     if f42:
         P += ['LBL 10', '12', 'STO+ 41', '1', 'STO- 43', 'RTN',
               'REM "LBL 47: Y row of the base line, X column -> the minute mark (2 x 5 + 1 x 1 pixels); Y row, X next column"',
@@ -118,7 +123,7 @@ def main_program(f42=False):
          'XEQ 75', 'RTN',
          # ---------------------------------------------------------------- the page
          'LBL 30',
-         'RCL 06', 'RCL 03', '24', '÷', '+', 'STO 37',        # the clock: UT, or LT = UT + TZ
+         'RCL 06', 'RCL 03'] + (['RCL× 04'] if f42 else []) + ['24', '÷', '+', 'STO 37',   # the clock: UT, or LT = UT + TZ
          '226', '2', 'RCL 37', DT,
          '226', '79', 'RCL 37', '0.5', '+', '1', 'MOD', '24', '×', HM,
          '226', '118', 'XEQ 11', TX,
@@ -129,7 +134,7 @@ def main_program(f42=False):
          '183', '168', '"LIT "', TX, 'RCL 18', IN, '"%   AGE "', TX, 'RCL 24', F1, '" DAYS"', TX,
          '166', '168', '"HP "', TX, 'RCL 19', F1] + AP + ['"  SD "', TX, 'RCL 20', F1] + AP + [
          '156', '168', '230', HL,
-         '139', '168', '"NEXT PHASES (UT)"', TX,
+         '139', '168'] + (['"NEXT PHASES ("', TX, 'XEQ 11', TX, '")"', TX] if f42 else ['"NEXT PHASES (UT)"', TX]) + [
          'XEQ 45', 'XEQ 85',
          '6', '168', 'XEQ 32', TX,
          'RTN',
@@ -137,7 +142,7 @@ def main_program(f42=False):
          'LBL 32', 'RCL 28', 'X≠0?', 'GTO 34', 'DROP', '"AS SEEN FROM THE NORTH"', 'RTN',
          'LBL 34', 'DROP', '"AS SEEN FROM THE SOUTH"', 'RTN',
          'LBL 35', '1', 'CHS', 'STO× 27', 'RTN',
-         'LBL 11', 'RCL 03', 'X≠0?', 'GTO 13', 'DROP', '"UT"', 'RTN',
+         'LBL 11', 'RCL 04' if f42 else 'RCL 03', 'X≠0?', 'GTO 13', 'DROP', '"UT"', 'RTN',
          'LBL 13', 'DROP', '"LT"', 'RTN',
          # LBL 12: Y row, X column -> TZ as 0, +4, -5, +5:30 (R21 its minutes)
          'LBL 12', 'RCL 03', 'X≠0?', 'GTO 14', IN, 'RTN',
@@ -222,7 +227,8 @@ def main_program(f42=False):
          'LBL 84', 'RCL 44', LUN, '+', '2', '-', 'RCL 37', '90', '×', 'XEQ 42', 'STO 44', 'RTN',
          'REM "LBL 45: the four phases: name, day-month (Meeus 7, from the JD) and time UT"',
          'LBL 45', '0', 'STO 05',
-         'LBL 46', 'RCL 05', '54', '+', 'STO 39', 'RCL IND 39', 'STO 44', '4', 'STO+ 39', 'RCL IND 39', 'STO 37',
+         'LBL 46', 'RCL 05', '54', '+', 'STO 39', 'RCL IND 39', 'STO 44'] + (
+             ['RCL 03', 'RCL× 04', '24', '÷', 'STO+ 44', 'DROP'] if f42 else []) + ['4', 'STO+ 39', 'RCL IND 39', 'STO 37',
          '121', 'RCL 05', '16', '×', '-', 'STO 43',
          'RCL 43', '168', 'RCL 37', '2', '×', '60', '+', 'STO 42', 'DROP', 'XEQ IND 42', TX,
          'RCL 44', '0.5', '+', 'IP', 'STO 40', '1867216.25', '-', '36524.25', '÷', 'IP', 'STO 41',
@@ -343,7 +349,8 @@ def ptxs_with(F, keep, cs):
 def build_f42():
     """MOON47 for Free42 (DM42 / DM42n stock firmware): the main program with f42=True, converted as NAVFULL
     (build_free42.conv), the AGRAPH font of the T21 views (PTXS with the widths of GRFNT 21 and its number
-    printers), the phase symbols, PX and FBX. GETKEY waits for the key: +/- (15) switches the view."""
+    printers), the phase symbols, PX and FBX. GETKEY waits for the key: 0 (34) switches the view north / south,
+    +/- (15) every time UT / LT (TZ hours; kept in the variable TZLT), another key ends."""
     import build_free42 as F
     main = [l for l in main_program(f42=True) if not l.startswith('REM ')]
     chars = set(''.join(re.findall(r'^"([^"]*)"$', '\n'.join(main), re.M))) | set('0123456789-.: %\'')

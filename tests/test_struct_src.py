@@ -295,11 +295,14 @@ def next_version(n):
 
 def moon_next(n):
     """MOON47 of the next version (programs_struct/next/MOON47.txt, build/dev/next/MOON47.txt): the page pixel for pixel
-    MOON47 v2.2.0 at n dates and time zones, north and south; your X Y Z T and LASTx back, R00-R06 and R66-R99 kept,
-    R07-R65 cleared; the work matrices as v2.2.0."""
+    the Python twin (c47screen21.moon47_screen with its UT / LT switch) at n dates and time zones, north and south (key
+    0), UT and LT (key +/-, kept in the variable TZLT); in UT with no TZ pixel for pixel MOON47 v2.2.0; your X Y Z T and
+    LASTx back, R00-R06 and R66-R99 kept, R07-R65 cleared; the work matrices as v2.2.0."""
     import c47sim
     import moon47 as M47
     import build_next as NX
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen21 as V21
     print('== MOON47 of the next version (programs_struct/next/MOON47.txt)')
     M = B.build_moon(B.NEXT)
     ok(M == lines(os.path.join(NX.OUT, 'MOON47.txt')), 'build/dev/next/MOON47.txt is the build of programs_struct/next/MOON47.txt')
@@ -309,11 +312,13 @@ def moon_next(n):
     print('  %d steps (v2.2.0 %d)' % (len(M), len(B.build_moon())))
     mine = {'%d' % r: D(1000 + r) for r in list(range(0, 7)) + list(range(66, 100))}
 
-    def run(L, j, tz, keys):
+    def run(L, j, tz, keys, local=None):
         c = c47sim.Calc('\n'.join(L))
         c.clock = j + (tz or 0) / 24.0
         if tz is not None:
             c.reg['TZ'] = D(str(tz))
+        if local is not None:
+            c.reg['TZLT'] = D(local)
         for k, v in mine.items():
             c.reg[k] = v
         for r in range(7, 66):
@@ -327,16 +332,27 @@ def moon_next(n):
         cases.append((M47.julian(rnd.randint(2000, 2050), rnd.randint(1, 12), rnd.randint(1, 28), rnd.uniform(0, 24)),
                       rnd.choice([None, -3.5, 2.0, 9.0])))
     old = B.build_moon()
+
+    def twin(j, tz, south, local):
+        return V21.moon47_screen(j, south, tz or 0, local)[0]
     for i, (j, tz) in enumerate(cases):
-        keys = [43, 82] if i % 2 == 0 else [82]
-        a, c0 = run(old, j, tz, keys)
-        b, c = run(M, j, tz, keys)
+        # even: from UT (no TZLT yet), 0 south, +/- LT, + ends; odd: from LT (TZLT = 1), +/- UT, + ends
+        start = None if i % 2 == 0 else 1
+        keys = [82, 43, 85] if start is None else [43, 85]
+        want = [(False, False), (True, False), (True, True)] if start is None else [(False, True), (False, False)]
+        a, c0 = run(old, j, tz, [82])
+        b, c = run(M, j, tz, keys, start)
         regs = all(c.reg.get(k) == v for k, v in mine.items()) and not any('%d' % r in c.reg for r in range(7, 66))
         mats = {k: v for k, v in c.mats.items() if k.startswith('M7')} == {k: v for k, v in c0.mats.items() if k.startswith('M7')}
+        pix = len(b) == len(want) and all(f == twin(j, tz, so, lo) for f, (so, lo) in zip(b, want))
+        same = start is not None or tz or a[0] == b[0]
         d, m, y, h = M47.from_julian(j)
-        ok(len(b) == len(keys) and a == b and c.s == [11, 12, 13, 14] and c.lastx == 99 and regs and mats,
-           '%02d-%02d-%04d %05.2f h TZ %-5s %s: pixel for pixel v2.2.0, your stack and LASTx back, R00-R06 / R66-R99 kept,'
-           ' R07-R65 cleared' % (d, m, y, h, tz, 'north and south' if len(keys) == 2 else 'north'))
+        ok(pix and same and c.reg.get('TZLT') == (1 if start is None else 0) and c.s == [11, 12, 13, 14] and c.lastx == 99
+           and regs and mats,
+           '%02d-%02d-%04d %05.2f h TZ %-5s %s: pixel for pixel the twin%s, TZLT kept, your stack and LASTx back,'
+           ' R00-R06 / R66-R99 kept, R07-R65 cleared' % (d, m, y, h, tz, 'UT, south (0), LT (+/-)' if start is None
+                                                           else 'LT, UT (+/-)', ' and v2.2.0 (UT)' if start is None and not tz
+                                                           else ''))
 
 
 def keys(L_):
@@ -460,13 +476,13 @@ def dm42_221(n):
     ok(all(sum(l == o for l in P) <= 10 for o in S_.OPENERS) and not [l for l in P if l.startswith('GTO')],
        'MOON47 v2.2.1 for the DM42: %d steps, IF %d DO %d REPEAT %d (10 at most), no GTO'
        % ((len(D_),) + tuple(sum(l == o for l in P) for o in ('IF', 'DO', 'REPEAT'))))
-    M = B.build_moon()
+    M = B.build_moon(B.NEXT)
 
-    def moon(P, j, tz):
+    def moon(P, j, tz):                                 # 0 the south, +/- LT, + ends
         c = load(P); c.clock = j + (tz or 0) / 24.0
         if tz is not None:
             c.reg['TZ'] = D(str(tz))
-        c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []; c.keys = [43, 82]
+        c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []; c.keys = [82, 43, 85]
         c.run('MOON47', maxsteps=10 ** 8)
         return [{(x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400} for f in c.frames], c
     rnd = random.Random(2210)
@@ -478,8 +494,9 @@ def dm42_221(n):
         a, _ = moon(M, j, tz)
         b, c = moon(D_, j, tz)
         d, m, y, h = M47.from_julian(j)
-        ok(a == b and c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99),
-           'MOON47 %02d-%02d-%04d %05.2f h TZ %-5s: pixel for pixel the STRUCT MOON47, your stack and LASTx back'
+        ok(len(b) == 3 and a == b and c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99),
+           'MOON47 %02d-%02d-%04d %05.2f h TZ %-5s: UT, south (0), LT (+/-) pixel for pixel the C47 MOON47, your stack and'
+           ' LASTx back'
            % (d, m, y, h, tz))
 
 

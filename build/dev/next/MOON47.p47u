@@ -383,7 +383,7 @@ XEQ 15
 RTN
 LBL 18                  ; 18 the page: the clock line, the disc, the phase name, % lit, age, HP, SD, the next phases, the symbols (called 1 time)
 RCL 10
-RCL 07
+XEQ 68
 24
 ÷
 +
@@ -448,7 +448,11 @@ XEQ 13
 XEQ 40
 139
 168
-"NEXT PHASES (UT)"
+"NEXT PHASES ("
+XEQ 25
+XEQ 37
+XEQ 25
+")"
 XEQ 25
 XEQ 20
 XEQ 16
@@ -489,6 +493,11 @@ REPEAT 03               ; the next four phases (R13 = 0-3): the symbol, its Juli
   STO 43
   RCL IND 43
   STO 48
+  XEQ 68
+  24
+  ÷
+  STO+ 48
+  DROP
   4
   STO+ 43
   RCL IND 43
@@ -772,7 +781,7 @@ XEQ 32
 0
 XEQ 32
 RTN
-LBL 25                  ; 25 M7TX - TEXT: Z row of the base line, Y column, X text -> Y row, X next column (ATEXT Z) (called 17 times)
+LBL 25                  ; 25 M7TX - TEXT: Z row of the base line, Y column, X text -> Y row, X next column (ATEXT Z) (called 19 times)
 LBL 26                  ; 26 ATEXT with the row moved by the font's base line (called 1 time)
 ⇄ zyxt
 4
@@ -845,6 +854,10 @@ IF 11
 ENDIF 11
 DROP
 RTN
+LBL 68                  ; 68 routine 68 (called 2 times)
+RCL 07
+RCL× 11
+RTN
 LBL 30                  ; 30 the next new Moon, first quarter, full Moon and last quarter after now (called 1 time)
 RCL 19
 90
@@ -906,6 +919,10 @@ WSIZE 64
 STO+ "TZ"
 RCL "TZ"
 STO 07
+0
+STO+ "TZLT"
+RCL "TZLT"
+STO 11
 Date→ⅅ
 Time→ℸ
 ⅅℸ→J
@@ -931,7 +948,12 @@ REPEAT 05               ; the key loop: the page drawn (18), then a key; +/- tur
   ENDDO 02
   RCL 43
   43
-  X≠Y?
+  -
+  RCL 43
+  82
+  -
+  ×
+  X≠0?
   IF 12
     CLLCD
     20
@@ -952,10 +974,25 @@ REPEAT 05               ; the key loop: the page drawn (18), then a key; +/- tur
     RCLS R.00
     RTN
   ENDIF 12
-  1
-  RCL 32
-  -
-  STO 32
+  RCL 43
+  82
+  X=Y?
+  IF 13
+    1
+    RCL 32
+    -
+    STO 32
+  ENDIF 13
+  RCL 43
+  43
+  X=Y?
+  IF 14
+    1
+    RCL 11
+    -
+    STO 11
+    STO "TZLT"
+  ENDIF 14
   0
   X≠0?
 UNTIL 05
@@ -1267,32 +1304,32 @@ LBL 36                  ; 36 X (0-99) appended to R53 as two digits (called 4 ti
 STO 37
 10
 X>Y?
-IF 13
+IF 15
   "0"
   x→α 53
-ENDIF 13
+ENDIF 15
 RCL 37
 αIP 53
 RTN
-LBL 37                  ; 37 UT or LT for the clock line (called 1 time)
-RCL 07
+LBL 37                  ; 37 UT or LT for the clock line (called 2 times)
+RCL 11
 X=0?
-IF 14
+IF 16
   DROP
   "UT"
   RTN
-ENDIF 14
+ENDIF 16
 DROP
 "LT"
 RTN
 LBL 38                  ; 38 AS SEEN FROM THE NORTH / SOUTH (called 1 time)
 RCL 32
 X=0?
-IF 15
+IF 17
   DROP
   "AS SEEN FROM THE NORTH"
   RTN
-ENDIF 15
+ENDIF 17
 DROP
 "AS SEEN FROM THE SOUTH"
 RTN
@@ -1310,7 +1347,7 @@ STO 35
 RCL 38
 400
 X>Y?
-IF 16
+IF 18
   WSIZE 8
   1#2
   STO 36
@@ -1321,12 +1358,12 @@ IF 16
     DSE 38
   WHILE 04
   ENDDO 04
-ELSE 16
+ELSE 18
   RCL 35
   CHS
   0
   PIXEL
-ENDIF 16
+ENDIF 18
 WSIZE 64
 RCL 35
 RCL 34

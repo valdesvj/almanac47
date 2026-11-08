@@ -44,7 +44,8 @@ version and the base for a phone app (**Almanac 47**).
   older public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
   release. The Free42 builds (`build/free42/`) run on the stock DM42 / DM42n firmware.
 - **MOON47, the Moon phase on its own:** one program, no NAV and no INIT: the phase as a disc, % lit,
-  age, HP, SD and the next four phases (UT), from the clock. `build/MOON47` (C47 / R47),
+  age, HP, SD and the next four phases, from the clock. **+/−** shows every time in UT or in local time (LT = UT + the
+  variable TZ; kept in the variable TZLT), **0** the view from the south (the next version and Free42). `build/MOON47` (C47 / R47),
   `build/dm42/MOON47` (DM42 with the C47 firmware), `build/free42/MOON47.raw` (Free42),
   `python/numworks/moon47.py`, `python/hpprime/moon47.py`; the PC: `python3 python/moon47.py`.
   The same formulas everywhere (`tools/build_moon47.py` writes them all from `python/moon47.py`):

@@ -1107,3 +1107,18 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
   6 px). Asks before the 10 MB download; web/pyodide/ (git-ignored) when served over http. ~60 ms a screen.
 - The time box showed 15:59:59 for 16:00 (cal() gives 15.99999999627 h, floored): rounded to the second now; a
   second change event then moved the time by 1 s. tests/test_web_calc.py: 21 / 21 canvases identical to --png.
+
+## Nov 8, 2026 - MOON47: UT or LT on +/- (branch claude/ut-local-times)
+
+As NAV47 (SET SHOW TIMES, +/- on every page): MOON47 of the next version (programs_struct/next/MOON47.txt) and Free42
+(build/free42/MOON47, tools/build_moon47.py f42) show every time in UT or in local time with +/-.
+- LT = UT + TZ (the variable TZ, as before). The switch is the variable TZLT (0 UT, 1 LT; none: UT), kept between runs:
+  R11 in the next version (LBL 68: TZ x TZLT, the shift of the header and of the four phases), R04 on Free42.
+- The header (date, time, UT / LT), and NEXT PHASES (UT) / (LT) with the four phases' dates and times moved by TZ.
+- The north / south view moves from +/- to 0 (C47 key 82, Free42 key 34), as NAV47's MOON47.
+- v2.2.0 / v2.2.1 / v2.2.2 (build/forum/, build/c47/, build/v2.2.1/) unchanged; the old DM42 MOON47 (build_release_c47
+  moon_dm42) reads the register of LBL 37 from the source.
+- c47screen21.moon47_screen(j, south, tz, local): the twin with the switch (local None: v2.2.2).
+- tests: test_struct_src.py moon_next (UT, south on 0, LT on +/-; from LT, UT on +/-; TZLT kept; with no TZ in UT
+  pixel for pixel v2.2.0), test_moon47_f42.py (f42run: the three screens, TZLT left): all pass. Simulator and f42run
+  only: rejig and the calculator still to do.
