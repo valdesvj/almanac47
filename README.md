@@ -3,6 +3,16 @@
 Celestial navigation for the SwissMicros C47 / R47 calculator (RPN), with a PC
 version and the base for a phone app (**Almanac 47**).
 
+- **Next version: UT or LT on +/-** (branch `claude/ut-local-times`; not a release yet): every time on the screens in
+  UT or in local time, **LT = UT + TZ** (the variable `TZ`, as MOON47 always had). **+/-** switches it on the menu and
+  on every view (ALMA47, NAVLITTLE, MOON47); the switch is the variable `TZLT` (0 UT, 1 LT), kept between runs; ALMA47
+  makes `TZ` and `TZLT` 0 when they are missing. In LT the header shows the date, the time and `LT`, and rise, set,
+  twilights and meridian passage are + TZ (the events of the UT day, mod 24 h); MOON47 shows its header and the next
+  phases in LT. DATE and UT are still asked in UT. MOON47 flips north / south with **0** now. C47 / R47:
+  `programs_struct/next/` (`build/dev/next/`); the old DM42: `programs_struct/little/NAVLITTLE_221.txt`; Free42:
+  `build/dev/next/free42/` (`tools/build_next_f42.py`, key +/-); the PC (`c47pc.py --lt --tz 3`, key L) and the web
+  app (its Times: UT / LT button, key L; the Calculator style follows it). Tests: `tests/test_struct_src.py` (times, dm42_221, moon_next),
+  `tests/test_next_f42.py`, `tests/test_moon47_f42.py`, `tests/test_web_calc.py`.
 - **v2.2.1 (latest):** `build/v2.2.1/` - v2.2.0 with **your stack and LASTx kept** when a program ends, by the trick
   from the SwissMicros forum (`LocR 9`, `STOS R.00` at the start, `RCLS R.00` at the end; Free42: the variables
   S7X ... S7L). On the C47 / R47 the keys 1-8 on ALMANAC and SPLIT end ALMA47 with that body on your stack (Z the text,
@@ -44,7 +54,8 @@ version and the base for a phone app (**Almanac 47**).
   older public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
   release. The Free42 builds (`build/free42/`) run on the stock DM42 / DM42n firmware.
 - **MOON47, the Moon phase on its own:** one program, no NAV and no INIT: the phase as a disc, % lit,
-  age, HP, SD and the next four phases (UT), from the clock. `build/MOON47` (C47 / R47),
+  age, HP, SD and the next four phases (UT), from the clock (the next version: **+/−** UT or LT, **0** the south; see
+  above). `build/MOON47` (C47 / R47),
   `build/dm42/MOON47` (DM42 with the C47 firmware), `build/free42/MOON47.raw` (Free42),
   `python/numworks/moon47.py`, `python/hpprime/moon47.py`; the PC: `python3 python/moon47.py`.
   The same formulas everywhere (`tools/build_moon47.py` writes them all from `python/moon47.py`):

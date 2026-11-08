@@ -209,8 +209,10 @@ def moon_dm42(src=None, shift=0):
                 extra += ['LBL ' + n] + body + ['RTN']
                 P = P[:i] + ['XEQ ' + n] + P[j + 1:]
         i += 1
-    for lab, reg, first, second in (('37', r(3), 'UT', 'LT'),
+    for lab, reg, first, second in (('37', None, 'UT', 'LT'),
                                     ('38', r(28), 'AS SEEN FROM THE NORTH', 'AS SEEN FROM THE SOUTH')):
+        if reg is None:            # UT or LT: R03 (TZ) in v2.2.0, the UT / LT switch R11 in v2.2.3 (next)
+            reg = P[P.index('LBL ' + lab) + 1].split()[1]
         old = ['LBL ' + lab, 'RCL ' + reg, 'X=0?', 'IF', 'DROP', '"%s"' % first, 'RTN', 'ENDIF', 'DROP', '"%s"' % second, 'RTN']
         k = P.index('LBL ' + lab)
         assert P[k:k + len(old)] == old, lab

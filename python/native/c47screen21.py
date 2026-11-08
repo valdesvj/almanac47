@@ -13,6 +13,7 @@ from c47screen import (Screen, Almanac, chart_x, chart_ys, ut_hours, jd_to_date,
 from c47fonts21 import F21, TINY, SYMB, SYMS
 
 NBODY = 8
+TIMES = {'tz': 0.0, 'local': False}     # the UT / LT switch (+/-, the variables TZ and TZLT): set_times()
 LUN = 29.530589
 PHASE_NAMES = ('NEW MOON', 'WAXING CRESCENT', 'FIRST QUARTER', 'WAXING GIBBOUS', 'FULL MOON',
                'WANING GIBBOUS', 'LAST QUARTER', 'WANING CRESCENT')
@@ -99,14 +100,32 @@ def daylight(sun_hc):
     return 'DAY' if sun_hc > 0 else 'TWILIGHT' if sun_hc > -12 else 'NIGHT'
 
 
+def set_times(tz=0.0, local=False):
+    """The UT / LT switch of ALMA47 (+/-): local True shows every time in LT = UT + tz hours (the variables TZ and
+    TZLT of the calculator), False in UT."""
+    TIMES['tz'] = float(tz or 0.0)
+    TIMES['local'] = bool(local)
+
+
+def shown_tz():
+    """The hours added to UT on the screens: TZ in LT, 0 in UT."""
+    return TIMES['tz'] if TIMES['local'] else 0.0
+
+
+def shown(h):
+    """Hours UT -> the hours shown: in UT as they are, in LT + TZ mod 24; 99 (no event) stays."""
+    return h if h > 98 or not TIMES['local'] else (h + TIMES['tz']) % 24
+
+
 def header(sc, al, j=None, lat=None, lon=None, source=None, uth=None):
-    """date, time UT, DR, N lat, E lon at row 226, T / S at 388, the line under (221)."""
+    """date, time (UT, or LT with set_times), DR, N lat, E lon at row 226, T / S at 388, the line under (221)."""
     T = top_x()
     j = al.j if j is None else j
     lat = al.lat if lat is None else lat
     lon = al.lon if lon is None else lon
-    sc.pdat(226, T['date'], j)
-    sc.phm(226, T['time'], ut_hours(j) if uth is None else uth); sc.text(226, T['UT'], 'UT')
+    sc.pdat(226, T['date'], j + shown_tz() / 24.0)
+    sc.phm(226, T['time'], shown(ut_hours(j) if uth is None else uth))
+    sc.text(226, T['UT'], 'LT' if TIMES['local'] else 'UT')
     sc.text(226, T['DR'], 'DR')
     sc.text(226, T['N'], 'S' if lat < 0 else 'N'); sc.pdm(226, T['lat'], abs(lat))
     sc.text(226, T['E'], 'W' if lon < 0 else 'E'); sc.pdm(226, T['lon'], abs(lon))
@@ -150,9 +169,9 @@ def almanac(al):
     y1, y2, y3 = FY - 6, FY - 20, FY - 34
     t1 = 2 + max(width(w) for w in ('NAUT TWI', 'RISE/SET', 'MER PASS')) + 8
     t2 = t1 + HMW + 8
-    sc.text(y1, 2, 'NAUT TWI'); sc.phm(y1, t1, t['NTWA']); sc.phm(y1, t2, t['NTWP'])
-    sc.text(y2, 2, 'RISE/SET'); sc.phm(y2, t1, t['RISE']); sc.phm(y2, t2, t['SET'])
-    sc.text(y3, 2, 'MER PASS'); sc.phm(y3, t1, t['TRAN']); x = sc.text(y3, t2, 'SD '); sc.pf1(y3, x, s.sd)
+    sc.text(y1, 2, 'NAUT TWI'); sc.phm(y1, t1, shown(t['NTWA'])); sc.phm(y1, t2, shown(t['NTWP']))
+    sc.text(y2, 2, 'RISE/SET'); sc.phm(y2, t1, shown(t['RISE'])); sc.phm(y2, t2, shown(t['SET']))
+    sc.text(y3, 2, 'MER PASS'); sc.phm(y3, t1, shown(t['TRAN'])); x = sc.text(y3, t2, 'SD '); sc.pf1(y3, x, s.sd)
     MX = 212
     x = sc.text(y1, MX, 'MOON '); x = sc.pinb(y1, x, al.illum); x = sc.text(y1, x, '% ')
     x = sc.glyph(SYMB, str(phase_index(al.age)), y1, x); x = sc.text(y1, x, ' '); sc.text(y1, x, moon_word(al))
@@ -458,15 +477,24 @@ def moon_disc(sc, cx, cy, r, age, south=False):
                 sc.pixel(cy + y, cx + dx); sc.pixel(cy - y, cx + dx)
 
 
-def moon47_screen(j, south=False, tz=None):
+def moon47_screen(j, south=False, tz=None, local=None):
     """MOON47: the phase as a disc, its name, % lit, age, Moon HP and SD, the next four phases
     and the eight phase glyphs with today's one inverted. j: JD (UT); tz: hours, the header shows the clock
-    (LT = UT + tz, or UT when tz = 0) and TZ=; None (the MOON view of NAV): UT only."""
+    (LT = UT + tz, or UT when tz = 0) and TZ=; None (the MOON view of NAV): UT only.
+    local: the UT / LT switch of MOON47 v2.2.3 (+/-, the variable TZLT): True every time in LT = UT + tz (the header
+    and the next phases), False every time in UT; None: v2.2.2 (the header as above, the phases in UT)."""
     p = M47.page(j, south)
     sc = Screen(F21)
     T = top_x()
-    lt = j + (tz or 0) / 24.0                  # the clock: UT when TZ = 0, else local time
-    sc.pdat(226, T['date'], lt); sc.phm(226, T['time'], ut_hours(lt)); sc.text(226, T['UT'], 'LT' if tz else 'UT')
+    if local is None:
+        lt = j + (tz or 0) / 24.0              # the clock: UT when TZ = 0, else local time
+        name = 'LT' if tz else 'UT'
+        shift = 0.0
+    else:
+        shift = (tz or 0) / 24.0 if local else 0.0
+        lt = j + shift
+        name = 'LT' if local else 'UT'
+    sc.pdat(226, T['date'], lt); sc.phm(226, T['time'], ut_hours(lt)); sc.text(226, T['UT'], name)
     if tz is not None:
         sc.text(226, T['DR'], 'TZ=' + M47.tz_text(tz))
     sc.pixel(-221, 0)
@@ -477,9 +505,13 @@ def moon47_screen(j, south=False, tz=None):
     x = sc.text(166, 168, 'HP '); x = sc.pf1(166, x, p['hp']); x = sc.text(166, x, "'  SD ")
     x = sc.pf1(166, x, p['sd']); sc.text(166, x, "'")
     sc.hline(156, 168, 230)
-    sc.text(139, 168, 'NEXT PHASES (UT)')
+    if local is None:
+        sc.text(139, 168, 'NEXT PHASES (UT)')
+    else:
+        x = sc.text(139, 168, 'NEXT PHASES ('); x = sc.text(139, x, name); sc.text(139, x, ')')
     y = 121
     for t, name in p['next']:
+        t += shift
         d, m, yr = jd_to_date(t)
         sc.text(y, 168, name)
         x = sc.text(y, 300, '%02d-%02d ' % (d, m))
@@ -496,7 +528,7 @@ def moon47_screen(j, south=False, tz=None):
 
 def moon_view(al):
     """MOON (native view): the MOON47 page for the NAV date; the southern view for a south DR."""
-    return moon47_screen(al.j, al.lat < 0)
+    return moon47_screen(al.j, al.lat < 0, TIMES['tz'] if TIMES['local'] else None, True if TIMES['local'] else None)
 
 
 VIEWS = {'ALMANAC': almanac, 'CHART': chart, 'SKY': sky_frames, 'SPLIT': split, 'ANIM': anim, 'ALLSKY': allsky,

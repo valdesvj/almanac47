@@ -48,8 +48,11 @@ sys.path.insert(0, '/a47')
 import c47pc, c47tables, c47screen
 _ENG = {True: c47pc.Engine(c47tables.find('/a47')), False: c47pc.Engine(None)}
 
-def a47_screen(view, j, lat, lon, tables, frames, step):
-    """The frames of a view as bytes of 400 x 240 (1 = lit), or the TEXT pages; and the status line."""
+def a47_screen(view, j, lat, lon, tables, frames, step, tz=0.0, local=False):
+    """The frames of a view as bytes of 400 x 240 (1 = lit), or the TEXT pages; and the status line. local: every
+    time in LT = UT + tz hours (the UT / LT switch, +/- on the calculator)."""
+    import c47screen21
+    c47screen21.set_times(tz, local)
     eng = _ENG[bool(tables) and _ENG[True].tables is not None]
     eng.anim = {'frames': int(frames), 'step': float(step)}
     if view == 'TEXT':
@@ -79,10 +82,10 @@ def a47_charw():
 
   function compute() {
     const view = VIEWS.includes(S.cview) ? S.cview : 'ALMANAC';
-    const key = [view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step].join();
+    const key = [view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step, A.ltMode(), A.tzOf()].join();
     if (key === lastKey && out) return false;
     const t0 = performance.now();
-    const r = py.globals.get('a47_screen')(view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step);
+    const r = py.globals.get('a47_screen')(view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step, A.tzOf(), A.ltMode());
     const js = r.toJs({ dict_converter: Object.fromEntries });
     r.destroy();
     secs = (performance.now() - t0) / 1000;

@@ -42,7 +42,7 @@ address>:8047`.
 
 | Tab | |
 |---|---|
-| **Almanac** | the C47's ALMANAC page (ALMF): GHA Aries; the Sun, the Moon (HP), Venus, Mars, Jupiter, Saturn (grey below the horizon) and the brightest stars more than 10° high, GHA, Dec, Hc, Zn; nautical twilight, rise, meridian passage, set (UT and ZT), the Sun's SD; DAY / TWILIGHT / NIGHT; the Moon |
+| **Almanac** | the C47's ALMANAC page (ALMF): GHA Aries; the Sun, the Moon (HP), Venus, Mars, Jupiter, Saturn (grey below the horizon) and the brightest stars more than 10° high, GHA, Dec, Hc, Zn; nautical twilight, rise, meridian passage, set (UT and ZT, or LT and UT), the Sun's SD; DAY / TWILIGHT / NIGHT; the Moon |
 | **Sky** | the Alma47 sky (the C47's CHART / SKY): azimuth across N E S W N (S W N E S south of the equator), altitude up on the sine scale (10 20 30 45 60 90), the celestial equator dotted, the Sun, the Moon, the planets with their symbols, the 58 stars ★ with their numbers; **All sky** (ALLSKY): below the horizon too; **Dome**: the sky from the DR with the zenith in the centre, north up, the stars by brightness, the Moon and the planets; the bodies of the ALMANAC page with Hc and Zn |
 | **Stars** | the 57 navigational stars and Polaris: SHA, GHA, Dec, Hc, Zn, brightness; sortable |
 | **Sun** | GHA, Dec, SD, Hc, Zn now; the day's twilights, rise, meridian passage and set in UT and ZT |
@@ -54,7 +54,8 @@ The top: **Now** follows the clock (UT from the computer), the time ticking ever
 (every 5 s; the Calculator screens every 10 s); a second press stops it, so does a date, a UT or ±1 h; **Times: UT / LT** shows sunrise, sunset, twilight, meridian passage and the
 Moon's phases in UT or in LT (the zone time of the ZD: ZT + ZD = UT; LT gives the events of the local date); ±1 h; the **DR** (`27 12.0N 049
 42.0E` or `27.2 49.7`) and the **ZD** (zone description: ZT + ZD = UT; empty: from the DR's longitude). Keys: + / −
-one hour.
+one hour; L: Times UT / LT (in the Calculator style the C47 screens follow it, as the calculator's +/- switch shows
+them).
 
 ## Route: your platforms
 

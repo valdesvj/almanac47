@@ -44,6 +44,7 @@
   const dm = v => NAV.fdm(v) + '′';
   // the times of the day's events: UT, or LT = the zone time of the ZD (ZT + ZD = UT), for that local day
   const ltMode = () => S.tmode === 'lt';
+  const tzOf = () => -zdOf();                    // LT - UT, hours: the Calculator style's C47 screens (calc.js)
   const tLabel = () => ltMode() ? `LT (ZD ${zdText(zdOf())})` : 'UT';
   function dayEvent(lat, lon, k) {
     if (!ltMode()) return NAV.event(Math.trunc(S.j - 0.5) + 0.5, lat, lon, k);
@@ -402,11 +403,13 @@
       store.set('zd', S.zd); render();
     };
     $('style').onchange = () => setStyle($('style').value);
-    $('tmode').onclick = () => { S.tmode = ltMode() ? 'ut' : 'lt'; store.set('tmode', S.tmode); render(); };
+    const tmode = () => { S.tmode = ltMode() ? 'ut' : 'lt'; store.set('tmode', S.tmode); render(); };
+    $('tmode').onclick = tmode;
     document.addEventListener('keydown', e => {
       if (/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) return;
       if (e.key === '+' || e.key === '=') { S.live = false; S.j += 1 / 24; render(); }
       else if (e.key === '-') { S.live = false; S.j -= 1 / 24; render(); }
+      else if (e.key === 'l' || e.key === 'L') tmode();                  // UT / LT, as +/- on the calculator
     });
     let rt = null;
     window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(render, 150); });
@@ -431,7 +434,8 @@
   S.tmode = store.get('tmode') === 'lt' ? 'lt' : 'ut';
   S.skymode = ['horizon', 'all', 'dome'].includes(store.get('skymode')) ? store.get('skymode') : 'horizon';
   S.cview = store.get('cview') || 'ALMANAC';
-  globalThis.A47 = { S, addView, render, store, headCard, p2, mod, zdOf, zdText, DAYS, setStyle, setCview, SYM, sym, parsePos };
+  globalThis.A47 = { S, addView, render, store, headCard, p2, mod, zdOf, zdText, tzOf, ltMode, DAYS, setStyle, setCview, SYM, sym,
+    parsePos };
   bind();
   // calc.js and zones.js add themselves, then the style and the first render
   setTimeout(() => setStyle(['modern', 'vintage', 'calc'].includes(store.get('style')) ? store.get('style') : 'modern'), 0);

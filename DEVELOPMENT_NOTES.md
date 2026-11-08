@@ -1116,3 +1116,45 @@ As ALMA47 of the next version: programs_struct/next/MOON47.txt -> build/dev/next
   Vintage: the monsters go where 7 points round them are sea (isPointInPath) and nothing else is near.
 - Now: a press always goes back to the clock; the time ticks every second, the view every 5 s (10 s for the
   Calculator screens; not the Route, nor while typing in the page).
+
+
+## Nov 8, 2026 - MOON47: UT or LT on +/- (branch claude/ut-local-times)
+
+As NAV47 (SET SHOW TIMES, +/- on every page): MOON47 of the next version (programs_struct/next/MOON47.txt) and Free42
+(build/free42/MOON47, tools/build_moon47.py f42) show every time in UT or in local time with +/-.
+- LT = UT + TZ (the variable TZ, as before). The switch is the variable TZLT (0 UT, 1 LT; none: UT), kept between runs:
+  R11 in the next version (LBL 68: TZ x TZLT, the shift of the header and of the four phases), R04 on Free42.
+- The header (date, time, UT / LT), and NEXT PHASES (UT) / (LT) with the four phases' dates and times moved by TZ.
+- The north / south view moves from +/- to 0 (C47 key 82, Free42 key 34), as NAV47's MOON47.
+- v2.2.0 / v2.2.1 / v2.2.2 (build/forum/, build/c47/, build/v2.2.1/) unchanged; the old DM42 MOON47 (build_release_c47
+  moon_dm42) reads the register of LBL 37 from the source.
+- c47screen21.moon47_screen(j, south, tz, local): the twin with the switch (local None: v2.2.2).
+- tests: test_struct_src.py moon_next (UT, south on 0, LT on +/-; from LT, UT on +/-; TZLT kept; with no TZ in UT
+  pixel for pixel v2.2.0), test_moon47_f42.py (f42run: the three screens, TZLT left): all pass. Simulator and f42run
+  only: rejig and the calculator still to do.
+
+## Nov 8, 2026 - ALMA47, NAVLITTLE, Free42, the PC and the web: UT or LT on +/- (branch claude/ut-local-times)
+
+As MOON47 above (and NAV47's SET SHOW TIMES): every time on the screens in UT or in LT = UT + TZ. Display only: DATE
+and UTC are still asked in UT; the events are those of the UT day, + TZ mod 24 h. In UT the screens are exactly as
+before (the shift and its mod 24 only in LT).
+- C47 / R47 (programs_struct/next/): NAV makes TZ and TZLT 0 when missing (0 STO+); +/- (43) on the menu: LBL 09
+  switches TZLT and sets R17 = 56 (no key has that code), and the arrow test becomes (|k - 56| - 5)(k - 56) = 0, so
+  the menu is redrawn with no hour change; on a view the same in the view loop. WPLS (N63) and SKY's KEY? loop return
+  on 43. HDR (N83): the date + TZ x TZLT / 24 (in R.04), UT or LT; PTXS N53 (hh:mm): + TZ mod 24 when TZLT is not 0.
+- The old DM42 (programs_struct/little/NAVLITTLE_221.txt, at most 10 structures a program): LBL 06 switches TZLT,
+  adds one hour and sets the key 61 (one hour back): the same time, ALMANAC again; N36 returns on 43; the header's
+  date computed before its row and column go on the stack (4 levels); N28 + TZ mod 24 in LT. N01: 7 structures.
+- Free42 (tools/build_next_f42.py): v2.1.0's NAVFULL / NAVLITTLE (build/free42/, short labels) patched: KM gives 43
+  for +/- (15), WPLS / SKY return on it, NAV keeps LTH (hours), LTD (days) and flag 93 (LT) while it runs (LBL 83-87),
+  PHMS + LTH mod 24 stored only with flag 93, the header FC? 93 "UT" / FS? 93 "LT"; then f42_stack (v2.2.1).
+  build/dev/next/free42/. tools/build_free42.py was not used: it no longer reproduces build/free42/ (and rewrites
+  build/NAVFULL.txt etc. as a side effect).
+- c47screen21: set_times(tz, local), shown(); c47pc --tz --lt (key L in the window); the web app: main's own Times
+  UT / LT switch (tmode, its events of the local day; key L added), the Calculator style through
+  a47_screen(..., tz, local) with A47.tzOf() / A47.ltMode().
+- tests: test_struct_src.py times() (every view in LT: the pixels that change are the twin's; +/- on view and menu;
+  TZ / TZLT made 0) and dm42_221 (LT, +/-), test_next_f42.py (f42run: the LT pages pixel for pixel the twin),
+  test_web_calc.py (two LT cases, 14 screens identical to c47pc --lt). Simulator, f42run and Chromium only: rejig,
+  the firmware test and the calculators still to do.
+

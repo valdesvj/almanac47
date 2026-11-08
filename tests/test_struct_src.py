@@ -288,18 +288,89 @@ def next_version(n):
     print('  %d steps (v2.2.0 %d), %d labels, IF %d, DO %d, REPEAT %d, GTO %d'
           % (st['steps'], len(B.build()), st['labels'], st['IF'], st['DO'], st['REPEAT'], st['GTO']))
     keys(L)
+    times(L)
     pages(L, 'programs_struct/next', picks=True)
     places(L, n, 'programs_struct/next')
     moon_next(n)
 
 
+def times(L_):
+    """UT or LT (+/-, the variables TZ and TZLT): with TZLT 1 every view shows its times in LT = UT + TZ (the header's
+    date and time, rise, set, twilights, meridian passage); the pixels that change are those of the Python twin
+    (c47screen21.set_times), the rest as in UT. +/- on a view or on the menu switches and redraws; TZLT is kept;
+    with no TZ / TZLT, NAV makes them 0 and shows UT."""
+    import test_v2 as V
+    import t21sim
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen as PS
+    import c47screen21 as N
+    from c47view import jd
+    print('== UT or LT (+/-, TZ and TZLT)')
+    K = V.K
+
+    def run(keys, inp, regs):
+        c = V.T.load(L_, 'FULL')
+        for k, v in list(inp) + list(regs.items()):
+            c.reg[k] = D(str(v))
+        c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+        return [frozenset((x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400) for f in c.frames], c
+
+    def twin(v, al, tz, local):
+        N.set_times(tz, local)
+        try:
+            return N.VIEWS[v](al)
+        finally:
+            N.set_times()
+    cases = [((2026, 9, 26, 14 + 57 / 60, 25 + 20 / 60, 55.2), 3), ((2026, 10, 2, 18.0, -33.9, 18.4), -5),
+             ((2027, 3, 5, 22.5, 48.85, -4.3), 5.5), ((2027, 1, 1, 0.25, 10.0, 100.0), -9.5)]
+    for case, tz in cases:
+        al = PS.Almanac(jd(*case[:4]), case[4], case[5])
+        inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), t21sim.c47in(*case)))
+        good = []
+        for v in ('ALMANAC', 'SPLIT', 'ALLSKY', 'SKY'):
+            kw = dict(keyskip=True, maxpauses=12) if v == 'SKY' else {}
+            ru = t21sim.frames(v, case, nav=L_, regs={'TZ': tz}, **kw)
+            rl = t21sim.frames(v, case, nav=L_, regs={'TZ': tz, 'TZLT': 1}, **kw)
+            tu, tl = twin(v, al, tz, False), twin(v, al, tz, True)
+            k = min(len(ru), len(rl), len(tu))
+            good.append(k > 0 and len(ru) == len(rl) and all((rl[i] ^ tl[i]) == (ru[i] ^ tu[i]) for i in range(k))
+                        and any(rl[i] != ru[i] for i in range(k)))
+        # ANIM: a key waiting draws its last frame at once; the menu's header in LT
+        fu, _ = run([K[4], K['+'], K[0]], inp, {'TZ': tz})
+        fl, c = run([K[4], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+        tu, tl = twin('ANIM', al, tz, False), twin('ANIM', al, tz, True)
+        good.append(len(fl) == len(fu) == 3 and (fl[1] ^ tl[-1]) == (fu[1] ^ tu[-1]) and fl[1] != fu[1]
+                    and fl[0] != fu[0] and all(18 < y < 36 for x, y in fl[0] ^ fu[0]) and c.reg.get('TZLT') == 1)
+        ok(all(good), '%04d-%02d-%02d %05.2f h TZ %+g: ALMANAC SPLIT ALLSKY SKY ANIM and the menu in LT, the pixels of the twin'
+           % (case[:4] + (tz,)))
+    case, tz = cases[0]
+    inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), t21sim.c47in(*case)))
+    lt, _ = run([K[1], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+    ut, _ = run([K[1], K['+'], K[0]], inp, {'TZ': tz})
+    a, c = run([K[1], 43, K['+'], K[0]], inp, {'TZ': tz})
+    ok(len(a) == 4 and a[1] == ut[1] and a[2] == lt[1] and a[3] == lt[2] and c.reg.get('TZLT') == 1,
+       'ALMANAC in UT, +/- -> LT (the view redrawn, the menu after it in LT), TZLT 1 kept')
+    a, c = run([43, K[1], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+    ok(len(a) == 4 and a[0] == lt[0] and a[1] == ut[0] and a[2] == ut[1] and c.reg.get('TZLT') == 0,
+       'the menu in LT, +/- -> UT, then ALMANAC in UT, TZLT 0 kept')
+    a, c = run([K[3], 43, K['+'], K[0]], inp, {'TZ': tz})
+    b, _ = run([K[3], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+    ok(a[-1] == b[-1] and c.reg.get('TZLT') == 1, 'SKY: +/- -> LT')
+    a, c = run([K[1], K['+'], K[0]], inp, {})
+    ok(a == ut and c.reg.get('TZ') == 0 and c.reg.get('TZLT') == 0, 'no TZ, no TZLT: NAV makes them 0, the screens in UT')
+
+
 def moon_next(n):
     """MOON47 of the next version (programs_struct/next/MOON47.txt, build/dev/next/MOON47.txt): the page pixel for pixel
-    MOON47 v2.2.0 at n dates and time zones, north and south; your X Y Z T and LASTx back, R00-R06 and R66-R99 kept,
-    R07-R65 cleared; the work matrices as v2.2.0."""
+    the Python twin (c47screen21.moon47_screen with its UT / LT switch) at n dates and time zones, north and south (key
+    0), UT and LT (key +/-, kept in the variable TZLT); in UT with no TZ pixel for pixel MOON47 v2.2.0; your X Y Z T and
+    LASTx back, R00-R06 and R66-R99 kept, R07-R65 cleared; the work matrices as v2.2.0."""
     import c47sim
     import moon47 as M47
     import build_next as NX
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen21 as V21
     print('== MOON47 of the next version (programs_struct/next/MOON47.txt)')
     M = B.build_moon(B.NEXT)
     ok(M == lines(os.path.join(NX.OUT, 'MOON47.txt')), 'build/dev/next/MOON47.txt is the build of programs_struct/next/MOON47.txt')
@@ -309,11 +380,13 @@ def moon_next(n):
     print('  %d steps (v2.2.0 %d)' % (len(M), len(B.build_moon())))
     mine = {'%d' % r: D(1000 + r) for r in list(range(0, 7)) + list(range(66, 100))}
 
-    def run(L, j, tz, keys):
+    def run(L, j, tz, keys, local=None):
         c = c47sim.Calc('\n'.join(L))
         c.clock = j + (tz or 0) / 24.0
         if tz is not None:
             c.reg['TZ'] = D(str(tz))
+        if local is not None:
+            c.reg['TZLT'] = D(local)
         for k, v in mine.items():
             c.reg[k] = v
         for r in range(7, 66):
@@ -327,16 +400,27 @@ def moon_next(n):
         cases.append((M47.julian(rnd.randint(2000, 2050), rnd.randint(1, 12), rnd.randint(1, 28), rnd.uniform(0, 24)),
                       rnd.choice([None, -3.5, 2.0, 9.0])))
     old = B.build_moon()
+
+    def twin(j, tz, south, local):
+        return V21.moon47_screen(j, south, tz or 0, local)[0]
     for i, (j, tz) in enumerate(cases):
-        keys = [43, 82] if i % 2 == 0 else [82]
-        a, c0 = run(old, j, tz, keys)
-        b, c = run(M, j, tz, keys)
+        # even: from UT (no TZLT yet), 0 south, +/- LT, + ends; odd: from LT (TZLT = 1), +/- UT, + ends
+        start = None if i % 2 == 0 else 1
+        keys = [82, 43, 85] if start is None else [43, 85]
+        want = [(False, False), (True, False), (True, True)] if start is None else [(False, True), (False, False)]
+        a, c0 = run(old, j, tz, [82])
+        b, c = run(M, j, tz, keys, start)
         regs = all(c.reg.get(k) == v for k, v in mine.items()) and not any('%d' % r in c.reg for r in range(7, 66))
         mats = {k: v for k, v in c.mats.items() if k.startswith('M7')} == {k: v for k, v in c0.mats.items() if k.startswith('M7')}
+        pix = len(b) == len(want) and all(f == twin(j, tz, so, lo) for f, (so, lo) in zip(b, want))
+        same = start is not None or tz or a[0] == b[0]
         d, m, y, h = M47.from_julian(j)
-        ok(len(b) == len(keys) and a == b and c.s == [11, 12, 13, 14] and c.lastx == 99 and regs and mats,
-           '%02d-%02d-%04d %05.2f h TZ %-5s %s: pixel for pixel v2.2.0, your stack and LASTx back, R00-R06 / R66-R99 kept,'
-           ' R07-R65 cleared' % (d, m, y, h, tz, 'north and south' if len(keys) == 2 else 'north'))
+        ok(pix and same and c.reg.get('TZLT') == (1 if start is None else 0) and c.s == [11, 12, 13, 14] and c.lastx == 99
+           and regs and mats,
+           '%02d-%02d-%04d %05.2f h TZ %-5s %s: pixel for pixel the twin%s, TZLT kept, your stack and LASTx back,'
+           ' R00-R06 / R66-R99 kept, R07-R65 cleared' % (d, m, y, h, tz, 'UT, south (0), LT (+/-)' if start is None
+                                                           else 'LT, UT (+/-)', ' and v2.2.0 (UT)' if start is None and not tz
+                                                           else ''))
 
 
 def keys(L_):
@@ -429,11 +513,13 @@ def dm42_221(n):
             f = os.path.join(t, 'p%d.txt' % i); open(f, 'w', encoding='utf-8').write('\n'.join(pr) + '\n'); files.append(f)
         return c47sim.load(files)
 
-    def session(P, init, inp, keys):
+    def session(P, init, inp, keys, regs=None, out=None):
         c = load(init + P); c.flags.add(82); c.grfnt = 21
         c.run('INIT', maxsteps=10 ** 7)
-        for k, v in inp:
-            c.reg[k] = D(v)
+        for k, v in list(inp) + list((regs or {}).items()):
+            c.reg[k] = D(str(v))
+        if out is not None:
+            out.append(c)
         m = {'%02d' % r: D(8000 + r) + D('0.5') for r in range(100)}
         for r, v in m.items():
             c.rset(r, v)
@@ -455,18 +541,42 @@ def dm42_221(n):
         b, _, _ = V.little_session(old, oi, keys, inp, marks=False)
         ok(a == b and good, 'NAVLITTLE %s %s %s %s: %d screens pixel for pixel v2.1.0, your stack, LASTx and registers back'
            % (tuple(v for _, v in inp) + (len(a),)))
+    # UT / LT (+/-, TZ and TZLT): the pixels that change from UT are those of the Python twin's ALMANAC
+    import t21sim
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen as PS
+    import c47screen21 as N21
+    from c47view import jd
+
+    def twin(al, tz, local):
+        N21.set_times(tz, local)
+        try:
+            return N21.VIEWS['ALMANAC'](al)[0]
+        finally:
+            N21.set_times()
+    for case, tz in (((2026, 9, 26, 14 + 57 / 60, 25 + 20 / 60, 55.2), 3), ((2027, 1, 1, 0.25, 10.0, 100.0), -9.5)):
+        inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), t21sim.c47in(*case)))
+        al = PS.Almanac(jd(*case[:4]), case[4], case[5])
+        u, _ = session(back, ib, inp, [K['+']], {'TZ': tz})
+        cs = []
+        lt, good = session(back, ib, inp, [43, K['up'], K['+']], {'TZ': tz, 'TZLT': 1}, cs)
+        up, _ = session(back, ib, inp, [K['up'], K['+']], {'TZ': tz})
+        ok(len(lt) == 3 and (lt[0] ^ u[0]) == (twin(al, tz, True) ^ twin(al, tz, False)) and lt[1] == u[0]
+           and lt[2] == up[1] and cs[0].reg.get('TZLT') == 0 and good,
+           'NAVLITTLE %04d-%02d-%02d %05.2f h TZ %+g: ALMANAC in LT (the pixels of the twin), +/- -> UT, then an hour '
+           'later, TZLT 0, your stack back' % (case[:4] + (tz,)))
     D_ = R.moon_dm42(os.path.join(ROOT, 'programs_struct', 'next', 'MOON47.txt'), 4)
     P = S_.plain(D_)
     ok(all(sum(l == o for l in P) <= 10 for o in S_.OPENERS) and not [l for l in P if l.startswith('GTO')],
        'MOON47 v2.2.1 for the DM42: %d steps, IF %d DO %d REPEAT %d (10 at most), no GTO'
        % ((len(D_),) + tuple(sum(l == o for l in P) for o in ('IF', 'DO', 'REPEAT'))))
-    M = B.build_moon()
+    M = B.build_moon(B.NEXT)
 
-    def moon(P, j, tz):
+    def moon(P, j, tz):                                 # 0 the south, +/- LT, + ends
         c = load(P); c.clock = j + (tz or 0) / 24.0
         if tz is not None:
             c.reg['TZ'] = D(str(tz))
-        c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []; c.keys = [43, 82]
+        c.s = [D(11), D(12), D(13), D(14)]; c.lastx = D(99); c.frames = []; c.pix = []; c.keys = [82, 43, 85]
         c.run('MOON47', maxsteps=10 ** 8)
         return [{(x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400} for f in c.frames], c
     rnd = random.Random(2210)
@@ -478,8 +588,9 @@ def dm42_221(n):
         a, _ = moon(M, j, tz)
         b, c = moon(D_, j, tz)
         d, m, y, h = M47.from_julian(j)
-        ok(a == b and c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99),
-           'MOON47 %02d-%02d-%04d %05.2f h TZ %-5s: pixel for pixel the STRUCT MOON47, your stack and LASTx back'
+        ok(len(b) == 3 and a == b and c.s == [D(11), D(12), D(13), D(14)] and c.lastx == D(99),
+           'MOON47 %02d-%02d-%04d %05.2f h TZ %-5s: UT, south (0), LT (+/-) pixel for pixel the C47 MOON47, your stack and'
+           ' LASTx back'
            % (d, m, y, h, tz))
 
 
