@@ -118,6 +118,9 @@ STO 98
 SSIZE#
 STO "F0"
 SSIZE8
+0
+STO+ "TZ"
+STO+ "TZLT"
 XEQ "N02"
 RCL 85
 STO "U0"
@@ -338,11 +341,20 @@ WHILE
     SNAP
   ELSE
     RCL 17
+    43
+    X=Y?
+    XEQ 09
+    RCL 17
     56
     -
     ABS
     5
-    X=Y?
+    -
+    RCL 17
+    56
+    -
+    ×
+    X=0?
     IF
       56
       RCL- 17
@@ -540,6 +552,10 @@ WHILE
               RTN
             ENDIF
             RCL 17
+            43
+            X=Y?
+            XEQ 09
+            RCL 17
             56
             -
             ABS
@@ -558,7 +574,12 @@ WHILE
             -
             ABS
             5
-            X=Y?
+            -
+            RCL 17
+            56
+            -
+            ×
+            X=0?
           WHILE
           ENDDO
           XEQ 04
@@ -905,6 +926,14 @@ RCL 46
 STO 16
 GRMOD 01
 WSIZE 64
+RTN
+LBL 09
+1
+RCL "TZLT"
+-
+STO "TZLT"
+56
+STO 17
 RTN
 LBL 10
 "DATE DD.MMYYYY"

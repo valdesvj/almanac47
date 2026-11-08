@@ -179,6 +179,9 @@ STO 98
 SSIZE#                  ; your stack size kept in 'F0'; the 8-level stack while it runs (the fonts read register D)
 STO "F0"
 SSIZE8
+0
+STO+ "TZ"
+STO+ "TZLT"
 XEQ "N02"
 RCL 85                  ; work variables of the run; i and i pi/180 as complex numbers ('C1' 'C2') for the series
 STO "U0"
@@ -398,12 +401,21 @@ WHILE 01
   IF 03
     SNAP
   ELSE 03
-    RCL 17              ; the arrows (key codes 51 / 61): one hour later / earlier, the sky again, the menu
+    RCL 17
+    43
+    X=Y?
+    XEQ 09
+    RCL 17
     56
     -
     ABS
     5
-    X=Y?
+    -                   ; the arrows (key codes 51 / 61): one hour later / earlier, the sky again, the menu
+    RCL 17
+    56
+    -
+    ×
+    X=0?
     IF 04
       56
       RCL- 17
@@ -601,6 +613,10 @@ WHILE 01
               RTN
             ENDIF 13
             RCL 17
+            43
+            X=Y?
+            XEQ 09
+            RCL 17
             56
             -
             ABS
@@ -619,7 +635,12 @@ WHILE 01
             -
             ABS
             5
-            X=Y?
+            -
+            RCL 17
+            56
+            -
+            ×
+            X=0?
           WHILE 03
           ENDDO 03
           XEQ 04
@@ -966,6 +987,14 @@ RCL 46
 STO 16
 GRMOD 01
 WSIZE 64
+RTN
+LBL 09                  ; NAV 09: routine 09 (called by NAV x2)
+1
+RCL "TZLT"
+-
+STO "TZLT"
+56
+STO 17
 RTN
 LBL 10                  ; NAV 10: DATE prompt in the D.MY date format (called by NAV x1)
 "DATE DD.MMYYYY"
@@ -1546,6 +1575,12 @@ RCL 25
 98
 X≥Y?
 IF 03
+  RCL "TZ"
+  RCL× "TZLT"
+  RCL+ 25
+  RCL 70
+  MOD
+  STO 25
   RCL 25
   RCL 57
   ×
@@ -3956,9 +3991,15 @@ R↓
 STO R.02
 R↓
 STO R.03
+RCL "TZ"
+RCL× "TZLT"
+RCL 70
+÷
+RCL+ R.01
+STO R.04
 RCL R.00
 RCL 44
-RCL R.01
+RCL R.04
 XEQ "N55"
 RCL R.00
 79
@@ -3971,6 +4012,15 @@ RCL 70
 ×
 XEQ "N53"
 "UT"
+RCL "TZLT"
+X≠0?
+IF 01
+  DROP
+  DROP
+  "LT"
+ELSE 01
+  DROP
+ENDIF 01
 RCL R.00
 RCL- 66
 118
@@ -3981,16 +4031,16 @@ RCL 66
 X<>Y
 RCL "HT"
 STRI?
-IF 01
-ELSE 01
+IF 02
+ELSE 02
   "DR   N"
   STO R.04
   RCL R.02
   X<0?
-  IF 02
+  IF 03
     "DR   S"
     STO R.04
-  ENDIF 02
+  ENDIF 03
   RCL R.02
   ABS
   600
@@ -4016,10 +4066,10 @@ ELSE 01
   IP
   10
   X>Y?
-  IF 03
+  IF 04
     "0"
     x→α R.04
-  ENDIF 03
+  ENDIF 04
   RCL R.05
   600
   MOD
@@ -4035,11 +4085,11 @@ ELSE 01
   αIP R.04
   RCL R.03
   X≥0?
-  IF 04
+  IF 05
     "   E"
-  ELSE 04
+  ELSE 05
     "   W"
-  ENDIF 04
+  ENDIF 05
   x→α R.04
   RCL R.03
   ABS
@@ -4066,10 +4116,10 @@ ELSE 01
   IP
   10
   X>Y?
-  IF 05
+  IF 06
     "0"
     x→α R.04
-  ENDIF 05
+  ENDIF 06
   RCL R.05
   600
   MOD
@@ -4085,7 +4135,7 @@ ELSE 01
   αIP R.04
   RCL R.04
   STO "HT"
-ENDIF 01
+ENDIF 02
 RCL "HT"
 RCL R.00
 RCL- 66
@@ -6245,6 +6295,10 @@ REPEAT 01               ; loop left only by RTN (0 X≠0? UNTIL is never true)
     X=Y?
     RTN
     RCL 17
+    43
+    X=Y?
+    RTN
+    RCL 17
     RCL 67
     X=Y?
     RTN
@@ -8387,6 +8441,10 @@ REPEAT 01               ; loop left only by RTN (0 X≠0? UNTIL is never true)
   ENDIF 01
   RCL 17
   85
+  X=Y?
+  RTN
+  RCL 17
+  43
   X=Y?
   RTN
   RCL 17

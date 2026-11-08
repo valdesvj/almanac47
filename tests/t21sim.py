@@ -23,6 +23,16 @@ def _split(path):
     return progs
 
 
+def _progs(lines):
+    progs, cur = [], []
+    for l in lines:
+        if l.strip():
+            cur.append(l)
+            if l == 'END':
+                progs.append(cur); cur = []
+    return progs + ([cur] if cur else [])
+
+
 def c47in(y, m, d, h, lat, lon):
     """The NAV inputs: YYYY.MMDD, HH.MMSS, DD.MMmm, DDD.MMmm (rounded to the second / 0.01')."""
     def dms(v):
@@ -36,16 +46,22 @@ def c47in(y, m, d, h, lat, lon):
     return '%04d.%02d%02d' % (y, m, d), '%d.%02d' % (hh, mi), dms(lat), dms(lon)
 
 
-def frames(view, case, keyskip=False, maxpauses=None):
+def frames(view, case, keyskip=False, maxpauses=None, nav=None, regs=None, keys=None, calc=None):
+    """The frames of a view. nav: NAV's lines (one program, LBL "NAV" ... END) instead of build/NAVFULL.txt;
+    regs: more variables (TZ, TZLT); keys: on the view before + 0; calc: a list that gets the simulator."""
     t = tempfile.mkdtemp(); files = []
-    for i, pr in enumerate(_split(INIT) + _split(NAV)):
+    for i, pr in enumerate(_split(INIT) + (_split(NAV) if nav is None else _progs(nav))):
         f = os.path.join(t, 'p%d.txt' % i); open(f, 'w').write('\n'.join(pr) + '\n'); files.append(f)
     c = c47sim.load(files); c.flags.add(82)
     c.run('INIT', maxsteps=10 ** 7); c.flags.add(81)
     for k, v in zip(('DATE', 'UTC', 'LAT', 'LON'), c47in(*case)):
         c.reg[k] = D(v)
+    for k, v in (regs or {}).items():
+        c.reg[k] = D(str(v))
+    if calc is not None:
+        calc.append(c)
     c.s = [D(0)] * 4; c.frames = []; c.pix = []
-    c.keys = [KEYS[view]] if keyskip else [KEYS[view], 85, 82]
+    c.keys = [KEYS[view]] if keyskip else [KEYS[view]] + list(keys or []) + [85, 82]
     c.keyskip = keyskip; c.maxpauses = maxpauses
     try:
         c.run('NAV', maxsteps=10 ** 8)

@@ -19,6 +19,10 @@ REPEAT
   X=Y?
   RTN
   RCL 17
+  43
+  X=Y?
+  RTN
+  RCL 17
   RCL 67
   X=Y?
   RTN

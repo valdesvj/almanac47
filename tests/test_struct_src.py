@@ -288,9 +288,77 @@ def next_version(n):
     print('  %d steps (v2.2.0 %d), %d labels, IF %d, DO %d, REPEAT %d, GTO %d'
           % (st['steps'], len(B.build()), st['labels'], st['IF'], st['DO'], st['REPEAT'], st['GTO']))
     keys(L)
+    times(L)
     pages(L, 'programs_struct/next', picks=True)
     places(L, n, 'programs_struct/next')
     moon_next(n)
+
+
+def times(L_):
+    """UT or LT (+/-, the variables TZ and TZLT): with TZLT 1 every view shows its times in LT = UT + TZ (the header's
+    date and time, rise, set, twilights, meridian passage); the pixels that change are those of the Python twin
+    (c47screen21.set_times), the rest as in UT. +/- on a view or on the menu switches and redraws; TZLT is kept;
+    with no TZ / TZLT, NAV makes them 0 and shows UT."""
+    import test_v2 as V
+    import t21sim
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen as PS
+    import c47screen21 as N
+    from c47view import jd
+    print('== UT or LT (+/-, TZ and TZLT)')
+    K = V.K
+
+    def run(keys, inp, regs):
+        c = V.T.load(L_, 'FULL')
+        for k, v in list(inp) + list(regs.items()):
+            c.reg[k] = D(str(v))
+        c.flags.add(81); c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys)
+        c.run('NAV', maxsteps=10 ** 8)
+        return [frozenset((x, 239 - y) for y, x in f if 0 <= y < 240 and 0 <= x < 400) for f in c.frames], c
+
+    def twin(v, al, tz, local):
+        N.set_times(tz, local)
+        try:
+            return N.VIEWS[v](al)
+        finally:
+            N.set_times()
+    cases = [((2026, 9, 26, 14 + 57 / 60, 25 + 20 / 60, 55.2), 3), ((2026, 10, 2, 18.0, -33.9, 18.4), -5),
+             ((2027, 3, 5, 22.5, 48.85, -4.3), 5.5), ((2027, 1, 1, 0.25, 10.0, 100.0), -9.5)]
+    for case, tz in cases:
+        al = PS.Almanac(jd(*case[:4]), case[4], case[5])
+        inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), t21sim.c47in(*case)))
+        good = []
+        for v in ('ALMANAC', 'SPLIT', 'ALLSKY', 'SKY'):
+            kw = dict(keyskip=True, maxpauses=12) if v == 'SKY' else {}
+            ru = t21sim.frames(v, case, nav=L_, regs={'TZ': tz}, **kw)
+            rl = t21sim.frames(v, case, nav=L_, regs={'TZ': tz, 'TZLT': 1}, **kw)
+            tu, tl = twin(v, al, tz, False), twin(v, al, tz, True)
+            k = min(len(ru), len(rl), len(tu))
+            good.append(k > 0 and len(ru) == len(rl) and all((rl[i] ^ tl[i]) == (ru[i] ^ tu[i]) for i in range(k))
+                        and any(rl[i] != ru[i] for i in range(k)))
+        # ANIM: a key waiting draws its last frame at once; the menu's header in LT
+        fu, _ = run([K[4], K['+'], K[0]], inp, {'TZ': tz})
+        fl, c = run([K[4], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+        tu, tl = twin('ANIM', al, tz, False), twin('ANIM', al, tz, True)
+        good.append(len(fl) == len(fu) == 3 and (fl[1] ^ tl[-1]) == (fu[1] ^ tu[-1]) and fl[1] != fu[1]
+                    and fl[0] != fu[0] and all(18 < y < 36 for x, y in fl[0] ^ fu[0]) and c.reg.get('TZLT') == 1)
+        ok(all(good), '%04d-%02d-%02d %05.2f h TZ %+g: ALMANAC SPLIT ALLSKY SKY ANIM and the menu in LT, the pixels of the twin'
+           % (case[:4] + (tz,)))
+    case, tz = cases[0]
+    inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), t21sim.c47in(*case)))
+    lt, _ = run([K[1], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+    ut, _ = run([K[1], K['+'], K[0]], inp, {'TZ': tz})
+    a, c = run([K[1], 43, K['+'], K[0]], inp, {'TZ': tz})
+    ok(len(a) == 4 and a[1] == ut[1] and a[2] == lt[1] and a[3] == lt[2] and c.reg.get('TZLT') == 1,
+       'ALMANAC in UT, +/- -> LT (the view redrawn, the menu after it in LT), TZLT 1 kept')
+    a, c = run([43, K[1], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+    ok(len(a) == 4 and a[0] == lt[0] and a[1] == ut[0] and a[2] == ut[1] and c.reg.get('TZLT') == 0,
+       'the menu in LT, +/- -> UT, then ALMANAC in UT, TZLT 0 kept')
+    a, c = run([K[3], 43, K['+'], K[0]], inp, {'TZ': tz})
+    b, _ = run([K[3], K['+'], K[0]], inp, {'TZ': tz, 'TZLT': 1})
+    ok(a[-1] == b[-1] and c.reg.get('TZLT') == 1, 'SKY: +/- -> LT')
+    a, c = run([K[1], K['+'], K[0]], inp, {})
+    ok(a == ut and c.reg.get('TZ') == 0 and c.reg.get('TZLT') == 0, 'no TZ, no TZLT: NAV makes them 0, the screens in UT')
 
 
 def moon_next(n):
