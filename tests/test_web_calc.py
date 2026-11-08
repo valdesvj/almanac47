@@ -9,9 +9,12 @@ Needs a local Pyodide in web/pyodide/ (git-ignored; see web/README.md):
 import base64, io, json, os, socket, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VIEWS = ['ALMANAC', 'CHART', 'SKY', 'SPLIT', 'ANIM', 'ALLSKY', 'MOON']
-CASES = [('2026-11-07', '16:00:00', '26 30.0N 050 12.0E', 26.5, 50.2),
-         ('2027-03-20', '03:15:30', '33 52.0S 151 12.0E', -(33 + 52 / 60), 151.2),
-         ('2028-07-04', '23:40:00', '40 42.0N 074 00.0W', 40.7, -74.0)]
+CASES = [('2026-11-07', '16:00:00', '26 30.0N 050 12.0E', 26.5, 50.2, None),
+         ('2027-03-20', '03:15:30', '33 52.0S 151 12.0E', -(33 + 52 / 60), 151.2, None),
+         ('2028-07-04', '23:40:00', '40 42.0N 074 00.0W', 40.7, -74.0, None),
+         # UT / LT (the button, key L): LT = UT - ZD; ZD from the longitude (+5 at 74 W) or entered (-5.5)
+         ('2028-07-04', '23:40:00', '40 42.0N 074 00.0W', 40.7, -74.0, ''),
+         ('2027-03-20', '03:15:30', '19 04.0N 072 52.0E', 19 + 4 / 60, 72 + 52 / 60, '-5.5')]
 
 JS = r"""
 const { chromium } = require('playwright');
@@ -23,8 +26,11 @@ const [url, cases, views] = [process.argv[2], JSON.parse(process.argv[3]), JSON.
   await p.reload();
   await p.selectOption('#style', 'calc'); await p.waitForSelector('#lcd', { timeout: 120000 });
   const out = [];
-  for (const [d, t, pos] of cases) {
+  for (const [d, t, pos, zd] of cases) {
     await p.fill('#pos', pos); await p.dispatchEvent('#pos', 'change');
+    await p.fill('#zd', zd === null ? '' : zd); await p.dispatchEvent('#zd', 'change');
+    const lt = await p.evaluate(() => A47.S.lt);
+    if (lt !== (zd !== null)) await p.click('#utlt');               // LT when the case has a ZD ('' = from the longitude)
     await p.fill('#date', d); await p.fill('#time', t); await p.dispatchEvent('#time', 'change');
     const r = {};
     for (const v of views) {
@@ -52,7 +58,7 @@ def main():
     open(js, 'w').write(JS)
     try:
         env = dict(os.environ, NODE_PATH=subprocess.run(['npm', 'root', '-g'], capture_output=True, text=True).stdout.strip())
-        r = subprocess.run(['node', js, 'http://127.0.0.1:%d/index.html' % port, json.dumps([c[:3] for c in CASES]),
+        r = subprocess.run(['node', js, 'http://127.0.0.1:%d/index.html' % port, json.dumps([c[:3] + c[5:] for c in CASES]),
                             json.dumps(VIEWS)], capture_output=True, text=True, env=env, timeout=600)
     finally:
         srv.terminate()
@@ -60,15 +66,17 @@ def main():
         print(r.stderr); sys.exit(1)
     res = json.loads(r.stdout)
     bad = list(res['errs'])
-    for (d, t, _, lat, lon), got in zip(CASES, res['out']):
+    for (d, t, _, lat, lon, zd), got in zip(CASES, res['out']):
+        lt = [] if zd is None else ['--lt', '--tz', repr(-float(zd) if zd else float(round(lon / 15)))]
         for v in VIEWS:
             png = os.path.join(tmp, v + '.png')
             subprocess.run([sys.executable, os.path.join(ROOT, 'python', 'native', 'c47pc.py'), '--view', v, '--date', d,
-                            '--ut', t, '--lat', repr(lat), '--lon', repr(lon), '--png', png], check=True, capture_output=True)
+                            '--ut', t, '--lat', repr(lat), '--lon', repr(lon), '--png', png] + lt, check=True, capture_output=True)
             a = Image.open(io.BytesIO(base64.b64decode(got[v].split(',')[1]))).convert('RGB')
             b = Image.open(png).convert('RGB')
             same = a.size == b.size and ImageChops.difference(a, b).getbbox() is None
-            print('  %s  %s %s %-8s %s' % ('ok  ' if same else 'FAIL', d, t, v, 'identical' if same else 'differs'))
+            print('  %s  %s %s %-8s %s%s' % ('ok  ' if same else 'FAIL', d, t, v, 'identical' if same else 'differs',
+                                            '' if zd is None else ' (LT)'))
             if not same:
                 bad.append('%s %s %s' % (d, t, v))
     print('ALL OK' if not bad else '%d FAILED: %s' % (len(bad), bad))

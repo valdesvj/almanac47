@@ -51,6 +51,8 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @   - it uses the registers R07-R98 and clears only those when it ends (R-CLR 7.92): R00-R06 and R99 stay yours;
 @   - on ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun): ALMA47 ends with Z its text,
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
+@   - +/- on the menu or a view shows every time in UT or in local time, LT = UT + the variable TZ (the switch is
+@     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing). DATE and UTC are asked in UT.
 @ The other keys as v2.2.0: + menu, up / down arrow one hour, 9 SNAP, 0 on the menu ends.
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @
@@ -73,7 +75,8 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
 @     STOS R.00 / RCLS R.00, from the SwissMicros forum);
 @   - it uses the registers R07-R65 and clears only those when it ends (R-CLR 7.59): R00-R06 and R66-R99 stay yours.
-@ Keys: +/- turns the picture to the view from the south, any other key ends. Its work matrices M7T, M7C, M7A, M7V,
+@ Keys: 0 turns the picture to the view from the south, +/- shows the times in UT or in LT = UT + TZ (the variable
+@ TZLT keeps the choice), any other key ends. Its work matrices M7T, M7C, M7A, M7V,
 @ M7W as v2.2.0 (M7T, M7C set to 0 at the end; TZ stays).
 @ Needs a C47 / R47 firmware with ATEXT and the STRUCT commands (00.109.05.00a0.ALPHA of 5 Oct 2026 or later).
 @

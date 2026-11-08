@@ -137,12 +137,15 @@ RCL 25
 98
 X≥Y?
 IF
-  RCL "TZ"
-  RCL× "TZLT"
-  RCL+ 25
-  RCL 70
-  MOD
-  STO 25
+  RCL "TZLT"
+  X≠0?
+  IF
+    RCL "TZ"
+    RCL+ 25
+    RCL 70
+    MOD
+    STO 25
+  ENDIF
   RCL 25
   RCL 57
   ×

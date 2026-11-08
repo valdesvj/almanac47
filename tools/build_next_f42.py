@@ -14,7 +14,7 @@ switch of the next version (ALMA47, MOON47 of programs_struct/next/):
   NAV    0 into TZ / TZLT when they are missing (flag 25), LBL 87: flag 93 set in LT, LTH = the shift in hours (TZ in
          LT, else 0), LTD = in days; LBL 86 switches TZLT, then LBL 87; on 43 the menu (LBL 84) or the view (LBL 83)
          again. LTH, LTD and flag 93 go at the end.
-  PHMS   adds LTH (mod 24) to every time that is not 99 (no event)
+  PHMS   in LT adds LTH (mod 24) to every time that is not 99 (no event); in UT the times as before
   header PDTS gets the date + LTD; FC? 93 "UT", FS? 93 "LT"
 
   build/dev/next/free42/NAVFULL.txt, NAVLITTLE.txt, MOON47.txt (+ .raw with tools/f42/f42run)
@@ -76,7 +76,7 @@ def common(P, m, key_reg):
           after='LBL "%s"' % wp)
     mt = re.search(r'\nLBL "%s"\nXEQ 05\nRCL (\d+)\n98\nX<Y\?\nGTO 07\n' % phms, P.s)
     r = mt.group(1)
-    P.s = P.s[:mt.end()] + '\n'.join(['RCL ' + r, 'RCL+ "LTH"', '24', 'MOD', 'STO ' + r]) + '\n' + P.s[mt.end():]
+    P.s = P.s[:mt.end()] + '\n'.join(['RCL ' + r, 'RCL+ "LTH"', '24', 'MOD', 'FS? %d' % LTFLAG, 'STO ' + r]) + '\n' + P.s[mt.end():]
     size = re.search(r'\nLBL "NAV"\n(?:.*\n)*?(SIZE \d+)\n', P.s).group(1)       # NAVFULL SIZE 100, NAVLITTLE SIZE 38
     P.sub([size], [size, '0', 'SF 25', 'RCL "TZ"', 'CF 25', 'STO "TZ"', 'CLX', 'SF 25', 'RCL "TZLT"', 'CF 25',
                          'STO "TZLT"', 'XEQ 87'], after='LBL "NAV"')

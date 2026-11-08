@@ -18,7 +18,8 @@ Two ways to use it
      Menu Info: Help and About (version).    --version prints the version.
      Online check against JPL Horizons:      ... --check  (menu Info as well)
 
-Times are UT (UT1), as on the calculator. Latitude N+ / longitude E+, or
+Times are UT (UT1), as on the calculator; --lt shows them in local time, LT = UT + --tz hours (the +/- UT / LT
+switch of ALMA47 and MOON47; key L in the window). Latitude N+ / longitude E+, or
 written with N S E W ("25 20.0 N", "55 12 E", "25.3333", "-75.5").
 Files needed (same folder): c47pc.py c47astro.py c47screen.py c47screen21.py c47font.py
                             c47fonts2.py c47fonts21.py c47data.py c47tables.py jplcheck.py;
@@ -606,6 +607,8 @@ def run_gtk(eng, args):
                     self.step_time(1); return True
                 if ev.keyval in (Gdk.KEY_minus, Gdk.KEY_KP_Subtract):
                     self.step_time(-1); return True
+                if ev.keyval in (Gdk.KEY_l, Gdk.KEY_L, Gdk.KEY_plusminus):      # UT / LT (+/- on the calculator)
+                    args.lt = not args.lt; c47screen21.set_times(args.tz, args.lt); self.on_run(); return True
             return False
 
         def on_save(self, *_):
@@ -699,8 +702,11 @@ def main():
     ap.add_argument('--body', type=int, help='BODY: list the bodies above the horizon; with a number (1-58 stars, 60 Sun, 61 Moon, 62-65 planets) also its pages and, with --png, its chart')
     ap.add_argument('--fast', nargs='?', const=os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fast_series.json'),
                     help='FAST series (as INIT option 2 / MATF), from fast_series.json')
+    ap.add_argument('--tz', type=float, default=0.0, help='local time - UT, hours (as the variable TZ on the calculator)')
+    ap.add_argument('--lt', action='store_true', help='every time in local time, LT = UT + TZ (the +/- switch; key L)')
     ap.add_argument('--version', action='version', version='%s %s (%s)' % (PROGRAM, VERSION, VERSION_DATE))
     args = ap.parse_args()
+    c47screen21.set_times(args.tz, args.lt)
     if args.fast:
         print('FAST series', c47screen.A.use_series(args.fast))
 

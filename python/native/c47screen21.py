@@ -113,8 +113,8 @@ def shown_tz():
 
 
 def shown(h):
-    """Hours UT -> the hours shown (UT, or LT mod 24); 99 (no event) stays."""
-    return h if h > 98 else (h + shown_tz()) % 24
+    """Hours UT -> the hours shown: in UT as they are, in LT + TZ mod 24; 99 (no event) stays."""
+    return h if h > 98 or not TIMES['local'] else (h + TIMES['tz']) % 24
 
 
 def header(sc, al, j=None, lat=None, lon=None, source=None, uth=None):

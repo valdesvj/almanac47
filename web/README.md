@@ -42,7 +42,7 @@ address>:8047`.
 
 | Tab | |
 |---|---|
-| **Almanac** | the C47's ALMANAC page (ALMF): GHA Aries; the Sun, the Moon (HP), Venus, Mars, Jupiter, Saturn (grey below the horizon) and the brightest stars more than 10° high, GHA, Dec, Hc, Zn; nautical twilight, rise, meridian passage, set (UT and ZT), the Sun's SD; DAY / TWILIGHT / NIGHT; the Moon |
+| **Almanac** | the C47's ALMANAC page (ALMF): GHA Aries; the Sun, the Moon (HP), Venus, Mars, Jupiter, Saturn (grey below the horizon) and the brightest stars more than 10° high, GHA, Dec, Hc, Zn; nautical twilight, rise, meridian passage, set (UT and ZT, or LT and UT), the Sun's SD; DAY / TWILIGHT / NIGHT; the Moon |
 | **Sky** | the Alma47 sky (the C47's CHART / SKY): azimuth across N E S W N (S W N E S south of the equator), altitude up on the sine scale (10 20 30 45 60 90), the celestial equator dotted, the Sun, the Moon, the planets with their symbols, the 58 stars ★ with their numbers; **All sky** (ALLSKY): below the horizon too; **Dome**: the sky from the DR with the zenith in the centre, north up, the stars by brightness, the Moon and the planets; the bodies of the ALMANAC page with Hc and Zn |
 | **Stars** | the 57 navigational stars and Polaris: SHA, GHA, Dec, Hc, Zn, brightness; sortable |
 | **Sun** | GHA, Dec, SD, Hc, Zn now; the day's twilights, rise, meridian passage and set in UT and ZT |
@@ -51,7 +51,9 @@ address>:8047`.
 
 The top: **Now** follows the clock (UT from the computer), or a date and a UT; ±1 h; the **DR** (`27 12.0N 049
 42.0E` or `27.2 49.7`) and the **ZD** (zone description: ZT + ZD = UT; empty: from the DR's longitude). Keys: + / −
-one hour.
+one hour. **Times UT / LT** (the button, or key L): every time shown in UT first (ZT under it), or in local time
+first, LT = ZT = UT − ZD (UT under it): the date of the header, the Sun's events, the Moon's phases and, in the
+Calculator style, the C47 screens as the calculator's +/- switch shows them. The date and time you type stay UT.
 
 ## Data
 

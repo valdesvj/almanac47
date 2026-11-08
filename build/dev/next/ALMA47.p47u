@@ -56,6 +56,8 @@
 @   - it uses the registers R07-R98 and clears only those when it ends (R-CLR 7.92): R00-R06 and R99 stay yours;
 @   - on ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun): ALMA47 ends with Z its text,
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
+@   - +/- on the menu or a view shows every time in UT or in local time, LT = UT + the variable TZ (the switch is
+@     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing). DATE and UTC are asked in UT.
 @ The other keys as v2.2.0: + menu, up / down arrow one hour, 9 SNAP, 0 on the menu ends.
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @
@@ -1575,12 +1577,15 @@ RCL 25
 98
 X≥Y?
 IF 03
-  RCL "TZ"
-  RCL× "TZLT"
-  RCL+ 25
-  RCL 70
-  MOD
-  STO 25
+  RCL "TZLT"
+  X≠0?
+  IF 04
+    RCL "TZ"
+    RCL+ 25
+    RCL 70
+    MOD
+    STO 25
+  ENDIF 04
   RCL 25
   RCL 57
   ×
@@ -1742,7 +1747,7 @@ PIXEL
 RCL 22
 400
 X>Y?
-IF 04
+IF 05
   WSIZE 8
   2
   GRMOD
@@ -1753,7 +1758,7 @@ IF 04
   RCL- 16
   STO 22
   X≠0?
-  IF 05
+  IF 06
     RCL 25
     400
     RCL- 22
@@ -1762,11 +1767,11 @@ IF 04
       DSE 22
     WHILE 01
     ENDDO 01
-  ENDIF 05
+  ENDIF 06
   RCL 16
   STO 22
   X≠0?
-  IF 06
+  IF 07
     RCL 25
     RCL 46
     DO 02               ; the rest of the line from the left edge: R16 columns, one a round
@@ -1774,10 +1779,10 @@ IF 04
       DSE 22
     WHILE 02
     ENDDO 02
-  ENDIF 06
+  ENDIF 07
   RCL 46
   GRMOD
-ENDIF 04
+ENDIF 05
 WSIZE 64
 RCL 25
 RCL 16
@@ -1785,10 +1790,10 @@ RTN
 LBL 06                  ; PTXS 06: the sign of R07: a space or '-' (called by PDMS x2)
 RCL 27
 X≥0?
-IF 07
+IF 08
   " "
   RTN
-ENDIF 07
+ENDIF 08
 "-"
 RTN
 LBL 07                  ; PTXS 07: an azimuth of 360.0 written as 000.0 (called by PZNS x1)

@@ -103,6 +103,9 @@ ENDIF
 SSIZE#
 STO "W7"
 SSIZE8
+0
+STO+ "TZ"
+STO+ "TZLT"
 -1
 STO "V6"
 STO "U1"
@@ -130,6 +133,10 @@ CLLCD
 REPEAT
   XEQ 02
   XEQ "N01"
+  RCL 00
+  43
+  X=Y?
+  XEQ 06
   RCL 00
   51
   X≠Y?
@@ -325,6 +332,16 @@ LBL 05
 "DATE MM.DDYYYY"
 STO 00
 RTN
+LBL 06
+1
+RCL "TZLT"
+-
+STO "TZLT"
+RCL 27
+STO+ "V5"
+61
+STO 00
+RTN
 END
 LBL "N25"
 ⇄ zyxt
@@ -450,6 +467,15 @@ RCL 22
 98
 X≥Y?
 IF
+  RCL "TZLT"
+  X≠0?
+  IF
+    RCL "TZ"
+    RCL+ 22
+    24
+    MOD
+    STO 22
+  ENDIF
   RCL 22
   60
   ×
@@ -796,9 +822,15 @@ RCL 13
 X<>Y
 ÷
 STO 13
+RCL "TZ"
+RCL× "TZLT"
+24
+÷
+RCL+ 15
 RCL 34
+X<>Y
 RCL 35
-RCL 15
+X<>Y
 XEQ "N30"
 PAUSE 0
 RCL 34
@@ -815,6 +847,15 @@ PAUSE 0
 RCL 34
 118
 "UT"
+RCL "TZLT"
+X≠0?
+IF
+  DROP
+  DROP
+  "LT"
+ELSE
+  DROP
+ENDIF
 XEQ 04
 143
 "DR"
@@ -2249,6 +2290,10 @@ REPEAT
   RTN
   RCL 00
   61
+  X=Y?
+  RTN
+  RCL 00
+  43
   X=Y?
   RTN
   RCL 00

@@ -513,11 +513,13 @@ def dm42_221(n):
             f = os.path.join(t, 'p%d.txt' % i); open(f, 'w', encoding='utf-8').write('\n'.join(pr) + '\n'); files.append(f)
         return c47sim.load(files)
 
-    def session(P, init, inp, keys):
+    def session(P, init, inp, keys, regs=None, out=None):
         c = load(init + P); c.flags.add(82); c.grfnt = 21
         c.run('INIT', maxsteps=10 ** 7)
-        for k, v in inp:
-            c.reg[k] = D(v)
+        for k, v in list(inp) + list((regs or {}).items()):
+            c.reg[k] = D(str(v))
+        if out is not None:
+            out.append(c)
         m = {'%02d' % r: D(8000 + r) + D('0.5') for r in range(100)}
         for r, v in m.items():
             c.rset(r, v)
@@ -539,6 +541,30 @@ def dm42_221(n):
         b, _, _ = V.little_session(old, oi, keys, inp, marks=False)
         ok(a == b and good, 'NAVLITTLE %s %s %s %s: %d screens pixel for pixel v2.1.0, your stack, LASTx and registers back'
            % (tuple(v for _, v in inp) + (len(a),)))
+    # UT / LT (+/-, TZ and TZLT): the pixels that change from UT are those of the Python twin's ALMANAC
+    import t21sim
+    sys.path.insert(0, os.path.join(ROOT, 'python', 'native'))
+    import c47screen as PS
+    import c47screen21 as N21
+    from c47view import jd
+
+    def twin(al, tz, local):
+        N21.set_times(tz, local)
+        try:
+            return N21.VIEWS['ALMANAC'](al)[0]
+        finally:
+            N21.set_times()
+    for case, tz in (((2026, 9, 26, 14 + 57 / 60, 25 + 20 / 60, 55.2), 3), ((2027, 1, 1, 0.25, 10.0, 100.0), -9.5)):
+        inp = tuple(zip(('DATE', 'UTC', 'LAT', 'LON'), t21sim.c47in(*case)))
+        al = PS.Almanac(jd(*case[:4]), case[4], case[5])
+        u, _ = session(back, ib, inp, [K['+']], {'TZ': tz})
+        cs = []
+        lt, good = session(back, ib, inp, [43, K['up'], K['+']], {'TZ': tz, 'TZLT': 1}, cs)
+        up, _ = session(back, ib, inp, [K['up'], K['+']], {'TZ': tz})
+        ok(len(lt) == 3 and (lt[0] ^ u[0]) == (twin(al, tz, True) ^ twin(al, tz, False)) and lt[1] == u[0]
+           and lt[2] == up[1] and cs[0].reg.get('TZLT') == 0 and good,
+           'NAVLITTLE %04d-%02d-%02d %05.2f h TZ %+g: ALMANAC in LT (the pixels of the twin), +/- -> UT, then an hour '
+           'later, TZLT 0, your stack back' % (case[:4] + (tz,)))
     D_ = R.moon_dm42(os.path.join(ROOT, 'programs_struct', 'next', 'MOON47.txt'), 4)
     P = S_.plain(D_)
     ok(all(sum(l == o for l in P) <= 10 for o in S_.OPENERS) and not [l for l in P if l.startswith('GTO')],
