@@ -11,7 +11,7 @@ version and the base for a phone app (**Almanac 47**).
   phases in LT. DATE and UT are still asked in UT. MOON47 flips north / south with **0** now. C47 / R47:
   `programs_struct/next/` (`build/dev/next/`); the old DM42: `programs_struct/little/NAVLITTLE_221.txt`; Free42:
   `build/dev/next/free42/` (`tools/build_next_f42.py`, key +/-); the PC (`c47pc.py --lt --tz 3`, key L) and the web
-  app (button Times UT / LT, key L). Tests: `tests/test_struct_src.py` (times, dm42_221, moon_next),
+  app (its Times: UT / LT button, key L; the Calculator style follows it). Tests: `tests/test_struct_src.py` (times, dm42_221, moon_next),
   `tests/test_next_f42.py`, `tests/test_moon47_f42.py`, `tests/test_web_calc.py`.
 - **v2.2.1 (latest):** `build/v2.2.1/` - v2.2.0 with **your stack and LASTx kept** when a program ends, by the trick
   from the SwissMicros forum (`LocR 9`, `STOS R.00` at the start, `RCLS R.00` at the end; Free42: the variables
@@ -102,5 +102,6 @@ firmware (GPL-3.0, `programs/LICENSE-PTXS.txt`). See `NOTICE`.
 The same methods in JavaScript, with Zones 47's time zones: the ALMANAC page, the sky, the 58 stars, the Sun's day,
 MOON47 and the world time zones in one page for Chrome or a phone, with the Moon and the planets and their symbols.
 Three styles: Modern, Vintage (the printed almanac) and Calculator, the PC app's C47 screens pixel for pixel (its own
-Python, run in the browser by Pyodide). Open `web/index.html`; see `web/README.md`.
+Python, run in the browser by Pyodide). **Route**: NAV47's passage planning on the GSHHG coastline (as GMT), with the
+ports, fields and your own platforms' 500 m zones. Open `web/index.html`; see `web/README.md`.
 

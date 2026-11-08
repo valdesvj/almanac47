@@ -29,8 +29,8 @@ const [url, cases, views] = [process.argv[2], JSON.parse(process.argv[3]), JSON.
   for (const [d, t, pos, zd] of cases) {
     await p.fill('#pos', pos); await p.dispatchEvent('#pos', 'change');
     await p.fill('#zd', zd === null ? '' : zd); await p.dispatchEvent('#zd', 'change');
-    const lt = await p.evaluate(() => A47.S.lt);
-    if (lt !== (zd !== null)) await p.click('#utlt');               // LT when the case has a ZD ('' = from the longitude)
+    const lt = await p.evaluate(() => A47.ltMode());
+    if (lt !== (zd !== null)) await p.click('#tmode');              // LT when the case has a ZD ('' = from the longitude)
     await p.fill('#date', d); await p.fill('#time', t); await p.dispatchEvent('#time', 'change');
     const r = {};
     for (const v of views) {

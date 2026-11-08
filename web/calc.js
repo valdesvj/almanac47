@@ -82,10 +82,10 @@ def a47_charw():
 
   function compute() {
     const view = VIEWS.includes(S.cview) ? S.cview : 'ALMANAC';
-    const key = [view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step, S.lt, A.tzOf()].join();
+    const key = [view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step, A.ltMode(), A.tzOf()].join();
     if (key === lastKey && out) return false;
     const t0 = performance.now();
-    const r = py.globals.get('a47_screen')(view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step, A.tzOf(), S.lt);
+    const r = py.globals.get('a47_screen')(view, S.j, S.pos[0], S.pos[1], opt.tables, opt.frames, opt.step, A.tzOf(), A.ltMode());
     const js = r.toJs({ dict_converter: Object.fromEntries });
     r.destroy();
     secs = (performance.now() - t0) / 1000;
