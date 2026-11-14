@@ -1,8 +1,8 @@
 @ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  Victor Valdes
-@ Version: 2.2.1
+@ Version: 2.3.0
 @ Source:  https://github.com/valdesvj/almanac47
-@ Tested:  C47 simulator (python/c47sim.py) only: every view pixel for pixel v2.2.0, the stack (4 levels) and LASTx
+@ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel v2.2.0 but the new header, the stack and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
 @ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks DATE, UTC, LAT, LON as v2.2.0
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
@@ -58,6 +58,8 @@
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
 @   - +/- on the menu or a view shows every time in UT or in local time, LT = UT + the variable TZ (the switch is
 @     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing). DATE and UTC are asked in UT.
+@   - the header of every view: the date and time (UT / LT) on the left, the view's name inverted in the middle,
+@     the position on the right (no DR); the menu's position moved the same way.
 @ The other keys as v2.2.0: + menu, up / down arrow one hour, 9 SNAP, 0 on the menu ends.
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @

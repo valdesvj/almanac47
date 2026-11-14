@@ -1,5 +1,5 @@
-Almanac 47 - the next version (after v2.2.0, not released). C47 / R47 only.
-============================================================================
+Almanac 47 - the next version, released as v2.3.0 "Local Time" (build/v2.3.0/, tools/build_release_v230.py).
+=============================================================================================================
 
 The v2.2.0 release (build/c47/, build/forum/, programs_struct/) is not changed. This version is built from
 programs_struct/next/ by tools/build_next.py:

@@ -39,7 +39,7 @@ def split(path):
     return progs
 
 
-def run(case, keys, box=False, maxpauses=None, keyskip=False):
+def run(case, keys, box=False, maxpauses=None, keyskip=False, regs=None):
     """NAV with the keys; the frames as sets of (x, row), row 0 at the top. box: the SINKING box
     makes a frame of its own (its PAUSE 0 becomes PAUSE 2). keyskip: the views run on without a key
     (SKY writes the next name every second)."""
@@ -55,6 +55,8 @@ def run(case, keys, box=False, maxpauses=None, keyskip=False):
     c = c47sim.load(files); c.flags.add(82)
     c.run('INIT', maxsteps=10 ** 7); c.flags.add(81)
     for k, v in zip(('DATE', 'UTC', 'LAT', 'LON'), case):
+        c.reg[k] = D(v)
+    for k, v in (regs or {}).items():                  # e.g. TZ, TZLT (the next version's UT / LT)
         c.reg[k] = D(v)
     c.s = [D(0)] * 4; c.frames = []; c.pix = []; c.keys = list(keys); c.maxpauses = maxpauses; c.keyskip = keyskip
     try:

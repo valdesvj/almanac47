@@ -1168,3 +1168,14 @@ before (the shift and its mod 24 only in LT).
   the web app and Free42 are unchanged. Its position was never pixel for pixel the RPN's (N at 168, the RPN's at 182).
 - tests/test_struct_src.py next_header(): each next screen is v2.2.0's, or v2.2.0's with the header band changed
   exactly so (DR gone, position +42, the name box of name_pixels()). The old DM42 next (dm42/) and Free42 unchanged.
+
+### v2.3.0 "Local Time" (the release of the next version)
+- tools/build_release_v230.py writes build/v2.3.0/{c47,dm42,free42} from build/dev/next/ (build_next.py,
+  build_next_f42.py): ALMA47 / MOON47 / LABELS / QUICKSTART / p47u, NAVLITTLE / MOON47 / README_DM42, NAVFULL /
+  NAVLITTLE / MOON47 (.txt, .raw) / README_F42. The texts start from build/v2.2.1/'s and must change exactly once
+  (SystemExit otherwise). NAVINIT_*: v2.2.0's / v2.1.0's, unchanged. The .p47 and the zips need rejig (Victor's PC).
+- The p47u headers (tools/build_next.py HEAD, MOON_HEAD): Version 2.3.0.
+- Pictures: tools/generators/c47_struct_shots.py --next (docs/c47/, the new header; ALMF_LT.png at TZ 3, TZLT 1;
+  nav_shots.run(regs=)). Manuals: manual_nav.py and build_port_manuals.py v2.3.0 (UT / LT, +/-, MOON47's 0),
+  PDFs in docs/ with --release. tools/build_p47.py reads build/v2.3.0/c47/.
+- tests/test_v230.py: build/v2.3.0/ is what the next version builds (the files), the texts mention +/- and TZ.

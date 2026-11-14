@@ -3,17 +3,17 @@
 Celestial navigation for the SwissMicros C47 / R47 calculator (RPN), with a PC
 version and the base for a phone app (**Almanac 47**).
 
-- **Next version: UT or LT on +/-** (branch `claude/ut-local-times`; not a release yet): every time on the screens in
-  UT or in local time, **LT = UT + TZ** (the variable `TZ`, as MOON47 always had). **+/-** switches it on the menu and
-  on every view (ALMA47, NAVLITTLE, MOON47); the switch is the variable `TZLT` (0 UT, 1 LT), kept between runs; ALMA47
-  makes `TZ` and `TZLT` 0 when they are missing. In LT the header shows the date, the time and `LT`, and rise, set,
-  twilights and meridian passage are + TZ (the events of the UT day, mod 24 h); MOON47 shows its header and the next
-  phases in LT. DATE and UT are still asked in UT. MOON47 flips north / south with **0** now. C47 / R47:
-  `programs_struct/next/` (`build/dev/next/`); the old DM42: `programs_struct/little/NAVLITTLE_221.txt`; Free42:
-  `build/dev/next/free42/` (`tools/build_next_f42.py`, key +/-); the PC (`c47pc.py --lt --tz 3`, key L) and the web
-  app (its Times: UT / LT button, key L; the Calculator style follows it). Tests: `tests/test_struct_src.py` (times, dm42_221, moon_next),
-  `tests/test_next_f42.py`, `tests/test_moon47_f42.py`, `tests/test_web_calc.py`.
-- **v2.2.1 (latest):** `build/v2.2.1/` - v2.2.0 with **your stack and LASTx kept** when a program ends, by the trick
+- **v2.3.0 "Local Time" (latest):** `build/v2.3.0/` - every time on the screens in UT or in local time with
+  **+/-**, **LT = UT + TZ** (the variable `TZ`, hours east: `3 STO "TZ"` for UTC+3; the switch is the variable `TZLT`,
+  kept between runs; DATE and UTC are still asked in UT), on every build: ALMA47 and MOON47 on the C47 / R47 (MOON47's
+  south view moved to **0**), NAVLITTLE and MOON47 on the old DM42 with the C47 firmware, NAVFULL, NAVLITTLE and MOON47
+  on Free42, the PC (`c47pc.py --lt --tz 3`, key L) and the web app (Times: UT / LT, key L). On the C47 / R47 a new
+  header on every view, as NAV47's top bar: date and time on the left, the view's name inverted in the middle, the
+  position on the right. Notes: `RELEASE_NOTES_v2.3.0.md`; manuals: `docs/C47_Nav_User_Manual.pdf`,
+  `docs/Almanac47_Free42_Manual.pdf`; build: `python3 tools/build_release_v230.py` (rejig for the .p47 and the zips);
+  sources: `programs_struct/next/`, `programs_struct/little/NAVLITTLE_221.txt`, `tools/build_next_f42.py`; tests:
+  `tests/test_struct_src.py`, `tests/test_next_f42.py`, `tests/test_moon47_f42.py`, `tests/test_web_calc.py`.
+- **v2.2.1:** `build/v2.2.1/` - v2.2.0 with **your stack and LASTx kept** when a program ends, by the trick
   from the SwissMicros forum (`LocR 9`, `STOS R.00` at the start, `RCLS R.00` at the end; Free42: the variables
   S7X ... S7L). On the C47 / R47 the keys 1-8 on ALMANAC and SPLIT end ALMA47 with that body on your stack (Z the text,
   Y Zn, X Hc), and ALMA47 / MOON47 clear only their own registers (R07-R98 / R07-R65). Builds for the C47 / R47
@@ -21,7 +21,7 @@ version and the base for a phone app (**Almanac 47**).
   NAVLITTLE (`free42/`, .raw included). The same pages pixel for pixel. Notes: `RELEASE_NOTES_v2.2.1.md`; build:
   `python3 tools/build_release_v221.py` (rejig for the .p47 and the zips); tests: `tests/test_struct_src.py`,
   `tests/test_v221.py`, `tests/test_v221_f42.py` (needs `tools/f42`).
-- **The forum files (the C47's PROGRAMS folder):** `build/v2.2.1/c47/p47u/ALMA47.p47u`, `MOON47.p47u`,
+- **The forum files (the C47's PROGRAMS folder):** `build/v2.3.0/c47/p47u/ALMA47.p47u`, `MOON47.p47u`,
   `build/forum/NAVINIT.p47u`, `NAVINIT_FULL.p47u` and `C64FX.p47u` (the buzzer demo): each starts with how to use it
   in plain words (What it is, How to use it, What it changes on your calculator, Programs and labels; the texts are
   `tools/forum/*.txt`), the comments are `@` lines or after `;`, so rejig makes no REM step of them.
@@ -33,7 +33,8 @@ version and the base for a phone app (**Almanac 47**).
   The old DM42 (64 KiB): `build/c47/dm42/` - NAVLITTLE with its reduced NAVINIT_LITTLE and a MOON47 of its own, in
   STRUCT within the DM42 firmware's 10 IF / DO / REPEAT a program (firmware packages 1-3; package 4 has no STRUCT).
   Build: `python3 tools/build_release_c47.py`; in the firmware and against DE421: `tests/test_fw_c47.py`.
-  Free42 / DM42 stock firmware / Plus42: v2.1.0 (below), or v2.2.1 above (the same programs, your stack kept).
+  Free42 / DM42 stock firmware / Plus42: v2.1.0 (below), or v2.2.1 / v2.3.0 above (the same programs, your stack
+  kept; v2.3.0: UT / LT on +/-).
 - **Install and run (v2.1.0):** `QUICKSTART.txt` (load NAVFULL + NAVINIT, XEQ "INIT", delete the
   INIT program, XEQ "NAV"). NAV asks date, UT and DR once, computes the sky, then a
   graphic menu: 1 ALMANAC, 2 SPLIT, 3 SKY, 4 ANIM, 5 ALLSKY, 6 INFO, 0 END (+ back,
@@ -54,7 +55,7 @@ version and the base for a phone app (**Almanac 47**).
   older public firmware 00.109.04.00b0 use `Almanac47_C47_R47_fw0400b0_v1.1.0.zip` from the v1.1.0
   release. The Free42 builds (`build/free42/`) run on the stock DM42 / DM42n firmware.
 - **MOON47, the Moon phase on its own:** one program, no NAV and no INIT: the phase as a disc, % lit,
-  age, HP, SD and the next four phases (UT), from the clock (the next version: **+/−** UT or LT, **0** the south; see
+  age, HP, SD and the next four phases (UT), from the clock (v2.3.0: **+/−** UT or LT, **0** the south; see
   above). `build/MOON47` (C47 / R47),
   `build/dm42/MOON47` (DM42 with the C47 firmware), `build/free42/MOON47.raw` (Free42),
   `python/numworks/moon47.py`, `python/hpprime/moon47.py`; the PC: `python3 python/moon47.py`.
