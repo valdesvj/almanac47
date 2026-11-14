@@ -70,18 +70,23 @@ def moon47(n, where, start, keys, extra):
 # ------------------------------------------------------------------ Free42 (DM42 / DM42n)
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
-    S = [P('Almanac 47 for Free42', title),
+    S = [P('Almanac 47 for Free42 v2.3.0', title),
          P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.3.0 (the programs of 2.1.0 Supercharger, your stack kept, UT / LT on +/-)', sub), Spacer(1, 6),
+         P('What is new in v2.3.0 "Local Time"', h2)] + B([
+        '<b>UT or local time on +/-.</b> Press +/- on the menu or on a view: every time shown switches between UT and '
+        'local time, LT = UT + TZ. Store your zone once in the variable <b>TZ</b>, in hours east: 3 STO "TZ" for UTC+3, '
+        '-5 STO "TZ" for UTC−5.',
+        'In LT the header shows the local date and time and LT; rise, set, twilights and meridian passage are + TZ. GHA, '
+        'Dec, Hc and Zn do not change, and DATE and UT are still asked in UT. The choice stays for the next run (the '
+        'variable TZLT, 0 UT, 1 LT); NAV creates TZ and TZLT with 0 when they are missing.',
+        'NAVFULL: +/- on the menu or a view. NAVLITTLE: +/- redraws ALMANAC. MOON47: +/- for its times, <b>0</b> for the '
+        'view from the south.',
+        'Everything else as v2.2.1: the same results and the same screens.']) + [
+         Spacer(1, 4),
          P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 5 views and INFO — '
            'converted to Free42 3.3 with the DM42 graphics extension (the whole 400 × 240 screen). The menu, the screens '
            'and the values are the same as on the C47: in the Free42 core (SwissMicros source, release 3.3.10) each '
            'screen was compared pixel by pixel with the C47 version.'),
-         P('<b>New in v2.3.0:</b> the key <b>+/-</b> shows every time in UT or in <b>local time</b>, LT = UT + TZ (the '
-           'variable TZ: your zone in hours, e.g. 3 STO "TZ" for UTC+3, -5 STO "TZ" for UTC−5). In LT the header shows the '
-           'local date and time and LT, and rise, set, twilights and meridian passage are + TZ; GHA, Dec, Hc and Zn do not '
-           'change, and DATE and UT are still asked in UT. The choice is the variable TZLT (0 UT, 1 LT), kept between runs; '
-           'NAV creates TZ and TZLT with 0 when they are missing. NAVFULL: +/- on the menu or a view; NAVLITTLE: +/- '
-           'redraws ALMANAC; MOON47: +/- for the times, 0 for the view from the south.'),
          P('<b>New in v2.2.1:</b> NAVFULL, NAVLITTLE and MOON47 give you back your stack when they end: X, Y, Z, T and '
            'LASTX are as they were before XEQ "NAV" (or XEQ "MOON47"). Free42 has no STOS and no local registers, so the '
            'four levels and LASTX go into the variables S7X, S7Y, S7Z, S7T, S7L at the start and come back at the end '
