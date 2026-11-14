@@ -26,9 +26,21 @@ def lines(path):
     return [l.rstrip('\n') for l in open(os.path.join(ROOT, path), encoding='utf-8')]
 
 
-S += [P('Almanac 47', title),
+S += [P('Almanac 47 v%s' % VERSION, title),
       P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (VERSION, NAME), sub),
       Spacer(1, 6),
+      P('What is new in v%s "%s"' % (VERSION, NAME), h2)] + B([
+      '<b>UT or local time on +/-.</b> Press +/- on the menu or on any view: every time shown switches between UT and '
+      'local time, LT = UT + TZ. Store your zone once in the variable <b>TZ</b>, in hours east: 3 STO "TZ" for UTC+3, '
+      '-5 STO "TZ" for UTC−5 (section 4).',
+      'In LT the header shows the local date and time and LT; rise, set, twilights and meridian passage are in LT. '
+      'GHA, Dec, Hc and Zn do not change, and DATE and UTC are still asked in UT. The choice stays for the next run '
+      '(the variable TZLT).',
+      '<b>A new header on every view:</b> the date and time on the left, the view\'s name in the middle, the position '
+      'on the right.',
+      '<b>MOON47:</b> +/- shows its times in UT or LT; the view from the south moved to the key <b>0</b>.',
+      'Everything else as v2.2.1: the same results and the same pages.']) + [
+      Spacer(1, 4),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
         'the sky. Everything is computed on the calculator (VSOP87, Meeus, IAU precession and nutation).'),
@@ -38,11 +50,6 @@ S += [P('Almanac 47', title),
         'done since v2.1.0: the same pages, drawn with far fewer steps (section 6). <b>Free42 / Plus42 / DM42 with the '
         'stock firmware:</b> the zip Almanac47_Free42_DM42_v2.3.0.zip (the programs of v2.1.0, keeping your stack, with UT / LT on +/-) and '
         'its manual, Almanac47_Free42_Manual.pdf.'),
-      P('<b>New in v2.3.0 (Local Time):</b> <b>+/-</b> shows every time in UT or in <b>local time</b>, LT = UT + TZ '
-        '(the variable TZ: your zone in hours, e.g. 3 STO "TZ"), on the menu and on every view — the header, rise, set, '
-        'twilights, meridian passage, and MOON47\'s next phases (section 4). And a new <b>header</b> on every view: the date '
-        'and time on the left, the view\'s name in the middle, the position on the right. MOON47 turns to the south view '
-        'with <b>0</b> now. The rest as v2.2.1.'),
       P('<b>New in v2.2.1:</b> ALMA47 and MOON47 give you back your stack (X … D of the 8 levels) and LASTx when they '
         'end, and use only part of the numbered registers (ALMA47 R07–R98, MOON47 R07–R65; the others stay yours). On '
         'ALMANAC and SPLIT, a key 1–8 picks that row of the table and puts the body on your stack: Z its text, Y Zn, X Hc '
