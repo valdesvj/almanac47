@@ -16,8 +16,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, 'build', 'p47')
 # NAME: (the commented forum file, the plain listing or None), paths from the repository's root
 PROGRAMS = {
-    'ALMA47': ('build/v2.2.1/c47/p47u/ALMA47.p47u', 'build/v2.2.1/c47/ALMA47.txt'),
-    'MOON47': ('build/v2.2.1/c47/p47u/MOON47.p47u', 'build/v2.2.1/c47/MOON47.txt'),
+    'ALMA47': ('build/v2.3.0/c47/p47u/ALMA47.p47u', 'build/v2.3.0/c47/ALMA47.txt'),
+    'MOON47': ('build/v2.3.0/c47/p47u/MOON47.p47u', 'build/v2.3.0/c47/MOON47.txt'),
     'NAVINIT': ('build/forum/NAVINIT.p47u', 'build/c47/NAVINIT_FAST.txt'),
     'NAVINIT_FULL': ('build/forum/NAVINIT_FULL.p47u', 'build/c47/NAVINIT_FULL.txt'),
     'C64FX': ('build/forum/C64FX.p47u', None),

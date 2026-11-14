@@ -36,9 +36,9 @@ COL = 40
 
 HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  Victor Valdes
-@ Version: 2.2.1
+@ Version: 2.3.0
 @ Source:  https://github.com/valdesvj/almanac47
-@ Tested:  C47 simulator (python/c47sim.py) only: every view pixel for pixel v2.2.0, the stack (4 levels) and LASTx
+@ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel v2.2.0 but the new header, the stack and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
 @ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks DATE, UTC, LAT, LON as v2.2.0
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
@@ -53,6 +53,8 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
 @   - +/- on the menu or a view shows every time in UT or in local time, LT = UT + the variable TZ (the switch is
 @     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing). DATE and UTC are asked in UT.
+@   - the header of every view: the date and time (UT / LT) on the left, the view's name inverted in the middle,
+@     the position on the right (no DR); the menu's position moved the same way.
 @ The other keys as v2.2.0: + menu, up / down arrow one hour, 9 SNAP, 0 on the menu ends.
 @ DOES NOT REPLACE THE NAUTICAL ALMANAC.
 @
@@ -60,7 +62,7 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 
 MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: 2.2.2
+@ Version: 2.3.0
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
 @ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
@@ -69,7 +71,7 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @
 @@NARRATIVE@@
 @ ---- Technical notes ----
-@ 2.2.2: the disc drawn with two AGRAPH words a column (the outline and the lit part merged, each half one word
+@ 2.3.0: +/- UT or LT. 2.2.2: the disc drawn with two AGRAPH words a column (the outline and the lit part merged, each half one word
 @ 2^(b+1) - 2^a): the page in about 21 000 steps instead of 30 000 (3.6 s instead of 5.1 s), the same pixels.
 @ As MOON47 v2.2.0, and:
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,

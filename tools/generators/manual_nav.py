@@ -1,4 +1,4 @@
-# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.2.1, the STRUCT build), the views,
+# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.3.0, the STRUCT build), the views,
 # the labels, MOON47.
 # Run through build_manual.py (exec): uses its S, P, B, styles, tables, DOCS and ROOT.
 import re as _re
@@ -6,9 +6,9 @@ sys.path.insert(0, os.path.join(ROOT, 'tools'))
 import build_struct_src as _B
 import build_release_c47 as _R
 
-C47DOCS = os.path.join(DOCS, 'c47')                 # the screens of v2.2.0 (tools/generators/c47_struct_shots.py)
-VERSION = '2.2.1'                                   # v2.2.1: the v2.2.0 pages; your stack kept, the keys 1-8 of
-                                                    # ALMANAC / SPLIT (tools/build_release_v221.py)
+C47DOCS = os.path.join(DOCS, 'c47')                 # the screens of v2.3.0 (c47_struct_shots.py --next)
+VERSION = '2.3.0'                                   # v2.3.0: UT / LT on +/-, the new header (tools/build_release_v230.py)
+NAME = 'Local Time'
 
 
 def img(name, frac=0.49, where=None):
@@ -27,7 +27,7 @@ def lines(path):
 
 
 S += [P('Almanac 47', title),
-      P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (VERSION, _R.NAME), sub),
+      P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (VERSION, NAME), sub),
       Spacer(1, 6),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
@@ -36,8 +36,13 @@ S += [P('Almanac 47', title),
         'C47\'s structured programming commands — IF … ELSE … ENDIF, DO … WHILE … ENDDO, REPEAT … UNTIL — and has no GTO '
         'at all; Free42, Plus42, the DM42 and HP-42S firmware do not have these commands. It carries all the speed work '
         'done since v2.1.0: the same pages, drawn with far fewer steps (section 6). <b>Free42 / Plus42 / DM42 with the '
-        'stock firmware:</b> the zip Almanac47_Free42_DM42_v2.2.1.zip (the programs of v2.1.0, now keeping your stack) and '
+        'stock firmware:</b> the zip Almanac47_Free42_DM42_v2.3.0.zip (the programs of v2.1.0, keeping your stack, with UT / LT on +/-) and '
         'its manual, Almanac47_Free42_Manual.pdf.'),
+      P('<b>New in v2.3.0 (Local Time):</b> <b>+/-</b> shows every time in UT or in <b>local time</b>, LT = UT + TZ '
+        '(the variable TZ: your zone in hours, e.g. 3 STO "TZ"), on the menu and on every view — the header, rise, set, '
+        'twilights, meridian passage, and MOON47\'s next phases (section 4). And a new <b>header</b> on every view: the date '
+        'and time on the left, the view\'s name in the middle, the position on the right. MOON47 turns to the south view '
+        'with <b>0</b> now. The rest as v2.2.1.'),
       P('<b>New in v2.2.1:</b> ALMA47 and MOON47 give you back your stack (X … D of the 8 levels) and LASTx when they '
         'end, and use only part of the numbered registers (ALMA47 R07–R98, MOON47 R07–R65; the others stay yours). On '
         'ALMANAC and SPLIT, a key 1–8 picks that row of the table and puts the body on your stack: Z its text, Y Zn, X Hc '
@@ -63,7 +68,7 @@ S += [P('Almanac 47', title),
           ['p47u/', 'the same programs as rejig sources (.p47u) with comments, for the PROGRAMS folder of the C47']],
           [32 * mm, 148 * mm]),
       P('Each comes as .p47 (load it as it is) and as .txt (the listing). The old DM42 with the C47 firmware (64 KiB) has '
-        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2.x '
+        'its own zip with NAVLITTLE (section 9). The almanac tables (TBL) of earlier versions are not part of v2.2 / v2.3 '
         '(they stay in the repository).', small),
       P('2. First start', h2)] + B([
       'The C47 needs a firmware with <b>ATEXT</b>, <b>GRFNT</b> and the <b>STRUCT</b> commands: 00.109.05.00a0.ALPHA '
@@ -94,18 +99,28 @@ S += [P('3. Starting ALMA47', h2),
       img('NAV_busy_box.png', 0.6),
       P('4. The menu', h2),
       img('NAV_menu.png', 0.66),
-      P('Title ALMANAC 47 and the period of the matrices; under it the date, UT and DR in use. Under the items, the '
-        'keys: + MENU, ↑↓ ±1 HOUR and 9 SNAP.', small),
+      P('Title ALMANAC 47 and the period of the matrices; under it the date, the time (UT, or LT after +/-) and the '
+        'position in use. Under the items, the keys: + MENU, ↑↓ ±1 HOUR and 9 SNAP; +/- is not written there.', small),
       prose_tbl([['Key', 'On the menu', 'On a view'],
                  ['1 – 6', 'the item is highlighted and its view is drawn (6: INFO)', '—'],
                  ['9', 'SNAP (a screenshot)', 'SNAP (a screenshot)'],
                  ['+', '—', 'back to the menu'],
                  ['▲ / ▼', 'one hour later / earlier (the title shows the new time)', 'the same view one hour later / earlier'],
                  ['1 – 8', '—', 'ALMANAC and SPLIT: ALMA47 ends with that row on your stack (Z the text, Y Zn, X Hc)'],
+                 ['+/-', 'UT or local time (LT = UT + TZ): the menu is drawn again', 'the same: the view is drawn again in UT or LT'],
                  ['0', 'end of ALMA47: your stack and LASTx back, R07–R98 cleared, the normal screen', '—'],
                  ['other keys', 'ignored', 'ignored (R/S or EXIT stop the program)']],
                 [26 * mm, 77 * mm, 77 * mm]),
       P('The hours added with the arrows stay for the other views. New date or position: XEQ "ALMA47" again.', small),
+      P('<b>UT or local time (+/-).</b> Store your time zone once in the variable <b>TZ</b>, in hours east of Greenwich: '
+        '<b>3 STO "TZ"</b> for UTC+3, <b>-5 STO "TZ"</b> for UTC−5, 5.5 for UTC+5:30 (MOON47 uses the same TZ). Then +/- '
+        'on the menu or a view switches every time shown between UT and LT = UT + TZ: the header shows the local date and '
+        'time and LT, and rise, set, twilights and meridian passage are given in LT (the events of the UT day). The choice '
+        'is the variable <b>TZLT</b> (0 UT, 1 LT) and stays for the next run. DATE and UTC are still asked in UT, and '
+        'GHA, Dec, Hc and Zn do not change. Without TZ, ALMA47 creates TZ and TZLT with 0.'),
+      img('ALMF_LT.png', 0.66),
+      P('ALMANAC in LT with TZ 3: the same moment as section 5 (23:30 UT) shown as 02:30 LT on 24 Sep; the sun times '
+        '+3 h.', small),
       P('<b>A body on your stack (keys 1–8).</b> On ALMANAC or SPLIT, press the number of a row (1 is the first body of '
         'the table, the Sun): ALMA47 ends and pushes three values on your stack — Z a text such as '
         '"SUN Zn 216.7 Hc 54 11.6", Y the azimuth Zn and X the altitude Hc (decimal degrees) — ready for a sight '
@@ -122,7 +137,8 @@ S += [P('3. Starting ALMA47', h2),
 
 S += [PageBreak(), P('5. The views', h2),
       P('All views: 23 Sep 2026 23:30 UT, 10° N 075° 30′ W (the menu: 26 Sep 2026 14:57 UT, 25° 20′ N 055° 12′ E). '
-        'Every view starts with the same line: date, UT, DR, and T / S (tables / series) at the right.', small),
+        'Every view starts with the same line: the date and time (UT or LT), the view\'s name, the position, and T / S '
+        '(tables / series) at the right.', small),
       pair('ALMF_preview.png', 'HALMH_preview.png',
            '<b>1 ALMANAC</b> (ALMF): GHA ARIES, then GHA, Dec, Hc, Zn of 8 bodies — the Sun, the Moon if it is up, '
            'the first planet above the horizon, the brightest stars higher than 10°; twilight, rise/set, meridian '
@@ -217,12 +233,13 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
         'NAVINIT. Load MOON47.p47 and <b>XEQ "MOON47"</b>. It asks nothing: the phase does not depend on where you are, '
         'so it takes the date and time from the C47\'s clock.'),
       pair('MOON47.png', 'MOON47_south.png', '3 Oct 2026 12:00 UT, as seen from the north',
-           'the same after +/-: as seen from the south', where=DOCS)] + B([
+           'the same after 0: as seen from the south', where=DOCS)] + B([
       '<b>The page:</b> the Moon as a disc (the lit part filled), the phase name, % lit, age in days, HP and SD, the '
       'next new Moon, first quarter, full Moon and last quarter (date and time UT), and the eight phase symbols with '
       'today\'s one inverted.',
-      '<b>Keys:</b> +/- turns the picture to the view from the south and back (the latitude only turns the picture); '
-      'any other key ends.',
+      '<b>Keys:</b> 0 turns the picture to the view from the south and back (the latitude only turns the picture); '
+      '+/- shows the top line and the next phases in UT or in local time (LT = UT + TZ; the variable TZLT keeps the '
+      'choice, as in ALMA47); any other key ends.',
       '<b>The clock is local time.</b> If it is not set to UT, store your offset once in the variable TZ, in hours: '
       '<b>4 STO "TZ"</b> for UT+4, <b>-5 STO "TZ"</b> for UT−5. Without TZ, MOON47 creates it with 0 and takes the '
       'clock as UT: the phase times stay right, the age and % lit are then a few hours off (% lit changes at most '
@@ -237,7 +254,8 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'looking for labels and returns. Its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).',
       '<b>v2.2.1:</b> MOON47 gives you back your stack (X … D) and LASTx when it ends (LocR 9, STOS R.00 / RCLS R.00, as '
       'ALMA47) and your stack size; it uses the registers R07–R65 and clears only those: R00–R06 and R66–R99 stay yours.',
-      'Free42 (MOON47.raw, v2.2.1: your stack kept), the old DM42, the NumWorks and the HP Prime have their own MOON47 '
+      '<b>v2.3.0:</b> +/- UT or LT; the south view moved to 0.',
+      'Free42 (MOON47.raw: your stack kept, +/- UT / LT), the old DM42, the NumWorks and the HP Prime have their own MOON47 '
       'with the same page: see their manuals.'])
 
 # ---- NAVLITTLE: the old DM42 with the C47 firmware
@@ -247,7 +265,8 @@ S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
         '(the program ALMA47) with its own reduced <b>NAVINIT_LITTLE</b> (only the Sun series, valid 2000–2050, the '
         'nutation and the stars: 8.7 KB instead of 28.5 or 57.8 KB) and a <b>MOON47</b> of its own. No menu: the '
         'ALMANAC page straight after the inputs (the Moon and planet rows taken by the next stars), ▲ / ▼ one hour later / '
-        'earlier, 9 SNAP, + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.2.1.zip, with README_DM42.txt.'),
+        'earlier, 9 SNAP, +/- UT or LT (as ALMA47), + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.3.0.zip, '
+        'with README_DM42.txt.'),
       prose_tbl([['Firmware', 'ATEXT', 'GRFNT', 'STRUCT'],
                  ['00.109.05.00a0.ALPHA or later: C47, R47, DM42n', 'in', 'in', 'in (255 a series per program)'],
                  ['old DM42, packages 1, 2, 3', 'in', 'in', 'in, at most 10 IF, 10 DO and 10 REPEAT a program'],

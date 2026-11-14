@@ -71,11 +71,17 @@ def moon47(n, where, start, keys, extra):
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
     S = [P('Almanac 47 for Free42', title),
-         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.2.1 (the programs of 2.1.0 Supercharger, your stack kept)', sub), Spacer(1, 6),
+         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.3.0 (the programs of 2.1.0 Supercharger, your stack kept, UT / LT on +/-)', sub), Spacer(1, 6),
          P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 5 views and INFO — '
            'converted to Free42 3.3 with the DM42 graphics extension (the whole 400 × 240 screen). The menu, the screens '
            'and the values are the same as on the C47: in the Free42 core (SwissMicros source, release 3.3.10) each '
            'screen was compared pixel by pixel with the C47 version.'),
+         P('<b>New in v2.3.0:</b> the key <b>+/-</b> shows every time in UT or in <b>local time</b>, LT = UT + TZ (the '
+           'variable TZ: your zone in hours, e.g. 3 STO "TZ" for UTC+3, -5 STO "TZ" for UTC−5). In LT the header shows the '
+           'local date and time and LT, and rise, set, twilights and meridian passage are + TZ; GHA, Dec, Hc and Zn do not '
+           'change, and DATE and UT are still asked in UT. The choice is the variable TZLT (0 UT, 1 LT), kept between runs; '
+           'NAV creates TZ and TZLT with 0 when they are missing. NAVFULL: +/- on the menu or a view; NAVLITTLE: +/- '
+           'redraws ALMANAC; MOON47: +/- for the times, 0 for the view from the south.'),
          P('<b>New in v2.2.1:</b> NAVFULL, NAVLITTLE and MOON47 give you back your stack when they end: X, Y, Z, T and '
            'LASTX are as they were before XEQ "NAV" (or XEQ "MOON47"). Free42 has no STOS and no local registers, so the '
            'four levels and LASTX go into the variables S7X, S7Y, S7Z, S7T, S7L at the start and come back at the end '
@@ -127,6 +133,7 @@ def free42():
                      ['9', 'SNAP: here PRLCD, the screen to the printer (a screenshot)', 'PRLCD'],
                      ['+', '—', 'back to the menu'],
                      ['▲ / ▼', 'one hour later / earlier', 'the same view one hour later / earlier'],
+                     ['+/-', 'UT or local time (LT = UT + TZ): the menu drawn again', 'the same: the view drawn again'],
                      ['0', 'end of NAV: your registers, SIZE, X Y Z T and LASTX back, the normal screen', '—'],
                      ['R/S, EXIT', 'stop the program', 'stop the program']],
                     [26 * mm, 77 * mm, 77 * mm]),
@@ -182,7 +189,8 @@ def free42():
         'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
         'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
-        'earlier (the screen stays while it computes), + ends (GrMod 0; your registers, X Y Z T and LASTX back).',
+        'earlier (the screen stays while it computes), +/- UT or LT, + ends (GrMod 0; your registers, X Y Z T and LASTX '
+        'back).',
         'Programs: NAVLITTLE 8.7 KB, NAVINIT_LITTLE 8 KB (.raw files), matrices 667 numbers.',
         'Tested in the Free42 core against the same screen in the C47 simulator, pixel by pixel '
         '(tests/test_f42_little.py); not yet on '
@@ -202,9 +210,10 @@ def free42():
         '(github.com/valdesvj/almanac47/releases/tag/tbl50-2000-2050) or make it with tools/almanac/README.md.'])
     S += moon47(12, 'build/free42/MOON47.raw (about 6.5 KB)', 'Load it and <b>XEQ "MOON47"</b>: it asks nothing and '
                 'takes the date and time from the DM42\'s clock (any date format: YMD, DMY or MDY).',
-                '<b>Keys:</b> +/- turns the picture to the view from the south and back; any other key ends.',
+                '<b>Keys:</b> 0 turns the picture to the view from the south and back; +/- shows the times in UT or '
+                'in local time (LT = UT + TZ, kept in TZLT); any other key ends.',
                 ([pair(os.path.join(DOCS, 'MOON47.png'), os.path.join(DOCS, 'MOON47_south.png'),
-                       '3 Oct 2026 12:00 UT, from the north', 'after +/-: from the south')],
+                       '3 Oct 2026 12:00 UT, from the north', 'after 0: from the south')],
                  ['<b>The clock is local time.</b> If it is not on UT, store your offset once in the variable TZ, in '
                   'hours: <b>4 STO "TZ"</b> for UT+4. Without TZ the clock is taken as UT: the phase times stay right, the '
                   'age and % lit are then a few hours off. The top line shows the clock: the time UT and TZ=0, or with '
