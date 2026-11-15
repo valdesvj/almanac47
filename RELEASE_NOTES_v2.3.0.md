@@ -42,7 +42,8 @@ On the menu the position moved the same way. The old DM42 and Free42 keep their 
 
 | Calculator | Zip |
 |---|---|
-| C47, R47, DM42n with the C47 firmware | `Almanac47_C47_R47_v2.3.0.zip`: ALMA47, NAVINIT_FAST / _FULL (v2.2.0's), MOON47 |
+| R47 (the arrows of the R47 keyboard) | `Almanac47_R47_v2.3.0.zip`: the same files, ALMA47 with ↑ / ↓ where the R47 has them (README_R47.txt) |
+| C47, DM42n with the C47 firmware | `Almanac47_C47_R47_v2.3.0.zip`: ALMA47, NAVINIT_FAST / _FULL (v2.2.0's), MOON47 |
 | Old DM42 (64 KiB) with the C47 firmware, packages 1–3 | `Almanac47_DM42_C47firmware_v2.3.0.zip`: NAVLITTLE, NAVINIT_LITTLE, MOON47 |
 | DM42 / DM42n with the stock firmware, Free42, Plus42 | `Almanac47_Free42_DM42_v2.3.0.zip`: NAVFULL (big), NAVLITTLE (tiny), MOON47, their INITs, TBL_1 / TBL_5 |
 
@@ -63,6 +64,7 @@ the new ALMA47 / NAVLITTLE / NAV and MOON47.
 - These builds still need a run on the calculators: please report any problem.
 
 Build: `python3 tools/build_release_v230.py` (with rejig for the .p47 files and the zips; the manuals first,
-with `tools/generators/build_manual.py` and `build_port_manuals.py`).
+with `tools/generators/build_manual.py` and `build_port_manuals.py`). The R47 zip: `python3 tools/build_r47_v230.py`
+(test: `tests/test_r47_keys.py`).
 
 **Does not replace the Nautical Almanac.**
