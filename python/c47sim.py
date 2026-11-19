@@ -89,6 +89,15 @@ class Calc:
             c = [i for i in self.dup[arg] if lo < i < hi]
             memo[key] = next((i for i in c if i > at), c[0])
         return memo[key]
+    def clock_of_inputs(self):
+        """The JD of the local time DATE (YYYY.MMDD) UTC (HH.MMSS) + TZ (hours) if DATE and UTC are stored, else None."""
+        if 'DATE' not in self.reg or 'UTC' not in self.reg: return None
+        v = int((D(self.reg['DATE']) * 10000).to_integral_value()); y, m, d = v // 10000, v // 100 % 100, v % 100
+        a = (14 - m) // 12; yy = y + 4800 - a; mm = m + 12 * a - 3
+        jdn = d + (153 * mm + 2) // 5 + 365 * yy + yy // 4 - yy // 100 + yy // 400 - 32045
+        u = D(self.reg['UTC']); h = int(u); mi = int((u - h) * 100); sec = ((u - h) * 100 - mi) * 100
+        hours = h + D(mi) / 60 + sec / 3600 + D(self.reg.get('TZ', 0) or 0)
+        return D(jdn) - D('0.5') + hours / 24
     # stack
     def push(self, v):
         if self.lift: self.s = [v] + self.s[:3]
@@ -622,13 +631,21 @@ class Calc:
                 self.ign1er = op == 'SF'; continue
             if op == 'SSIZE8' or op == 'SSIZE4': continue           # stack size: modelled as 4 levels
             if op == 'Date→ⅅ' or op == 'Time→ℸ':                    # the clock: self.clock, a JD of the local time
-                # jn, not n (n is the run's step counter); no clock set: 2461338.0 (2026-10-24 12:00)
-                j = D(str(getattr(self, 'clock', 2461338.0))) + D('0.5'); jn = int(j // 1); fr = j - jn
+                # jn, not n (n is the run's step counter); no clock set: the variables DATE (YYYY.MMDD) and UTC
+                # (HH.MMSS) + TZ when a test has stored them (ALMA47 takes its default date and time from the
+                # clock: the tests' inputs come back), else 2461338.0 (2026-10-24 12:00)
+                j = D(str(getattr(self, 'clock', None) or self.clock_of_inputs() or 2461338.0)) + D('0.5')
+                jn = int(j // 1); fr = j - jn
                 if op == 'Time→ℸ':
                     self.push(('T', fr * 24)); continue
                 a = jn + 32044; b = (4 * a + 3) // 146097; c = a - 146097 * b // 4
                 dd = (4 * c + 3) // 1461; e = c - 1461 * dd // 4; mm = (5 * e + 2) // 153
                 self.push(('D', 100 * b + dd - 4800 + mm // 10, mm + 3 - 12 * (mm // 10), e - (153 * mm + 2) // 5 + 1)); continue
+            if op == 'ℸ→zyx':                                        # a time (or hours) -> Z h, Y min, X s
+                t = self.s[0][1] if isinstance(self.s[0], tuple) else self.s[0]
+                tot = (t * 3600).quantize(D('0.001'))                    # the firmware keeps milliseconds
+                h = int(tot // 3600); m = int((tot - h * 3600) // 60)
+                self.lastx = self.s[0]; self.s[0] = D(h); self.push(D(m)); self.push(tot - h * 3600 - m * 60); continue
             if op == 'ⅅℸ→J':                                         # Y date, X time -> JD
                 dt, tm = (self.s[1], self.s[0]) if self.s[0][0] == 'T' else (self.s[0], self.s[1])
                 _, y, m, d = dt; a = (14 - m) // 12; yy = y + 4800 - a; mm = m + 12 * a - 3

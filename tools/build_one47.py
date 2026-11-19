@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """build_one47.py - DEV: ALMA47 for the C47 / R47 as ONE program with local labels (branch dev-alma47-local).
 
-v2.3.0's ALMA47 is 26 programs: ALMA47 and 25 more that start with a numbered global label N01, N02 ... (tools/
+The release ALMA47 (v2.3.0 and programs_struct/next/) is 26 programs: ALMA47 and 25 more that start with a numbered global label N01, N02 ... (tools/
 build_struct_src.py build_next, programs_struct/next/). Here they are one program, as tools/local_labels.py makes it:
 
   global labels   only LBL "ALMA47"; each other global label is a local label with the routine's original name:
@@ -19,7 +19,7 @@ build_struct_src.py build_next, programs_struct/next/). Here they are one progra
 
 The C47 firmware is slower with one big program (every RTN and every jump to a :name: walks the program from its
 start, DEVELOPMENT notes of v2.2.0's withdrawal): tests/test_one47.py compares the screens and the CPU time with
-v2.3.0's 26 programs in the firmware simulator.
+the 26 programs of the same source (build/dev/next/) in c47sim and the firmware simulator.
 
   python3 tools/build_one47.py
 """
@@ -68,15 +68,15 @@ def labels_file(M):
     used = {re.fullmatch(r'LBL :(\S+):', l).group(1) for l in M if re.fullmatch(r'LBL :(\S+):', l)}
     step = {l[4:]: i + 1 for i, l in enumerate(M) if l.startswith('LBL ')}
     w = max(len(n) for n in used)
-    out = ['ALMA47 (one program, local labels) - DEV build of v2.3.0 (tools/build_one47.py)',
+    out = ['ALMA47 (one program, local labels) - DEV build of programs_struct/next/ (tools/build_one47.py)',
            '=' * 78,
            'ALMA47 is ONE program: its only global label is ALMA47. Every routine is a local label with its',
-           'original name (:SUNA:, :MOO2: ...); v2.3.0 (26 programs) called it by a numbered global label (N15 ...),',
+           'original name (:SUNA:, :MOO2: ...); the release (26 programs) calls it by a numbered global label (N15 ...),',
            'given here next to it. A local label can only be called from inside ALMA47: XEQ :SUNA: from the keyboard',
            'or from another program is "no local label". The numbered labels 01-99 are inside the routines; a number',
            'can stand in several routines (the C47 finds the first one after the jump, else the first in the program).',
            '',
-           'Local label%s  v2.3.0   Step  What it does' % (' ' * (w - 9)),
+           'Local label%s  release  Step  What it does' % (' ' * (w - 9)),
            '-' * 78]
     for l in M:
         m = re.fullmatch(r'LBL :(\S+):', l)

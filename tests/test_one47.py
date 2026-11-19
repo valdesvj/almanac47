@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""test_one47.py - DEV: the one-program ALMA47 (build/dev/one/, tools/build_one47.py) against v2.3.0's 26 programs
-(build/v2.3.0/c47/ALMA47.txt) in the C47 firmware (the PC simulator built from the firmware sources, headless).
+"""test_one47.py - DEV: the one-program ALMA47 (build/dev/one/, tools/build_one47.py) against the 26 programs of the
+same source (build/dev/next/ALMA47.txt, tools/build_next.py) in python/c47sim.py and the C47 firmware (the PC simulator built from the firmware sources, headless).
 
   1. listing   one program (one END), ALMA47 the only global label, every jump has its label, the structures VALID,
-               the same steps as v2.3.0 but for the labels, the inner ENDs (RTN) and PLN3's table moved to its end;
+               the same steps as the 26 programs but for the labels, the inner ENDs (RTN) and PLN3's table moved to its end;
                build/dev/one/ALMA47.txt and ALMA47_LABELS.txt are the build of today's source
   2. screens   python/c47sim.py (it finds a repeated local label as the firmware does: the first after the jump, else
                the first in the program): every page with the FULL and the FAST series at three dates and places, the
@@ -13,18 +13,19 @@
                (the simulator's start without ALMA47 taken off). The screens of SNAP are not compared: SNAP takes the
                screen of the simulator's last refresh (a timer), not the same from one run to the next
 
-The key waits are replaced in a test copy by SNAP and the next key (tests/test_fw_c47.py testcopy).
+The key waits are replaced in a test copy by SNAP and the next key (tests/test_fw_c47.py testcopy); in the firmware
+the clock (Date→ⅅ, Time→ℸ) by the stored DATE and UTC, so both programs run at the same time.
 
   python3 tests/test_one47.py [n]    (n random cases, default 8)  C47SIM=/path/to/c47 (default ~/.cache/c47fw/c47)
 """
-import os, re, resource, shutil, sys
+import os, re, resource, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path[:0] = [os.path.join(ROOT, 'tools'), os.path.join(ROOT, 'tests')]
 import build_one47 as O                                              # noqa: E402
 import c47struct as C                                                # noqa: E402
 import test_fw_c47 as T                                              # noqa: E402
 
-OLD = os.path.join(ROOT, 'build', 'v2.3.0', 'c47', 'ALMA47.txt')
+OLD = os.path.join(ROOT, 'build', 'dev', 'next', 'ALMA47.txt')
 NEW = os.path.join(O.OUT, 'ALMA47.txt')
 BAD = []
 PAGES = [([72, 85, 82], '1 ALMANAC'), ([73, 85, 82], '2 SPLIT'), ([74, 85, 82], '3 SKY'), ([62, 85, 82], '4 ANIM'),
@@ -56,15 +57,15 @@ def listing():
     ok(not C.check(M), 'the structures VALID')
     named = {l[4:] for l in M if l.startswith('LBL :')}
     ok(named == {':%s:' % n for g, n in O.names().items() if 'LBL "%s"' % g in lines(OLD)},
-       '%d local labels, each the original name of a v2.3.0 global label' % len(named))
+       '%d local labels, each the original name of a global label of the 26 programs' % len(named))
     strip = lambda L: sorted(l for l in L if not re.match(r'(LBL|XEQ|GTO) |END$|RTN$', l))
-    ok(strip(M) == strip(lines(OLD)), 'the same steps as v2.3.0 but labels, jumps, END / RTN')
+    ok(strip(M) == strip(lines(OLD)), 'the same steps as the 26 programs but labels, jumps, END / RTN')
 
 
 def screens(n):
     import random
     import test_v2 as V
-    print('== python/c47sim.py: every frame of the one program against v2.3.0')
+    print('== python/c47sim.py: every frame of the one program against the 26 programs')
     nav = lambda f: ['LBL "NAV"'] + lines(f)[1:]
     A, M = nav(OLD), nav(NEW)
     K = V.K
@@ -101,7 +102,13 @@ def run(src, keys):
     d = T.tmp()
     files = [T.p47(os.path.join(T.INIT_C47, 'NAVINIT_FAST.txt'), d, copy=True)]
     if src:
-        files.append(T.p47(src, d, name='ALMA47'))
+        f = T.p47(src, d, name='ALMA47')
+        t = f[:-4] + '.txt'
+        L = [x for l in lines(t) for x in ({'Date→ⅅ': ['RCL "DATE"', 'x→ⅅ'],
+                                            'Time→ℸ': ['RCL "UTC"', 'H.MS→ℸ']}.get(l, [l]))]
+        open(t, 'w', encoding='utf-8').write('\n'.join(L) + '\n')
+        subprocess.run(['rejig', '-o', f, t], check=True, capture_output=True)
+        files.append(f)
     files.append(T.helper(d, T.INPUTS, keys))
     tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET']
     if src:
@@ -120,7 +127,7 @@ def run(src, keys):
 
 
 def firmware():
-    print('== the C47 firmware (%s): v2.3.0 (26 programs) and one program' % T.SIM)
+    print('== the C47 firmware (%s): 26 programs and one program' % T.SIM)
     base = min(run(None, [82])[3] for _ in range(3))
     told = tnew = 0
     for keys, what in PAGES:
@@ -133,7 +140,7 @@ def firmware():
         ok(ta == tb and ta and not ea and not eb and xa == xb == '0',
            '%-18s no error, X = 0, registers the same   CPU %.2f s -> %.2f s (%+.0f %%)'
            % (what, ca, cb, 100 * (cb / ca - 1) if ca > 0 else 0))
-    print('  CPU all pages: v2.3.0 %.2f s, one program %.2f s (%+.0f %%)' % (told, tnew, 100 * (tnew / told - 1)))
+    print('  CPU all pages: 26 programs %.2f s, one program %.2f s (%+.0f %%)' % (told, tnew, 100 * (tnew / told - 1)))
 
 
 def main():
