@@ -99,6 +99,33 @@ def header(P, date_steps, pdts):
     P.sub(['XSTR "UT"'], ['FC? %d' % LTFLAG, 'XSTR "UT"', 'FS? %d' % LTFLAG, 'XSTR "LT"'])
 
 
+def defaults(P):
+    """v2.4.0: TZ asked first (R/S keeps the last one), then DATE and UTC from the clock (UT = TIME - TZ, the date
+    moved one day by DATE+ when UT is on another day; DATE in the calculator's format (flags 67 YMD, 31 DMY, else MDY)
+    turned into Y.MMDD), LAT / LON Medellin (6.139, -75.354) only when both are 0 (none stored); NAV's labels 80 81
+    82 85 88."""
+    nav = P.s[P.s.index('\nLBL "NAV"\n'):]
+    nav = nav[:nav.index('\nEND\n')]
+    for k in (80, 81, 82, 85, 88):
+        assert '\nLBL %d\n' % k not in nav, k
+    P.sub(['LBL 20', 'CLST', 'XSTR "DATE Y.MMDD"'],
+          ['LBL 20', 'CLST', 'XSTR "TZ HOURS  W -"', 'INPUT "TZ"', 'CLST',
+           '0', 'STO "DATE"', 'TIME', '→HR', 'RCL- "TZ"', 'STO "UTC"',
+           'X<0?', 'XEQ 80', '24', 'RCL "UTC"', 'X≥Y?', 'XEQ 81',
+           'RCL "UTC"', '→HMS', 'STO "UTC"',
+           'DATE', 'RCL "DATE"', 'DATE+', 'FS? 67', 'GTO 85',
+           'ENTER', 'IP', 'STO "DATE"', '-', '100', '×', 'ENTER', 'IP', 'X<>Y', 'FP', '10000', '×', 'X<>Y',
+           'FC? 31', 'GTO 82', '100', '÷', '+', 'RCL "DATE"', '10000', '÷', '+', 'GTO 85',
+           'LBL 82', '10000', '÷', '+', 'RCL "DATE"', '100', '÷', '+',
+           'LBL 85', 'STO "DATE"',
+           'CLST', 'SF 25', 'RCL "LAT"', 'CF 25', 'ABS', 'SF 25', 'RCL "LON"', 'CF 25', 'ABS', '+', 'X≠0?', 'GTO 88',
+           '6.139', 'STO "LAT"', '-75.354', 'STO "LON"',
+           'LBL 88', 'CLST', 'XSTR "DATE Y.MMDD"'])
+    i = P.s.index('\nLBL 20\n')
+    j = P.s.index('\nRTN\n', P.s.index('INPUT "LON"', i)) + 5
+    P.s = P.s[:j] + 'LBL 80\n24\nSTO+ "UTC"\n-1\nSTO+ "DATE"\nRTN\nLBL 81\n24\nSTO- "UTC"\n1\nSTO+ "DATE"\nRTN\n' + P.s[j:]
+
+
 def navfull(L):
     m = labels('NAVFULL')
     P = Patch(L)
@@ -112,6 +139,7 @@ def navfull(L):
     P.sub(['XEQ "%s"' % m['KQ'], 'GTO 46', 'RCL ' + key, '85', 'X=Y?', 'RTN'],             # SKY: its own key loop
           ['XEQ "%s"' % m['KQ'], 'GTO 46', 'RCL ' + key, '85', 'X=Y?', 'RTN', 'RCL ' + key, '43', 'X=Y?', 'RTN'])
     header(P, ['RCL "H0"', '2', 'RCL "H1"'], m['PDTS'])
+    defaults(P)
     return P.lines()
 
 
@@ -127,6 +155,7 @@ def navlittle(L):
     P.sub(['LBL 06', '1', 'STO+ "V7"'], sub_routines('01')[3:] + ['LBL 06', '1', 'STO+ "V7"'])
     d = re.search(r'\n(RCL \d+)\n2\n(RCL \d+)\nXEQ "%s"\n' % m['PDTS'], P.s[P.s.index('\nLBL "%s"\n' % m['ALMF']):])
     header(P, [d.group(1), '2', d.group(2)], m['PDTS'])
+    defaults(P)
     return P.lines()
 
 

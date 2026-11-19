@@ -32,7 +32,8 @@ def shots(name, init, inp, regs, keys):
     open(setup, 'w').write('\n'.join(['LBL "SETUP"'] + ['%s\nSTO "%s"' % (v, k) for k, v in regs.items()]
                                      + ['RTN', 'END', 'LBL "SHOW"', 'SF 25', 'RCL "TZLT"', 'RTN', 'END']) + '\n')
     cmd = ['paste ' + os.path.join(ROOT, 'build', 'free42', init + '.txt'), 'paste ' + os.path.join(NEXT, name + '.txt'),
-           'paste ' + setup, 'xeq INIT', 'xeq SETUP', 'xeq NAV'] + ['num ' + v for v in inp] + ['shot %s/m.pbm' % t]
+           'paste ' + setup, 'xeq INIT', 'xeq SETUP', 'xeq NAV'] + ['num %s' % regs.get('TZ', 0)] + ['num ' + v for v in inp]
+    cmd += ['shot %s/m.pbm' % t]                                   # v2.4.0: TZ asked first, then the four inputs
     for i, k in enumerate(keys):
         cmd += ['key %d' % KEY[k], 'shot %s/s%d.pbm' % (t, i)]
     cmd += ['key %d' % KEY[0 if name == 'NAVFULL' else '+'], 'xeq SHOW', 'stack']     # NAV ends: 0 on the menu, + on LITTLE

@@ -180,13 +180,13 @@ def main():
 
 
 def dm42():
-    """the old DM42 with the C47 firmware: ALMA47 (NAVLITTLE, programs_struct/little/NAVLITTLE_221.txt: the stack kept,
+    """the old DM42 with the C47 firmware: ALMA47 (NAVLITTLE, programs_struct/little/NAVLITTLE_240.txt: the stack kept,
     UT / LT on +/-) and MOON47 (the next version's, at most 10 structures a program) in build/dev/next/dm42/; NAVINIT:
     v2.2.0's build/dm42/NAVINIT_LITTLE.txt, unchanged"""
     import build_release_c47 as R
     d = os.path.join(OUT, 'dm42')
     os.makedirs(d, exist_ok=True)
-    S, I = R.little(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE_221.txt'))
+    S, I = R.little(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE_240.txt'))
     assert I == R.lines(os.path.join(R.DM42, 'NAVINIT_LITTLE.txt')), 'NAVINIT_LITTLE is the one of v2.2.0'
     M = R.moon_dm42(os.path.join(ROOT, 'programs_struct', 'next', 'MOON47.txt'), 4)
     for name, P in (('ALMA47', S), ('MOON47', M)):

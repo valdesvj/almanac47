@@ -243,6 +243,46 @@ ENDIF 02
 X≠0?
 UNTIL 01
 LBL 01
+CLSTK
+"TZ HOURS  W -"
+INPUT "TZ"
+CLSTK
+Date→ⅅ
+Time→ℸ
+ⅅℸ→J
+RCL "TZ"
+24
+÷
+-
+J→ⅅℸ
+X<>Y
+ⅅ→x
+STO "DATE"
+DROP
+ℸ→zyx
+IP
+100
+÷
++
+100
+÷
++
+STO "UTC"
+0
+STO+ "LAT"
+STO+ "LON"
+RCL "LAT"
+ABS
+RCL "LON"
+ABS
++
+X=0?
+IF 04
+6.139
+STO "LAT"
+-75.354
+STO "LON"
+ENDIF 04
 "DATE YYYY.MMDD"
 STO 00
 FS? 'DMY'
