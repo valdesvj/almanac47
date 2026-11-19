@@ -71,8 +71,24 @@ class Calc:
             ln = re.sub(r'^\s*\d+\s+', '', ln.split(';')[0]).strip()
             if ln: self.lines.append(ln)
         self.labels = {}
+        self.dup = {}                       # a local label that stands more than once: its positions
         for i, ln in enumerate(self.lines):
-            if ln.startswith('LBL '): self.labels[ln[4:].strip().strip('"')] = i
+            if ln.startswith('LBL '):
+                k = ln[4:].strip()
+                if not k.startswith('"') and k in self.labels: self.dup.setdefault(k, [self.labels[k]]).append(i)
+                else: self.labels[k.strip('"')] = i
+    def target(self, arg, at):
+        """The step of label arg for a jump at step at. A local label (number, letter, :name:) that stands more than
+        once in the program: the first one after the jump, else the first in the program (lblGtoXeq.c fnGoto)."""
+        if arg not in self.dup: return self.labels[arg]
+        key = (arg, at)
+        memo = self.__dict__.setdefault('_target', {})
+        if key not in memo:
+            ends = [i for i, ln in enumerate(self.lines) if ln == 'END']
+            lo = max([e for e in ends if e < at], default=-1); hi = min([e for e in ends if e >= at], default=len(self.lines))
+            c = [i for i in self.dup[arg] if lo < i < hi]
+            memo[key] = next((i for i in c if i > at), c[0])
+        return memo[key]
     def clock_of_inputs(self):
         """The JD of the local time DATE (YYYY.MMDD) UTC (HH.MMSS) + TZ (hours) if DATE and UTC are stored, else None."""
         if 'DATE' not in self.reg or 'UTC' not in self.reg: return None
@@ -319,10 +335,10 @@ class Calc:
                 self.lflags = getattr(self, 'lflags', {}); self.lflags.setdefault(len(rs), set()); continue
             if op == 'GTO':
                 if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
-                pc = self.labels[arg] + 1; continue
+                pc = self.target(arg, pc - 1) + 1; continue
             if op == 'XEQ':
                 if arg.startswith('IND '): arg=self.indlab((lambda v: v if isinstance(v,str) else int(v))(self.rget(arg[4:].strip())),pc-1)
-                rs.append(pc); pc = self.labels[arg] + 1; continue
+                rs.append(pc); pc = self.target(arg, pc - 1) + 1; continue
             if op in MATOPS and self.matop(op, arg): continue      # whole-matrix and complex commands (tools/navmat.py)
             if isinstance(self.s[0], Mat) or (op in ('×', '+', 'DOT') and isinstance(self.s[1], Mat)):
                 x, y = self.s[0], self.s[1]
