@@ -70,9 +70,14 @@ def moon47(n, where, start, keys, extra):
 # ------------------------------------------------------------------ Free42 (DM42 / DM42n)
 def free42():
     F = lambda n: os.path.join(DOCS, 'free42', 'F42_%s.png' % n)
-    S = [P('Almanac 47 for Free42 v2.3.0', title),
-         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.3.0 (the programs of 2.1.0 Supercharger, your stack kept, UT / LT on +/-)', sub), Spacer(1, 6),
-         P('What is new in v2.3.0 "Local Time"', h2)] + B([
+    S = [P('Almanac 47 for Free42 v2.4.0', title),
+         P('SwissMicros DM42 / DM42n with the stock (Free42) firmware — user manual — version 2.4.0 (the programs of 2.1.0 Supercharger, your stack kept, UT / LT on +/-, TZ asked first)', sub), Spacer(1, 6),
+         P('What is new in v2.4.0 "Here and Now"', h2)] + B([
+        '<b>Here and now with R/S.</b> NAV asks your time zone <b>TZ</b> first (hours east, −5 for UTC−5; R/S keeps the '
+        'last one), then offers the calculator\'s date and time as UT (TIME − TZ, the date moved a day by DATE+ when UT '
+        'is on another day) and your last LAT / LON: R/S five times = the sky now. Before any position is stored LAT and '
+        'LON start at Medellín, Colombia (6° 13.9′ N, 75° 35.4′ W). NAVFULL and NAVLITTLE (section 4).',
+        '<b>From v2.3.0 "Local Time":</b>',
         '<b>UT or local time on +/-.</b> Press +/- on the menu or on a view: every time shown switches between UT and '
         'local time, LT = UT + TZ. Store your zone once in the variable <b>TZ</b>, in hours east: 3 STO "TZ" for UTC+3, '
         '-5 STO "TZ" for UTC−5.',
@@ -81,7 +86,7 @@ def free42():
         'variable TZLT, 0 UT, 1 LT); NAV creates TZ and TZLT with 0 when they are missing.',
         'NAVFULL: +/- on the menu or a view. NAVLITTLE: +/- redraws ALMANAC. MOON47: +/- for its times, <b>0</b> for the '
         'view from the south.',
-        'Everything else as v2.2.1: the same results and the same screens.']) + [
+        'Everything else as v2.3.0: the same results and the same screens.']) + [
          Spacer(1, 4),
          P('The full Almanac 47 of the C47 — the Sun, the Moon, the planets and the 58 navigation stars, 5 views and INFO — '
            'converted to Free42 3.3 with the DM42 graphics extension (the whole 400 × 240 screen). The menu, the screens '
@@ -120,9 +125,12 @@ def free42():
         'matrices stay.',
         'Load NAVFULL.raw and <b>XEQ "NAV"</b>.'])
     S += [P('4. Starting NAV', h2),
-          P('NAV asks four numbers with INPUT (R/S keeps the value shown). Your stack is saved first; at each prompt the stack is clear and Y '
-            'shows the format of that input (DATE Y.MMDD, UT H.MMSS, LAT D.MMm  S -, LON D.MMm  W -):'),
+          P('NAV asks five numbers with INPUT (R/S keeps the value shown). Your stack is saved first; at each prompt the stack is clear and Y '
+            'shows the format of that input (TZ HOURS  W -, DATE Y.MMDD, UT H.MMSS, LAT D.MMm  S -, LON D.MMm  W -). The values '
+            'shown: TZ your last one (0 at first), DATE and UTC the calculator\'s clock as UT (TIME − TZ; DATE in Y.MMDD '
+            'whatever the date format), LAT / LON your last position, Medellín (6° 13.9′ N, 75° 35.4′ W) before you give one:'),
           prose_tbl([['Input', 'Meaning', 'Example'],
+                     ['TZ', 'hours of your clock from UT, east +, west −', '−5 (Colombia)'],
                      ['DATE', 'UT date, YYYY.MMDD', '2026.0926'],
                      ['UTC', 'UT, HH.MMSS', '14.57'],
                      ['LAT', 'latitude DD.MMm, south negative', '25.20 = 25° 20′ N'],
@@ -193,7 +201,7 @@ def free42():
           img(F('little'), 0.6)] + B([
         'Load NAVINIT_LITTLE.raw, <b>XEQ "INIT"</b> (MATRICES READY: SUN STARS 2000-2050), delete INIT; load '
         'NAVLITTLE.raw, <b>XEQ "NAV"</b>. If INIT is still loaded and has not run, the first NAV runs it (flag 81).',
-        'NAV asks DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
+        'NAV asks TZ, DATE, UTC, LAT, LON as above and goes straight to the ALMANAC screen: ▲ / ▼ one hour later / '
         'earlier (the screen stays while it computes), +/- UT or LT, + ends (GrMod 0; your registers, X Y Z T and LASTX '
         'back).',
         'Programs: NAVLITTLE 8.7 KB, NAVINIT_LITTLE 8 KB (.raw files), matrices 667 numbers.',

@@ -1,4 +1,4 @@
-# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.3.0, the STRUCT build), the views,
+# manual_nav.py - part 1 of the user manual: using ALMA47 on the C47 / R47 (v2.4.0, the STRUCT build), the views,
 # the labels, MOON47.
 # Run through build_manual.py (exec): uses its S, P, B, styles, tables, DOCS and ROOT.
 import re as _re
@@ -7,8 +7,8 @@ import build_struct_src as _B
 import build_release_c47 as _R
 
 C47DOCS = os.path.join(DOCS, 'c47')                 # the screens of v2.3.0 (c47_struct_shots.py --next)
-VERSION = '2.3.0'                                   # v2.3.0: UT / LT on +/-, the new header (tools/build_release_v230.py)
-NAME = 'Local Time'
+VERSION = '2.4.0'                                   # v2.4.0: TZ asked first, the clock's date and time (tools/build_release_v240.py)
+NAME = 'Here and Now'
 
 
 def img(name, frac=0.49, where=None):
@@ -30,16 +30,15 @@ S += [P('Almanac 47 v%s' % VERSION, title),
       P('Celestial navigation on the SwissMicros C47 / R47 — user manual — version %s (%s)' % (VERSION, NAME), sub),
       Spacer(1, 6),
       P('What is new in v%s "%s"' % (VERSION, NAME), h2)] + B([
-      '<b>UT or local time on +/-.</b> Press +/- on the menu or on any view: every time shown switches between UT and '
-      'local time, LT = UT + TZ. Store your zone once in the variable <b>TZ</b>, in hours east: 3 STO "TZ" for UTC+3, '
-      '-5 STO "TZ" for UTC−5 (section 4).',
-      'In LT the header shows the local date and time and LT; rise, set, twilights and meridian passage are in LT. '
-      'GHA, Dec, Hc and Zn do not change, and DATE and UTC are still asked in UT. The choice stays for the next run '
-      '(the variable TZLT).',
-      '<b>A new header on every view:</b> the date and time on the left, the view\'s name in the middle, the position '
-      'on the right.',
-      '<b>MOON47:</b> +/- shows its times in UT or LT; the view from the south moved to the key <b>0</b>.',
-      'Everything else as v2.2.1: the same results and the same pages.']) + [
+      '<b>Here and now with R/S.</b> ALMA47 asks your time zone <b>TZ</b> first (hours east, −5 for UTC−5; R/S keeps '
+      'the last one), then offers the calculator\'s own date and time, turned into UT (UT = clock − TZ), as DATE and '
+      'UTC, and your last position as LAT and LON: R/S five times = the sky now, where you are (section 3).',
+      'Before any position is stored, LAT and LON start at Medellín, Colombia (6° 13.9′ N, 75° 35.4′ W), a little '
+      'present from the author\'s town; once you give yours, ALMA47 keeps it.',
+      'The same on every build: NAVLITTLE on the old DM42 and NAVFULL / NAVLITTLE on Free42 ask TZ first too.',
+      '<b>From v2.3.0 "Local Time":</b> +/- shows every time in UT or LT = UT + TZ, the header of every view shows the '
+      'date and time, the view\'s name and the position; MOON47\'s south view is on <b>0</b>.',
+      'Everything else as v2.3.0: the same results and the same pages.']) + [
       Spacer(1, 4),
       P('Almanac 47 puts an almanac page on the C47: GHA, declination, Hc and Zn of the Sun, the Moon, the planets and '
         'the navigation stars for your DR and time, sunrise, sunset, twilight and the Moon\'s phase, with horizon charts of '
@@ -48,7 +47,7 @@ S += [P('Almanac 47 v%s' % VERSION, title),
         'C47\'s structured programming commands — IF … ELSE … ENDIF, DO … WHILE … ENDDO, REPEAT … UNTIL — and has no GTO '
         'at all; Free42, Plus42, the DM42 and HP-42S firmware do not have these commands. It carries all the speed work '
         'done since v2.1.0: the same pages, drawn with far fewer steps (section 6). <b>Free42 / Plus42 / DM42 with the '
-        'stock firmware:</b> the zip Almanac47_Free42_DM42_v2.3.0.zip (the programs of v2.1.0, keeping your stack, with UT / LT on +/-) and '
+        'stock firmware:</b> the zip Almanac47_Free42_DM42_v2.4.0.zip (the programs of v2.1.0, keeping your stack, UT / LT on +/-, TZ asked first) and '
         'its manual, Almanac47_Free42_Manual.pdf.'),
       P('<b>New in v2.2.1:</b> ALMA47 and MOON47 give you back your stack (X … D of the 8 levels) and LASTx when they '
         'end, and use only part of the numbered registers (ALMA47 R07–R98, MOON47 R07–R65; the others stay yours). On '
@@ -90,10 +89,15 @@ S += [P('Almanac 47 v%s' % VERSION, title),
       'with the C47\'s own date functions; the prompt shows which.',
       'What changed inside is in OPTIMIZATIONS.md (in the zip, docs/ in the repository).'])
 S += [P('3. Starting ALMA47', h2),
-      P('XEQ "ALMA47" asks four numbers, once, with INPUT (R/S keeps the value shown). Your stack is saved first; at each '
-        'prompt the stack is clear and Y shows only the format of that input: DATE YYYY.MMDD (DATE DD.MMYYYY or DATE MM.DDYYYY when the '
-        'CLK date format is D.MY or M.DY), UT HH.MMSS, LAT DD.MMm  S -, LON DDD.MMm  W -.'),
+      P('XEQ "ALMA47" asks five numbers, once, with INPUT (R/S keeps the value shown). Your stack is saved first; at each '
+        'prompt the stack is clear and Y shows only the format of that input: TZ HOURS  W -, DATE YYYY.MMDD (DATE DD.MMYYYY or '
+        'DATE MM.DDYYYY when the CLK date format is D.MY or M.DY), UT HH.MMSS, LAT DD.MMm  S -, LON DDD.MMm  W -.'),
+      P('<b>The values shown:</b> TZ your last one (0 the first time); DATE and UTC the calculator\'s clock now, as UT '
+        '(the clock − TZ, the date moved a day when UT is on another day); LAT and LON your last position, or Medellín '
+        '(6° 13.9′ N, 75° 35.4′ W) before you have given one. So with TZ set, R/S five times shows the sky now; for '
+        'another moment or place type it at its prompt. Set the clock of the calculator (CLK menu) to your local time.'),
       prose_tbl([['Input', 'Meaning', 'Example'],
+                 ['TZ', 'hours of your clock from UT, east +, west −; R/S keeps the last one', '−5 (Colombia)'],
                  ['DATE', 'UT date in the CLK date format: YYYY.MMDD, DD.MMYYYY or MM.DDYYYY', '2026.0926'],
                  ['UTC', 'UT, HH.MMSS (UT1; add DUT1 to UTC for full accuracy)', '14.57'],
                  ['LAT', 'latitude DD.MMm, south negative', '25.20 = 25° 20′ N'],
@@ -123,7 +127,7 @@ S += [P('3. Starting ALMA47', h2),
         '<b>3 STO "TZ"</b> for UTC+3, <b>-5 STO "TZ"</b> for UTC−5, 5.5 for UTC+5:30 (MOON47 uses the same TZ). Then +/- '
         'on the menu or a view switches every time shown between UT and LT = UT + TZ: the header shows the local date and '
         'time and LT, and rise, set, twilights and meridian passage are given in LT (the events of the UT day). The choice '
-        'is the variable <b>TZLT</b> (0 UT, 1 LT) and stays for the next run. DATE and UTC are still asked in UT, and '
+        'is the variable <b>TZLT</b> (0 UT, 1 LT) and stays for the next run. ALMA47 asks TZ at its start (section 3). DATE and UTC are still asked in UT, and '
         'GHA, Dec, Hc and Zn do not change. Without TZ, ALMA47 creates TZ and TZLT with 0.'),
       img('ALMF_LT.png', 0.66),
       P('ALMANAC in LT with TZ 3: the same moment as section 5 (23:30 UT) shown as 02:30 LT on 24 Sep; the sun times '
@@ -261,7 +265,7 @@ S += [PageBreak(), P('8. MOON47: the Moon phase', h2),
       'looking for labels and returns. Its work matrices M7T, M7C, M7A, M7V, M7W are set to 0 at the end (TZ stays).',
       '<b>v2.2.1:</b> MOON47 gives you back your stack (X … D) and LASTx when it ends (LocR 9, STOS R.00 / RCLS R.00, as '
       'ALMA47) and your stack size; it uses the registers R07–R65 and clears only those: R00–R06 and R66–R99 stay yours.',
-      '<b>v2.3.0:</b> +/- UT or LT; the south view moved to 0.',
+      '<b>v2.3.0:</b> +/- UT or LT; the south view moved to 0. v2.4.0: MOON47 unchanged (it reads the clock and TZ).',
       'Free42 (MOON47.raw: your stack kept, +/- UT / LT), the old DM42, the NumWorks and the HP Prime have their own MOON47 '
       'with the same page: see their manuals.'])
 
@@ -272,7 +276,7 @@ S += [P('9. NAVLITTLE: the old DM42 with the C47 firmware', h2),
         '(the program ALMA47) with its own reduced <b>NAVINIT_LITTLE</b> (only the Sun series, valid 2000–2050, the '
         'nutation and the stars: 8.7 KB instead of 28.5 or 57.8 KB) and a <b>MOON47</b> of its own. No menu: the '
         'ALMANAC page straight after the inputs (the Moon and planet rows taken by the next stars), ▲ / ▼ one hour later / '
-        'earlier, 9 SNAP, +/- UT or LT (as ALMA47), + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.3.0.zip, '
+        'earlier, 9 SNAP, +/- UT or LT (as ALMA47), + ends. They are in their own zip, Almanac47_DM42_C47firmware_v2.4.0.zip, '
         'with README_DM42.txt.'),
       prose_tbl([['Firmware', 'ATEXT', 'GRFNT', 'STRUCT'],
                  ['00.109.05.00a0.ALPHA or later: C47, R47, DM42n', 'in', 'in', 'in (255 a series per program)'],

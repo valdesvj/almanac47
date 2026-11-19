@@ -1,6 +1,6 @@
 @ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  Victor Valdes
-@ Version: 2.3.0
+@ Version: 2.4.0
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel v2.2.0 but the new header, the stack and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
