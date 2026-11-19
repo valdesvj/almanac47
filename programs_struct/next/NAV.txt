@@ -298,6 +298,10 @@ STO "KQA3"
 STO "KQA2"
 RCL 46
 STO "W4"
+CLSTK
+"TZ HOURS  W -"
+INPUT "TZ"
+CLSTK
 Date→ⅅ
 Time→ℸ
 ⅅℸ→J

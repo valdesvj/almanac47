@@ -4,8 +4,9 @@
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel v2.2.0 but the new header, the stack and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
-@ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks DATE, UTC, LAT, LON; R/S keeps the default shown: the
-@          date and UT of the clock (UT = clock - TZ), your last LAT / LON (Medellin when none is stored)
+@ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks TZ, DATE, UTC, LAT, LON; R/S keeps the default shown:
+@          your last TZ (the clock's hours from UT, west -), the date and UT of the clock (UT = clock - TZ),
+@          your last LAT / LON (Medellin when none is stored)
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
 @
 @ ---- What it is ----
@@ -20,11 +21,12 @@
 @   1. Load ALMA47 and NAVINIT (NAVINIT.p47u: valid 2026-2030, or NAVINIT_FULL.p47u: 2000-2050, more memory).
 @   2. XEQ NAVINIT once. It takes a while and ends with MATRICES READY. Then delete NAVINIT (GTO NAVINIT, DELP):
 @      the data stays. Do not use CLPALL, it deletes ALMA47 too.
-@   3. XEQ ALMA47. It asks four values (R/S keeps the value shown):
+@   3. XEQ ALMA47. It asks five values (R/S keeps the value shown):
+@        TZ    the hours of your clock from UT, west negative, e.g. -5 (Colombia), 4 (UAE); 0 if it is on UT
 @        DATE  as the calculator's date format, e.g. 2026.0927        UTC  HH.MMSS, e.g. 18.30
 @        LAT   DD.MM, south negative, e.g. 25.12 = 25 12' N           LON  DDD.MM, west negative
-@      DATE and UTC start at the calculator's clock (UT = the clock - TZ: 4 STO "TZ" for a clock on UT+4), LAT and
-@      LON at your last ones (Medellin, 6 13.9 N 75 35.4 W, until you give your own): R/S four times = now, here.
+@      TZ starts at your last one (0 at first), DATE and UTC at the calculator's clock (UT = the clock - TZ), LAT
+@      and LON at your last ones (Medellin, 6 13.9 N 75 35.4 W, until you give your own): R/S five times = now, here.
 @   4. The menu: press a number (no R/S).
 @        1 ALMANAC  the table of the bodies: GHA, Dec, Hc, Zn; twilight, rise / set, meridian passage, the Moon
 @        2 SPLIT    a horizon chart above, the bodies below
@@ -60,7 +62,8 @@
 @   - on ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun): ALMA47 ends with Z its text,
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
 @   - +/- on the menu or a view shows every time in UT or in local time, LT = UT + the variable TZ (the switch is
-@     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing). DATE and UTC are asked in UT.
+@     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing, and asks TZ first). DATE and UTC
+@     are asked in UT.
 @   - the header of every view: the date and time (UT / LT) on the left, the view's name inverted in the middle,
 @     the position on the right (no DR); the menu's position moved the same way.
 @ The other keys as v2.2.0: + menu, up / down arrow one hour, 9 SNAP, 0 on the menu ends.
@@ -366,6 +369,10 @@ STO "KQA3"
 STO "KQA2"
 RCL 46
 STO "W4"
+CLSTK
+"TZ HOURS  W -"         ; TZ first: the hours of the clock from UT (east +, west -; R/S keeps the last one, 0 at first)
+INPUT "TZ"
+CLSTK
 Date→ⅅ                  ; the defaults of the inputs: DATE and UTC from the clock (UT = the clock - TZ); LAT and LON Medellin (6 13.9 N, 75 35.4 W) when none is stored
 Time→ℸ
 ⅅℸ→J
