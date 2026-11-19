@@ -112,7 +112,7 @@ def run(src, keys):
     files.append(T.helper(d, T.INPUTS, keys))
     tcl = ['readp %s' % f for f in files] + ['xeq NAVINIT', 'xeq TSET']
     if src:
-        tcl += ['xeq ALMA47'] + ['press R/S'] * 4
+        tcl += ['xeq ALMA47'] + ['press R/S'] * 5
     tcl += ['puts "X=[reg X]"']
     r0 = resource.getrusage(resource.RUSAGE_CHILDREN).ru_utime
     out, err = T.sim(d, tcl)

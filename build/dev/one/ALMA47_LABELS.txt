@@ -8,87 +8,87 @@ can stand in several routines (the C47 finds the first one after the jump, else 
 
 Local label  release  Step  What it does
 ------------------------------------------------------------------------------
-:CALC:    N95      1012  the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks
-:PTNT:    N80      1409  TEXT: whole number in the tinyFont
-:PDMS:    N54      1443  TEXT: degrees and minutes 'ddd mm.m' with sign
-:PDTS:    N55      1500  TEXT: date 'dd-mm-yyyy' from a Julian Date
-:PHMS:    N53      1538  TEXT: hh:mm from hours
-:PINS:    N51      1591  TEXT: whole number (one ATEXT)
-:PTTY:    N79      1610  TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
-:PTXS:    N50      1621  TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
-:PZNS:    N56      1632  TEXT: azimuth 'ddd.d'
-:PF1S:    N52      1667  TEXT: number with one decimal
-:PHLS:    N57      1703  horizontal line (X = length in pixels)
-:HANIM:   N61      1774  view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
-:PSYS:    N82      2372  SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
-:ALLSKY:  N62      2551  view 5 ALLSKY: whole sky, over the horizon above, under the horizon below
-:PLN3:    N29      2885  planet for the screens: quick position first, full series only if it can be above the horizon
-:PLN2:    N28      2953  planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
-:HCZ:     N32      3471  sight reduction for the DR (R13 lon, R14 lat): Y = Dec, X = GHA -> X Hc, Y Zn (also R09, R05), sin Hc in 'V4'
-:SER:     N18      3503  sum of one series matrix with the matrix functions (COS, DOT)
-:SERT:    N19      3519  the time vectors SV1 SV2 used by SER
-:SUNG:    N16      3546  Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
-:SUNF:    N17      3555  Sun, low-precision formula (0.01 deg) for sunrise/twilight
-:SUNA:    N15      3610  Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
-:HDR:     N83      3934  header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)
-:CHCZ:    N69      4175  Hc Zn from the cache for the body just read (else the real HCZ)
-:CNTA:    N71      4216  nautical twilight am from the cache (the five sun times: computed once per date and place)
-:CSQK:    N68      4224  star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks
-:CRIS:    N72      4481  sunrise from the cache
-:CTRN:    N73      4487  meridian passage from the cache
-:CSET:    N74      4493  sunset from the cache
-:CNTP:    N75      4499  nautical twilight pm from the cache
-:CEQQ:    N77      4505  celestial equator of the charts: its dots for this place (U3 SKY / SPLIT, U2 ANIM / ALLSKY), computed again only for a new place
-:CMOO:    N65      4611  Moon from the cache
-:CSUN:    N64      4636  Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
-:MOO2:    N25      4985  Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
-:RISE:    N38      5373  sunrise time UT (SUNRISE program)
-:SET:     N39      5379  sunset time UT
-:TRAN:    N44      5385  meridian passage of the Sun, UT
-:NTWA:    N40      5391  nautical twilight, morning, UT
-:NTWP:    N41      5399  nautical twilight, evening, UT
-:PSYB:    N81      5494  SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
-:HORZ:    N04      5858  view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)
-:HALMH:   N06      6624  view 2 SPLIT: horizon chart on top, the bodies below (8 rows)
-:ALMF:    N01      7328  view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
-:CALL:    N98      7932  ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)
-:SNMU:    N48      8066  star name from its number
-:PHA2:    N46      8244  Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)
-:WPLS:    N63      8430  every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
-:PKNW:    N02      8470  keys 1-8 (programs_struct/next): an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn
-:PKRC:    N03      8483  keys 1-8 (next): X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB
-:PKEY:    N05      8499  keys 1-8 (next): X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0
-:PKBD:    N07      8542  keys 1-8 (next): the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc
-:CMN:     N84      8663  compass row N E S W N of a chart (X row)
-:OUT5:    N90      8684  steps shared by several routines (tools/navmat.py outline)
-:OUT4:    N89      8702  steps shared by several routines (tools/navmat.py outline)
-:TGET:    N49      8923  almanac tables (TBL): Chebyshev lookup; used only when tables are loaded (TBL is not part of v2.2.0)
-:CMS:     N85      9120  compass row S W N E S of a chart, south up (X row)
+:CALC:    N95      1016  the sky for a new time or place: Sun, Moon, planets into ALMC; the stars as matrices SXE SXH (58 x 3), marked to compute when a page asks
+:PTNT:    N80      1413  TEXT: whole number in the tinyFont
+:PDMS:    N54      1447  TEXT: degrees and minutes 'ddd mm.m' with sign
+:PDTS:    N55      1504  TEXT: date 'dd-mm-yyyy' from a Julian Date
+:PHMS:    N53      1542  TEXT: hh:mm from hours
+:PINS:    N51      1595  TEXT: whole number (one ATEXT)
+:PTTY:    N79      1614  TEXT in the tinyFont (GRFNT 10, the charts) - Z row of the base line, Y column, X text
+:PTXS:    N50      1625  TEXT: ATEXT in GRFNT 21 (Didier's N03 trick) - Z row of the base line, Y column, X text
+:PZNS:    N56      1636  TEXT: azimuth 'ddd.d'
+:PF1S:    N52      1671  TEXT: number with one decimal
+:PHLS:    N57      1707  horizontal line (X = length in pixels)
+:HANIM:   N61      1778  view 4 ANIM: the Sun and the Moon moving on the whole-sky chart (24 frames)
+:PSYS:    N82      2376  SYMBOL of a body, 7 rows (glyphs47, AGRAPH; the charts) - Z row, Y column, X symbol
+:ALLSKY:  N62      2555  view 5 ALLSKY: whole sky, over the horizon above, under the horizon below
+:PLN3:    N29      2889  planet for the screens: quick position first, full series only if it can be above the horizon
+:PLN2:    N28      2957  planet GHA/Dec/SHA/HP: VSOP87 series with light-time, after SUNA
+:HCZ:     N32      3475  sight reduction for the DR (R13 lon, R14 lat): Y = Dec, X = GHA -> X Hc, Y Zn (also R09, R05), sin Hc in 'V4'
+:SER:     N18      3507  sum of one series matrix with the matrix functions (COS, DOT)
+:SERT:    N19      3523  the time vectors SV1 SV2 used by SER
+:SUNG:    N16      3550  Sun GHA/Dec for the sunrise iterations (tables if loaded, else SUNF)
+:SUNF:    N17      3559  Sun, low-precision formula (0.01 deg) for sunrise/twilight
+:SUNA:    N15      3614  Sun: VSOP87 series (matrices VL VB VR), nutation, aberration -> GHA, Dec, GHA Aries
+:HDR:     N83      3938  header of a view: date, UT, DR latitude N/S, longitude E/W (X row, Y time, Z lat, T lon; tools/navmat.py)
+:CHCZ:    N69      4179  Hc Zn from the cache for the body just read (else the real HCZ)
+:CNTA:    N71      4220  nautical twilight am from the cache (the five sun times: computed once per date and place)
+:CSQK:    N68      4228  star from the cache: over the horizon test from SXH (sin Hc, no trig); its angles (CSTA) the first time a page asks
+:CRIS:    N72      4485  sunrise from the cache
+:CTRN:    N73      4491  meridian passage from the cache
+:CSET:    N74      4497  sunset from the cache
+:CNTP:    N75      4503  nautical twilight pm from the cache
+:CEQQ:    N77      4509  celestial equator of the charts: its dots for this place (U3 SKY / SPLIT, U2 ANIM / ALLSKY), computed again only for a new place
+:CMOO:    N65      4615  Moon from the cache
+:CSUN:    N64      4640  Sun from the cache (matrix ALMC); computes the whole sky (CALC) only for a new time or place
+:MOO2:    N25      4989  Moon GHA, Dec, HP, SD: Meeus series (matrices ML MB MCL MCB) after SUNA
+:RISE:    N38      5377  sunrise time UT (SUNRISE program)
+:SET:     N39      5383  sunset time UT
+:TRAN:    N44      5389  meridian passage of the Sun, UT
+:NTWA:    N40      5395  nautical twilight, morning, UT
+:NTWP:    N41      5403  nautical twilight, evening, UT
+:PSYB:    N81      5498  SYMBOL of a body, 12 rows (glyphs47, AGRAPH; the tables, the Moon phases) - Z row, Y column, X symbol
+:HORZ:    N04      5862  view 3 SKY: horizon chart, the name of each body in turn every 2 s (+ back to the menu, arrows one hour)
+:HALMH:   N06      6628  view 2 SPLIT: horizon chart on top, the bodies below (8 rows)
+:ALMF:    N01      7332  view 1 ALMANAC: GHA, Dec, Hc, Zn table of Sun, Moon, planets, stars; twilight, rise/set, Moon
+:CALL:    N98      7936  ALLSKY: a star without values (-98, -99) -> all 58 at once with angles on whole columns (M.PUTM)
+:SNMU:    N48      8070  star name from its number
+:PHA2:    N46      8248  Moon phase after SUNA: illumination % and age in days (the new-moon search: one REPEAT, a second pass when the age is negative)
+:WPLS:    N63      8434  every view holds its screen here (KEY?): + back to the menu, up / down arrow one hour later / earlier
+:PKNW:    N02      8474  keys 1-8 (programs_struct/next): an empty list of the table rows (matrix KB: ALMC row, Hc, Zn) before ALMANAC or SPLIT is drawn
+:PKRC:    N03      8487  keys 1-8 (next): X = Hc, Y = Zn of the table row just drawn, KR its ALMC row -> the next row of KB
+:PKEY:    N05      8503  keys 1-8 (next): X = key code -> X = 1-8 (and KD) for a key 1-8 of a row of the table, else 0
+:PKBD:    N07      8546  keys 1-8 (next): the body of row KD -> KT its text (name, Zn, Hc), KZ its Zn, KH its Hc
+:CMN:     N84      8667  compass row N E S W N of a chart (X row)
+:OUT5:    N90      8688  steps shared by several routines (tools/navmat.py outline)
+:OUT4:    N89      8706  steps shared by several routines (tools/navmat.py outline)
+:TGET:    N49      8927  almanac tables (TBL): Chebyshev lookup; used only when tables are loaded (TBL is not part of v2.2.0)
+:CMS:     N85      9124  compass row S W N E S of a chart, south up (X row)
 
 Numbered labels: the routine each one is in (step)
 ------------------------------------------------------------------------------
-ALMA47    00 (632), 59 (648), 03 (698), 04 (726), 65 (819), 06 (867), 07 (924), 08 (935), 09 (966), 10 (974), 11 (978), 12 (982), 13 (988)
-:CALC:    01 (1106), 02 (1167), 03 (1297), 04 (1326), 05 (1361), 06 (1396)
-:PTNT:    66 (1434)
-:PINS:    67 (1605)
-:PF1S:    05 (1689)
-:PHLS:    06 (1756), 07 (1765), 08 (1769)
-:HANIM:   01 (1994), 02 (2051), 03 (2220), 04 (2241), 05 (2258), 06 (2283), 07 (2302), 08 (2308), 09 (2314), 10 (2322), 11 (2329), 12 (2335), 13 (2339), 14 (2343), 15 (2347), 16 (2363)
-:PSYS:    60 (2391), 61 (2402), 63 (2419), 01 (2438), 62 (2445), 02 (2463), 03 (2469), 42 (2475), 40 (2503), 64 (2523)
-:ALLSKY:  01 (2810), 02 (2820), 03 (2841), 04 (2845), 05 (2851), 06 (2857), 07 (2861), 08 (2865), 61 (2869), 62 (2872)
-:PLN2:    01 (2954), 02 (2989), 68 (3171), 04 (3231), 05 (3243), 06 (3255), 14 (3265), 60 (3276), 61 (3305), 62 (3337), 63 (3369), 64 (3401), 07 (3433), 11 (3438), 12 (3449), 13 (3460)
-:SER:     69 (3504)
-:SUNA:    03 (3770), 04 (3849), 05 (3900), 06 (3916), 07 (3926)
-:CHCZ:    70 (4203)
-:CSQK:    75 (4341)
-:CEQQ:    03 (4525), 04 (4585), 05 (4598)
-:CSUN:    06 (4661), 07 (4712), 08 (4757), 09 (4769), 10 (4774), 11 (4779), 12 (4806), 13 (4833), 14 (4838), 15 (4967), 16 (4973), 17 (4979)
-:MOO2:    01 (5309), 02 (5347), 03 (5360)
-:NTWP:    01 (5407), 02 (5475), 03 (5482), 04 (5491)
-:PSYB:    64 (5513), 42 (5534), 54 (5571), 60 (5578), 40 (5595), 76 (5610), 77 (5617), 78 (5625), 79 (5632), 80 (5637), 86 (5642), 07 (5648), 87 (5653), 88 (5658), 10 (5665), 89 (5672), 90 (5677), 95 (5682), 62 (5687), 61 (5718), 63 (5748), 48 (5779), 49 (5784), 50 (5793), 51 (5800), 52 (5811), 53 (5820), 55 (5830), 14 (5839), 15 (5846), 16 (5853)
-:HORZ:    02 (6342), 96 (6364), 97 (6366), 05 (6387), 06 (6392), 07 (6399), 08 (6443), 09 (6484), 98 (6501), 11 (6518), 12 (6524), 13 (6530), 14 (6553), 16 (6557), 17 (6564), 18 (6568), 71 (6572), 72 (6575), 73 (6578), 74 (6581), 81 (6584), 82 (6587), 83 (6590), 84 (6593), 85 (6596), 19 (6599), 91 (6603), 92 (6606), 93 (6609), 94 (6612), 20 (6615)
-:HALMH:   99 (7031), 02 (7072), 04 (7095), 05 (7198), 06 (7220), 07 (7225), 08 (7244), 09 (7248), 10 (7252), 11 (7256), 12 (7260), 71 (7284), 72 (7287), 73 (7290), 74 (7293), 82 (7296), 83 (7299), 84 (7302), 85 (7305), 91 (7308), 92 (7311), 93 (7314), 94 (7317), 13 (7320)
-:ALMF:    A (7515), B (7556), 03 (7562), 04 (7581), 05 (7799), 06 (7809), 07 (7819), 08 (7823), 09 (7827), 10 (7831), 11 (7835), 12 (7839), 13 (7843), 71 (7867), 72 (7870), 73 (7873), 74 (7876), 82 (7879), 83 (7882), 84 (7885), 85 (7888), 91 (7891), 92 (7894), 93 (7897), 94 (7900), 48 (7903), 49 (7906), 50 (7909), 51 (7912), 52 (7915), 53 (7918), 54 (7921), 55 (7924), 14 (7927)
-:SNMU:    01 (8070), 02 (8073), 03 (8076), 04 (8079), 05 (8082), 06 (8085), 07 (8088), 08 (8091), 09 (8094), 10 (8097), 11 (8100), 12 (8103), 13 (8106), 14 (8109), 15 (8112), 16 (8115), 17 (8118), 18 (8121), 19 (8124), 20 (8127), 21 (8130), 22 (8133), 23 (8136), 24 (8139), 25 (8142), 26 (8145), 27 (8148), 28 (8151), 29 (8154), 30 (8157), 31 (8160), 32 (8163), 33 (8166), 34 (8169), 35 (8172), 36 (8175), 37 (8178), 38 (8181), 39 (8184), 40 (8187), 41 (8190), 42 (8193), 43 (8196), 44 (8199), 45 (8202), 46 (8205), 47 (8208), 48 (8211), 49 (8214), 50 (8217), 51 (8220), 52 (8223), 53 (8226), 54 (8229), 55 (8232), 56 (8235), 57 (8238), 58 (8241)
-:PKBD:    01 (8645), 02 (8648), 03 (8651), 04 (8654), 05 (8657), 06 (8660)
-:TGET:    01 (9026), 02 (9050), 20 (9085), 21 (9090), 22 (9095), 23 (9100), 24 (9105), 25 (9110), 26 (9115)
+ALMA47    00 (636), 59 (652), 03 (702), 04 (730), 65 (823), 06 (871), 07 (928), 08 (939), 09 (970), 10 (978), 11 (982), 12 (986), 13 (992)
+:CALC:    01 (1110), 02 (1171), 03 (1301), 04 (1330), 05 (1365), 06 (1400)
+:PTNT:    66 (1438)
+:PINS:    67 (1609)
+:PF1S:    05 (1693)
+:PHLS:    06 (1760), 07 (1769), 08 (1773)
+:HANIM:   01 (1998), 02 (2055), 03 (2224), 04 (2245), 05 (2262), 06 (2287), 07 (2306), 08 (2312), 09 (2318), 10 (2326), 11 (2333), 12 (2339), 13 (2343), 14 (2347), 15 (2351), 16 (2367)
+:PSYS:    60 (2395), 61 (2406), 63 (2423), 01 (2442), 62 (2449), 02 (2467), 03 (2473), 42 (2479), 40 (2507), 64 (2527)
+:ALLSKY:  01 (2814), 02 (2824), 03 (2845), 04 (2849), 05 (2855), 06 (2861), 07 (2865), 08 (2869), 61 (2873), 62 (2876)
+:PLN2:    01 (2958), 02 (2993), 68 (3175), 04 (3235), 05 (3247), 06 (3259), 14 (3269), 60 (3280), 61 (3309), 62 (3341), 63 (3373), 64 (3405), 07 (3437), 11 (3442), 12 (3453), 13 (3464)
+:SER:     69 (3508)
+:SUNA:    03 (3774), 04 (3853), 05 (3904), 06 (3920), 07 (3930)
+:CHCZ:    70 (4207)
+:CSQK:    75 (4345)
+:CEQQ:    03 (4529), 04 (4589), 05 (4602)
+:CSUN:    06 (4665), 07 (4716), 08 (4761), 09 (4773), 10 (4778), 11 (4783), 12 (4810), 13 (4837), 14 (4842), 15 (4971), 16 (4977), 17 (4983)
+:MOO2:    01 (5313), 02 (5351), 03 (5364)
+:NTWP:    01 (5411), 02 (5479), 03 (5486), 04 (5495)
+:PSYB:    64 (5517), 42 (5538), 54 (5575), 60 (5582), 40 (5599), 76 (5614), 77 (5621), 78 (5629), 79 (5636), 80 (5641), 86 (5646), 07 (5652), 87 (5657), 88 (5662), 10 (5669), 89 (5676), 90 (5681), 95 (5686), 62 (5691), 61 (5722), 63 (5752), 48 (5783), 49 (5788), 50 (5797), 51 (5804), 52 (5815), 53 (5824), 55 (5834), 14 (5843), 15 (5850), 16 (5857)
+:HORZ:    02 (6346), 96 (6368), 97 (6370), 05 (6391), 06 (6396), 07 (6403), 08 (6447), 09 (6488), 98 (6505), 11 (6522), 12 (6528), 13 (6534), 14 (6557), 16 (6561), 17 (6568), 18 (6572), 71 (6576), 72 (6579), 73 (6582), 74 (6585), 81 (6588), 82 (6591), 83 (6594), 84 (6597), 85 (6600), 19 (6603), 91 (6607), 92 (6610), 93 (6613), 94 (6616), 20 (6619)
+:HALMH:   99 (7035), 02 (7076), 04 (7099), 05 (7202), 06 (7224), 07 (7229), 08 (7248), 09 (7252), 10 (7256), 11 (7260), 12 (7264), 71 (7288), 72 (7291), 73 (7294), 74 (7297), 82 (7300), 83 (7303), 84 (7306), 85 (7309), 91 (7312), 92 (7315), 93 (7318), 94 (7321), 13 (7324)
+:ALMF:    A (7519), B (7560), 03 (7566), 04 (7585), 05 (7803), 06 (7813), 07 (7823), 08 (7827), 09 (7831), 10 (7835), 11 (7839), 12 (7843), 13 (7847), 71 (7871), 72 (7874), 73 (7877), 74 (7880), 82 (7883), 83 (7886), 84 (7889), 85 (7892), 91 (7895), 92 (7898), 93 (7901), 94 (7904), 48 (7907), 49 (7910), 50 (7913), 51 (7916), 52 (7919), 53 (7922), 54 (7925), 55 (7928), 14 (7931)
+:SNMU:    01 (8074), 02 (8077), 03 (8080), 04 (8083), 05 (8086), 06 (8089), 07 (8092), 08 (8095), 09 (8098), 10 (8101), 11 (8104), 12 (8107), 13 (8110), 14 (8113), 15 (8116), 16 (8119), 17 (8122), 18 (8125), 19 (8128), 20 (8131), 21 (8134), 22 (8137), 23 (8140), 24 (8143), 25 (8146), 26 (8149), 27 (8152), 28 (8155), 29 (8158), 30 (8161), 31 (8164), 32 (8167), 33 (8170), 34 (8173), 35 (8176), 36 (8179), 37 (8182), 38 (8185), 39 (8188), 40 (8191), 41 (8194), 42 (8197), 43 (8200), 44 (8203), 45 (8206), 46 (8209), 47 (8212), 48 (8215), 49 (8218), 50 (8221), 51 (8224), 52 (8227), 53 (8230), 54 (8233), 55 (8236), 56 (8239), 57 (8242), 58 (8245)
+:PKBD:    01 (8649), 02 (8652), 03 (8655), 04 (8658), 05 (8661), 06 (8664)
+:TGET:    01 (9030), 02 (9054), 20 (9089), 21 (9094), 22 (9099), 23 (9104), 24 (9109), 25 (9114), 26 (9119)
