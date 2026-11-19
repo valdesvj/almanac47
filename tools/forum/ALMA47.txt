@@ -10,11 +10,12 @@ You need two files: ALMA47 (the programs that stay on the calculator) and NAVINI
   1. Load ALMA47 and NAVINIT (NAVINIT.p47u: valid 2026-2030, or NAVINIT_FULL.p47u: 2000-2050, more memory).
   2. XEQ NAVINIT once. It takes a while and ends with MATRICES READY. Then delete NAVINIT (GTO NAVINIT, DELP):
      the data stays. Do not use CLPALL, it deletes ALMA47 too.
-  3. XEQ ALMA47. It asks four values (R/S keeps the value shown):
+  3. XEQ ALMA47. It asks five values (R/S keeps the value shown):
+       TZ    the hours of your clock from UT, west negative, e.g. -5 (Colombia), 4 (UAE); 0 if it is on UT
        DATE  as the calculator's date format, e.g. 2026.0927        UTC  HH.MMSS, e.g. 18.30
        LAT   DD.MM, south negative, e.g. 25.12 = 25 12' N           LON  DDD.MM, west negative
-     DATE and UTC start at the calculator's clock (UT = the clock - TZ: 4 STO "TZ" for a clock on UT+4), LAT and
-     LON at your last ones (Medellin, 6 13.9 N 75 35.4 W, until you give your own): R/S four times = now, here.
+     TZ starts at your last one (0 at first), DATE and UTC at the calculator's clock (UT = the clock - TZ), LAT
+     and LON at your last ones (Medellin, 6 13.9 N 75 35.4 W, until you give your own): R/S five times = now, here.
   4. The menu: press a number (no R/S).
        1 ALMANAC  the table of the bodies: GHA, Dec, Hc, Zn; twilight, rise / set, meridian passage, the Moon
        2 SPLIT    a horizon chart above, the bodies below
