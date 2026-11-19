@@ -13,6 +13,9 @@ version and the base for a phone app (**Almanac 47**).
   `docs/Almanac47_Free42_Manual.pdf`; build: `python3 tools/build_release_v230.py` (rejig for the .p47 and the zips);
   sources: `programs_struct/next/`, `programs_struct/little/NAVLITTLE_221.txt`, `tools/build_next_f42.py`; tests:
   `tests/test_struct_src.py`, `tests/test_next_f42.py`, `tests/test_moon47_f42.py`, `tests/test_web_calc.py`.
+  **R47 keyboard:** `Almanac47_R47_v2.3.0.zip` (`build/v2.3.0/r47/`, `python3 tools/build_r47_v230.py`): the same
+  release with ALMA47's ↑ / ↓ where the R47 has them (key codes 61 / 71 instead of 51 / 61); test
+  `tests/test_r47_keys.py`.
 - **v2.2.1:** `build/v2.2.1/` - v2.2.0 with **your stack and LASTx kept** when a program ends, by the trick
   from the SwissMicros forum (`LocR 9`, `STOS R.00` at the start, `RCLS R.00` at the end; Free42: the variables
   S7X ... S7L). On the C47 / R47 the keys 1-8 on ALMANAC and SPLIT end ALMA47 with that body on your stack (Z the text,
