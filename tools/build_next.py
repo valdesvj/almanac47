@@ -36,7 +36,7 @@ COL = 40
 
 HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Author:  Victor Valdes
-@ Version: 2.3.0
+@ Version: 2.4.0
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel v2.2.0 but the new header, the stack and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
@@ -65,7 +65,7 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 
 MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @ Author:  Victor Valdes
-@ Version: 2.3.0
+@ Version: 2.4.0
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py) only: the page pixel for pixel v2.2.0 (16 dates 2000-2050, time zones,
 @ Tested:  north and south), the stack (4 levels) and LASTx kept, R00-R06 / R66-R99 kept, R07-R65 cleared
@@ -74,7 +74,7 @@ MOON_HEAD = """@ Index:   Moon phase, age and the next phases
 @
 @@NARRATIVE@@
 @ ---- Technical notes ----
-@ 2.3.0: +/- UT or LT. 2.2.2: the disc drawn with two AGRAPH words a column (the outline and the lit part merged, each half one word
+@ 2.4.0: unchanged. 2.3.0: +/- UT or LT. 2.2.2: the disc drawn with two AGRAPH words a column (the outline and the lit part merged, each half one word
 @ 2^(b+1) - 2^a): the page in about 21 000 steps instead of 30 000 (3.6 s instead of 5.1 s), the same pixels.
 @ As MOON47 v2.2.0, and:
 @   - your stack (X ... D with the 8-level stack) and LASTx are as before XEQ 'MOON47' when it ends (LocR 9,
@@ -180,13 +180,13 @@ def main():
 
 
 def dm42():
-    """the old DM42 with the C47 firmware: ALMA47 (NAVLITTLE, programs_struct/little/NAVLITTLE_221.txt: the stack kept,
+    """the old DM42 with the C47 firmware: ALMA47 (NAVLITTLE, programs_struct/little/NAVLITTLE_240.txt: the stack kept,
     UT / LT on +/-) and MOON47 (the next version's, at most 10 structures a program) in build/dev/next/dm42/; NAVINIT:
     v2.2.0's build/dm42/NAVINIT_LITTLE.txt, unchanged"""
     import build_release_c47 as R
     d = os.path.join(OUT, 'dm42')
     os.makedirs(d, exist_ok=True)
-    S, I = R.little(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE_221.txt'))
+    S, I = R.little(os.path.join(ROOT, 'programs_struct', 'little', 'NAVLITTLE_240.txt'))
     assert I == R.lines(os.path.join(R.DM42, 'NAVINIT_LITTLE.txt')), 'NAVINIT_LITTLE is the one of v2.2.0'
     M = R.moon_dm42(os.path.join(ROOT, 'programs_struct', 'next', 'MOON47.txt'), 4)
     for name, P in (('ALMA47', S), ('MOON47', M)):

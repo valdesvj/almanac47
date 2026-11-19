@@ -3,7 +3,8 @@
 down 71) every screen pixel for pixel the C47 ALMA47 with the C47 keys (up 51, down 61), on the menu and on each view
 1-8 (the arrows, +/-, + and 0), the stack back; on the R47 build the C47 up arrow's place (51: XEQ on the R47) moves
 no hour; the listing differs from the C47 one only in the 12 key steps; the p47u is the listing.
-  python3 tools/build_release_v230.py && python3 tools/build_r47_v230.py && python3 tests/test_r47_keys.py"""
+  python3 tools/build_release_v230.py && python3 tools/build_r47_v230.py && python3 tests/test_r47_keys.py
+  REL=2.4.0 python3 tests/test_r47_keys.py: v2.4.0's (tools/build_release_v240.py builds its r47/ too)"""
 import os, sys
 from decimal import Decimal as D
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -11,7 +12,7 @@ sys.path[:0] = [os.path.join(ROOT, 'tests'), os.path.join(ROOT, 'tools'), os.pat
 import test_v2 as V                                                           # noqa: E402
 import build_r47_v230 as R                                                    # noqa: E402
 
-REL = os.path.join(ROOT, 'build', 'v2.3.0')
+REL = os.path.join(ROOT, 'build', 'v' + os.environ.get('REL', '2.3.0'))
 C47K = dict(V.K)
 R47K = dict(V.K, up=61, down=71)
 bad = 0
@@ -40,7 +41,7 @@ def run(L, keys, init, inp, tz=None):
 
 
 def main():
-    print('== the R47 ALMA47 (build/v2.3.0/r47/)')
+    print('== the R47 ALMA47 (%s/r47/)' % os.path.relpath(REL, ROOT))
     C = R.lines(os.path.join(REL, 'c47', 'ALMA47.txt'))
     Rl = R.lines(os.path.join(REL, 'r47', 'ALMA47.txt'))
     diff = [(a, b) for a, b in zip(C, Rl) if a != b]

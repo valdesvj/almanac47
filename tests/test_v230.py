@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""test_v230.py - the v2.3.0 release folder (build/v2.3.0/, tools/build_release_v230.py) is the next version:
+"""test_v230.py - the v2.3.0 release folder (build/v2.3.0/, tools/build_release_v230.py) as released: its files are those
+of the tag v2.3.0 (until v2.4.0 this test compared them with the next version, now tests/test_v240.py). Was:
   c47/     ALMA47.txt = LBL "ALMA47" + build_struct_src.build_next()[1:]; MOON47.txt, p47u/ = build/dev/next/'s;
            the p47u headers say Version 2.3.0; QUICKSTART and the labels file say v2.3.0 and +/-
   dm42/    NAVLITTLE.txt and MOON47.txt = build/dev/next/dm42/ALMA47.txt and MOON47.txt; README says v2.3.0
@@ -36,17 +37,14 @@ def same(a, b):
 
 
 def main():
-    print('== build/v2.3.0/ is the next version')
-    L = B.build_next()
-    ok(lines(os.path.join(REL, 'c47', 'ALMA47.txt')) == ['LBL "ALMA47"'] + L[1:],
-       'c47/ALMA47.txt: the next build, %d steps' % len(L))
-    for a, b in (('c47/MOON47.txt', 'MOON47.txt'), ('c47/p47u/ALMA47.p47u', 'ALMA47.p47u'),
-                 ('c47/p47u/MOON47.p47u', 'MOON47.p47u'), ('dm42/NAVLITTLE.txt', 'dm42/ALMA47.txt'),
-                 ('dm42/MOON47.txt', 'dm42/MOON47.txt'), ('free42/NAVFULL.txt', 'free42/NAVFULL.txt'),
-                 ('free42/NAVLITTLE.txt', 'free42/NAVLITTLE.txt'), ('free42/MOON47.txt', 'free42/MOON47.txt'),
-                 ('free42/NAVFULL.raw', 'free42/NAVFULL.raw'), ('free42/NAVLITTLE.raw', 'free42/NAVLITTLE.raw'),
-                 ('free42/MOON47.raw', 'free42/MOON47.raw')):
-        ok(same(os.path.join(REL, a), os.path.join(NEXT, b)), '%s = build/dev/next/%s' % (a, b))
+    print('== build/v2.3.0/ as released (tag v2.3.0; the next version moved on to v2.4.0: tests/test_v240.py)')
+    import subprocess
+    for a in ('c47/ALMA47.txt', 'c47/ALMA47_LABELS.txt', 'c47/MOON47.txt', 'c47/QUICKSTART.txt', 'c47/p47u/ALMA47.p47u',
+              'c47/p47u/MOON47.p47u', 'dm42/NAVLITTLE.txt', 'dm42/MOON47.txt', 'dm42/README_DM42.txt',
+              'free42/NAVFULL.txt', 'free42/NAVLITTLE.txt', 'free42/MOON47.txt', 'free42/NAVFULL.raw',
+              'free42/NAVLITTLE.raw', 'free42/MOON47.raw', 'free42/README_F42.txt'):
+        r = subprocess.run(['git', 'show', 'v2.3.0:build/v2.3.0/' + a], cwd=ROOT, capture_output=True)
+        ok(r.returncode == 0 and r.stdout == open(os.path.join(REL, a), 'rb').read(), '%s = the tag v2.3.0' % a)
     for p in ('ALMA47', 'MOON47'):
         ok('@ Version: 2.3.0\n' in text(REL, 'c47', 'p47u', p + '.p47u'), 'p47u/%s.p47u: Version 2.3.0' % p)
     q = text(REL, 'c47', 'QUICKSTART.txt')
@@ -57,8 +55,6 @@ def main():
         t = text(REL, d, f)
         ok('v2.3.0' in t and '+/-' in t and 'TZ' in t, '%s/%s: the v2.3.0 note' % (d, f))
     ok('# Almanac 47 v2.3.0' in text(ROOT, 'RELEASE_NOTES_v2.3.0.md'), 'RELEASE_NOTES_v2.3.0.md')
-    ok("VERSION = '2.3.0'" in text(ROOT, 'tools', 'generators', 'manual_nav.py')
-       and 'version 2.3.0' in text(ROOT, 'tools', 'generators', 'build_port_manuals.py'), 'the manuals: v2.3.0')
     ok(os.path.exists(os.path.join(ROOT, 'docs', 'c47', 'ALMF_LT.png')), 'docs/c47/ALMF_LT.png')
     print('%d failed' % bad if bad else 'ALL OK')
     return bad
