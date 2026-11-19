@@ -40,7 +40,9 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @ Source:  https://github.com/valdesvj/almanac47
 @ Tested:  C47 simulator (python/c47sim.py): every view pixel for pixel v2.2.0 but the new header, the stack and LASTx
 @ Tested:  kept, R00-R06 / R99 kept, keys 1-8 on ALMANAC and SPLIT give the bodies of the PC almanac (python/native)
-@ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks DATE, UTC, LAT, LON as v2.2.0
+@ Input:   NAVINIT of v2.2.0 run once. XEQ 'ALMA47' asks TZ, DATE, UTC, LAT, LON; R/S keeps the default shown:
+@          your last TZ (the clock's hours from UT, west -), the date and UT of the clock (UT = clock - TZ),
+@          your last LAT / LON (Medellin when none is stored)
 @ Output:  ALMANAC, key 1: Z 'SUN Zn 216.7 Hc 54 11.6' (2026-10-04 9:30 UT, 25 20 N 55 12 E), Y Zn, X Hc
 @
 @@NARRATIVE@@
@@ -52,7 +54,8 @@ HEAD = """@ Index:   Celestial navigation almanac, sky charts, sight reduction
 @   - on ALMANAC and SPLIT a key 1-8 picks a body of the table (1 the Sun): ALMA47 ends with Z its text,
 @     Y its Zn, X its Hc (decimal degrees) pushed on your stack.
 @   - +/- on the menu or a view shows every time in UT or in local time, LT = UT + the variable TZ (the switch is
-@     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing). DATE and UTC are asked in UT.
+@     the variable TZLT, kept; ALMA47 makes TZ and TZLT 0 when they are missing, and asks TZ first). DATE and UTC
+@     are asked in UT.
 @   - the header of every view: the date and time (UT / LT) on the left, the view's name inverted in the middle,
 @     the position on the right (no DR); the menu's position moved the same way.
 @ The other keys as v2.2.0: + menu, up / down arrow one hour, 9 SNAP, 0 on the menu ends.
@@ -119,15 +122,34 @@ def narrative(head, name):
     return head.replace('@@NARRATIVE@@', text)
 
 
+def next_blocks(blocks):
+    """NAV's block comments (tools/struct_comments.py, those of v2.2.0) for the next version: the defaults of the inputs
+    (programs_struct/next/NAV.txt) are IF 03, so the IF 03 ... of v2.2.0 are one number higher."""
+    out = []
+    for step, nth, back, text in blocks:
+        m = re.fullmatch(r'IF (\d\d)', step)
+        if m and int(m.group(1)) >= 3:
+            step = 'IF %02d' % (int(m.group(1)) + 1)
+        out.append((step, nth, back, text))
+        if step == '"DATE YYYY.MMDD"':
+            out.insert(len(out) - 1, ('"TZ HOURS  W -"', 1, 0, 'TZ first: the hours of the clock from UT (east +, '
+                                      'west -; R/S keeps the last one, 0 at first)'))
+            out.insert(len(out) - 1, ('Date→ⅅ', 1, 0, 'the defaults of the inputs: DATE and UTC from the clock (UT = '
+                                      'the clock - TZ); LAT and LON Medellin (6 13.9 N, 75 35.4 W) when none is stored'))
+    return out
+
+
 def full(L):
     """ALMA47's steps with the comments of build_struct_src.commented (every program, routine and table; the
     next version's programs, PICK among them), after ';' as build_forum's; the main label's line as source()'s."""
-    old = B.ORDER
+    import struct_comments as SC
+    old, blocks = B.ORDER, SC.BLOCKS['NAV']
     B.ORDER = B.NEXT_ORDER
+    SC.BLOCKS['NAV'] = next_blocks(blocks)
     try:
         com = B.commented(['LBL "NAV"'] + L[1:])
     finally:
-        B.ORDER = old
+        B.ORDER, SC.BLOCKS['NAV'] = old, blocks
     out = F.commented(com[4:])
     while not out[0].strip():
         out.pop(0)
